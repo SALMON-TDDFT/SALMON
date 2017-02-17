@@ -13,7 +13,7 @@
 ! limitations under the License.
 
 
-MODULE global_variables
+MODULE global_variables_rt
 
 use scf_data
 use allocate_mat_sub
@@ -46,12 +46,12 @@ integer       :: iii
 
 real(8), allocatable :: alpha2(:,:,:,:)
 
-END MODULE global_variables
+END MODULE global_variables_rt
 
 !=======================================================================
 
-PROGRAM Real_Time_DFT
-use global_variables
+subroutine Real_Time_DFT(nprocs,procid)
+use global_variables_rt
 use allocate_sendrecv_groupob_sub
 implicit none
 
@@ -74,10 +74,10 @@ integer :: ia,ib
 real(8) :: rab
 real(8) :: box
 real(8) :: tt
+integer :: nprocs,procid
 
-call MPI_Init(ierr)
-call MPI_Comm_Size(MPI_COMM_WORLD,nproc,ierr)
-call MPI_Comm_Rank(MPI_COMM_WORLD,myrank,ierr)
+nproc=nprocs
+myrank=procid
 
 elp3(:)=0.d0
 elp5(:)=0.d0
@@ -613,16 +613,12 @@ open(79,file=timeFile)
 
 call deallocate_mat
 
-call MPI_Finalize(ierr)
-
-stop
-
-END PROGRAM Real_Time_DFT
+END subroutine Real_Time_DFT
 
 !=======================================================================
 
 SUBROUTINE Time_Evolution(IC_rt)
-use global_variables
+use global_variables_rt
 
 implicit none
 
@@ -1340,7 +1336,7 @@ END SUBROUTINE Time_Evolution
 ! Fourier transform for 3D
 
 SUBROUTINE Fourier3D(Dp_t,alpha_R,alpha_I)
-use global_variables
+use global_variables_rt
 implicit none
 
 real(8),intent(IN) :: Dp_t(3,0:Ntime)

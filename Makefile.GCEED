@@ -31,7 +31,9 @@ ARCH = intel
 ##### please do not modify following sentences #####
 ####################################################
 
-SCFSRC = real_space_dft.f90 calcELF.f90 \
+SRCmain = main.f90 end_parallel.f90 read_input.f90 setup_parallel.f90
+
+SRC = gceed.f90 read_input_gceed.f90 real_space_dft.f90 calcELF.f90 \
       psl.f90 hartree.f90 ylm.f90 xc.f90 \
       OUT_IN_data.f90 \
       subspace_diag.f90 simple_mixing.f90 copy_density.f90 \
@@ -48,22 +50,14 @@ SCFSRC = real_space_dft.f90 calcELF.f90 \
       setbN.f90 setcN.f90 ybcg.f90 rmmdiis_eigen.f90 rmmdiis.f90 hartree_cg.f90 \
       hartree_boundary.f90 calc_myob.f90 check_corrkob.f90 \
       calc_allob.f90 calc_ob_num.f90 calc_pmax.f90 calc_iroot.f90 calc_iquotient.f90 set_isstaend.f90 \
-      conv_p0.f90 conv_p.f90 set_ispin.f90 read_copy_pot.f90 set_gridcoo.f90 calc_dos.f90 calc_pdos.f90
-
-
-RTSRC = real_time_dft.f90 hartree.f90 ylm.f90 xc.f90 \
-     taylor.f90 taylor_coe.f90 WriteDensity.f90 calcELF.f90 read_rt.f90 \
-     OUT_IN_data.f90 \
-     time_evolution_step.f90 laplacianh.f90 \
-     nabla.f90 hpsi_groupob.f90 gradient_ex.f90 calcEstatic.f90 total_energy_groupob.f90 \
-     copyVlocal.f90 setmg.f90 setng.f90 xc_fast.f90 calc_force_c.f90 \
-     calc_gradient_fast_c.f90 psl.f90 dip.f90 calc_Mps3rd.f90  \
-     read_input_rt.f90 check_numcpu.f90 writepsi.f90 calcJxyz.f90 storevpp.f90 calcuV.f90 calcJxyz2nd.f90 calcVpsl.f90 \
-     bisection.f90 setbN.f90 setcN.f90 inner_product3.f90 inner_product4.f90 hartree_cg.f90 \
-     hartree_boundary.f90 calc_myob.f90 check_corrkob.f90 calc_allob.f90 projection.f90 calc_ob_num.f90 calc_pmax.f90 \
-     calc_iquotient.f90 set_isstaend.f90 add_polynomial.f90 conv_p0.f90 conv_p.f90 init_wf.f90 set_ispin.f90 calcVbox.f90 calc_iroot.f90 \
-     read_copy_pot.f90 set_gridcoo.f90
-
+      conv_p0.f90 conv_p.f90 set_ispin.f90 read_copy_pot.f90 set_gridcoo.f90 calc_dos.f90 calc_pdos.f90 \
+     real_time_dft.f90 \
+     taylor.f90 taylor_coe.f90 WriteDensity.f90 read_rt.f90 \
+     time_evolution_step.f90 \
+     hpsi_groupob.f90 gradient_ex.f90 calcEstatic.f90 total_energy_groupob.f90 \
+     xc_fast.f90 calc_force_c.f90 \
+     dip.f90 calc_Mps3rd.f90 read_input_rt.f90 projection.f90 \
+     add_polynomial.f90 calcVbox.f90 
 
 MOD = scf_data.f90 allocate_mat.f90 new_world.f90 init_sendrecv.f90 sendrecv.f90 laplacian2.f90 gradient2.f90 hpsi2.f90 deallocate_mat.f90 \
       copy_psi_mesh.f90 inner_product.f90 rmmdiis_eigen_$(FILE_MATHLIB).f90 \
@@ -71,33 +65,26 @@ MOD = scf_data.f90 allocate_mat.f90 new_world.f90 init_sendrecv.f90 sendrecv.f90
       change_order.f90 allocate_sendrecv_groupob.f90 allocate_psl.f90 gradient.f90 sendrecvh.f90 \
       calc_invA_$(FILE_MATHLIB).f90 writebox_rt.f90 readbox_rt.f90 sendrecv_groupob.f90 sendrecv_groupob_ngp.f90
 
-SCFOBJ = $(addprefix obj/,$(SCFSRC:.f90=.o))
-RTOBJ = $(addprefix obj/,$(RTSRC:.f90=.o))
+OBJ = $(addprefix obj/,$(SRC:.f90=.o))
+OBJmain = $(addprefix obj/,$(SRCmain:.f90=.o))
 OBJM= $(addprefix obj/,$(MOD:.f90=.o))
-SCFOBJS= $(OBJM) $(SCFOBJ)
-RTOBJS= $(OBJM) $(RTOBJ)
+OBJS= $(OBJM) $(OBJ) $(OBJmain)
 OBJDIR= obj
 .SUFFIXES:
 .SUFFIXES: .F .F90 .o
 
-scf : scf2
-
-rt : rt2
-
-all : scf rt
-
 ifeq ($(ARCH),fujitsu)
-scf2 : $(SCFOBJS)
-	$(FC) $(FFLAGS)   -o scf $(SCFOBJS) $(LIBSCALAPACK)
-rt2 : $(RTOBJS)
-	$(FC) $(FFLAGS)   -o rt $(RTOBJS) $(LIBSCALAPACK)
+gceed : $(OBJS)
+	$(FC) $(FFLAGS)   -o gceed $(OBJS) $(LIBSCALAPACK)
+$(OBJDIR)/%.o : main/%.f90
+	$(FC) $(FFLAGS) -M $(OBJDIR) -o $@ -c $<
 $(OBJDIR)/%.o : GCEED/%.f90
 	$(FC) $(FFLAGS) -M $(OBJDIR) -o $@ -c $<
 else
-scf2 : $(SCFOBJS)
-	$(FC) $(FFLAGS)   -o scf -I $(OBJDIR) $(SCFOBJS) $(LIBSCALAPACK)
-rt2 : $(RTOBJS)
-	$(FC) $(FFLAGS)   -o rt -I $(OBJDIR) $(RTOBJS) $(LIBSCALAPACK)
+gceed : $(OBJS)
+	$(FC) $(FFLAGS)   -o gceed -I $(OBJDIR) $(OBJS) $(LIBSCALAPACK)
+$(OBJDIR)/%.o : main/%.f90
+	$(FC) $(FFLAGS) -module $(OBJDIR) -o $@ -c $<
 $(OBJDIR)/%.o : GCEED/%.f90
 	$(FC) $(FFLAGS) -module $(OBJDIR) -o $@ -c $<
 endif
@@ -105,5 +92,5 @@ endif
 $(OBJ): $(addprefix GCEED/,$(MOD))
 
 clean : 
-	rm -f scf rt $(OBJDIR)/*.mod $(OBJDIR)/*.o *.mod *.lst
+	rm -f gceed $(OBJDIR)/*.mod $(OBJDIR)/*.o *.mod *.lst
 

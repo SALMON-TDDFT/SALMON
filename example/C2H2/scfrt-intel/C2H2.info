@@ -1,0 +1,22 @@
+ Total number of iteration =          149
+ 
+ Number of orbitals =            5
+ Number of filled orbitals =            5
+ 
+ Total energy =   -339.705900706724     
+ 1-particle energies
+     1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
+     5        -7.3313
+ 
+ Size of the box     =    16.0000000000000        16.0000000000000     
+   16.0000000000000     
+ Grid spacing          =   0.250000000000000       0.250000000000000     
+  0.250000000000000     
+ 
+ Number of atoms =            4
+ iZatom( 1)       =            6
+ iZatom( 2)       =            1
+ 
+ Ref. and max angular momentum and pseudo-core radius of PP
+ ( 1)   Ref, Max, Rps =   1   1   0.800
+ ( 2)   Ref, Max, Rps =   0   0   0.800

@@ -14,7 +14,7 @@
 
 !=======================================================================
 
-MODULE global_variables
+MODULE global_variables_scf
 
 use scf_data
 use hpsi2_sub
@@ -33,13 +33,13 @@ implicit none
 
 integer :: iDiterYBCG
 
-END MODULE global_variables
+END MODULE global_variables_scf
 
 !=======================================================================
 
-PROGRAM Real_Space_DFT
+subroutine Real_Space_DFT(nprocs,procid)
 !$ use omp_lib
-use global_variables
+use global_variables_scf
 implicit none
 
 integer :: ix,iy,iz,ik,ikoa
@@ -63,11 +63,12 @@ real(8) :: rNebox1,rNebox2
 complex(8),allocatable :: shtpsi(:,:,:,:,:)
 complex(8),allocatable :: zpsi_tmp(:,:,:,:,:)
 
+integer :: nprocs,procid
+
 fileRho = "density.cube"
 
-call MPI_Init(ierr)
-call MPI_Comm_Size(MPI_COMM_WORLD,nproc,ierr)
-call MPI_Comm_Rank(MPI_COMM_WORLD,myrank,ierr)
+nproc=nprocs
+myrank=procid
 
 iSCFRT=1
 ihpsieff=0
@@ -651,17 +652,13 @@ end if
 
 deallocate(Vlocal)
 
-call MPI_Finalize(ierr)
-
-stop
-
-END PROGRAM Real_Space_DFT
+END subroutine Real_Space_DFT
 
 !=======================================================================
 !========================================= Grid generation and labelling
 
 SUBROUTINE init_mesh
-use global_variables
+use global_variables_scf
 implicit none
 
 real(8) :: rLsize1(3)
