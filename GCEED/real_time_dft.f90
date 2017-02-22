@@ -50,7 +50,7 @@ END MODULE global_variables_rt
 
 !=======================================================================
 
-subroutine Real_Time_DFT(nprocs,procid)
+subroutine Real_Time_DFT(nprocs,myrank_main)
 use global_variables_rt
 use allocate_sendrecv_groupob_sub
 implicit none
@@ -74,10 +74,10 @@ integer :: ia,ib
 real(8) :: rab
 real(8) :: box
 real(8) :: tt
-integer :: nprocs,procid
+integer :: nprocs,myrank_main
 
 nproc=nprocs
-myrank=procid
+myrank=myrank_main
 
 elp3(:)=0.d0
 elp5(:)=0.d0

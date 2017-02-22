@@ -37,7 +37,7 @@ END MODULE global_variables_scf
 
 !=======================================================================
 
-subroutine Real_Space_DFT(nprocs,procid)
+subroutine Real_Space_DFT(nprocs,myrank_main)
 !$ use omp_lib
 use global_variables_scf
 implicit none
@@ -63,12 +63,12 @@ real(8) :: rNebox1,rNebox2
 complex(8),allocatable :: shtpsi(:,:,:,:,:)
 complex(8),allocatable :: zpsi_tmp(:,:,:,:,:)
 
-integer :: nprocs,procid
+integer :: nprocs,myrank_main
 
 fileRho = "density.cube"
 
 nproc=nprocs
-myrank=procid
+myrank=myrank_main
 
 iSCFRT=1
 ihpsieff=0

@@ -1,3 +1,9 @@
+&group_function
+  cfunction='nanostructure'
+/
+&group_function2
+  cfunction2='rt'
+/
 &group_fundamental
 /
 &group_parallel
