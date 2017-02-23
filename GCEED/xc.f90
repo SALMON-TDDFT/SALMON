@@ -15,7 +15,7 @@
 !=======================================================================
 !=================================================== LDA (Perdew-Zunger)
 
-SUBROUTINE Exc_Cor
+SUBROUTINE Exc_Cor_ns
 !$ use omp_lib
 use scf_data
 
@@ -58,7 +58,7 @@ end if
 
 call xc_LDA(trho,trho_s)
 
-END SUBROUTINE Exc_Cor
+END SUBROUTINE Exc_Cor_ns
 
 !======================================================================
 

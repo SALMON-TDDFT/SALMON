@@ -37,7 +37,7 @@ END MODULE global_variables_scf
 
 !=======================================================================
 
-subroutine Real_Space_DFT(nprocs,myrank_main)
+subroutine Real_Space_DFT(nprocs,nprocid)
 !$ use omp_lib
 use global_variables_scf
 implicit none
@@ -63,12 +63,12 @@ real(8) :: rNebox1,rNebox2
 complex(8),allocatable :: shtpsi(:,:,:,:,:)
 complex(8),allocatable :: zpsi_tmp(:,:,:,:,:)
 
-integer :: nprocs,myrank_main
+integer :: nprocs,nprocid
 
 fileRho = "density.cube"
 
 nproc=nprocs
-myrank=myrank_main
+myrank=nprocid
 
 iSCFRT=1
 ihpsieff=0
@@ -147,9 +147,9 @@ if(istopt==1)then
       allocate( psi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:itotMST,1) ) 
     end if
 
-    call init_wf(1)
+    call init_wf_ns(1)
 
-    call Gram_Schmidt
+    call Gram_Schmidt_ns
 
     allocate( rho(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )  
     allocate( rho_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:num_rho_stock+1) )  
@@ -181,7 +181,7 @@ if(istopt==1)then
     allocate( Vh(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )  
     Vh=0.d0
 
-    call Hartree
+    call Hartree_ns
 
     
     if(ilsda == 0) then
@@ -190,7 +190,7 @@ if(istopt==1)then
       allocate( Vxc_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )  
     end if
     allocate( esp(itotMST,1) )
-    call Exc_cor
+    call Exc_cor_ns
 
     call mpi_allgatherv_vlocal
 
@@ -324,7 +324,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(113)=MPI_Wtime()
     elp3(123)=elp3(123)+elp3(113)-elp3(112)
   
-    call Gram_Schmidt
+    call Gram_Schmidt_ns
   
     if(iflag_subspace_diag==1)then
       if(Miter>iDiter_nosubspace_diag)then
@@ -345,14 +345,14 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(125)=elp3(125)+elp3(115)-elp3(114)
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      call Hartree
+      call Hartree_ns
     end if
   
     elp3(116)=MPI_Wtime()
     elp3(126)=elp3(126)+elp3(116)-elp3(115)
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      call Exc_Cor
+      call Exc_Cor_ns
     end if
    
     call mpi_allgatherv_vlocal
@@ -375,13 +375,13 @@ DFT_Iteration : do iter=1,iDiter(img)
   
   else if(iscf_order==2)then
 
-    call Gram_Schmidt
+    call Gram_Schmidt_ns
 
     if(Miter>iDiter_nosubspace_diag)then
       call subspace_diag
     end if
 
-    call Gram_Schmidt
+    call Gram_Schmidt_ns
 
     if( minroutine == 1 .or. (minroutine == 4 .and. Miter <= iDiterYBCG) ) then
       call DTcg(psi,iflag)
@@ -389,7 +389,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       call rmmdiis(psi,iflag)
     end if
 
-    call Gram_Schmidt
+    call Gram_Schmidt_ns
 
     call calc_density(psi,2)
   
@@ -398,16 +398,16 @@ DFT_Iteration : do iter=1,iDiter(img)
     call calc_rho_in
 
     if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      call Hartree
+      call Hartree_ns
     end if
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      call Exc_Cor
+      call Exc_Cor_ns
     end if
    
     call mpi_allgatherv_vlocal
     
-    call Gram_Schmidt
+    call Gram_Schmidt_ns
 
     call Total_Energy(psi)
   end if

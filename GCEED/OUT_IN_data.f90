@@ -937,7 +937,7 @@ do p0=pstart(is),pend(is)
 end do
 end do
 
-if(iSCFRT==1.and.itotMST>itotMST0) call init_wf(2)
+if(iSCFRT==1.and.itotMST>itotMST0) call init_wf_ns(2)
 
 if(IC<=2)then
   call read_copy_pot(rho,matbox_read,ig_sta,ig_end,ig_num)

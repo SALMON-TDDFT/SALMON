@@ -140,7 +140,7 @@ end if
    end if
 
   
-  call Hartree
+  call Hartree_ns
 
   elp3(516)=MPI_Wtime()
   elp3(536)=elp3(536)+elp3(516)-elp3(515)
@@ -149,7 +149,7 @@ end if
     if(ilsda==0)then
       call Exc_Cor_fast(rho,Ex_fast,Ec_fast)
     else
-      call Exc_Cor
+      call Exc_Cor_ns
     end if
   end if
 

@@ -14,7 +14,7 @@
 
 !=======================================================================
 !============================ Hartree potential (Solve Poisson equation)
-SUBROUTINE Hartree
+SUBROUTINE Hartree_ns
 use scf_data
 
 implicit none
@@ -31,4 +31,4 @@ end if
 
 return
 
-END SUBROUTINE Hartree
+END SUBROUTINE Hartree_ns

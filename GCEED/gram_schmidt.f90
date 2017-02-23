@@ -14,7 +14,7 @@
 
 !=======================================================================
 !======================================== Gram-Schmidt orthogonalization
-SUBROUTINE Gram_Schmidt
+SUBROUTINE Gram_Schmidt_ns
 !$ use omp_lib
 use scf_data
 use new_world_sub
@@ -134,4 +134,4 @@ end do
 
 return
 
-END SUBROUTINE Gram_Schmidt
+END SUBROUTINE Gram_Schmidt_ns

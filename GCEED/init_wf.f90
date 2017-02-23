@@ -15,7 +15,7 @@
 !=======================================================================
 !================================================= Initial wave function
 
-SUBROUTINE init_wf(ifunc)
+SUBROUTINE init_wf_ns(ifunc)
 use scf_data
 implicit none
 
@@ -55,9 +55,9 @@ do is=1,iss
 do iob=pstart(is),pend(is)
   call calc_myob(iob,iob_myob)
   call check_corrkob(iob,icorr_p)
-  call quickrnd ; x1=Xmax*(2.d0*rnd-1.d0)
-  call quickrnd ; y1=Ymax*(2.d0*rnd-1.d0)
-  call quickrnd ; z1=Zmax*(2.d0*rnd-1.d0)
+  call quickrnd_ns ; x1=Xmax*(2.d0*rnd-1.d0)
+  call quickrnd_ns ; y1=Ymax*(2.d0*rnd-1.d0)
+  call quickrnd_ns ; z1=Zmax*(2.d0*rnd-1.d0)
   call check_init_wf(icheck)
   if(icheck==1.and.icorr_p==1)then
     do iz=mg_sta(3),mg_end(3)
@@ -77,11 +77,11 @@ return
 
 CONTAINS
 
-  subroutine quickrnd
+  subroutine quickrnd_ns
   implicit none
   integer,parameter :: im=6075,ia=106,ic=1283
   iseed=mod(iseed*ia+ic,im) ; rnd=real(iseed,8)/real(im,8)
-  end subroutine quickrnd
+  end subroutine quickrnd_ns
 
   subroutine check_init_wf(icheck)
   implicit none
@@ -106,6 +106,6 @@ CONTAINS
         
   end subroutine check_init_wf
 
-END SUBROUTINE init_wf
+END SUBROUTINE init_wf_ns
 
 
