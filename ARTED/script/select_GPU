@@ -1,0 +1,10 @@
+#! /bin/bash
+
+if [[ "x$MV2_COMM_WORLD_LOCAL_RANK" != "x" ]]; then
+  # MVAPICH2
+  export CUDA_VISIBLE_DEVICES=$((MV2_COMM_WORLD_LOCAL_RANK % MV2_COMM_WORLD_LOCAL_SIZE))
+elif [[ "x$OMPI_COMM_WORLD_LOCAL_RANK" != "x" ]]; then
+  # OpenMPI
+  export CUDA_VISIBLE_DEVICES=$((OMPI_COMM_WORLD_LOCAL_RANK % OMPI_COMM_WORLD_LOCAL_SIZE))
+fi
+exec $*
