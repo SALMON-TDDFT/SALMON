@@ -34,8 +34,8 @@ ARCH = intel
 ##### please do not modify following sentences #####
 ####################################################
 
-# SRCmain = main.f90 end_parallel.f90 read_input.f90 setup_parallel.f90
-SRCmain_ARTED=main.f90
+SRCmain = main.f90 end_parallel.f90 read_input.f90 setup_parallel.f90
+#SRCmain_ARTED=main.f90
 
 # SRC = gceed.f90 read_input_gceed.f90 real_space_dft.f90 calcELF.f90 \
 #       psl.f90 hartree.f90 ylm.f90 xc.f90 \
@@ -63,7 +63,7 @@ SRCmain_ARTED=main.f90
 #      dip.f90 calc_Mps3rd.f90 read_input_rt.f90 projection.f90 \
 #      add_polynomial.f90 calcVbox.f90 
 
-SRC_ARTED = common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
+SRC_ARTED = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
             common/hpsi_stencil.f90 common/ion_force.f90 \
             common/preprocessor.f90 common/psi_rho.f90 common/total_energy.f90 \
             common/Ylm_dYlm.f90 FDTD/beam.f90 FDTD/FDTD.f90 GS/CG.f90 \
@@ -92,16 +92,15 @@ MOD_ARTED = modules/communication.f90 modules/env_variables.f90 \
             control/control_ms.f90 control/control_sc.f90 
 
 # OBJ = $(addprefix obj/,$(SRC:.f90=.o))
-# OBJmain = $(addprefix obj/,$(SRCmain:.f90=.o))
+OBJmain = $(addprefix obj/,$(SRCmain:.f90=.o))
 # OBJM= $(addprefix obj/,$(MOD:.f90=.o))
 # OBJS= $(OBJM) $(OBJ) $(OBJmain)
 
 OBJDIR= obj
 OBJ_ARTED = $(addprefix $(OBJDIR)/ARTED/,$(SRC_ARTED:.f90=.o))
 C_OBJ_ARTED = $(addprefix $(OBJDIR)/ARTED/,$(C_SRC_ARTED:.c=.o))
-OBJmain_ARTED = $(addprefix $(OBJDIR)/ARTED/,$(SRCmain_ARTED:.f90=.o))
 OBJM_ARTED= $(addprefix $(OBJDIR)/ARTED/,$(MOD_ARTED:.f90=.o))
-OBJS_ARTED= $(OBJM_ARTED) $(OBJ_ARTED) $(OBJmain_ARTED) $(C_OBJ_ARTED)
+OBJS_ARTED= $(OBJM_ARTED) $(OBJ_ARTED) $(OBJmain) $(C_OBJ_ARTED)
 
 .SUFFIXES:
 .SUFFIXES: .F .F90 .o
@@ -116,8 +115,8 @@ ifeq ($(ARCH),fujitsu)
 else
 # gceed : $(OBJS)
 # 	$(FC) $(FFLAGS)   -o gceed -I $(OBJDIR) $(OBJS) $(LIBSCALAPACK)
-# $(OBJDIR)/%.o : main/%.f90
-# 	$(FC) $(FFLAGS) -module $(OBJDIR) -o $@ -c $<
+$(OBJDIR)/%.o : main/%.f90
+	$(FC) $(FFLAGS) -module $(OBJDIR) -o $@ -c $<
 # $(OBJDIR)/%.o : GCEED/%.f90
 # 	$(FC) $(FFLAGS) -module $(OBJDIR) -o $@ -c $<
 arted.cpu : $(OBJS_ARTED)

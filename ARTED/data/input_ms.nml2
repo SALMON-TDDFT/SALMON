@@ -1,4 +1,6 @@
-'multiscale'
+&group_function
+	cfunction='multiscale'
+	/
 &control
 	entrance_option='new'
 	Time_shutdown=1d10
@@ -13,7 +15,7 @@
 	ax=1.d0
 	ay=1.d0
 	az=1.d0
-	Sym=8
+	Sym=4
 	crystal_structure='diamond'
 	NB=32
 	Nelec=32
@@ -24,17 +26,17 @@
 	/
 &rgrid
 	Nd=4
-	NLx=16
-	NLy=16
-	NLz=16
+	NLx=12
+	NLy=12
+	NLz=12
 	/
 &kgrid
-	NKx=24
-	NKy=24
-	NKz=24
+	NKx=2
+	NKy=2
+	NKz=2
 	/
 &tstep
-	Nt=1000
+	Nt=10000
 	dt=0.08
 	/
 &pseudo
@@ -59,7 +61,7 @@
 &incident
 	dAc=0.005
 	AE_shape='Asin2cos'
-	IWcm2_1=1d12
+	IWcm2_1=1d14
 	tpulsefs_1=10.672
 	omegaev_1=1.55
 	phi_CEP_1=.0
@@ -78,11 +80,11 @@
 &multiscale
 	FDTDdim='1D'
 	TwoD_shape='periodic'
-	NX_m=0
+	NX_m=8
 	NY_m=1
 	HX_m=250
 	HY_m=2500
-	NKsplit=4
+	NKsplit=2
 	NXYsplit=1
 	NXvacL_m=-2000
 	NXvacR_m=256

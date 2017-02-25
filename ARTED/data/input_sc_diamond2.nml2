@@ -1,4 +1,6 @@
-'singlecell'
+&group_function
+	cfunction='singlecell'
+	/
 &control
 	entrance_option='new'
 	Time_shutdown=7d3

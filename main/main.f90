@@ -7,9 +7,12 @@ program main
   call setup_parallel(nprocs,myrank)
   call read_input(myrank,cfunction)
 
-  if(cfunction=="nanostructure") then
+  select case(cfunction)
+  case("nanostructure")
     call gceed(nprocs,myrank)
-  end if
+  case("singlecell", "multiscale")
+    call arted(nprocs, myrank, cfunction)
+  end select
 
   call end_parallel
 

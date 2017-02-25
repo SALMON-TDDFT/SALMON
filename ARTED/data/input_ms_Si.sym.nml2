@@ -1,4 +1,6 @@
-'multiscale'
+&group_function
+	cfunction='multiscale'
+	/
 &control
 	entrance_option='new'
 	Time_shutdown=1d10
