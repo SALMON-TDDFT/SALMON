@@ -11,27 +11,24 @@
 
 # please select archtecture by deleting "#"
 
-TARGET = salmon.cpu
+TARGET = salmon.mic
 
 ### intel
 FC = mpiifort
 CC = mpiicc
-FFLAGS = -O2 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std90 -warn all
-CFLAGS = -O2 -qopenmp -ansi-alias -fno-alias -Wall -restrict
+FLAGS = -xMIC-AVX512 -qopenmp -qopt-ra-region-strategy=block -ansi-alias -fno-alias \
+        -DARTED_STENCIL_OPTIMIZED \
+        -DARTED_STENCIL_WITH_C \
+        -DARTED_STENCIL_WITH_C \
+        -DARTED_EXPLICIT_VECTORIZATION \
+        -DARTED_REDUCE_FOR_MANYCORE \
+        -DARTED_ENABLE_SOFTWARE_PREFETCH
+FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416
+CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
 FILE_MATHLIB = lapack
 LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5
 LIBSCALAPACK = $(LIBLAPACK) -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
 ARCH = intel
-
-### fujistu
-#FC = mpifrtpx
-#CC = mpifccpx
-#FFLAGS = -O3 -Kfast,simd=1 -Cpp -Kocl,nooptmsg
-#CFLAGS = -O3 -Kfast,simd=1 -Kocl,nooptmsg
-#FILE_MATHLIB = lapack
-#LIBLAPACK = -SSL2BLAMP
-#LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
-#ARCH = fujitsu
 
 ####################################################
 ##### please do not modify following sentences #####
@@ -72,11 +69,10 @@ SRC_ARTED = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
             preparation/init.f90 preparation/init_wf.f90 \
             preparation/input_ps.f90 preparation/prep_ps.f90 RT/current.f90 \
             RT/dt_evolve.f90 RT/dt_evolve_hpsi.f90 RT/Fourier_tr.f90 \
-            RT/hpsi_RT.f90 RT/init_Ac.f90 RT/k_shift_wf.f90 \
-            stencil/F90/current.f90 stencil/F90/hpsi.f90 \
-            stencil/F90/total_energy.f90 
+            RT/hpsi_RT.f90 RT/init_Ac.f90 RT/k_shift_wf.f90 
 
-C_SRC_ARTED = modules/env_variables_internal.c
+C_SRC_ARTED = modules/env_variables_internal.c stencil/C/IMCI/current.c \
+              stencil/C/IMCI/hpsi.c stencil/C/IMCI/total_energy.c
 
 MOD_GCEED = scf_data.f90 allocate_mat.f90 new_world.f90 init_sendrecv.f90 \
             sendrecv.f90 laplacian2.f90 gradient2.f90 hpsi2.f90 \
@@ -112,21 +108,6 @@ OBJS = $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_main)
 .SUFFIXES:
 .SUFFIXES: .F .F90 .o
 
-ifeq ($(ARCH),fujitsu)
-
-$(TARGET): $(OBJS)
-	$(FC) $(FFLAGS) -o $@ -I $(OBJDIR) $(OBJS) $(LIBSCALAPACK)
-
-$(OBJDIR)/%.o : %.f90
-	@if [ ! -d $(basename $@) ]; then mkdir -p $(basename $@); fi
-	$(FC) $(FFLAGS) -M $(OBJDIR) -o $@ -c $<
-
-$(OBJDIR)/%.o : %.c
-	@if [ ! -d $(basename $@) ]; then mkdir -p $(basename $@); fi
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-else
-
 $(TARGET): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ -I $(OBJDIR) $(OBJS) $(LIBSCALAPACK)
 
@@ -137,8 +118,6 @@ $(OBJDIR)/%.o : %.f90
 $(OBJDIR)/%.o : %.c
 	@if [ ! -d $(basename $@) ]; then mkdir -p $(basename $@); fi
 	$(CC) $(CFLAGS) -o $@ -c $<
-
-endif
 
 $(OBJS_GCEED): $(addprefix GCEED/,$(MOD_GCEED))
 $(OBJS_ARTED): $(addprefix ARTED/,$(MOD_ARTED))
