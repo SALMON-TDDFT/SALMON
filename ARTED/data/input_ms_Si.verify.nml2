@@ -1,4 +1,6 @@
-'multiscale'
+&group_function
+	cfunction='multiscale'
+	/
 &control
 	entrance_option='new'
 	Time_shutdown=1d10
@@ -34,7 +36,7 @@
 	NKz=24
 	/
 &tstep
-	Nt=100
+	Nt=1000
 	dt=0.08
 	/
 &pseudo
@@ -48,13 +50,13 @@
 	NEwald=4
 	aEwald=0.5d0
 	KbTev=-1.0
-	Ncg=1
+	Ncg=5
 	Nmemory_MB=8
 	alpha_MB=0.75
 	FSset_option='N'
 	NFSset_start=75
 	NFSset_every=25
-	Nscf=1
+	Nscf=100
 	/
 &incident
 	dAc=0.005
@@ -78,7 +80,7 @@
 &multiscale
 	FDTDdim='1D'
 	TwoD_shape='periodic'
-	NX_m=2
+	NX_m=0
 	NY_m=1
 	HX_m=250
 	HY_m=2500

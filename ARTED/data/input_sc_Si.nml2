@@ -1,4 +1,6 @@
-'singlecell'
+&group_function
+	cfunction='singlecell'
+	/
 &control
 	entrance_option='new'
 	Time_shutdown=1d10
@@ -13,7 +15,7 @@
 	ax=1.d0
 	ay=1.d0
 	az=1.d0
-	Sym=8
+	Sym=1
 	crystal_structure='diamond'
 	NB=32
 	Nelec=32

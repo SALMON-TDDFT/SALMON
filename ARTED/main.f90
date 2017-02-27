@@ -31,25 +31,30 @@ Subroutine err_finalize(err_message)
 End Subroutine Err_finalize
 
 
-Program main
+subroutine arted(x_nprocs, x_myrank, x_cfunction)
   use Global_Variables, only: calc_mode, &
                             & calc_mode_sc, &
                             & calc_mode_ms
-  use communication,    only: comm_init, &
-                            & comm_is_root, &
-                            & comm_bcast_character, &
-                            & proc_group              
+  use communication,    only: proc_group, &
+                            & nprocs, &
+                            & procid
   use control_sc,       only: main_sc => main
   use control_ms,       only: main_ms => main
-  use inputfile,        only: read_input, &
+  use inputfile,        only: read_arted => read_input, &
                             & dump_inputdata
+  use mpi,              only: MPI_COMM_WORLD
+  
   implicit none
+  integer, intent(in) :: x_myrank
+  integer, intent(in) :: x_nprocs
+  character(30), intent(in) :: x_cfunction
   
-  call comm_init()
-  if (comm_is_root()) read(*,*) calc_mode
-  call comm_bcast_character(calc_mode, proc_group(1))
-  
-  call read_input
+  proc_group(:) = MPI_COMM_WORLD
+  nprocs(:) = x_nprocs
+  procid(:) = x_myrank
+  calc_mode = x_cfunction
+
+  call read_arted()
   !call dump_inputdata
 
   select case(calc_mode)
@@ -61,5 +66,5 @@ Program main
     call Err_finalize("Invalid calc_mode parameter!")
   end select
   
-  stop
-End Program main
+  return
+end subroutine arted
