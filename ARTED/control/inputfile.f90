@@ -129,16 +129,16 @@ contains
     ! pseudo
     ps_format = ''
     PSmask_option = 'n'
-    alpha_mask = 0.8
-    gamma_mask = 1.8
+    alpha_mask = 0.8d0
+    gamma_mask = 1.8d0
     eta_mask = 15
     ! electrons
     NEwald = 4
-    aEwald = 0.5
+    aEwald = 0.5d0
     KbTev = 0
     Ncg = 5
     Nmemory_MB = 8
-    alpha_MB = 0.75
+    alpha_MB = 0.75d0
     FSset_option = 'N'
     NFSset_start = 75
     NFSset_every = 25
