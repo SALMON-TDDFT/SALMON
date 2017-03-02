@@ -515,6 +515,7 @@ subroutine main
   if (comm_is_root() ) write(*,*) 'Total time =',(Time_now-Time_start)
 
 1 if(comm_is_root()) write(*,*)  'This calculation is shutdown successfully!'
+  call comm_finalize
 
 end subroutine Main
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130

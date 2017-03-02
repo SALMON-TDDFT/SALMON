@@ -47,7 +47,7 @@ Subroutine sp_energy_omp
   enddo
     do ib=1,NB
       tpsi_omp(1:NL,thr_id)=zu_GS(1:NL,ib,ik)
-      call hpsi_omp_KB(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))
+      call hpsi_omp_KB_GS(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))
       esp_l(ib,ik)=sum(conjg(zu_GS(:,ib,ik))*htpsi_omp(:,thr_id))*Hxyz
     enddo
   enddo

@@ -54,12 +54,12 @@ subroutine dt_evolve_hpsi(flag_current)
     ik=ik_table(ikb)
     ib=ib_table(ikb)
 
-    call init(ztpsi(:,4,tid),zu(:,ib,ik))
-    call hpsi_omp_KB_RT(ik,ztpsi(:,4,tid),ztpsi(:,1,tid))
-    call hpsi_omp_KB_RT(ik,ztpsi(:,1,tid),ztpsi(:,2,tid))
-    call hpsi_omp_KB_RT(ik,ztpsi(:,2,tid),ztpsi(:,3,tid))
-    call hpsi_omp_KB_RT(ik,ztpsi(:,3,tid),ztpsi(:,4,tid))
-    call update(zfac,ztpsi(:,:,tid),zu(:,ib,ik))
+    call init(zhtpsi(:,4,tid),zu(:,ib,ik))
+    call hpsi_omp_KB_RT(ik,zhtpsi(:,4,tid),zhtpsi(:,1,tid))
+    call hpsi_omp_KB_RT(ik,zhtpsi(:,1,tid),zhtpsi(:,2,tid))
+    call hpsi_omp_KB_RT(ik,zhtpsi(:,2,tid),zhtpsi(:,3,tid))
+    call hpsi_omp_KB_RT(ik,zhtpsi(:,3,tid),zhtpsi(:,4,tid))
+    call update(zfac,zhtpsi(:,:,tid),zu(:,ib,ik))
 
 #ifdef ARTED_CURRENT_PREPROCESSING
     if(flag_current) call current_omp_KB_ST(ib,ik,zu(:,ib,ik))
@@ -144,18 +144,18 @@ subroutine dt_evolve_hpsi(flag_current)
   ! NVTX_BEG('dt_evolve_hpsi()',2)
   call timelog_begin(LOG_HPSI)
 
-!$acc data pcopy(zu) create(ztpsi)
+!$acc data pcopy(zu) create(zhtpsi)
   do ikb0=1,NKB, blk_nkb_hpsi
     num_ikb1 = min(blk_nkb_hpsi, NKB-ikb0+1)
     ikb_s = ikb0
     ikb_e = ikb0 + num_ikb1-1
 
-    call init_LBLK(ztpsi(:,:,4),zu(:,:,:), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(ztpsi(:,:,4),ztpsi(:,:,1), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(ztpsi(:,:,1),ztpsi(:,:,2), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(ztpsi(:,:,2),ztpsi(:,:,3), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(ztpsi(:,:,3),ztpsi(:,:,4), ikb_s,ikb_e)
-    call update_LBLK(zfac,ztpsi(:,:,:),zu(:,:,:), ikb_s,ikb_e)
+    call init_LBLK(zhtpsi(:,:,4),zu(:,:,:), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,4),zhtpsi(:,:,1), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,1),zhtpsi(:,:,2), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,2),zhtpsi(:,:,3), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,3),zhtpsi(:,:,4), ikb_s,ikb_e)
+    call update_LBLK(zfac,zhtpsi(:,:,:),zu(:,:,:), ikb_s,ikb_e)
 
 #ifdef ARTED_CURRENT_PREPROCESSING
     if(flag_current) call current_acc_KB_ST_LBLK(zu(:,:,:), ikb_s,ikb_e)

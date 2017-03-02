@@ -65,7 +65,6 @@ option_set(USE_TLOG                       "Use TLOG library"                    
 option_set(USE_PAPI                       "Use Performance API"                                      OFF)
 option_set(USE_NVTX                       "Use NVIDIA Tools Extension Library"                       OFF)
 option_set(OPT_STENCIL                    "Optimize stencil code"                                    ON)
-option_set(STENCIL_WITH_C                 "Use C code at stencil"                                    OFF)
 option_set(DOMAIN_IS_POW2                 "Stencil domain is power of two"                           OFF)
 option_set(ENABLE_CURRENT_PREPROCESSING   "Enable preprocessing of the current computation in RT"    OFF)
 option_set(ENABLE_ARRAY_PADDING           "Enable array padding for the stencil"                     ON)
@@ -73,6 +72,7 @@ option_set(ENABLE_EXPLICIT_VEC            "Enable explicit vectorization for the
 option_set(ENABLE_LOOP_BLOCKING           "Enable loop blocking at the stencil"                      OFF)
 option_set(ENABLE_SWPREFETCH              "Enable software prefetch in the explicit vec of stencil"  OFF)
 option_set(ENABLE_REDUCE_FOR_MANYCORE     "Enable optimized reduction code for many-core processor"  OFF)
+option_set(ENABLE_OPENACC                 "Enable OpenACC for NVIDIA GPUs"                           OFF)
 option_set(ENABLE_LARGE_BLOCKING          "Enable large blocking for accelerator"                    OFF)
 option_set(USE_OLD_PROPAGATOR             "Use old propagator for comparing to past results"         OFF)
 
@@ -118,7 +118,6 @@ add_definitions_if(USE_OLD_PROPAGATOR           -DARTED_USE_OLD_PROPAGATOR)
 if (OPT_STENCIL)
   add_definitions(-DARTED_STENCIL_OPTIMIZED)
 
-  add_definitions_if(STENCIL_WITH_C       -DARTED_STENCIL_WITH_C)
   add_definitions_if(DOMAIN_IS_POW2       -DARTED_DOMAIN_POWER_OF_TWO)
   add_definitions_if(ENABLE_EXPLICIT_VEC  -DARTED_EXPLICIT_VECTORIZATION)
   add_definitions_if(ENABLE_SWPREFETCH    -DARTED_ENABLE_SOFTWARE_PREFETCH)

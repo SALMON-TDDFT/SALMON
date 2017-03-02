@@ -33,9 +33,6 @@ subroutine print_optimize_message
 #ifdef ARTED_STENCIL_OPTIMIZED
   print *, '  ARTED_STENCIL_OPTIMIZED'
 #endif
-#ifdef ARTED_STENCIL_WITH_C
-  print *, '  ARTED_STENCIL_WITH_C'
-#endif
 #ifdef ARTED_STENCIL_PADDING
   print *, '  ARTED_STENCIL_PADDING'
 #endif

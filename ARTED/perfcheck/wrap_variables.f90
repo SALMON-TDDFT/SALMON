@@ -81,7 +81,7 @@ contains
     PNLz = NLz
     PNL = PNLx*PNLy*PNLz
 
-    allocate(ztpsi(0:PNL-1,4,0:NUMBER_THREADS-1))
+    allocate(zhtpsi(0:PNL-1,4,0:NUMBER_THREADS-1))
     allocate(zcx(NBoccmax,NK_s:NK_e))
     allocate(zcy(NBoccmax,NK_s:NK_e))
     allocate(zcz(NBoccmax,NK_s:NK_e))
