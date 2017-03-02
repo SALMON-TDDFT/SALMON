@@ -310,8 +310,6 @@ Subroutine dt_evolve_etrs_omp_KB(iter)
   end do
 !$acc end kernels
 
-!$acc end data
-
 
 !$omp parallel do private(ik,ib)
      do ikb=1,NKB
