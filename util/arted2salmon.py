@@ -105,10 +105,10 @@ opts, args = parser.parse_args()
 
 if opts.MODE.lower() == "sc":
     input_q = deque(input_list_sc)
-    data = {"cfunction": "singlecell"}
+    data = {"cfunction": "'singlecell'"}
 elif opts.MODE.lower() == "ms":
     input_q = deque(input_list_ms)
-    data = {"cfunction": "multiscale"}
+    data = {"cfunction": "'multiscale'"}
 else:
     parser.print_help(sys.stderr)
     sys.exit(-1)
@@ -119,12 +119,10 @@ for line in sys.stdin:
     temp = temp.replace(",", " ")
     buff += temp.split()
 
-data = {}
 while input_q:
     param = input_q.popleft()
-    if param == "file_kw":
-        if 0 < int(data["NKx"]):
-            continue
+    if (param == "file_kw") and (int(data["NKx"]) > 0):
+        continue
     elif param in ["Epdir_1", "Epdir_2"]:
         data[param] = ",".join([buff.popleft() for i in xrange(3)])
     else:
@@ -137,14 +135,23 @@ for group, param_list in output_list:
             print("\t%s=%s" % (param, data[param]))
     print("\t/")
 
+NE = int(data["NE"])
+NI = int(data["NI"])
+
+Zatom = []
+for i in range(NE):
+    Zatom.append(buff.popleft())
+
+Lref = []
+for i in range(NE):
+    Lref.append(buff.popleft())
+
 print("&atomic_spiecies")
-for i in range(int(data["NE"])):
-    temp = "\t".join([buff.popleft() for j in range(2)])
-    print("\t%d\t%s" % (i + 1, temp))
+for i in range(NE):
+    print("\t%d\t%s\t%s" % (i + 1, Zatom[i], Lref[i]))
 print("\t/")
 
 print("&atomic_positions")
-for i in range(int(data["NI"])):
-    temp = "\t".join([buff.popleft() for j in range(5)])
-    print("\t%s" % temp)
+for i in range(NI):
+    print("\t".join([""] + [buff.popleft() for j in range(5)]))
 print("\t/")
