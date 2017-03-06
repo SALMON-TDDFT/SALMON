@@ -257,6 +257,11 @@ real(8) :: f0
 
 integer :: ispin
 
+real(8) :: fdN0
+real(8) :: fdN1(0:12,3)
+
+integer :: j,ind
+
 !$ call omp_set_num_threads(inumthreads)
 
 call set_ispin(iob,ispin)
@@ -334,26 +339,31 @@ if(isub==0)then
   f0=(1.d0/Hgs(1)**2   &
      +1.d0/Hgs(2)**2   &
      +1.d0/Hgs(3)**2)
+  fdN0=-0.5d0*cNmat(0,Nd)*f0
+  do j=1,3
+    do ind=1,4
+      fdN1(ind,j)=-0.5d0*cNmat(ind,Nd)/Hgs(j)**2
+    end do
+  end do
 
   elp3(757)=MPI_Wtime()
 !$OMP parallel do
   do iz=iwk3sta(3),iwk3end(3)
   do iy=iwk3sta(2),iwk3end(2)
   do ix=iwk3sta(1),iwk3end(1)
-    clap_wk(ix,iy,iz)=cN0*f0*tpsi(ix,iy,iz)      &
-      +cN1*( tpsi(ix+1,iy,iz)/Hgs(1)**2 + tpsi(ix-1,iy,iz)/Hgs(1)**2       &
-            +tpsi(ix,iy+1,iz)/Hgs(2)**2  + tpsi(ix,iy-1,iz)/Hgs(2)**2       &
-            +tpsi(ix,iy,iz+1)/Hgs(3)**2  + tpsi(ix,iy,iz-1)/Hgs(3)**2  )      &
-      +cN2*( tpsi(ix+2,iy,iz)/Hgs(1)**2  + tpsi(ix-2,iy,iz)/Hgs(1)**2       &
-            +tpsi(ix,iy+2,iz)/Hgs(2)**2  + tpsi(ix,iy-2,iz)/Hgs(2)**2       &
-            +tpsi(ix,iy,iz+2)/Hgs(3)**2  + tpsi(ix,iy,iz-2)/Hgs(3)**2  )      &
-      +cN3*( tpsi(ix+3,iy,iz)/Hgs(1)**2  + tpsi(ix-3,iy,iz)/Hgs(1)**2       &
-            +tpsi(ix,iy+3,iz)/Hgs(2)**2  + tpsi(ix,iy-3,iz)/Hgs(2)**2       &
-            +tpsi(ix,iy,iz+3)/Hgs(3)**2  + tpsi(ix,iy,iz-3)/Hgs(3)**2  )      &
-      +cN4*( tpsi(ix+4,iy,iz)/Hgs(1)**2  + tpsi(ix-4,iy,iz)/Hgs(1)**2       &
-            +tpsi(ix,iy+4,iz)/Hgs(2)**2  + tpsi(ix,iy-4,iz)/Hgs(2)**2       &
-            +tpsi(ix,iy,iz+4)/Hgs(3)**2  + tpsi(ix,iy,iz-4)/Hgs(3)**2  )
-    htpsi(ix,iy,iz) =  Vlocal(ix,iy,iz,ispin) *tpsi(ix,iy,iz) -1d0/2d0*clap_wk(ix,iy,iz) 
+    htpsi(ix,iy,iz)=(Vlocal(ix,iy,iz,ispin)+fdN0)*tpsi(ix,iy,iz)     &
+      +fdN1(1,1)*tpsi(ix+1,iy,iz) + fdN1(1,1)*tpsi(ix-1,iy,iz)      &
+      +fdN1(1,2)*tpsi(ix,iy+1,iz) + fdN1(1,2)*tpsi(ix,iy-1,iz)      &
+      +fdN1(1,3)*tpsi(ix,iy,iz+1) + fdN1(1,3)*tpsi(ix,iy,iz-1)      &
+      +fdN1(2,1)*tpsi(ix+2,iy,iz) + fdN1(2,1)*tpsi(ix-2,iy,iz)      &
+      +fdN1(2,2)*tpsi(ix,iy+2,iz) + fdN1(2,2)*tpsi(ix,iy-2,iz)      &
+      +fdN1(2,3)*tpsi(ix,iy,iz+2) + fdN1(2,3)*tpsi(ix,iy,iz-2)      &
+      +fdN1(3,1)*tpsi(ix+3,iy,iz) + fdN1(3,1)*tpsi(ix-3,iy,iz)      &
+      +fdN1(3,2)*tpsi(ix,iy+3,iz) + fdN1(3,2)*tpsi(ix,iy-3,iz)      &
+      +fdN1(3,3)*tpsi(ix,iy,iz+3) + fdN1(3,3)*tpsi(ix,iy,iz-3)      &
+      +fdN1(4,1)*tpsi(ix+4,iy,iz) + fdN1(4,1)*tpsi(ix-4,iy,iz)      &
+      +fdN1(4,2)*tpsi(ix,iy+4,iz) + fdN1(4,2)*tpsi(ix,iy-4,iz)      &
+      +fdN1(4,3)*tpsi(ix,iy,iz+4) + fdN1(4,3)*tpsi(ix,iy,iz-4) 
   end do
   end do
   end do
