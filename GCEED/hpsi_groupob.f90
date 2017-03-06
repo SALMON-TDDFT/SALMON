@@ -36,7 +36,7 @@ complex(8) :: tpsi_out(iwk2sta(1):iwk2end(1)+1,iwk2sta(2):iwk2end(2),iwk2sta(3):
                    1:iobnum,1)
 real(8) :: tVlocal(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),numspin)
 
-integer :: ist,ix,iy,iz,jj,iatom,lm,ikoa,ibox,ibox2,iob,ind
+integer :: ist,ix,iy,iz,jj,iatom,lm,ikoa,ibox,ibox2,iob,j,ind
 integer :: ja
 integer :: nn,isub
 integer :: ispin
@@ -58,9 +58,8 @@ logical :: flag
 
 integer :: icount
 
-complex(8) :: fdN0
-complex(8) :: fdN1(0:12,3)
-complex(8) :: fdN2(0:12,3)
+real(8) :: fdN0
+real(8) :: fdN1(0:12,3)
 
 real(8) :: f0
 integer :: iobmax
@@ -86,6 +85,12 @@ elp3(704)=MPI_Wtime()
 elp3(743)=elp3(743)+elp3(704)-elp3(701)
 
 if(Nd==4)then
+  fdN0=-0.5d0*cNmat(0,Nd)*f0
+  do j=1,3
+    do ind=1,4
+      fdN1(ind,j)=-0.5d0*cNmat(ind,Nd)/Hgs(j)**2
+    end do
+  end do
   do iob=1,iobmax
     call calc_allob(iob,iob_allob)
     call set_ispin(iob_allob,ispin)
@@ -94,16 +99,16 @@ if(Nd==4)then
 !$OMP do
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
-        htpsi(ix,iy,iz,iob,1) = tVlocal(ix,iy,iz,ispin) *tpsi(ix,iy,iz,iob,1)  &
-          -0.5d0*cNmat(0,Nd)*f0*tpsi(ix,iy,iz,iob,1)      &
-          -0.5d0*cNmat(1,Nd)*( tpsi(ix+1,iy,iz,iob,1)/Hgs(1)**2 + tpsi(ix-1,iy,iz,iob,1)/Hgs(1)**2       &
-                 +tpsi(ix,iy+1,iz,iob,1)/Hgs(2)**2  + tpsi(ix,iy-1,iz,iob,1)/Hgs(2)**2  )    &
-          -0.5d0*cNmat(2,Nd)*( tpsi(ix+2,iy,iz,iob,1)/Hgs(1)**2  + tpsi(ix-2,iy,iz,iob,1)/Hgs(1)**2       &
-                 +tpsi(ix,iy+2,iz,iob,1)/Hgs(2)**2  + tpsi(ix,iy-2,iz,iob,1)/Hgs(2)**2  )    &
-          -0.5d0*cNmat(3,Nd)*( tpsi(ix+3,iy,iz,iob,1)/Hgs(1)**2  + tpsi(ix-3,iy,iz,iob,1)/Hgs(1)**2       &
-                 +tpsi(ix,iy+3,iz,iob,1)/Hgs(2)**2  + tpsi(ix,iy-3,iz,iob,1)/Hgs(2)**2  )    &
-          -0.5d0*cNmat(4,Nd)*( tpsi(ix+4,iy,iz,iob,1)/Hgs(1)**2  + tpsi(ix-4,iy,iz,iob,1)/Hgs(1)**2       &
-                 +tpsi(ix,iy+4,iz,iob,1)/Hgs(2)**2  + tpsi(ix,iy-4,iz,iob,1)/Hgs(2)**2  ) 
+        htpsi(ix,iy,iz,iob,1) =   &
+          ( tVlocal(ix,iy,iz,ispin)+fdN0)*tpsi(ix,iy,iz,iob,1)  &
+          +fdN1(1,1)* tpsi(ix+1,iy,iz,iob,1) + fdN1(1,1)* tpsi(ix-1,iy,iz,iob,1)  &
+          +fdN1(2,1)* tpsi(ix+2,iy,iz,iob,1) + fdN1(2,1)* tpsi(ix-2,iy,iz,iob,1)  &
+          +fdN1(3,1)* tpsi(ix+3,iy,iz,iob,1) + fdN1(3,1)* tpsi(ix-3,iy,iz,iob,1)  &
+          +fdN1(4,1)* tpsi(ix+4,iy,iz,iob,1) + fdN1(4,1)* tpsi(ix-4,iy,iz,iob,1)  &
+          +fdN1(1,2)* tpsi(ix,iy+1,iz,iob,1) + fdN1(1,2)* tpsi(ix,iy-1,iz,iob,1)  &
+          +fdN1(2,2)* tpsi(ix,iy+2,iz,iob,1) + fdN1(2,2)* tpsi(ix,iy-2,iz,iob,1)  &
+          +fdN1(3,2)* tpsi(ix,iy+3,iz,iob,1) + fdN1(3,2)* tpsi(ix,iy-3,iz,iob,1)  &
+          +fdN1(4,2)* tpsi(ix,iy+4,iz,iob,1) + fdN1(4,2)* tpsi(ix,iy-4,iz,iob,1)  
       end do
       end do
 !$OMP end do nowait
@@ -111,10 +116,10 @@ if(Nd==4)then
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
         htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)  &
-          -0.5d0*cNmat(1,Nd)*( tpsi(ix,iy,iz+1,iob,1)/Hgs(3)**2  + tpsi(ix,iy,iz-1,iob,1)/Hgs(3)**2  )      &
-          -0.5d0*cNmat(2,Nd)*( tpsi(ix,iy,iz+2,iob,1)/Hgs(3)**2  + tpsi(ix,iy,iz-2,iob,1)/Hgs(3)**2  )      &
-          -0.5d0*cNmat(3,Nd)*( tpsi(ix,iy,iz+3,iob,1)/Hgs(3)**2  + tpsi(ix,iy,iz-3,iob,1)/Hgs(3)**2  )      &
-          -0.5d0*cNmat(4,Nd)*( tpsi(ix,iy,iz+4,iob,1)/Hgs(3)**2  + tpsi(ix,iy,iz-4,iob,1)/Hgs(3)**2  ) 
+          +fdN1(1,3)* tpsi(ix,iy,iz+1,iob,1) + fdN1(1,3)* tpsi(ix,iy,iz-1,iob,1)  &
+          +fdN1(2,3)* tpsi(ix,iy,iz+2,iob,1) + fdN1(2,3)* tpsi(ix,iy,iz-2,iob,1)  &
+          +fdN1(3,3)* tpsi(ix,iy,iz+3,iob,1) + fdN1(3,3)* tpsi(ix,iy,iz-3,iob,1)  &
+          +fdN1(4,3)* tpsi(ix,iy,iz+4,iob,1) + fdN1(4,3)* tpsi(ix,iy,iz-4,iob,1)
       end do
       end do
 !$OMP end do nowait
@@ -125,17 +130,22 @@ else
   do iob=1,iobmax
     call calc_allob(iob,iob_allob)
     call set_ispin(iob_allob,ispin)
+    fdN0=-0.5d0*cNmat(0,Nd)*f0
+    do j=1,3
+      do ind=1,Nd
+        fdN1(ind,j)=-0.5d0*cNmat(ind,Nd)/Hgs(j)**2
+      end do
+    end do
 !$OMP parallel private(iz,ist)
     do iz=iwk3sta(3),iwk3end(3)
 !$OMP do
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
-        htpsi(ix,iy,iz,iob,1) = tVlocal(ix,iy,iz,ispin) *tpsi(ix,iy,iz,iob,1)  &
-          +cNmat(0,Nd)*f0*  tpsi(ix,iy,iz,iob,1)
+        htpsi(ix,iy,iz,iob,1) = (tVlocal(ix,iy,iz,ispin)+fdN0) *tpsi(ix,iy,iz,iob,1)  
         do ist=1,Nd  
           htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)         &
-            +cNmat(ist,Nd)*( tpsi(ix+ist,iy,iz,iob,1)/Hgs(1)**2 + tpsi(ix-ist,iy,iz,iob,1)/Hgs(1)**2     &
-                     +tpsi(ix,iy+ist,iz,iob,1)/Hgs(2)**2 + tpsi(ix,iy-ist,iz,iob,1)/Hgs(2)**2 )
+            +fdN1(ist,1)* tpsi(ix+ist,iy,iz,iob,1) + fdN1(ist,1)* tpsi(ix-ist,iy,iz,iob,1)     &
+            +fdN1(ist,2)* tpsi(ix,iy+ist,iz,iob,1) + fdN1(ist,2)* tpsi(ix,iy-ist,iz,iob,1)
         end do 
       end do
       end do
@@ -145,7 +155,7 @@ else
       do ix=iwk3sta(1),iwk3end(1)
         do ist=1,Nd  
           htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)  &
-            +cNmat(ist,Nd)*( tpsi(ix,iy,iz+ist,iob,1)/Hgs(3)**2 + tpsi(ix,iy,iz-ist,iob,1)/Hgs(3)**2 ) 
+            +fdN1(ist,3)* tpsi(ix,iy,iz+ist,iob,1) + fdN1(ist,3)* tpsi(ix,iy,iz-ist,iob,1)
         end do 
       end do
       end do
