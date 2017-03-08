@@ -60,16 +60,16 @@ SRC_GCEED = gceed.f90 read_input_gceed.f90 real_space_dft.f90 calcELF.f90 \
             projection.f90 add_polynomial.f90 calcVbox.f90 
 
 SRC_ARTED = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
-            common/hpsi_stencil.f90 common/ion_force.f90 \
-            common/preprocessor.f90 common/psi_rho.f90 common/total_energy.f90 \
-            common/Ylm_dYlm.f90 FDTD/beam.f90 FDTD/FDTD.f90 GS/CG.f90 \
-            GS/Density_Update.f90 GS/diag.f90 GS/Fermi_Dirac_distribution.f90 \
-            GS/Gram_Schmidt.f90 GS/Occupation_Redistribution.f90 \
-            GS/sp_energy.f90 GS/write_GS_data.f90 preparation/fd_coef.f90 \
-            preparation/init.f90 preparation/init_wf.f90 \
-            preparation/input_ps.f90 preparation/prep_ps.f90 RT/current.f90 \
-            RT/dt_evolve.f90 RT/dt_evolve_hpsi.f90 RT/Fourier_tr.f90 \
-            RT/hpsi_RT.f90 RT/init_Ac.f90 RT/k_shift_wf.f90 
+            common/ion_force.f90 common/preprocessor.f90 common/psi_rho.f90 \
+            common/total_energy.f90 common/Ylm_dYlm.f90 FDTD/beam.f90 \
+            FDTD/FDTD.f90 GS/CG.f90 GS/Density_Update.f90 GS/diag.f90 \
+            GS/Fermi_Dirac_distribution.f90 GS/Gram_Schmidt.f90 \
+            GS/Occupation_Redistribution.f90 GS/sp_energy.f90 \
+            GS/write_GS_data.f90 preparation/fd_coef.f90 preparation/init.f90 \
+            preparation/init_wf.f90 preparation/input_ps.f90 \
+            preparation/prep_ps.f90 RT/current.f90 RT/dt_evolve.f90 \
+            RT/dt_evolve_hpsi.f90 RT/Fourier_tr.f90 RT/init_Ac.f90 \
+            RT/k_shift_wf.f90 
 
 C_SRC_ARTED = modules/env_variables_internal.c stencil/C/IMCI/current.c \
               stencil/C/IMCI/hpsi.c stencil/C/IMCI/total_energy.c

@@ -19,7 +19,7 @@ module opt_variables
   real(8) :: lapt(12)
 
   integer                :: PNLx,PNLy,PNLz,PNL
-  complex(8),allocatable :: ztpsi(:,:,:)
+  complex(8),allocatable :: zhtpsi(:,:,:),zttpsi(:,:)
 
   real(8),allocatable :: zrhotmp(:,:)
 
@@ -62,7 +62,7 @@ module opt_variables
 #endif
 
 !dir$ attributes align:MEM_ALIGNED :: lapt
-!dir$ attributes align:MEM_ALIGNED :: ztpsi
+!dir$ attributes align:MEM_ALIGNED :: zhtpsi,zttpsi
 !dir$ attributes align:MEM_ALIGNED :: zrhotmp
 !dir$ attributes align:MEM_ALIGNED :: zJxyz,zKxyz
 !dir$ attributes align:MEM_ALIGNED :: zcx,zcy,zcz
@@ -108,16 +108,17 @@ contains
     PNL  = PNLx * PNLy * PNLz
 
 #ifndef ARTED_LBLK
-    allocate(ztpsi(0:PNL-1,4,0:NUMBER_THREADS-1))
+    allocate(zhtpsi(0:PNL-1,4,0:NUMBER_THREADS-1))
 #else
     blk_nkb_hpsi = min(at_least_parallelism/PNL + 1, NKB)
-    allocate(ztpsi(0:PNL-1, 0:blk_nkb_hpsi-1, 4))
+    allocate(zhtpsi(0:PNL-1, 0:blk_nkb_hpsi-1, 4))
     !write(*,*) "blk_nkb_hpsi:", blk_nkb_hpsi
 
     !blk_nkb_current = min(at_least_parallelism/PNL + 1, NKB)
     blk_nkb_current = min(at_least_parallelism/(Nlma*128) + 1, NKB)
     !write(*,*) "blk_nkb_current:", blk_nkb_current
 #endif
+    allocate(zttpsi(0:PNL-1,0:NUMBER_THREADS-1))
 
     allocate(zcx(NBoccmax,NK_s:NK_e))
     allocate(zcy(NBoccmax,NK_s:NK_e))

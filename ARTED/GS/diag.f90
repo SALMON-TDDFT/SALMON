@@ -63,7 +63,7 @@ Subroutine diag_omp
   do ik=NK_s,NK_e
     do ib1=1,NB
       tpsi_omp(1:NL,thr_id)=zu_GS(1:NL,ib1,ik)
-      call hpsi_omp_KB(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))
+      call hpsi_omp_KB_GS(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))
       do ib2=ib1+1,NB
         za(ib2,ib1)=sum(conjg(zu_GS(:,ib2,ik))*htpsi_omp(:,thr_id))*Hxyz
         za(ib1,ib2)=conjg(za(ib2,ib1))

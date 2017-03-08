@@ -490,7 +490,7 @@ subroutine main
       if(comm_is_root(1))then
         call write_result(index)
         write(940,'(4e26.16E3)')iter*dt,sum(energy_elec)*HX_m*HY_m/aLxyz &
-              &,sum(energy_elemag)*HX_m*HY_m/aLxyz,sum(energy_total)*HX_m*HY_m/aLxyz
+          &,sum(energy_elemag)*HX_m*HY_m/aLxyz,sum(energy_total)*HX_m*HY_m/aLxyz
       end if
     end if
     call timelog_end(LOG_OTHER)
@@ -597,6 +597,7 @@ subroutine main
   if(comm_is_root(2)) then
     close(943)
   end if
+  call comm_finalize
 
 End subroutine Main
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
