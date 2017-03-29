@@ -73,7 +73,7 @@ SRC_ARTED = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
             preparation/prep_ps.f90 RT/current.f90 RT/dt_evolve.f90 \
             RT/dt_evolve_hpsi.f90 RT/Fourier_tr.f90 RT/init_Ac.f90 \
             RT/k_shift_wf.f90 stencil/F90/current.f90 stencil/F90/hpsi.f90 \
-            stencil/F90/total_energy.f90 
+            stencil/F90/hpsi_original.f90 stencil/F90/total_energy.f90 
             
 C_SRC_ARTED = modules/env_variables_internal.c
 
