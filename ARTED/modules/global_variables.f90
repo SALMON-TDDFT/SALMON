@@ -110,7 +110,7 @@ Module Global_Variables
   real(8) :: f0_2,IWcm2_2,tpulsefs_2,omegaev_2,omega_2,tpulse_2,Epdir_2(3),phi_CEP_2 ! sato
   real(8) :: T1_T2fs,T1_T2
   real(8),allocatable :: E_ext(:,:),E_ind(:,:),E_tot(:,:)
-  real(8),allocatable :: kAc(:,:),kAc0(:,:)                  !k+A(t)/c (kAc)
+  real(8),allocatable :: kAc(:,:),kAc0(:,:),kAc_new(:,:)                  !k+A(t)/c (kAc)
   real(8),allocatable :: Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
 
 ! control parameters
@@ -145,10 +145,10 @@ Module Global_Variables
   character(10) :: functional
   real(8) :: cval ! cvalue for TBmBJ. If cval<=0, calculated in the program
 !yabana
+  character(10) :: propagator = 'default' ! propagation scheme: default, or etrs
 
   integer :: NK_ave,NG_ave,NK_s,NK_e,NG_s,NG_e
   integer :: NK_remainder,NG_remainder
-  real(8) :: etime1,etime2
 ! Timer
   real(8) :: Time_shutdown
   real(8) :: Time_start,Time_now
@@ -202,7 +202,7 @@ Module Global_Variables
   real(8),allocatable :: Vh_m(:,:)
   real(8),allocatable :: Vexc_m(:,:)
   real(8),allocatable :: Eexc_m(:,:)
-  real(8),allocatable :: Vloc_m(:,:)
+  real(8),allocatable :: Vloc_m(:,:),Vloc_old_m(:,:,:)
   real(8),allocatable :: rho_m(:,:)
   real(8),allocatable :: energy_joule(:,:)
   real(8),allocatable :: energy_elec_Matter_l(:,:)
@@ -214,8 +214,9 @@ Module Global_Variables
   real(8),allocatable :: excited_electron(:,:)
 
   real(8),allocatable :: data_out(:,:,:,:)
-
   integer :: Nstep_write=100
+  integer :: Ndata_out, Ndata_out_per_proc
+  
 
   integer :: reentrance_switch
   

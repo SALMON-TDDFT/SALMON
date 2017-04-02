@@ -3,7 +3,7 @@
 ###
 set(SOURCES
     global_variables.f90
-    timelog.f90
+    timer.f90
     env_variables.f90
     opt_variables.f90
     performance_analyzer.f90

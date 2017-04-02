@@ -19,12 +19,12 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Hartree
   use Global_Variables
-  use timelog
+  use timer
   implicit none
   integer :: i,ix,iy,iz,n,nx,ny,nz
   real(8) :: G2
 
-  call timelog_begin(LOG_HARTREE)
+  call timer_begin(LOG_HARTREE)
 
 !$omp parallel 
 
@@ -122,7 +122,7 @@ Subroutine Hartree
 
 !$omp end parallel
 
-  call timelog_end(LOG_HARTREE)
+  call timer_end(LOG_HARTREE)
 
   return
 End Subroutine Hartree

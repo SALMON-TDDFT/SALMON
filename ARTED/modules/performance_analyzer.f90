@@ -50,7 +50,7 @@ contains
   subroutine write_hamiltonian(iounit)
     use global_variables
     use communication
-    use timelog
+    use timer
     implicit none
     integer,intent(in) :: iounit
 
@@ -69,8 +69,9 @@ contains
     call comm_bcast(pgflops, proc_group(1), tout%rank)
 
     if (calc_mode == calc_mode_ms) then
-    call comm_summation(lgflops, sgflops, 4, proc_group(1))
+       call comm_summation(lgflops, sgflops, 4, proc_group(2))
     end if
+
     call comm_summation(lgflops, tgflops, 4, proc_group(1))
 
     if(comm_is_root()) then
@@ -88,7 +89,7 @@ contains
   subroutine write_loadbalance(iounit)
     use global_variables
     use communication
-    use timelog
+    use timer
     implicit none
     integer,intent(in) :: iounit
 
@@ -97,18 +98,18 @@ contains
 
     real(8) :: src(LOG_SIZE), rmin(LOG_SIZE), rmax(LOG_SIZE), diff(LOG_SIZE), rel(LOG_SIZE)
 
-    src( 1) = timelog_get(LOG_DT_EVOLVE)
-    src( 2) = timelog_get(LOG_HPSI)
-    src( 3) = timelog_get(LOG_PSI_RHO)
-    src( 4) = timelog_get(LOG_HARTREE)
-    src( 5) = timelog_get(LOG_CURRENT)
-    src( 6) = timelog_get(LOG_TOTAL_ENERGY)
-    src( 7) = timelog_get(LOG_ION_FORCE)
-    src( 8) = timelog_get(LOG_DT_EVOLVE_AC)
-    src( 9) = timelog_get(LOG_K_SHIFT_WF)
-    src(10) = timelog_get(LOG_OTHER)
-    src(11) = timelog_get(LOG_ALLREDUCE)
-    src(12) = timelog_get(LOG_DYNAMICS)
+    src( 1) = timer_get(LOG_DT_EVOLVE)
+    src( 2) = timer_get(LOG_HPSI)
+    src( 3) = timer_get(LOG_PSI_RHO)
+    src( 4) = timer_get(LOG_HARTREE)
+    src( 5) = timer_get(LOG_CURRENT)
+    src( 6) = timer_get(LOG_TOTAL_ENERGY)
+    src( 7) = timer_get(LOG_ION_FORCE)
+    src( 8) = timer_get(LOG_DT_EVOLVE_AC)
+    src( 9) = timer_get(LOG_K_SHIFT_WF)
+    src(10) = timer_get(LOG_OTHER)
+    src(11) = timer_get(LOG_ALLREDUCE)
+    src(12) = timer_get(LOG_DYNAMICS)
 
     call comm_get_min(src,rmin,LOG_SIZE,proc_group(1))
     call comm_get_max(src,rmax,LOG_SIZE,proc_group(1))
@@ -153,8 +154,8 @@ contains
   end subroutine
 
   subroutine summation_threads(lgflops)
-    use global_variables, only: NUMBER_THREADS, functional, calc_mode, calc_mode_sc
-    use timelog
+    use global_variables, only: NUMBER_THREADS, functional, propagator
+    use timer
     implicit none
     real(8), intent(out) :: lgflops(4)
     real(8) :: hflop(3), htime(4)
@@ -169,11 +170,10 @@ contains
         ncalls_in_loop = 2
     end select
 
-#ifdef ARTED_USE_OLD_PROPAGATOR
-    if (calc_mode == calc_mode_sc) then
+    select case(propagator)
+      case('default')
         ncalls_in_loop = ncalls_in_loop - 1
-    endif
-#endif
+    end select
 
     call get_hamiltonian_chunk_size(chunk_size)
 
@@ -189,10 +189,10 @@ contains
       hflop(2) = get_pseudo_pt_FLOP(cnt) * ncalls_in_loop
       hflop(3) = get_update_FLOP(cnt)    * ncalls_in_loop
 
-      htime(1) = timelog_thread_get(LOG_HPSI_STENCIL, i)
-      htime(2) = timelog_thread_get(LOG_HPSI_PSEUDO, i)
-      htime(3) = timelog_thread_get(LOG_HPSI_UPDATE, i)
-      htime(4) = timelog_thread_get(LOG_HPSI_INIT, i)
+      htime(1) = timer_thread_get(LOG_HPSI_STENCIL, i)
+      htime(2) = timer_thread_get(LOG_HPSI_PSEUDO, i)
+      htime(3) = timer_thread_get(LOG_HPSI_UPDATE, i)
+      htime(4) = timer_thread_get(LOG_HPSI_INIT, i)
 
       lgflops(1) = lgflops(1) + get_gflops(hflop(1), htime(1))
       lgflops(2) = lgflops(2) + get_gflops(hflop(2), htime(2))
@@ -226,7 +226,7 @@ contains
   end subroutine
 
   function get_stencil_FLOP(chunk_size)
-    use global_variables, only: NK_s,NK_e,NBoccmax,NL,Nt
+    use global_variables, only: NK_s,NK_e,NXY_s,NXY_e,NBoccmax,NL,Nt
     integer,intent(in),optional :: chunk_size
     real(8),parameter           :: FLOP = 158
 
@@ -234,15 +234,17 @@ contains
     integer :: nsize
 
     if(present(chunk_size)) then
-      nsize = chunk_size
+      nsize = chunk_size &
+            * (NXY_e - NXY_s + 1)
     else
-      nsize = (NK_e - NK_s + 1) * NBoccmax
+      nsize = (NK_e  - NK_s  + 1) * NBoccmax &
+            * (NXY_e - NXY_s + 1)
     end if
     get_stencil_FLOP = nsize * 4*FLOP*NL * (Nt + 1)
   end function
 
   function get_pseudo_pt_FLOP(chunk_size)
-    use global_variables, only: NK_s,NK_e,NBoccmax,Nt,a_tbl,Mps
+    use global_variables, only: NK_s,NK_e,NXY_s,NXY_e,NBoccmax,Nt,a_tbl,Mps
     implicit none
     integer,intent(in),optional :: chunk_size
     real(8),parameter           :: FLOP_reduction = (2 + 6)     + 2
@@ -256,15 +258,17 @@ contains
     FLOP = FLOP_scalar + (FLOP_reduction + FLOP_scatter) * sum(Mps(a_tbl(:)))
 
     if(present(chunk_size)) then
-      nsize = chunk_size
+      nsize = chunk_size &
+            * (NXY_e - NXY_s + 1)
     else
-      nsize = (NK_e - NK_s + 1) * NBoccmax
+      nsize = (NK_e  - NK_s  + 1) * NBoccmax &
+            * (NXY_e - NXY_s + 1)
     endif
     get_pseudo_pt_FLOP = nsize * 4*FLOP * (Nt + 1)
   end function
 
   function get_update_FLOP(chunk_size)
-    use global_variables, only: NK_s,NK_e,NBoccmax,NL,Nt
+    use global_variables, only: NK_s,NK_e,NXY_s,NXY_e,NBoccmax,NL,Nt
     implicit none
     integer,intent(in),optional :: chunk_size
     real(8),parameter           :: FLOP = 6 + 2
@@ -273,9 +277,11 @@ contains
     integer :: nsize
 
     if(present(chunk_size)) then
-      nsize = chunk_size
+      nsize = chunk_size &
+            * (NXY_e - NXY_s + 1)
     else
-      nsize = (NK_e - NK_s + 1) * NBoccmax
+      nsize = (NK_e  - NK_s  + 1) * NBoccmax &
+            * (NXY_e - NXY_s + 1)
     endif
     get_update_FLOP = nsize * 4*FLOP*NL * (Nt + 1)
   end function

@@ -14,8 +14,8 @@
 !  limitations under the License.
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-#define LOG_BEG(id) call timelog_thread_begin(id)
-#define LOG_END(id) call timelog_thread_end(id)
+#define LOG_BEG(id) call timer_thread_begin(id)
+#define LOG_END(id) call timer_thread_end(id)
 
 #ifdef ARTED_USE_NVTX
 #define NVTX_BEG(name,id)  call nvtxStartRange(name,id)
@@ -117,8 +117,7 @@ contains
   subroutine hpsi1_LBLK(tpsi,htpsi, ikb_s,ikb_e)
     use Global_Variables
     use opt_variables
-    use timelog
-
+    use timer
     implicit none
     integer :: ikb_s,ikb_e
     complex(8),intent(in)  ::  tpsi(0:PNL-1, ikb_s:ikb_e)

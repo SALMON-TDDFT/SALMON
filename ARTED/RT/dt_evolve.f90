@@ -25,21 +25,99 @@
 #define NVTX_END()
 #endif
 
-Subroutine dt_evolve_omp_KB(iter)
+subroutine dt_evolve_KB(iter)
+  use global_variables, only: propagator,kAc,kAc0,Ac_tot
+  implicit none
+  integer, intent(in) :: iter
+
+  select case(propagator)
+    case('default')
+      call default_propagator
+    case('etrs')
+      call etrs_propagator
+    case default
+      call err_finalize('invalid propagator')
+  end select
+
+contains
+  subroutine default_propagator
+    implicit none
+    integer :: ixyz
+    do ixyz=1,3
+      kAc(:,ixyz)=kAc0(:,ixyz)+0.5d0*(Ac_tot(iter,ixyz) + Ac_tot(iter+1,ixyz) )
+    enddo
+!$acc update device(kAc)
+    call dt_evolve_omp_KB
+  end subroutine
+
+  subroutine etrs_propagator
+    use global_variables, only: kAc_new
+    implicit none
+    integer :: ixyz
+    do ixyz=1,3
+      kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
+      kAc_new(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter+1,ixyz)
+    enddo
+!$acc update device(kAc,kAc_new)
+    call dt_evolve_etrs_omp_KB
+  end subroutine
+end subroutine
+
+subroutine dt_evolve_KB_MS(ix_m,iy_m)
+  use global_variables, only: propagator,kAc,kAc0,Ac_new_m,Ac_m
+  implicit none
+  integer, intent(in) :: ix_m, iy_m
+
+  select case(propagator)
+    case('default')
+      call default_propagator
+    case('etrs')
+      call etrs_propagator
+    case default
+      call err_finalize('invalid propagator')
+  end select
+
+contains
+  subroutine default_propagator
+    implicit none
+    integer :: ixyz
+    do ixyz=1,3
+      kAc(:,ixyz)=kAc0(:,ixyz)+(Ac_new_m(ixyz,ix_m,iy_m)+Ac_m(ixyz,ix_m,iy_m))/2d0
+    enddo
+!$acc update device(kAc)
+    call dt_evolve_omp_KB_MS
+  end subroutine
+
+  subroutine etrs_propagator
+    use global_variables, only: kAc_new
+    implicit none
+    integer :: ixyz
+    do ixyz=1,3
+      kAc(:,ixyz)=kAc0(:,ixyz)+Ac_m(ixyz,ix_m,iy_m)
+      kAc_new(:,ixyz)=kAc0(:,ixyz)+Ac_new_m(ixyz,ix_m,iy_m)
+    enddo
+!$acc update device(kAc,kAc_new)
+    call dt_evolve_etrs_omp_KB
+  end subroutine
+end subroutine
+
+! ---------------------------------------------
+
+Subroutine dt_evolve_omp_KB
   use Global_Variables
-  use timelog
+  use timer
 #ifdef ARTED_USE_NVTX
   use nvtx
 #endif
   use opt_variables
   implicit none
-  integer    :: ik,ib,iter,ixyz
+  integer    :: ik,ib
   integer    :: ia,j,i,ix,iy,iz
   real(8)    :: kr
   integer    :: thr_id,omp_get_thread_num,ikb
 
   NVTX_BEG('dt_evolve_omp_KB()',1)
-  call timelog_begin(LOG_DT_EVOLVE)
+  call timer_begin(LOG_DT_EVOLVE)
 
 !$acc data pcopy(zu, vloc) pcopyout(ekr_omp)
 
@@ -90,7 +168,7 @@ Subroutine dt_evolve_omp_KB(iter)
     tjr2_t=tjr2
   end if
 
-  call dt_evolve_hpsi(.false.)
+  call hamiltonian(.false.)
 
   call psi_rho_RT
   call Hartree
@@ -109,18 +187,6 @@ Subroutine dt_evolve_omp_KB(iter)
     tjr2=0.5d0*(tjr2+tjr2_t)
   end if
 
-  if (Longi_Trans == 'Lo') then 
-    call current
-    javt(iter,:)=jav(:)
-    Ac_ind(iter+1,:)=2*Ac_ind(iter,:)-Ac_ind(iter-1,:)-4*Pi*javt(iter,:)*dt**2
-    if (Sym /= 1) then
-      Ac_ind(iter+1,1)=0.d0
-      Ac_ind(iter+1,2)=0.d0
-    end if
-    Ac_tot(iter+1,:)=Ac_ext(iter+1,:)+Ac_ind(iter+1,:)
-  else if (Longi_Trans == 'Tr') then 
-    Ac_tot(iter+1,:)=Ac_ext(iter+1,:)
-  end if
 
 !$omp parallel do private(ik,ib)
   do ikb=1,NKB
@@ -128,17 +194,12 @@ Subroutine dt_evolve_omp_KB(iter)
     zu(:,ib,ik)=zu_GS(:,ib,ik)
   end do
 
-  do ixyz=1,3
-    kAc(:,ixyz)=kAc0(:,ixyz)+0.5*(Ac_tot(iter,ixyz)+Ac_tot(iter+1,ixyz))
-  enddo
-!$acc update device(kAc)
-
 !$acc update device(zu, vloc)
   end select
 ! yabana
 
-  NVTX_BEG('dt_evolve_omp_KB(): dt_evolve_hpsi',3)
-  call dt_evolve_hpsi(.true.)
+  NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
+  call hamiltonian(.true.)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB(): psi_rho_RT',4)
@@ -155,10 +216,6 @@ Subroutine dt_evolve_omp_KB(iter)
   NVTX_END()
 ! yabana
 
-  do ixyz=1,3
-    kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
-  enddo
-!$acc update device(kAc)
 
 #ifdef _OPENACC
 !$acc kernels pcopy(Vloc) pcopyin(Vh,Vpsl,Vexc)
@@ -172,27 +229,27 @@ Subroutine dt_evolve_omp_KB(iter)
 
 !$acc end data
 
-  call timelog_end(LOG_DT_EVOLVE)
+  call timer_end(LOG_DT_EVOLVE)
   NVTX_END()
 
   return
 End Subroutine dt_evolve_omp_KB
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-Subroutine dt_evolve_etrs_omp_KB(iter)
+Subroutine dt_evolve_etrs_omp_KB
   use Global_Variables
-  use timelog
+  use timer
 #ifdef ARTED_USE_NVTX
   use nvtx
 #endif
   use opt_variables
   implicit none
-  integer    :: ik,ib,iter,ixyz
+  integer    :: ik,ib
   integer    :: ia,j,i,ix,iy,iz
   real(8)    :: kr,dt_t
   integer    :: thr_id,omp_get_thread_num,ikb
 
   NVTX_BEG('dt_evolve_omp_KB()',1)
-  call timelog_begin(LOG_DT_EVOLVE)
+  call timer_begin(LOG_DT_EVOLVE)
 
   dt_t = dt; dt = 0.5d0*dt
 
@@ -229,8 +286,8 @@ Subroutine dt_evolve_etrs_omp_KB(iter)
 
 !$acc update self(zu, ekr_omp, vloc)
 
-  NVTX_BEG('dt_evolve_omp_KB(): dt_evolve_hpsi',3)
-  call dt_evolve_hpsi(.false.)
+  NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
+  call hamiltonian(.false.)
   NVTX_END()
 
 
@@ -240,10 +297,8 @@ Subroutine dt_evolve_etrs_omp_KB(iter)
   Vloc_old(:,1) = Vloc(:)
   Vloc(:) = Vloc_new(:)
 
-  do ixyz=1,3
-    kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter+1,ixyz)
-  enddo
-  !$acc update device(kAc)
+  kAc=kAc_new
+!$acc update device(kAc)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
@@ -284,8 +339,8 @@ Subroutine dt_evolve_etrs_omp_KB(iter)
         zu_GS(:,ib,ik)=zu(:,ib,ik)
      end do
 
-     NVTX_BEG('dt_evolve_omp_KB(): dt_evolve_hpsi',3)
-     call dt_evolve_hpsi(.false.)
+     NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
+     call hamiltonian(.false.)
      NVTX_END()
 
      NVTX_BEG('dt_evolve_omp_KB(): psi_rho_RT',4)
@@ -320,8 +375,8 @@ Subroutine dt_evolve_etrs_omp_KB(iter)
   end select
 
 
-  NVTX_BEG('dt_evolve_omp_KB(): dt_evolve_hpsi',3)
-  call dt_evolve_hpsi(.true.)
+  NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
+  call hamiltonian(.true.)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB(): psi_rho_RT',4)
@@ -350,7 +405,7 @@ Subroutine dt_evolve_etrs_omp_KB(iter)
 !$acc end data
 
   dt = dt_t
-  call timelog_end(LOG_DT_EVOLVE)
+  call timer_end(LOG_DT_EVOLVE)
   NVTX_END()
 
   return
@@ -358,7 +413,7 @@ End Subroutine dt_evolve_etrs_omp_KB
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine dt_evolve_omp_KB_MS
   use Global_Variables
-  use timelog
+  use timer
   use nvtx
   use opt_variables
   implicit none
@@ -368,7 +423,7 @@ Subroutine dt_evolve_omp_KB_MS
   integer    :: thr_id,omp_get_thread_num,ikb
 
   NVTX_BEG('dt_evolve_omp_KB_MS()',1)
-  call timelog_begin(LOG_DT_EVOLVE)
+  call timer_begin(LOG_DT_EVOLVE)
 
 !$acc data pcopy(zu, vloc) pcopyout(ekr_omp)
 
@@ -418,7 +473,7 @@ Subroutine dt_evolve_omp_KB_MS
     tjr2_t=tjr2
   end if
 
-  call dt_evolve_hpsi(.false.)
+  call hamiltonian(.false.)
 
   call psi_rho_RT
   call Hartree
@@ -446,8 +501,8 @@ Subroutine dt_evolve_omp_KB_MS
   end select
 ! yabana
 
-  NVTX_BEG('dt_evolve_omp_KB_MS(): dt_evolve_hpsi',3)
-  call dt_evolve_hpsi(.true.)
+  NVTX_BEG('dt_evolve_omp_KB_MS(): hamiltonian',3)
+  call hamiltonian(.true.)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB_MS(): psi_rho_RT',4)
@@ -476,7 +531,7 @@ Subroutine dt_evolve_omp_KB_MS
 
 !$acc end data
 
-  call timelog_end(LOG_DT_EVOLVE)
+  call timer_end(LOG_DT_EVOLVE)
   NVTX_END()
 
   return

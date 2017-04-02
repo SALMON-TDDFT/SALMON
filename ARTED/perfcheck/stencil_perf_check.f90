@@ -17,7 +17,7 @@ subroutine stencil_perf_check(NLx_, NLy_, NLz_, NK_, NB_, Nt_)
   use global_variables, only: NLx,NLy,NLz,NK,NBoccmax,NUMBER_THREADS,Nt
   use wrap_variables
   use performance_analyzer
-  use timelog
+  use timer
   use omp_lib
   implicit none
   integer,intent(in) :: NLx_, NLy_, NLz_
@@ -45,19 +45,19 @@ subroutine stencil_perf_check(NLx_, NLy_, NLz_, NK_, NB_, Nt_)
   Nt = Nt - 1
 
   call wrap_init
-  call timelog_initialize
+  call timer_initialize
 
   call dt_evolve_hpsi
 
-  call timelog_reset
+  call timer_reset
   tbeg = omp_get_wtime()
   do t=0,Nt
     call dt_evolve_hpsi
   end do
   tend = omp_get_wtime()
 
-  time(1) = timelog_get(LOG_HPSI_STENCIL)
-  time(2) = timelog_get(LOG_HPSI_UPDATE)
+  time(1) = timer_get(LOG_HPSI_STENCIL)
+  time(2) = timer_get(LOG_HPSI_UPDATE)
   call get_hamiltonian_performance(gflops)
 
   print '("total   time =",f6.2," sec")', tend - tbeg

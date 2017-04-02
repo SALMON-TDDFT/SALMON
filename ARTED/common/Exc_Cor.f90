@@ -16,17 +16,17 @@
 !This file is "Exc_Cor.f90"
 Subroutine Exc_Cor(GS_RT)
   use Global_Variables
-  use timelog
+  use timer
   implicit none
   character(2) :: GS_RT
-  call timelog_begin(LOG_EXC_COR)
+  call timer_begin(LOG_EXC_COR)
   if(functional == 'PZ') call Exc_Cor_PZ
   if(functional == 'PZM') call Exc_Cor_PZM
   if(functional == 'PBE') call Exc_Cor_PBE(GS_RT)
   if(functional == 'TBmBJ') call Exc_Cor_TBmBJ(GS_RT)
   if(functional == 'TPSS') call Exc_Cor_TPSS(GS_RT)
   if(functional == 'VS98') call Exc_Cor_VS98(GS_RT)
-  call timelog_end(LOG_EXC_COR)
+  call timer_end(LOG_EXC_COR)
   return
   end
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130

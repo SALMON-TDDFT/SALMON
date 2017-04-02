@@ -45,7 +45,7 @@ end subroutine
 
 subroutine psi_rho_impl(zutmp,zu_NB)
   use global_variables
-  use timelog
+  use timer
   use opt_variables
   use communication
 #ifdef ARTED_USE_NVTX
@@ -55,7 +55,7 @@ subroutine psi_rho_impl(zutmp,zu_NB)
   integer,intent(in)    :: zu_NB
   complex(8),intent(in) :: zutmp(0:NL-1,zu_NB,NK_s:NK_e)
 
-  call timelog_begin(LOG_PSI_RHO)
+  call timer_begin(LOG_PSI_RHO)
   ! write(*,*) "Sym:", Sym
   ! stop
   select case(Sym)
@@ -80,11 +80,11 @@ subroutine psi_rho_impl(zutmp,zu_NB)
   case default
     call err_finalize('Bad Symmetry')
   end select
-  call timelog_end(LOG_PSI_RHO)
+  call timer_end(LOG_PSI_RHO)
 
-  call timelog_begin(LOG_ALLREDUCE)
+  call timer_begin(LOG_ALLREDUCE)
   call comm_summation(rho_l,rho,NL,proc_group(2))
-  call timelog_end(LOG_ALLREDUCE)
+  call timer_end(LOG_ALLREDUCE)
 
 
 contains

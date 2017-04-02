@@ -24,8 +24,6 @@ module environment
 
   integer :: ENABLE_LOAD_BALANCER
 
-  integer :: IS_SYMMETRIC_DEBUG
-
 contains
   subroutine load_environments
     implicit none
@@ -37,7 +35,5 @@ contains
     call get_mic_ppn_internal(MIC_PROCESS_PER_NODE)
 
     call get_load_balancer_flag_internal(ENABLE_LOAD_BALANCER)
-
-    call get_sym_debug_mode_internal(IS_SYMMETRIC_DEBUG)
   end subroutine
 end module environment

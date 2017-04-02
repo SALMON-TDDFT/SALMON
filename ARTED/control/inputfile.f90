@@ -24,6 +24,7 @@ module inputfile
   integer :: inml_control
   integer :: inml_system
   integer :: inml_incident
+  integer :: inml_propagation
   integer :: inml_rgrid
   integer :: inml_kgrid
   integer :: inml_tstep
@@ -161,6 +162,8 @@ contains
     ! response
     Nomega = -1
     domega = 0
+    ! propagation
+    propagator = 'default'
     ! multiscale
     FDTDdim = ""
     TwoD_shape = ""
@@ -248,6 +251,8 @@ contains
             & phi_CEP_2, &
             & Epdir_2, &
             & T1_T2fs
+    namelist/propagation/ &
+            & propagator
     namelist/response/ &
             & Nomega, &
             & domega
@@ -270,6 +275,8 @@ contains
       read(fh_namelist, nml=control, iostat=inml_control)
       rewind(fh_namelist)
       read(fh_namelist, nml=system, iostat=inml_system)
+      rewind(fh_namelist)
+      read(fh_namelist, nml=propagation, iostat=inml_propagation)
       rewind(fh_namelist)
       read(fh_namelist, nml=incident, iostat=inml_incident)
       rewind(fh_namelist)
@@ -296,6 +303,7 @@ contains
     call comm_bcast(directory, proc_group(1))
     call comm_bcast(functional, proc_group(1))
     call comm_bcast(cval, proc_group(1))
+    call comm_bcast(propagator,proc_group(1))
     call comm_bcast(aL, proc_group(1))
     call comm_bcast(ax, proc_group(1))
     call comm_bcast(ay, proc_group(1))
@@ -459,6 +467,8 @@ contains
       print '("#",4X,A,"=",ES12.5)', 'ay', ay
       print '("#",4X,A,"=",ES12.5)', 'az', az
       print '("#",4X,A,"=",I1)', 'Sym', Sym
+      print '("#namelist: ",A,", status=",I1)', 'propagation', inml_propagation
+      print '("#",4X,A,"=",A)', 'propagator', propagator
       print '("#",4X,A,"=",A)', 'crystal_structure', crystal_structure
       print '("#",4X,A,"=",I1)', 'NB', NB
       print '("#",4X,A,"=",I1)', 'Nelec', Nelec

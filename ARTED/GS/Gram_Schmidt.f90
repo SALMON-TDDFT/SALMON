@@ -19,13 +19,13 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Gram_Schmidt
   use Global_Variables
-  use timelog
+  use timer
   implicit none
   integer :: ik,ib,ibt
   real(8) :: s
   complex(8) :: zov
 
-  call timelog_begin(LOG_GRAM_SCHMIDT)
+  call timer_begin(LOG_GRAM_SCHMIDT)
 !$omp parallel do private(ib,ibt,zov,s)
   do ik=NK_s,NK_e
   do ib=1,NB
@@ -37,7 +37,7 @@ Subroutine Gram_Schmidt
     zu_GS(:,ib,ik)=zu_GS(:,ib,ik)/sqrt(s)
   enddo
   enddo
-  call timelog_end(LOG_GRAM_SCHMIDT)
+  call timer_end(LOG_GRAM_SCHMIDT)
 
   return
 End Subroutine Gram_Schmidt

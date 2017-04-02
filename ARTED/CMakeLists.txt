@@ -74,7 +74,6 @@ option_set(ENABLE_SWPREFETCH              "Enable software prefetch in the expli
 option_set(ENABLE_REDUCE_FOR_MANYCORE     "Enable optimized reduction code for many-core processor"  OFF)
 option_set(ENABLE_OPENACC                 "Enable OpenACC for NVIDIA GPUs"                           OFF)
 option_set(ENABLE_LARGE_BLOCKING          "Enable large blocking for accelerator"                    OFF)
-option_set(USE_OLD_PROPAGATOR             "Use old propagator for comparing to past results"         OFF)
 
 set(BINARY_DIR             "bin")
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/${BINARY_DIR}")
@@ -113,7 +112,6 @@ endif ()
 add_definitions_if(ENABLE_CURRENT_PREPROCESSING -DARTED_CURRENT_PREPROCESSING)
 add_definitions_if(ENABLE_REDUCE_FOR_MANYCORE   -DARTED_REDUCE_FOR_MANYCORE)
 add_definitions_if(ENABLE_LARGE_BLOCKING        -DARTED_LBLK)
-add_definitions_if(USE_OLD_PROPAGATOR           -DARTED_USE_OLD_PROPAGATOR)
 
 if (OPT_STENCIL)
   add_definitions(-DARTED_STENCIL_OPTIMIZED)

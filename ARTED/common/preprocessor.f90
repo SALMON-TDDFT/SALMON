@@ -48,7 +48,4 @@ subroutine print_optimize_message
 #ifdef ARTED_ENABLE_SOFTWARE_PREFETCH
   print *, '  ARTED_ENABLE_SOFTWARE_PREFETCH'
 #endif
-#ifdef ARTED_USE_OLD_PROPAGATOR
-  print *, '  ARTED_USE_OLD_PROPAGATOR'
-#endif
 end subroutine

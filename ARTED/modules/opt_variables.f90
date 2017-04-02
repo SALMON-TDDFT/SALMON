@@ -36,8 +36,6 @@ module opt_variables
   integer,allocatable :: zifdx(:,:),zifdy(:,:),zifdz(:,:)
 #endif
 
-  integer,allocatable :: hpsi_called(:)
-
 #ifdef ARTED_LBLK
   integer,allocatable :: t4ppt_nlma(:)    ! (PNL)
   integer,allocatable :: t4ppt_i2vi(:)    ! (PNL)

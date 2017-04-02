@@ -31,7 +31,7 @@ contains
   subroutine impl(Rion_update,zutmp,zu_NB)
     use Global_Variables
     use Opt_Variables
-    use timelog
+    use timer
     implicit none
     character(3),intent(in)  :: Rion_update
     integer,intent(in)       :: zu_NB
@@ -54,7 +54,7 @@ contains
 #endif
 !dir$ attributes align:MEM_ALIGNED :: nabt
 
-    call timelog_begin(LOG_TOTAL_ENERGY)
+    call timer_begin(LOG_TOTAL_ENERGY)
 
     !ion-ion
     if (Rion_update == 'on') then
@@ -166,9 +166,9 @@ contains
     end do
 !$omp end do nowait
 !$omp end parallel
-    call timelog_end(LOG_TOTAL_ENERGY)
+    call timer_end(LOG_TOTAL_ENERGY)
 
-    call timelog_begin(LOG_ALLREDUCE)
+    call timer_begin(LOG_ALLREDUCE)
     !summarize
     if (Rion_update == 'on') then
       call comm_summation(Eion_l,Eion_tmp2,proc_group(2))
@@ -190,7 +190,7 @@ contains
     Exc=sum(Eexc)*Hxyz
 
     Eall=Ekin+Eloc+Enl+Exc+Eh+Eion
-    call timelog_end(LOG_ALLREDUCE)
+    call timer_end(LOG_ALLREDUCE)
 
   end subroutine
 end subroutine Total_Energy_omp

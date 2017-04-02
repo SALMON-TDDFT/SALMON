@@ -14,8 +14,8 @@
 !  limitations under the License.
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-#define LOG_BEG(id) call timelog_thread_begin(id)
-#define LOG_END(id) call timelog_thread_end(id)
+#define LOG_BEG(id) call timer_thread_begin(id)
+#define LOG_END(id) call timer_thread_end(id)
 
 #ifdef ARTED_USE_NVTX
 #define NVTX_BEG(name,id)  call nvtxStartRange(name,id)
@@ -29,16 +29,21 @@ subroutine hpsi_omp_KB_GS(ik,tpsi,ttpsi,htpsi)
   use Global_Variables, only: NL,NLz,NLy,NLx
   use opt_variables, only: zhtpsi,zttpsi,PNLx,PNLy,PNLz
   use omp_lib
+  use timer
   implicit none
   integer,intent(in)     :: ik
   complex(8),intent(in)  :: tpsi(NL)
   complex(8),intent(out) :: ttpsi(NL),htpsi(NL)
   integer :: tid
 
+  LOG_BEG(LOG_HPSI)
+
   tid = omp_get_thread_num()
   call init(tpsi,zhtpsi(:,1,tid))
-  call hpsi_omp_KB_RT(ik,zhtpsi(:,1,tid),zhtpsi(:,2,tid),zttpsi(:,tid))
+  call hpsi_omp_KB_base(ik,zhtpsi(:,1,tid),zhtpsi(:,2,tid),zttpsi(:,tid))
   call copyout(zhtpsi(:,2,tid),zttpsi(:,tid),htpsi,ttpsi)
+
+  LOG_END(LOG_HPSI)
 
 contains
   subroutine init(zu,tpsi)
@@ -77,9 +82,18 @@ contains
   end subroutine
 end subroutine
 
+subroutine hpsi_omp_KB_RT(ik,tpsi,htpsi)
+  use opt_variables, only: PNLx,PNLy,PNLz
+  implicit none
+  integer,intent(in)     :: ik
+  complex(8),intent(in)  ::  tpsi(0:PNLz-1,0:PNLy-1,0:PNLx-1)
+  complex(8),intent(out) :: htpsi(0:PNLz-1,0:PNLy-1,0:PNLx-1)
+  call hpsi_omp_KB_base(ik,tpsi,htpsi)
+end subroutine
 
-subroutine hpsi_omp_KB_RT(ik,tpsi,htpsi,ttpsi)
-  use timelog
+
+subroutine hpsi_omp_KB_base(ik,tpsi,htpsi,ttpsi)
+  use timer
   use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,uV,iuV,Hxyz,ekr_omp,Nlma,a_tbl
   use opt_variables, only: lapt,PNLx,PNLy,PNLz,PNL
 #ifdef ARTED_USE_NVTX
@@ -87,7 +101,7 @@ subroutine hpsi_omp_KB_RT(ik,tpsi,htpsi,ttpsi)
 #endif
   implicit none
   integer,intent(in)              :: ik
-  complex(8),intent(in)           :: tpsi(0:PNLz-1,0:PNLy-1,0:PNLx-1)
+  complex(8),intent(in)           ::  tpsi(0:PNLz-1,0:PNLy-1,0:PNLx-1)
   complex(8),intent(out)          :: htpsi(0:PNLz-1,0:PNLy-1,0:PNLx-1)
   complex(8),intent(out),optional :: ttpsi(0:PNLz-1,0:PNLy-1,0:PNLx-1)
   real(8) :: k2,k2lap0_2

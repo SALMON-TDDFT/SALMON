@@ -30,7 +30,7 @@ contains
   subroutine impl(Rion_update,zutmp,zu_NB)
     use Global_Variables
     use communication
-    use timelog
+    use timer
     implicit none
     character(3),intent(in)  :: Rion_update
     integer,intent(in)       :: zu_NB
@@ -41,7 +41,7 @@ contains
     complex(8)   :: uVpsi,duVpsi(3)
     real(8)      :: ftmp_l_kl(3,NI,NK_s:NK_e)
 
-    call timelog_begin(LOG_ION_FORCE)
+    call timer_begin(LOG_ION_FORCE)
 
     !ion
     if (Rion_update == 'on') then
@@ -133,12 +133,12 @@ contains
       ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
     end do
 
-    call timelog_end(LOG_ION_FORCE)
+    call timer_end(LOG_ION_FORCE)
 
-    call timelog_begin(LOG_ALLREDUCE)
+    call timer_begin(LOG_ALLREDUCE)
     call comm_summation(ftmp_l,fnl,3*NI,proc_group(2))
     force=Floc+Fnl+Fion
-    call timelog_end(LOG_ALLREDUCE)
+    call timer_end(LOG_ALLREDUCE)
   end subroutine
 end subroutine Ion_Force_omp
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
