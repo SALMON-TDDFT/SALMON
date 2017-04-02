@@ -21,7 +21,7 @@ module control_ms
 contains
 subroutine main
   use Global_Variables
-  use timelog
+  use timer
   use opt_variables
   use environment
   use performance_analyzer
@@ -32,10 +32,12 @@ subroutine main
   character(3) :: Rion_update
   character(10) :: functional_t
   integer :: ix_m,iy_m,ixy_m
-  integer :: index
+  integer :: index, n
+
 !$ integer :: omp_get_max_threads  
 
-  call timelog_initialize
+  call timer_initialize
+
   call load_environments
 
   if(comm_is_root(1)) then
@@ -55,9 +57,12 @@ subroutine main
 
   if(comm_is_root(1))write(*,*)'NUMBER_THREADS = ',NUMBER_THREADS
 
-  etime1=get_wtime()
+  call timer_begin(LOG_ALL)
+
+  call timer_begin(LOG_STATIC)
   Time_start=get_wtime() !reentrance
   call comm_bcast(Time_start,proc_group(1))
+
   Rion_update='on'
 
   call Read_data
@@ -99,10 +104,14 @@ subroutine main
   if (MD_option /= 'Y') Rion_update = 'off'
   Eall_GS(0)=Eall
 
-  if(comm_is_root(1)) write(*,*) 'This is the end of preparation for ground state calculation'
-  if(comm_is_root(1)) write(*,*) '-----------------------------------------------------------'
+  if(comm_is_root(1)) then
+    write(*,*) 'This is the end of preparation for ground state calculation'
+    call timer_show_current_hour('elapse time=',LOG_ALL)
+    write(*,*) '-----------------------------------------------------------'
+  end if
 
-  call timelog_reset
+  call reset_gs_timer
+  call timer_begin(LOG_GROUND_STATE)
   do iter=1,Nscf
     if (comm_is_root(1))  write(*,*) 'iter = ',iter
     if( kbTev < 0d0 )then ! sato
@@ -173,33 +182,36 @@ subroutine main
       write(*,*) 'var_ave,var_max=',esp_var_ave(iter),esp_var_max(iter)
       write(*,*) 'dns. difference =',dns_diff(iter)
       if (iter/20*20 == iter) then
-         etime2=get_wtime()
          write(*,*) '====='
-         write(*,*) 'elapse time=',etime2-etime1,'sec=',(etime2-etime1)/60,'min'
+         call timer_show_current_min('elapse time=',LOG_ALL)
       end if
       write(*,*) '-----------------------------------------------'
     end if
   end do
-  etime2 = get_wtime()
+  call timer_end(LOG_GROUND_STATE)
 
   if(comm_is_root(1)) then
-    call timelog_set(LOG_DYNAMICS, etime2 - etime1)
-    call timelog_show_hour('Ground State time  :', LOG_DYNAMICS)
-    call timelog_show_min ('CG time            :', LOG_CG)
-    call timelog_show_min ('Gram Schmidt time  :', LOG_GRAM_SCHMIDT)
-    call timelog_show_min ('diag time          :', LOG_DIAG)
-    call timelog_show_min ('sp_energy time     :', LOG_SP_ENERGY)
-    call timelog_show_min ('hpsi time          :', LOG_HPSI)
-    call timelog_show_min (' - stencil time    :', LOG_HPSI_STENCIL)
-    call timelog_show_min (' - pseudo pt. time :', LOG_HPSI_PSEUDO)
-    call timelog_show_min ('psi_rho time       :', LOG_PSI_RHO)
-    call timelog_show_min ('Hartree time       :', LOG_HARTREE)
-    call timelog_show_min ('Exc_Cor time       :', LOG_EXC_COR)
-    call timelog_show_min ('current time       :', LOG_CURRENT)
-    call timelog_show_min ('Total_Energy time  :', LOG_TOTAL_ENERGY)
-    call timelog_show_min ('Ion_Force time     :', LOG_ION_FORCE)
+    call timer_show_hour('Ground State time  :', LOG_GROUND_STATE)
+    call timer_show_min ('CG time            :', LOG_CG)
+    call timer_show_min ('Gram Schmidt time  :', LOG_GRAM_SCHMIDT)
+    call timer_show_min ('diag time          :', LOG_DIAG)
+    call timer_show_min ('sp_energy time     :', LOG_SP_ENERGY)
+    call timer_show_min ('hpsi time          :', LOG_HPSI)
+    call timer_show_min (' - stencil time    :', LOG_HPSI_STENCIL)
+    call timer_show_min (' - pseudo pt. time :', LOG_HPSI_PSEUDO)
+    call timer_show_min ('psi_rho time       :', LOG_PSI_RHO)
+    call timer_show_min ('Hartree time       :', LOG_HARTREE)
+    call timer_show_min ('Exc_Cor time       :', LOG_EXC_COR)
+    call timer_show_min ('current time       :', LOG_CURRENT)
+    call timer_show_min ('Total_Energy time  :', LOG_TOTAL_ENERGY)
+    call timer_show_min ('Ion_Force time     :', LOG_ION_FORCE)
+    call timer_show_min ('Allreduce time     :', LOG_ALLREDUCE)
   end if
-  if(comm_is_root(1)) write(*,*) 'This is the end of GS calculation'
+  if(comm_is_root(1)) then
+    write(*,*) 'This is the end of GS calculation'
+    call timer_show_current_hour('elapse time=',LOG_ALL)
+    write(*,*) '-----------------------------------------------------------'
+  end if
 
   zu_GS0(:,:,:)=zu_GS(:,:,:)
 
@@ -219,13 +231,12 @@ subroutine main
   Eall0=Eall
   if(comm_is_root(1)) write(*,*) 'Eall =',Eall
 
-  etime2=get_wtime()
+  call timer_end(LOG_STATIC)
   if (comm_is_root(1)) then
     write(*,*) '-----------------------------------------------'
-    write(*,*) 'static time=',etime2-etime1,'sec=', (etime2-etime1)/60,'min'
+    call timer_show_min('static time=',LOG_STATIC)
     write(*,*) '-----------------------------------------------'
   end if
-  etime1=etime2
 
   if (comm_is_root(1)) then
     write(*,*) '-----------------------------------------------'
@@ -258,7 +269,11 @@ subroutine main
   call opt_vars_init_t4ppt()
 #endif
 
-  if(comm_is_root(1)) write(*,*) 'This is the end of preparation for Real time calculation'
+  if(comm_is_root(1)) then
+    write(*,*) 'This is the end of preparation for Real time calculation'
+    call timer_show_current_hour('elapse time=',LOG_ALL)
+    write(*,*) '-----------------------------------------------------------'
+  end if
 
 !====RT calculation============================
 
@@ -271,6 +286,7 @@ subroutine main
   
   rho_gs(:)=rho(:)
 
+  Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
 ! sato ---------------------------------------
   if(NXYsplit /= 1)then
     do ixy_m=NXY_s,NXY_e
@@ -280,6 +296,7 @@ subroutine main
       Vexc_m(:,ixy_m)=Vexc(:)
       Eexc_m(:,ixy_m)=Eexc(:)
       Vloc_m(:,ixy_m)=Vloc(:)
+      Vloc_old_m(:,:,ixy_m)=Vloc_old(:,:)
     end do
   end if
 ! sato ---------------------------------------
@@ -296,7 +313,7 @@ subroutine main
   write(file_energy_transfer, "(A,'energy-transfer.out')") trim(directory)
   write(file_ac_vac, "(A,'Ac_Vac.out')") trim(directory)
   write(file_ac_vac_back, "(A,'Ac_Vac_back.out')") trim(directory)
-  write(file_ac_m, "(A,'Ac_M',I4.4,'.out')") trim(directory), NXY_s
+  write(file_ac_m, "(A,'Ac_M',I6.6,'.out')") trim(directory), NXY_s
   
   if (comm_is_root(1)) then
 !    open(7,file=file_epst,position = position_option)
@@ -328,58 +345,38 @@ subroutine main
 
 !$acc enter data create(kAc)
 
-  call timelog_reset
-  etime1=get_wtime()
+  call reset_rt_timer
+  call timer_begin(LOG_DYNAMICS)
 !$acc enter data copyin(zu)
   RTiteratopm : do iter=entrance_iter+1,Nt ! sato
 
     call dt_evolve_Ac ! sato
     Macro_loop : do ixy_m=NXY_s,NXY_e ! sato
-      call timelog_begin(LOG_OTHER)
-! sato ---------------------------------------
+      call timer_begin(LOG_OTHER)
       ix_m=NX_table(ixy_m)
       iy_m=NY_table(ixy_m)
       if(NXYsplit /= 1)then
-        zu(:,:,:)=zu_m(:,:,:,ixy_m)
-        Vh(:)=Vh_m(:,ixy_m)
-        Vexc(:)=Vexc_m(:,ixy_m)
-        Eexc(:)=Eexc_m(:,ixy_m)
-        Vloc(:)=Vloc_m(:,ixy_m)
+        call get_macro_data(ixy_m)
       end if
+      call timer_end(LOG_OTHER)
 
-      kAc(:,1)=kAc0(:,1)+(Ac_new_m(1,ix_m,iy_m)+Ac_m(1,ix_m,iy_m))/2d0
-      kAc(:,2)=kAc0(:,2)+(Ac_new_m(2,ix_m,iy_m)+Ac_m(2,ix_m,iy_m))/2d0
-      kAc(:,3)=kAc0(:,3)+(Ac_new_m(3,ix_m,iy_m)+Ac_m(3,ix_m,iy_m))/2d0
-!$acc update device(kAc)
-! sato ---------------------------------------
-      call timelog_end(LOG_OTHER)
-      
-#ifdef ARTED_USE_OLD_PROPAGATOR
-      call dt_evolve_omp_KB_MS
-#else
-      !call dt_evolve_etrs_omp_KB_MS
-      call dt_evolve_omp_KB_MS
-#endif
+      call dt_evolve_KB_MS(ix_m,iy_m)
 
-      call timelog_begin(LOG_OTHER)
+      call timer_begin(LOG_OTHER)
 ! sato ---------------------------------------
       if(NXYsplit /= 1)then
-        zu_m(:,:,:,ixy_m)=zu(:,:,:)
-        Vh_m(:,ixy_m)=Vh(:)
-        Vexc_m(:,ixy_m)=Vexc(:)
-        Eexc_m(:,ixy_m)=Eexc(:)
-        Vloc_m(:,ixy_m)=Vloc(:)
+        call put_macro_data(ixy_m)
       end if
       kAc(:,1)=kAc0(:,1)+Ac_new_m(1,ix_m,iy_m)
       kAc(:,2)=kAc0(:,2)+Ac_new_m(2,ix_m,iy_m)
       kAc(:,3)=kAc0(:,3)+Ac_new_m(3,ix_m,iy_m)
 !$acc update device(kAc)
 ! sato ---------------------------------------
-      call timelog_end(LOG_OTHER)
+      call timer_end(LOG_OTHER)
 
       call current_RT
 
-      call timelog_begin(LOG_OTHER)
+      call timer_begin(LOG_OTHER)
 ! sato ---------------------------------------
       if(Sym /= 1)then
         jav(1)=0d0
@@ -389,7 +386,7 @@ subroutine main
         jmatter_m_l(1:3,ix_m,iy_m)=jav(1:3)
       end if
 ! sato ---------------------------------------
-      call timelog_end(LOG_OTHER)
+      call timer_end(LOG_OTHER)
 
       javt(iter,:)=jav(:)
       if (MD_option == 'Y') then
@@ -406,13 +403,13 @@ subroutine main
         end if
       end if
     
-      call timelog_begin(LOG_OTHER)
+      call timer_begin(LOG_OTHER)
       if(comm_is_root(2))then ! sato
         energy_elec_Matter_l(ix_m,iy_m)=Eall-Eall0 ! sato
       end if ! sato
-      call timelog_end(LOG_OTHER)
+      call timer_end(LOG_OTHER)
 
-      call timelog_begin(LOG_K_SHIFT_WF)
+      call timer_begin(LOG_K_SHIFT_WF)
 !Adiabatic evolution
       if (AD_RHO /= 'No' .and. mod(iter,100) == 0) then
         call k_shift_wf(Rion_update,2)
@@ -425,19 +422,19 @@ subroutine main
           excited_electron_l(ix_m,iy_m)=sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
         end if ! sato
       end if
-      call timelog_end(LOG_K_SHIFT_WF)
+      call timer_end(LOG_K_SHIFT_WF)
       
     end do Macro_loop
 
-    call timelog_begin(LOG_ALLREDUCE)
+    call timer_begin(LOG_ALLREDUCE)
     call comm_summation(jmatter_m_l,jmatter_m,3*NX_m*NY_m,proc_group(1))
     j_m(:,1:NX_m,1:NY_m)=jmatter_m(:,1:NX_m,1:NY_m)
     if(mod(iter,10) == 1) then
       call comm_bcast(reentrance_switch,proc_group(1))
     end if
-    call timelog_end(LOG_ALLREDUCE)
+    call timer_end(LOG_ALLREDUCE)
 
-    call timelog_begin(LOG_OTHER)
+    call timer_begin(LOG_OTHER)
 !write section ================================================================================
     if(comm_is_root(1)) then
       write(941,'(4e26.16E3)') iter*dt, Ac_new_m(1:3,0,1)
@@ -457,57 +454,59 @@ subroutine main
     call calc_energy_elemag()
     
     if (mod(iter, Nstep_write) == 0) then
-      index = iter / Nstep_write
 
-      call timelog_end(LOG_OTHER)
+      call timer_end(LOG_OTHER)
       
-      call timelog_begin(LOG_ALLREDUCE)
+      call timer_begin(LOG_ALLREDUCE)
       call comm_summation(energy_elec_Matter_l,energy_elec_Matter,NX_m*NY_m,proc_group(1))
-      call timelog_end(LOG_ALLREDUCE)
+      call timer_end(LOG_ALLREDUCE)
 
-      call timelog_begin(LOG_OTHER)
+      call timer_begin(LOG_OTHER)
 
       energy_elec(1:NX_m,1:NY_m)=energy_elec_Matter(1:NX_m,1:NY_m) 
       energy_total=energy_elemag+energy_elec
-
-      data_out(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Ac_new_m(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Ac_new_m(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Ac_new_m(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(4,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Elec(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(5,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Elec(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(6,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Elec(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(7,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Bmag(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(8,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Bmag(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(9,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Bmag(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(10,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=j_m(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(11,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=j_m(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(12,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=j_m(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(13,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_elemag(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(14,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_joule(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(15,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_elec(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-      data_out(16,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_total(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
-
+      
+      n = iter / Nstep_write
+      if (mod(n, nprocs(1)) == procid(1)) then
+        index = (n - procid(1)) / nprocs(1)
+        data_out(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Ac_new_m(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Ac_new_m(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Ac_new_m(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(4,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Elec(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(5,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Elec(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(6,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Elec(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(7,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Bmag(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(8,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Bmag(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(9,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=Bmag(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(10,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=j_m(1,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(11,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=j_m(2,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(12,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=j_m(3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(13,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_elemag(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(14,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_joule(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(15,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_elec(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+        data_out(16,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m,index)=energy_total(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m)
+      end if
+      
       if(comm_is_root(1))then
-        call write_result(index)
         write(940,'(4e26.16E3)')iter*dt,sum(energy_elec)*HX_m*HY_m/aLxyz &
           &,sum(energy_elemag)*HX_m*HY_m/aLxyz,sum(energy_total)*HX_m*HY_m/aLxyz
       end if
     end if
-    call timelog_end(LOG_OTHER)
+    call timer_end(LOG_OTHER)
 
     if (AD_RHO /= 'No' .and. mod(iter,100) == 0 ) then 
-      call timelog_begin(LOG_ALLREDUCE)
+      call timer_begin(LOG_ALLREDUCE)
       call comm_summation(excited_electron_l,excited_electron,NX_m*NY_m,proc_group(1))
-      call timelog_end(LOG_ALLREDUCE)
+      call timer_end(LOG_ALLREDUCE)
       if(comm_is_root(1))call write_excited_electron(iter)
     else if (iter == Nt ) then
-      call timelog_begin(LOG_ALLREDUCE)
+      call timer_begin(LOG_ALLREDUCE)
       call comm_summation(excited_electron_l,excited_electron,NX_m*NY_m,proc_group(1))
-      call timelog_end(LOG_ALLREDUCE)
+      call timer_end(LOG_ALLREDUCE)
       if(comm_is_root(1))call write_excited_electron(iter)
     end if
 
-    call timelog_begin(LOG_OTHER)
+    call timer_begin(LOG_OTHER)
     if (reentrance_switch == 1) then 
       call comm_sync_all
       write(*,*) procid(1),'iter =',iter
@@ -518,11 +517,9 @@ subroutine main
     end if
 
 !Timer
-    etime2=get_wtime()
-    call timelog_set(LOG_DYNAMICS, etime2 - etime1)
     if (iter/1000*1000 == iter.and.comm_is_root(1)) then
       write(*,*) 'iter =',iter
-      call timelog_show_hour('dynamics time     :', LOG_DYNAMICS)
+      call timer_show_current_hour('dynamics time      :', LOG_DYNAMICS)
     end if
 
 !Timer for shutdown
@@ -536,48 +533,55 @@ subroutine main
       end if
     end if
 ! sato ---------------------------------------
-    call timelog_end(LOG_OTHER)
+    call timer_end(LOG_OTHER)
 
   enddo RTiteratopm !end of RT iteraction========================
 !$acc exit data copyout(zu)
-  etime2=get_wtime()
-  call timelog_set(LOG_DYNAMICS, etime2 - etime1)
+  call timer_end(LOG_DYNAMICS)
 
   if(comm_is_root(1)) then
-    call timelog_show_hour('dynamics time      :', LOG_DYNAMICS)
-    call timelog_show_min ('dt_evolve_Ac time  :', LOG_DT_EVOLVE_AC)
-    call timelog_show_min ('dt_evolve time     :', LOG_DT_EVOLVE)
-    call timelog_show_min ('hpsi time          :', LOG_HPSI)
-    call timelog_show_min (' - init time       :', LOG_HPSI_INIT)
-    call timelog_show_min (' - stencil time    :', LOG_HPSI_STENCIL)
-    call timelog_show_min (' - pseudo pt. time :', LOG_HPSI_PSEUDO)
-    call timelog_show_min (' - update time     :', LOG_HPSI_UPDATE)
-    call timelog_show_min ('psi_rho time       :', LOG_PSI_RHO)
-    call timelog_show_min ('Hartree time       :', LOG_HARTREE)
-    call timelog_show_min ('Exc_Cor time       :', LOG_EXC_COR)
-    call timelog_show_min ('current time       :', LOG_CURRENT)
-    call timelog_show_min ('Total_Energy time  :', LOG_TOTAL_ENERGY)
-    call timelog_show_min ('Ion_Force time     :', LOG_ION_FORCE)
-    call timelog_show_min ('k_shift_wf time    :', LOG_K_SHIFT_WF)
-    call timelog_show_min ('Other time         :', LOG_OTHER)
+    call timer_show_hour('dynamics time      :', LOG_DYNAMICS)
+    call timer_show_min ('dt_evolve_Ac time  :', LOG_DT_EVOLVE_AC)
+    call timer_show_min ('dt_evolve time     :', LOG_DT_EVOLVE)
+    call timer_show_min ('hpsi time          :', LOG_HPSI)
+    call timer_show_min (' - init time       :', LOG_HPSI_INIT)
+    call timer_show_min (' - stencil time    :', LOG_HPSI_STENCIL)
+    call timer_show_min (' - pseudo pt. time :', LOG_HPSI_PSEUDO)
+    call timer_show_min (' - update time     :', LOG_HPSI_UPDATE)
+    call timer_show_min ('psi_rho time       :', LOG_PSI_RHO)
+    call timer_show_min ('Hartree time       :', LOG_HARTREE)
+    call timer_show_min ('Exc_Cor time       :', LOG_EXC_COR)
+    call timer_show_min ('current time       :', LOG_CURRENT)
+    call timer_show_min ('Total_Energy time  :', LOG_TOTAL_ENERGY)
+    call timer_show_min ('Ion_Force time     :', LOG_ION_FORCE)
+    call timer_show_min ('k_shift_wf time    :', LOG_K_SHIFT_WF)
+    call timer_show_min ('Other time         :', LOG_OTHER)
+    call timer_show_min ('Allreduce time     :', LOG_ALLREDUCE)
   end if
   call write_performance(trim(directory)//'ms_performance')
 
   if(comm_is_root(1)) write(*,*) 'This is the start of write section'
-  etime1=get_wtime()
+  call timer_begin(LOG_IO)
   call write_result_all
-  etime2=get_wtime()
-  if(comm_is_root(1)) write(*,*) 'This is the end of write section'
-  if(comm_is_root(1)) write(*,*) 'write time =',etime2-etime1,'sec'
+  call timer_end(LOG_IO)
+  if(comm_is_root(1)) then
+    write(*,*) 'This is the end of write section'
+    call timer_show_min('write time =',LOG_IO)
+  end if
 
-  if(comm_is_root(1)) write(*,*) 'This is the end of RT calculation'
+  if(comm_is_root(1)) then
+    write(*,*) 'This is the end of RT calculation'
+    call timer_show_current_hour('elapse time=',LOG_ALL)
+    write(*,*) '-----------------------------------------------------------'
+  end if
 
 !====RT calculation===========================
   call comm_sync_all
 
   if (comm_is_root(1)) write(*,*) 'This is the end of all calculation'
   Time_now=get_wtime()
-  if (comm_is_root(1) ) write(*,*) 'Total time =',(Time_now-Time_start)
+  call timer_end(LOG_ALL)
+  if (comm_is_root(1)) call timer_show_hour('Total time =',LOG_ALL)
 
 1 if(comm_is_root(1)) write(*,*)  'This calculation is shutdown successfully!'
   if(comm_is_root(1)) then
@@ -599,7 +603,82 @@ subroutine main
   end if
   call comm_finalize
 
-End subroutine Main
+contains
+  subroutine get_macro_data(ixy_m)
+    implicit none
+    integer, intent(in) :: ixy_m
+    integer :: il,ib,ik
+!$omp parallel default(none) &
+!$    shared(NK_s,NK_e,NBoccmax,NL,zu,zu_m,Vh,Vh_m,Vexc, &
+!$           Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m,Vloc_old,Vloc_old_m) &
+!$    firstprivate(ixy_m)
+
+!$omp do collapse(2) private(ik,ib)
+    do ik=NK_s,NK_e
+    do ib=1,NBoccmax
+      zu(:,ib,ik) = zu_m(:,ib,ik,ixy_m)
+    end do
+    end do
+!$omp end do nowait
+
+!$omp do private(il)
+    do il=1,NL
+      Vh(il)         = Vh_m(il,ixy_m)
+      Vexc(il)       = Vexc_m(il,ixy_m)
+      Eexc(il)       = Eexc_m(il,ixy_m)
+      Vloc(il)       = Vloc_m(il,ixy_m)
+      Vloc_old(il,:) = Vloc_old_m(il,:,ixy_m)
+    end do
+!$omp end do
+
+!$omp end parallel
+  end subroutine
+
+  subroutine put_macro_data(ixy_m)
+    implicit none
+    integer, intent(in) :: ixy_m
+    integer :: il,ib,ik
+!$omp parallel default(none) &
+!$    shared(NK_s,NK_e,NBoccmax,NL,zu,zu_m,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m) &
+!$    firstprivate(ixy_m)
+
+!$omp do collapse(2) private(ik,ib)
+    do ik=NK_s,NK_e
+    do ib=1,NBoccmax
+      zu_m(:,ib,ik,ixy_m) = zu(:,ib,ik)
+    end do
+    end do
+!$omp end do nowait
+
+!$omp do private(il)
+    do il=1,NL
+      Vh_m(il,ixy_m)   = Vh(il)
+      Vexc_m(il,ixy_m) = Vexc(il)
+      Eexc_m(il,ixy_m) = Eexc(il)
+      Vloc_m(il,ixy_m) = Vloc(il)
+    end do
+!$omp end do
+
+!$omp end parallel
+  end subroutine
+
+  subroutine reset_gs_timer
+    implicit none
+    integer :: i
+    do i = LOG_CG,LOG_GRAM_SCHMIDT
+      call timer_reset(i)
+    end do
+    call reset_rt_timer
+  end subroutine
+
+  subroutine reset_rt_timer
+    implicit none
+    integer :: i
+    do i = LOG_DT_EVOLVE,LOG_ALLREDUCE
+      call timer_reset(i)
+    end do
+  end subroutine
+end subroutine main
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Read_data
   use Global_Variables
@@ -635,6 +714,7 @@ Subroutine Read_data
     write(*,*) 'functional=',functional
     if(functional == 'TBmBJ') write(*,*) 'cvalue=',cval
 !yabana
+    write(*,*) 'propagator=',propagator
     write(*,*) 'ps_format =',ps_format !shinohara
     write(*,*) 'PSmask_option =',PSmask_option !shinohara
     write(*,*) 'alpha_mask, gamma_mask, eta_mask =',alpha_mask, gamma_mask, eta_mask !shinohara
@@ -833,8 +913,9 @@ Subroutine Read_data
   allocate(Lx(NL),Ly(NL),Lz(NL),Gx(NG),Gy(NG),Gz(NG))
   allocate(Lxyz(0:NLx-1,0:NLy-1,0:NLz-1))
   allocate(ifdx(-Nd:Nd,1:NL),ifdy(-Nd:Nd,1:NL),ifdz(-Nd:Nd,1:NL))
-  allocate(kAc(NK,3),kAc0(NK,3))
+  allocate(kAc(NK,3),kAc0(NK,3),kAc_new(NK,3))
   allocate(Vh(NL),Vexc(NL),Eexc(NL),rho(NL),Vpsl(NL),Vloc(NL),Vloc_GS(NL),Vloc_t(NL))
+  allocate(Vloc_new(NL),Vloc_old(NL,2))
 !yabana
   allocate(tmass(NL),tjr(NL,3),tjr2(NL),tmass_t(NL),tjr_t(NL,3),tjr2_t(NL))
 !yabana
@@ -927,7 +1008,8 @@ Subroutine Read_data
     allocate(Vh_m(NL,NXY_s:NXY_e))         
     allocate(Vexc_m(NL,NXY_s:NXY_e))         
     allocate(Eexc_m(NL,NXY_s:NXY_e))         
-    allocate(Vloc_m(NL,NXY_s:NXY_e))         
+    allocate(Vloc_m(NL,NXY_s:NXY_e))
+    allocate(Vloc_old_m(NL,2,NXY_s:NXY_e))
   end if
     allocate(energy_joule(NXvacL_m:NXvacR_m, NYvacB_m:NYvacT_m))
     allocate(energy_elec_Matter_l(1:NX_m,1:NY_m))
@@ -939,7 +1021,9 @@ Subroutine Read_data
     allocate(excited_electron(1:NX_m,1:NY_m))
     energy_elec_Matter_l(:,:)=0d0
     excited_electron_l=0d0
-    allocate(data_out(16,NXvacL_m:NXvacR_m,NY_m+1,0:Nt/Nstep_write))
+    Ndata_out = Nt / Nstep_write
+    Ndata_out_per_proc = NData_out / nprocs(1)
+    allocate(data_out(16,NXvacL_m:NXvacR_m,NY_m+1,0:Ndata_out_per_proc))
 ! sato ---------------------------------------------------------------------------------------
 
   if (comm_is_root()) then
@@ -992,7 +1076,7 @@ End Subroutine Read_data
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 subroutine prep_Reentrance_Read
   use Global_Variables
-  use timelog,       only: timelog_reentrance_read
+  use timer,       only: timer_reentrance_read
   use opt_variables, only: opt_vars_initialize_p1, opt_vars_initialize_p2
   use communication
   use misc_routines, only: get_wtime
@@ -1071,11 +1155,12 @@ subroutine prep_Reentrance_Read
   read(500) FSset_option,MD_option
   read(500) AD_RHO !ovlp_option
 
+  read(500) propagator
+
 !  integer :: procid(1),Nprocs
 !  integer :: NEW_COMM_WORLD,nprocs(2),procid(2) ! sato
   read(500) NK_ave,NG_ave,NK_s,NK_e,NG_s,NG_e
   read(500) NK_remainder,NG_remainder
-  read(500) etime1,etime2
 ! Timer
 !  read(500) Time_shutdown
 !  read(500) Time_start,Time_now
@@ -1190,11 +1275,11 @@ subroutine prep_Reentrance_Read
 
 
   allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
-  allocate(kAc(NK,3),kAc0(NK,3))
+  allocate(kAc(NK,3),kAc0(NK,3),kAc_new(NK,3))
   allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
 
   read(500) E_ext(:,:),E_ind(:,:),E_tot(:,:)
-  read(500) kAc(:,:),kAc0(:,:)                  !k+A(t)/c (kAc)
+  read(500) kAc(:,:),kAc0(:,:),kAc_new(:,:)             !k+A(t)/c (kAc)
   read(500) Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
 
 
@@ -1223,7 +1308,7 @@ subroutine prep_Reentrance_Read
   read(500) itable_sym(:,:) ! sym
   read(500) rho_l(:),rho_tmp1(:),rho_tmp2(:) !sym
 
-  call timelog_reentrance_read(500)
+  call timer_reentrance_read(500)
   call opt_vars_initialize_p1
   call opt_vars_initialize_p2
 
@@ -1241,7 +1326,7 @@ end subroutine prep_Reentrance_Read
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 subroutine prep_Reentrance_write
   use Global_Variables
-  use timelog, only: timelog_reentrance_write
+  use timer, only: timer_reentrance_write
   use communication
   use misc_routines, only: get_wtime
   implicit none
@@ -1319,11 +1404,12 @@ subroutine prep_Reentrance_write
   write(500) FSset_option,MD_option
   write(500) AD_RHO !ovlp_option
 
+  write(500) propagator
+
 !  integer :: procid(1),Nprocs
 !  integer :: NEW_COMM_WORLD,nprocs(2),procid(2) ! sato
   write(500) NK_ave,NG_ave,NK_s,NK_e,NG_s,NG_e
   write(500) NK_remainder,NG_remainder
-  write(500) etime1,etime2
 ! Timer
 !  write(500) Time_shutdown
 !  write(500) Time_start,Time_now
@@ -1391,7 +1477,7 @@ subroutine prep_Reentrance_write
 
 
   write(500) E_ext(:,:),E_ind(:,:),E_tot(:,:)
-  write(500) kAc(:,:),kAc0(:,:)                  !k+A(t)/c (kAc)
+  write(500) kAc(:,:),kAc0(:,:),kAc_new(:,:)                  !k+A(t)/c (kAc)
   write(500) Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
 
 
@@ -1408,7 +1494,7 @@ subroutine prep_Reentrance_write
   write(500) itable_sym(:,:) ! sym
   write(500) rho_l(:),rho_tmp1(:),rho_tmp2(:) !sym
 
-  call timelog_reentrance_write(500)
+  call timer_reentrance_write(500)
 
 !== write data ===!  
 

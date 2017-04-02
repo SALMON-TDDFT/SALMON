@@ -20,7 +20,7 @@
 Subroutine CG_omp(iter_cg_max)
   use Global_Variables
   use communication
-  use timelog
+  use timer
   implicit none
   real(8),parameter :: delta_cg=1.d-15
   integer iter,ik,ib,ibt
@@ -38,7 +38,7 @@ Subroutine CG_omp(iter_cg_max)
   integer :: thr_id,omp_get_thread_num
   thr_id=0
 
-  call timelog_begin(LOG_CG)
+  call timer_begin(LOG_CG)
   esp_var_l(:,:)=0.d0
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()
@@ -112,11 +112,11 @@ Subroutine CG_omp(iter_cg_max)
 
 !$omp end parallel
 
-  call timelog_begin(LOG_ALLREDUCE)
+  call timer_begin(LOG_ALLREDUCE)
   call comm_summation(esp_var_l,esp_var,NB*NK,proc_group(2))
-  call timelog_end(LOG_ALLREDUCE)
+  call timer_end(LOG_ALLREDUCE)
 
-  call timelog_end(LOG_CG)
+  call timer_end(LOG_CG)
 
   return
 End Subroutine CG_OMP

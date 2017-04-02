@@ -21,8 +21,6 @@
 #define ARTED_MIC_PPN_ENV       "ARTED_MIC_PPN"              /* Process per Node */
 #define ARTED_LOAD_BALANCER_ENV "ARTED_ENABLE_LOAD_BALANCER" /* 1 or 0 */
 
-#define ARTED_SYM_DEBUG_ENV     "ARTED_SYM_DEBUG"            /* 1 or 0 */
-
 void get_cpu_task_ratio_internal_(double * ret) {
   char* env = getenv(ARTED_CPU_TASK_ENV);
   if(env != NULL)
@@ -49,14 +47,6 @@ void get_mic_ppn_internal_(int * ret) {
 
 void get_load_balancer_flag_internal_(int * ret) {
   char* env = getenv(ARTED_LOAD_BALANCER_ENV);
-  if(env != NULL)
-    *ret = atoi(env);
-  else
-    *ret = 0;
-}
-
-void get_sym_debug_mode_internal_(int * ret) {
-  char* env = getenv(ARTED_SYM_DEBUG_ENV);
   if(env != NULL)
     *ret = atoi(env);
   else

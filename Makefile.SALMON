@@ -77,9 +77,9 @@ SRC_ARTED = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
             GS/write_GS_data.f90 preparation/fd_coef.f90 preparation/init.f90 \
             preparation/init_wf.f90 preparation/input_ps.f90 \
             preparation/prep_ps.f90 RT/current.f90 RT/dt_evolve.f90 \
-            RT/dt_evolve_hpsi.f90 RT/Fourier_tr.f90 RT/init_Ac.f90 \
+            RT/Fourier_tr.f90 RT/hamiltonian.f90 RT/init_Ac.f90 \
             RT/k_shift_wf.f90 stencil/F90/current.f90 stencil/F90/hpsi.f90 \
-            stencil/F90/hpsi_original.f90 stencil/F90/total_energy.f90 
+            stencil/F90/total_energy.f90 
             
 C_SRC_ARTED = modules/env_variables_internal.c
 
@@ -96,7 +96,7 @@ MOD_GCEED = modules/scf_data.f90 modules/allocate_mat.f90 modules/new_world.f90 
 
 MOD_ARTED = modules/communication.f90 modules/env_variables.f90 \
             modules/global_variables.f90 modules/misc_routines.f90 \
-            modules/nvtx.f90 modules/timelog.f90 control/inputfile.f90 \
+            modules/nvtx.f90 modules/timer.f90 control/inputfile.f90 \
             modules/opt_variables.f90 modules/performance_analyzer.f90 \
             control/control_ms.f90 control/control_sc.f90 
 

@@ -65,7 +65,6 @@ group.add_option('--domain-pow2',         action='store_true',  dest='domain_two
 group.add_option('--loop-blocking',       action='store_true',  dest='loop_blocking',     help='loop blocking applied to the stencil computation.')
 group.add_option('--opt-current',         action='store_true',  dest='current_optimized', help='enable the current routine optimization in RT.')
 group.add_option('--reduce-manycore',     action='store_true',  dest='reduce_manycore',   help='enable reduction code optimization for many-core processor.')
-group.add_option('--use-old-propagator',  action='store_true',  dest='old_propagator',    help='use old propagator for comparing to past simulation results.')
 parser.add_option_group(group)
 
 group = OptionGroup(parser, 'Debug options')
@@ -93,7 +92,6 @@ add_option(dict, 'ENABLE_EXPLICIT_VEC',        options.explicit_vec)
 add_option(dict, 'ENABLE_LOOP_BLOCKING',       options.loop_blocking)
 add_option(dict, 'ENABLE_SWPREFETCH',          options.swp)
 add_option(dict, 'ENABLE_REDUCE_FOR_MANYCORE', options.reduce_manycore)
-add_option(dict, 'USE_OLD_PROPAGATOR',         options.old_propagator)
 if options.simd is not None:
   dict['SIMD_SET'] = options.simd.upper()
 
