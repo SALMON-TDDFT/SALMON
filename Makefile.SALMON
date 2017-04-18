@@ -39,6 +39,8 @@ ARCH = intel
 
 SRC_main = main.f90 end_parallel.f90 read_input.f90 setup_parallel.f90
 
+SRC_core = exc_cor.f90
+
 SRC_GCEED = gceed.f90 read_input_gceed.f90 
 
 SRC_SCF_GCEED = real_space_dft.f90 subspace_diag.f90 simple_mixing.f90 copy_density.f90 \
@@ -66,7 +68,7 @@ SRC_COMMON_GCEED = calcELF.f90 psl.f90 hartree.f90 ylm.f90 xc.f90 OUT_IN_data.f9
                    calc_myob.f90 check_corrkob.f90 calc_allob.f90 calc_ob_num.f90 \
                    calc_pmax.f90 calc_iroot.f90 calc_iquotient.f90 set_isstaend.f90 \
                    conv_p0.f90 conv_p.f90 set_ispin.f90 read_copy_pot.f90 \
-                   set_gridcoo.f90 calc_force_c.f90 
+                   set_gridcoo.f90 calc_force_c.f90 conv_core_exc_cor.f90
 
 SRC_ARTED = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
            common/ion_force.f90 common/preprocessor.f90 common/psi_rho.f90 \
@@ -116,8 +118,9 @@ OBJM_ARTED= $(addprefix $(OBJDIR)/ARTED/,$(MOD_ARTED:.f90=.o))
 OBJS_ARTED= $(OBJM_ARTED) $(OBJ_ARTED) $(C_OBJ_ARTED)
 
 OBJ_main = $(addprefix $(OBJDIR)/main/,$(SRC_main:.f90=.o))
+OBJ_core = $(addprefix $(OBJDIR)/src/core/,$(SRC_core:.f90=.o))
 
-OBJS = $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_main)
+OBJS = $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_core) $(OBJ_main)
 
 .SUFFIXES:
 .SUFFIXES: .F .F90 .o

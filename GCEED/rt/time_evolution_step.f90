@@ -147,9 +147,9 @@ end if
 
   if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
     if(ilsda==0)then
-      call Exc_Cor_fast(rho,Ex_fast,Ec_fast)
-    else
-      call Exc_Cor_ns
+      call conv_core_exc_cor
+    else if(ilsda==1)then
+      call Exc_cor_ns
     end if
   end if
 
