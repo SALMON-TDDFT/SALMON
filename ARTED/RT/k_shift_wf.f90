@@ -17,12 +17,14 @@
 !This file contain a subroutine.
 !Subroutine k_shift_wf(iter,iter_GS_max)
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max)
+Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
   use Global_Variables
   use communication
   implicit none
-  integer :: iter_GS,iter_GS_max,ik,ib1,ib2
-  character(3) :: atomic_position_update_switch
+  integer,intent(in) :: iter_GS_max
+  logical,intent(in) :: atomic_position_update_switch
+  complex(8),intent(in) :: zu(NL,NBoccmax,NK_s:NK_e)
+  integer :: iter_GS,ik,ib1,ib2
 
   if(AD_RHO == 'GS')then
     Vloc_t(:)=Vloc(:)
@@ -33,8 +35,8 @@ Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max)
   do iter_GS=1,iter_GS_max
     call CG_omp(Ncg)
     call Gram_Schmidt
-    call Total_Energy_omp(atomic_position_update_switch,'GS')
-    call Ion_Force_omp(atomic_position_update_switch,'GS')
+    call Total_Energy_omp(atomic_position_update_switch,calc_mode_gs)
+    call Ion_Force_omp(atomic_position_update_switch,calc_mode_gs)
     if (comm_is_root()) then
       write(*,'(1x,a15,i3,f20.14,f15.8)')'iter_GS, Eall =',iter_GS,Eall-Eall0,force(3,1)
     end if
@@ -60,13 +62,15 @@ Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max)
   return
 End Subroutine k_shift_wf
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max)
+Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max,zu)
   use Global_Variables
   use communication
   implicit none
-  integer :: iter_GS,iter_GS_max,ik,ib1,ib2,ib,ia
-  character(3) :: atomic_position_update_switch
+  integer,intent(in) :: iter_GS_max
+  logical,intent(in) :: atomic_position_update_switch
+  complex(8),intent(in) :: zu(NL,NBoccmax,NK_s:NK_e)
   real(8) :: esp_all(NB,NK)
+  integer :: iter_GS,ik,ib1,ib2,ib,ia
 
   if(AD_RHO == 'GS')then
     Vloc_t(:)=Vloc(:)
@@ -77,8 +81,8 @@ Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max)
   do iter_GS=1,iter_GS_max
     call CG_omp(Ncg)
     call Gram_Schmidt
-    call Total_Energy_omp(atomic_position_update_switch,'GS')
-    call Ion_Force_omp(atomic_position_update_switch,'GS')
+    call Total_Energy_omp(atomic_position_update_switch,calc_mode_gs)
+    call Ion_Force_omp(atomic_position_update_switch,calc_mode_gs)
     if (comm_is_root()) then
       write(*,'(1x,a15,i3,f20.14,f15.8)')'iter_GS, Eall =',iter_GS,Eall-Eall0,force(3,1)
     end if

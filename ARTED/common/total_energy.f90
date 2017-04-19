@@ -14,18 +14,26 @@
 !  limitations under the License.
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-subroutine Total_Energy_omp(Rion_update,GS_RT)
-  use Global_Variables, only: zu,zu_GS,NB,NBoccmax
+subroutine Total_Energy_omp(Rion_update,GS_RT,ixy_m)
+  use Global_Variables, only: zu_t,zu_m,zu_GS,NB,NBoccmax,calc_mode_gs,calc_mode_rt
   use communication
   implicit none
-  character(3),intent(in) :: Rion_update
-  character(2),intent(in) :: GS_RT
+  integer,intent(in) :: GS_RT
+  logical,intent(in) :: Rion_update
+  integer,intent(in),optional :: ixy_m
 
-  if (GS_RT == 'GS') then
-    call impl(Rion_update,zu_GS,NB)
-  else if (GS_RT == 'RT') then
-    call impl(Rion_update,zu,NBoccmax)
-  end if
+  select case(GS_RT)
+    case(calc_mode_gs)
+      call impl(Rion_update,zu_GS,NB)
+    case(calc_mode_rt)
+      if (present(ixy_m)) then
+        call impl(Rion_update,zu_m(:,:,:,ixy_m),NBoccmax)
+      else
+        call impl(Rion_update,zu_t,NBoccmax)
+      end if
+    case default
+      call err_finalize('total_energy_omp: GS_RT flag')
+  end select
 
 contains
   subroutine impl(Rion_update,zutmp,zu_NB)
@@ -33,7 +41,7 @@ contains
     use Opt_Variables
     use timer
     implicit none
-    character(3),intent(in)  :: Rion_update
+    logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
     complex(8),intent(inout) :: zutmp(0:NL-1,zu_NB,NK_s:NK_e)
 
@@ -57,7 +65,7 @@ contains
     call timer_begin(LOG_TOTAL_ENERGY)
 
     !ion-ion
-    if (Rion_update == 'on') then
+    if (Rion_update) then
       thr_id=0
       Eion_tmp1=0.d0
       Eion_l=0.d0
@@ -170,7 +178,7 @@ contains
 
     call timer_begin(LOG_ALLREDUCE)
     !summarize
-    if (Rion_update == 'on') then
+    if (Rion_update) then
       call comm_summation(Eion_l,Eion_tmp2,proc_group(2))
       Eion=Eion_tmp1+Eion_tmp2
     end if

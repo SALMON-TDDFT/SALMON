@@ -24,7 +24,7 @@ subroutine write_result(index)
   ! export results of each calculation step
   ! (written by M.Uemoto on 2016-11-22)
   iter = Nstep_write * (nprocs(1) * index + procid(1))
-  write(file_ac, "(A,A,'_Ac_',I6.6,'.out')") trim(directory), trim(SYSname), iter 
+  write(file_ac, "(A,A,'_Ac_',I6.6,'.out')") trim(process_directory), trim(SYSname), iter
   open(902, file=file_ac)
   select case(FDTDdim)
   case("1D")
@@ -127,8 +127,12 @@ subroutine init_Ac_ms_2dc()
   jmatter_m=0d0
   jmatter_m_l=0d0
   energy_joule=0d0
-  call incident_bessel_beam()
-  
+  select case(AE_shape)
+  case('Asin2cos')
+    call incident_bessel_beam()
+  case('input')
+    call read_initial_ac_from_file()
+  end select 
   call comm_sync_all
   return
 end subroutine init_Ac_ms_2dc
@@ -456,7 +460,6 @@ subroutine dt_evolve_Ac_2dc()
   implicit none
   integer :: ix_m, iy_m
   real(8) :: Y, RR(3) ! rot rot Ac
-  ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do collapse(2) default(none) &
 !$    private(iy_m,ix_m) &
@@ -475,7 +478,7 @@ subroutine dt_evolve_Ac_2dc()
 !$    firstprivate(dt)
   do iy_m=NYvacB_m,NYvacT_m
     do ix_m=NXvacL_m,NXvacR_m
-      Y = (iy_m - 0.50d0) * HY_m
+      Y = iy_m * HY_m
       RR(1) = +(+0.50d0*(1.00d0/HY_m)*(1.00d0/Y)-(1.00d0/HY_m**2))*Ac_m(1,ix_m+0,iy_m-1) &
             & +2.00d0*(1.00d0/HY_m**2)*Ac_m(1,ix_m+0,iy_m+0) &
             & +(-0.50d0*(1.00d0/HY_m)*(1.00d0/Y)-(1.00d0/HY_m**2))*Ac_m(1,ix_m+0,iy_m+1) &
@@ -508,8 +511,10 @@ subroutine dt_evolve_Ac_2dc()
 !$    private(ix_m) &
 !$    shared(Ac_new_m,NXvacL_m,NXvacR_m,NYvacB_m,NYvacT_m)
   do ix_m=NXvacL_m-1,NXvacR_m+1
-    Ac_new_m(:,ix_m,NYvacB_m-1)=Ac_new_m(:,ix_m,NYvacB_m)
-    Ac_new_m(:,ix_m,NYvacT_m+1)=0.0d0
+    Ac_new_m(1,ix_m,NYvacB_m-1)=Ac_new_m(1,ix_m,NYvacB_m)
+    !!Following BCs are automatically satisfied by adequate initial state.
+    !Ac_new_m(2:3,ix_m,NYvacB_m-1)=0.0d0
+    !Ac_new_m(:,ix_m,NYvacT_m+1)=0.0d0
   enddo
 !$omp end parallel do
   return
@@ -542,8 +547,6 @@ subroutine calc_elec_field()
                             & dt
   implicit none
   integer ix_m,iy_m
-  ! calculate the electric field from the vector potential Ac
-  ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do collapse(2) default(none) &
 !$    private(iy_m,ix_m) &
@@ -619,7 +622,7 @@ subroutine calc_bmag_field_2dc()
 !$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HY_m,HX_m,Bmag,Ac_m)
   do iy_m=NYvacB_m, NYvacT_m
     do ix_m=NXvacL_m, NXvacR_m
-      Y = (iy_m-0.5d0) * HY_m
+      Y = iy_m * HY_m
       Rc(1) = -0.50d0*(1.00d0/HY_m)*Ac_m(3,ix_m+0,iy_m-1) &
             & +1.00d0*(1.00d0/Y)*Ac_m(3,ix_m+0,iy_m+0) &
             & +0.50d0*(1.00d0/HY_m)*Ac_m(3,ix_m+0,iy_m+1)
@@ -697,3 +700,28 @@ subroutine calc_energy_elemag()
 
   return
 end subroutine calc_energy_elemag
+
+
+real(8) function calc_pulse_xcenter()
+  use Global_variables, only: energy_elemag, NYvacB_m, NYvacT_m, NXvacL_m, NXvacR_m, HX_m
+  implicit none
+  integer :: ix_m, iy_m
+  real(8) :: x, ex_tot, e_tot
+
+  ex_tot = 0.0
+  e_tot = 0.0
+!$omp parallel do collapse(2) default(none) &
+!$    private(iy_m, ix_m, x) & 
+!$    shared(NYvacB_m, NYvacT_m, NXvacL_m, NXvacR_m, HX_m, energy_elemag) &
+!$    reduction(+: ex_tot, e_tot)
+do iy_m = NYvacB_m, NYvacT_m
+  do ix_m = NXvacL_m, NXvacR_m
+    x = ix_m * HX_m
+    e_tot = e_tot + energy_elemag(ix_m, iy_m)
+    ex_tot = ex_tot + x * energy_elemag(ix_m, iy_m)
+  end do
+end do
+!$omp end parallel do
+  calc_pulse_xcenter = ex_tot / e_tot
+  return
+end function calc_pulse_xcenter

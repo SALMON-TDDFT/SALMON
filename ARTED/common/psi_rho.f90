@@ -37,9 +37,10 @@ subroutine psi_rho_GS
   call psi_rho_impl(zu_GS,NB)
 end subroutine
 
-subroutine psi_rho_RT
-  use global_variables, only: zu,NBoccmax
+subroutine psi_rho_RT(zu)
+  use global_variables, only: NL,NBoccmax,NK_s,NK_e
   implicit none
+  complex(8),intent(in) :: zu(NL,NBoccmax,NK_s:NK_e)
   call psi_rho_impl(zu,NBoccmax)
 end subroutine
 
@@ -116,7 +117,7 @@ contains
     end do
 !$omp end do
 
-    i = ceiling_pow2(NUMBER_THREADS/2)
+    i = ceiling_pow2(NUMBER_THREADS)/2
     do while(i > 0)
       if(mytid < i) then
         zrhotmp(0:NL-1,mytid) = zrhotmp(0:NL-1,mytid) + zrhotmp(0:NL-1,mytid + i)

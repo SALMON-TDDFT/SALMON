@@ -88,6 +88,7 @@ contains
     tid_range = 0
 #endif
     allocate(zrhotmp(0:NL-1,0:tid_range))
+    zrhotmp(:,:) = 0.0d0
   end subroutine
 
   subroutine opt_vars_initialize_p2

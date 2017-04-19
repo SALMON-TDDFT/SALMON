@@ -31,6 +31,11 @@ Module Global_Variables
 !  real(8),parameter :: CU=0.002d0,DU=-0.0116d0
 !yabana
 
+  integer :: iter_now,entrance_iter
+  character(10) :: entrance_option    !initial or reentrance
+  real(8) :: Time_shutdown
+  real(8) :: Time_start,Time_now
+
 ! grid
   integer :: NLx,NLy,NLz,Nd,NL,NG,NKx,NKy,NKz,NK,Sym,nGzero
   integer :: NKxyz 
@@ -91,7 +96,7 @@ Module Global_Variables
   real(8),allocatable :: rho_nlcc(:),tau_nlcc(:)
 
 ! wave functions, work array
-  complex(8),allocatable :: zu(:,:,:),zu_GS(:,:,:),zu_GS0(:,:,:)
+  complex(8),allocatable :: zu_t(:,:,:),zu_GS(:,:,:),zu_GS0(:,:,:)
   complex(8),allocatable :: tpsi(:),htpsi(:),zwork(:,:,:),ttpsi(:)
   real(8),allocatable :: work(:,:,:)
   real(8),allocatable :: esp_var(:,:)
@@ -124,18 +129,20 @@ Module Global_Variables
   integer :: NFSset_start=75,NFSset_every=25 !Fermi Surface (FS) set 
 
 ! file names, flags, etc
-  character(50) :: SYSname,directory
-  character(50) :: file_GS,file_RT
-  character(50) :: file_epst,file_epse
-  character(50) :: file_force_dR,file_j_ac
-  character(50) :: file_DoS,file_band
-  character(50) :: file_dns,file_ovlp,file_nex
-  character(50) :: file_kw ! non-uniform k-grid 
-  character(50) :: file_energy_transfer ! 940
-  character(50) :: file_ac_vac          ! 941
-  character(50) :: file_ac_vac_back     ! 942
-  character(50) :: file_ac_m            ! 943
-  character(50) :: file_ac              ! 902
+  character(128) :: SYSname,directory
+  character(256) :: file_GS,file_RT
+  character(256) :: file_epst,file_epse
+  character(256) :: file_force_dR,file_j_ac
+  character(256) :: file_DoS,file_band
+  character(256) :: file_dns,file_ovlp,file_nex
+  character(256) :: file_kw              ! non-uniform k-grid
+  character(256) :: file_energy_transfer ! 940
+  character(256) :: file_ac_vac          ! 941
+  character(256) :: file_ac_vac_back     ! 942
+  character(256) :: file_ac_m            ! 943
+  character(256) :: file_ac              ! 902
+  character(256) :: file_ac_init         ! 902
+  character(256) :: process_directory
 
   character(2) :: ext_field
   character(2) :: Longi_Trans
@@ -150,10 +157,6 @@ Module Global_Variables
   integer :: NK_ave,NG_ave,NK_s,NK_e,NG_s,NG_e
   integer :: NK_remainder,NG_remainder
 ! Timer
-  real(8) :: Time_shutdown
-  real(8) :: Time_start,Time_now
-  integer :: iter_now,entrance_iter
-  character(10) :: entrance_option    !initial or reentrance        
   character(10) :: position_option
 
 ! sato
@@ -176,9 +179,6 @@ Module Global_Variables
 
 ! Finite temperature
   real(8) :: KbTev
-
-! For reentrance 
-  character(50) :: cMyrank,file_reentrance
 
 ! multi scale
   character(20) :: FDTDdim,TwoD_shape
@@ -214,16 +214,44 @@ Module Global_Variables
   real(8),allocatable :: excited_electron(:,:)
 
   real(8),allocatable :: data_out(:,:,:,:)
+  real(8),allocatable :: data_local_Ac(:,:,:)
+  real(8),allocatable :: data_local_jm(:,:,:)
+  real(8),allocatable :: data_vac_Ac(:,:,:)
   integer :: Nstep_write=100
   integer :: Ndata_out, Ndata_out_per_proc
   
 
-  integer :: reentrance_switch
-  
   character(30) :: calc_mode
   character(30), parameter :: calc_mode_sc = 'singlecell'
   character(30), parameter :: calc_mode_ms = 'multiscale'
 
+  integer :: reentrance_switch = 0
+
+  integer :: backup_frequency = 10000 ! # of iteration
+  logical :: need_backup      = .FALSE.
+
+
+  ! calculation mode
+  integer, parameter :: calc_mode_gs = 1000
+  integer, parameter :: calc_mode_rt = 1100
+
+  ! Rion update flag
+  logical, parameter :: rion_update_on  = .true.
+  logical, parameter :: rion_update_off = .false.
+
+  interface 
+    subroutine total_Energy_omp(Rion_update,GS_RT,ixy_m)
+      integer,intent(in) :: GS_RT
+      logical,intent(in) :: Rion_update
+      integer,intent(in),optional :: ixy_m
+    end subroutine total_Energy_omp
+
+    subroutine Ion_Force_omp(Rion_update,GS_RT,ixy_m)
+      integer,intent(in) :: GS_RT
+      logical,intent(in) :: Rion_update
+      integer,intent(in),optional :: ixy_m
+    end subroutine Ion_Force_omp
+  end interface
 
 #if defined(__KNC__) || defined(__AVX512F__)
 # define MEM_ALIGNED 64
@@ -231,7 +259,7 @@ Module Global_Variables
 # define MEM_ALIGNED 32
 #endif
 
-!dir$ attributes align:MEM_ALIGNED :: zu,zu_GS
+!dir$ attributes align:MEM_ALIGNED :: zu_t,zu_GS
 !dir$ attributes align:MEM_ALIGNED :: xk_omp,txk_omp,hxk_omp,pko_omp
 !dir$ attributes align:MEM_ALIGNED :: tpsi_omp,ttpsi_omp,htpsi_omp
 

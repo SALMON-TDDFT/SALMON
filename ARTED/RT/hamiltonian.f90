@@ -24,7 +24,7 @@
 #define NVTX_END()
 #endif
 
-subroutine hamiltonian(flag_current)
+subroutine hamiltonian(zu,flag_current)
   use Global_Variables
   use timer
   use omp_lib
@@ -34,7 +34,8 @@ subroutine hamiltonian(flag_current)
   integer    :: ikb,ik,ib,i
   integer    :: iexp
   complex(8) :: zfac(4)
-  logical, intent(in) :: flag_current
+  complex(8), intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
+  logical, intent(in)       :: flag_current
 
   zfac(1)=(-zI*dt)
   do i=2,4

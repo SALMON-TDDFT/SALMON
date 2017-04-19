@@ -51,45 +51,53 @@ end subroutine
 #endif
 
 subroutine current0
+  use Global_Variables, only: NBoccmax,zu_t
   implicit none
-  call current('ZE')
+  call current('ZE',NBoccmax,zu_t)
 end subroutine
 
 subroutine current_GS
+  use Global_Variables, only: NB,zu_GS
   implicit none
-  call current('GS')
+  call current('GS',NB,zu_GS)
 end subroutine
 
 subroutine current_RT
+  use Global_Variables, only: NBoccmax,zu_t
   implicit none
-  call current('RT')
+  call current('RT',NBoccmax,zu_t)
 end subroutine
 
-subroutine current(mode)
-  use Global_Variables, only: NB,NBoccmax,zu_GS,zu
+subroutine current_RT_MS(ixy_m)
+  use Global_Variables, only: NBoccmax,zu_m
+  implicit none
+  integer,intent(in) :: ixy_m
+  call current('RT',NBoccmax,zu_m(:,:,:,ixy_m))
+end subroutine
+
+subroutine current(mode,NBtmp,zutmp)
+  use Global_Variables, only: NL,NK_s,NK_e
   use timer
 #ifdef ARTED_USE_NVTX
   use nvtx
 #endif
   implicit none
   character(2), intent(in) :: mode
+  integer,intent(in)       :: NBtmp
+  complex(8),intent(in)    :: zutmp(NL,NBtmp,NK_s:NK_e)
   real(8) :: jx,jy,jz
 
   NVTX_BEG('current_RT()',2)
   call timer_begin(LOG_CURRENT)
-  if (mode == 'ZE') then
-    call impl(mode,NBoccmax,zu,jx,jy,jz)
-  else if (mode == 'GS') then
-    call impl(mode,NB,zu_GS,jx,jy,jz)
-  else if (mode == 'RT') then
 #ifdef _OPENACC
-    call current_acc_impl(zu,jx,jy,jz)
-#else
-    call impl(mode,NBoccmax,zu,jx,jy,jz)
-#endif
+  if (mode == 'RT') then
+    call current_acc_impl(zutmp,jx,jy,jz)
   else
-    call err_finalize('ERROR: current mode')
+    call impl(mode,NBtmp,zutmp,jx,jy,jz)
   end if
+#else
+  call impl(mode,NBtmp,zutmp,jx,jy,jz)
+#endif
   call summation(jx,jy,jz)
   call timer_end(LOG_CURRENT)
   NVTX_END()

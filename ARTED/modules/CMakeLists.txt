@@ -12,6 +12,7 @@ set(SOURCES
     nvtx.f90
     communication.f90
     misc_routines.f90
+    backup_routines.f90
     )
 #if (USE_NVTX)
 #   set(SOURCES ${SOURCES} nvtx.f90)
