@@ -4,6 +4,7 @@
 &control
 	entrance_option='new'
 	Time_shutdown=7d3
+	backup_frequency=0
 	entrance_iter=0
 	SYSname='diamond'
 	directory='./'
@@ -24,6 +25,9 @@
 	AD_RHO='No'
 	NE=1
 	NI=4
+	/
+&propagation
+	propagator='etrs'
 	/
 &rgrid
 	Nd=4
