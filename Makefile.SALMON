@@ -70,9 +70,9 @@ SRC_COMMON_GCEED = calcELF.f90 psl.f90 hartree.f90 ylm.f90 xc.f90 OUT_IN_data.f9
 
 SRC_ARTED = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
            common/ion_force.f90 common/preprocessor.f90 common/psi_rho.f90 \
-           common/total_energy.f90 common/Ylm_dYlm.f90 FDTD/beam.f90 \
-           FDTD/FDTD.f90 GS/CG.f90 GS/Density_Update.f90 GS/diag.f90 \
-           GS/Fermi_Dirac_distribution.f90 GS/Gram_Schmidt.f90 \
+           common/reentrance.f90 common/total_energy.f90 common/Ylm_dYlm.f90 \
+           FDTD/beam.f90 FDTD/FDTD.f90 GS/CG.f90 GS/Density_Update.f90 \
+           GS/diag.f90 GS/Fermi_Dirac_distribution.f90 GS/Gram_Schmidt.f90 \
            GS/Occupation_Redistribution.f90 GS/sp_energy.f90 \
            GS/write_GS_data.f90 preparation/fd_coef.f90 preparation/init.f90 \
            preparation/init_wf.f90 preparation/input_ps.f90 \
