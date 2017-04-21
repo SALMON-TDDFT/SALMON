@@ -14,33 +14,27 @@
 !  limitations under the License.
 !
 !This file is "Exc_Cor.f90"
-Subroutine Exc_Cor(GS_RT)
+subroutine Exc_Cor(GS_RT,NBtmp,zu)
   use Global_Variables
   use timer
   implicit none
-  character(2) :: GS_RT
+  integer,intent(in)       :: GS_RT
+  integer,intent(in)       :: NBtmp
+  complex(8),intent(inout) :: zu(NL,NBtmp,NK_s:NK_e)
   call timer_begin(LOG_EXC_COR)
-  if(functional == 'PZ') call Exc_Cor_PZ
-  if(functional == 'PZM') call Exc_Cor_PZM
-  if(functional == 'PBE') call Exc_Cor_PBE(GS_RT)
+  if(functional == 'PZ')    call Exc_Cor_PZ
+  if(functional == 'PZM')   call Exc_Cor_PZM
+  if(functional == 'PBE')   call Exc_Cor_PBE(GS_RT)
   if(functional == 'TBmBJ') call Exc_Cor_TBmBJ(GS_RT)
-  if(functional == 'TPSS') call Exc_Cor_TPSS(GS_RT)
-  if(functional == 'VS98') call Exc_Cor_VS98(GS_RT)
+  if(functional == 'TPSS')  call Exc_Cor_TPSS(GS_RT)
+  if(functional == 'VS98')  call Exc_Cor_VS98(GS_RT)
   call timer_end(LOG_EXC_COR)
-  return
-  end
+
+contains
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Exc_Cor_PZ()
   use Global_Variables
   implicit none
-  interface
-    subroutine PZxc(trho,exc,dexc_drho)
-      !$acc routine seq
-      real(8),intent(in) :: trho
-      real(8),intent(out)  :: exc
-      real(8),intent(out)  :: dexc_drho
-    end subroutine PZxc
-  end interface
   real(8) :: rho_s(NL)
   integer :: i
   real(8) :: trho,e_xc,de_xc_drho
@@ -63,14 +57,6 @@ End Subroutine Exc_Cor_PZ
 Subroutine Exc_Cor_PZM()
   use Global_Variables
   implicit none
-  interface
-    subroutine PZMxc(trho,exc,dexc_drho)
-      !$acc routine seq
-      real(8),intent(in) :: trho
-      real(8),intent(out)  :: exc
-      real(8),intent(out)  :: dexc_drho
-    end subroutine PZMxc
-  end interface
   real(8) :: rho_s(NL)
   integer :: i
   real(8) :: trho,e_xc,de_xc_drho
@@ -93,7 +79,7 @@ End Subroutine Exc_Cor_PZM
 Subroutine Exc_Cor_PBE(GS_RT)
   use Global_Variables
   implicit none
-  character(2) :: GS_RT
+  integer,intent(in) :: GS_RT
   real(8) :: rho_s(NL),tau_s(NL),j_s(NL,3),grho_s(NL,3),lrho_s(NL)
   real(8) :: agrho_s(NL)
   integer :: i
@@ -167,7 +153,7 @@ Subroutine Exc_Cor_TBmBJ(GS_RT)
   use Global_Variables
   implicit none
   real(8),parameter :: alpha=-0.012d0,beta=1.023d0,gamma=0.80d0
-  character(2) :: GS_RT
+  integer,intent(in) :: GS_RT
   real(8) :: rho_s(NL),tau_s(NL),j_s(NL,3),grho_s(NL,3),lrho_s(NL)
   real(8) :: c,tau_s_jrho,D_s_jrho,Q_s,rhs,x_s,b_s,Vx_BR,Vx_MBJ
   real(8) :: trho,rs,rhos,ec,dec_drhoa,dec_drhob
@@ -246,7 +232,7 @@ end subroutine BR_Newton
 Subroutine Exc_Cor_TPSS(GS_RT)
   use Global_Variables
   implicit none
-  character(2) :: GS_RT
+  integer,intent(in) :: GS_RT
   integer i
   real(8),parameter :: kappa=0.804d0,c=1.59096d0,e=1.537d0,mu=0.21951d0
   real(8),parameter :: b=0.40d0,d=2.8d0,C0=0.53d0
@@ -358,12 +344,12 @@ Subroutine Exc_Cor_TPSS(GS_RT)
   enddo
 
   return
-  end
+  end subroutine
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Exc_Cor_VS98(GS_RT)
   use Global_Variables
   implicit none
-  character(2) :: GS_RT
+  integer,intent(in) :: GS_RT
   real(8),parameter :: CF=3d0/5d0*(3*Pi**2)**(2d0/3d0)
   real(8),parameter :: alp_ex=0.00186726d0,alp_aa=0.00515088d0,alp_ab=0.00304966d0
   real(8),parameter :: a_ex=-0.9800683d0,a_aa=0.3270912d0,a_ab=0.7035010d0
@@ -443,7 +429,7 @@ Subroutine Exc_Cor_VS98(GS_RT)
  &   +nabz(4)*(dexc_dgrho(ifdz(4,i),3)-dexc_dgrho(ifdz(-4,i),3)) )
   enddo
   return
-  end
+  end subroutine
 
 SUBROUTINE fec_xz(x,z,alp,a,b,c,d,e,f,fxz,dfxz_dx,dfxz_dz)
   implicit none
@@ -458,7 +444,7 @@ SUBROUTINE fec_xz(x,z,alp,a,b,c,d,e,f,fxz,dfxz_dx,dfxz_dz)
   dfxz_dz=alp*(-a/gamma**2-2*(b*x**2+c*z)/gamma**3-3*(d*x**4+e*x**2*z+f*z**2)/gamma**4) &
  &      +c/gamma**2+(e*x**2+2*f*z)/gamma**3
   return
-  end
+  end subroutine
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine PZxc(trho,exc,dexc_drho)
 !$acc routine seq
@@ -556,8 +542,8 @@ End Subroutine PZMxc
   real(8) DHsw,DHsw12,DHsw32,DHsw52,DHsw72
   real(8) wsqDHsw,wsqDHsw3,wsqDHsw5,wsqDHsw7
   real(8) G_a,G_b,EG,ds_EGs,exer,exei
-  real(8) ei
-  real(8) derfc
+!  real(8) ei
+!  real(8) derfc
 
   s=ss
 ! s is modified to enforce Lieb-Oxford bound
@@ -705,17 +691,17 @@ End Subroutine PZMxc
  &           +A/2*(ea2*w2/DHsb2+ea4*w4*2/DHsb3+ea6*w6*6/DHsb4+ea8*w8*24/DHsb5) &
  &           +A*sqpi*(ea1*w/4/DHsb32+ea3*w3*3d0/8d0/DHsb52 &
  &                   +ea5*w5*15d0/16d0/DHsb72+ea7*w7*105d0/32d0/DHsb92) ))
-  end
+  end subroutine
 
   FUNCTION ei(x)
   implicit none
-  real(8) ei,x,expint,xx
+  real(8) ei,x,xx
   integer,parameter :: one=1
   if(x.ge.0d0) stop 'bad x in ei'
   xx=-x
   ei=-expint(one,xx)
   return
-  end
+  end function
 
   FUNCTION expint(n,x)
   implicit none
@@ -773,7 +759,7 @@ End Subroutine PZMxc
     stop 'series failed in expint'
   endif
   return
-  END
+  END function
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
   SUBROUTINE PBEc_old(rho,t,ec_unif,drs_ec_unif,H,drs_H,dt_H)
   implicit none
@@ -811,7 +797,7 @@ End Subroutine PZMxc
  &            +beta/gamma*t**2*(2*Ah*t*Ah421-Ah21*(2*Ah*t+4*Ah**2*t**3))/Ah421**2) &
  &    /(1+beta/gamma*t**2*Ah21/Ah421)
   return
-  end
+  end subroutine
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 ! Perdew-Wang correlation energy
 
@@ -864,7 +850,7 @@ End Subroutine PZMxc
   dec_drhob=(-rs/3*decdrs-(zeta+1)*decdzeta)/(rhoa+rhob)
 
   return
-  end
+  end subroutine
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 ! Perdew-Burke-Ernzerhof correlation energy
   SUBROUTINE PBEc(rhoa,rhob,grhoa,grhob,ec,dec_drhoa,dec_drhob,dec_dgrhoa,dec_dgrhob)
@@ -930,14 +916,14 @@ End Subroutine PZMxc
   dec_dgrhob(:)=dH_dgrhob(:)
 
   return
-  end
+  end subroutine
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
   use Global_Variables
   use communication
   implicit none
-  character(2) :: GS_RT
-  real(8) :: rho_s(NL),tau_s(NL),j_s(NL,3),grho_s(NL,3),lrho_s(NL)
+  integer,intent(in)    :: GS_RT
+  real(8),intent(inout) :: rho_s(NL),tau_s(NL),j_s(NL,3),grho_s(NL,3),lrho_s(NL)
   integer :: ikb,ik,ib,i
   real(8) :: tau_s_l(NL),j_s_l(NL,3),ss(3)
   complex(8) :: zs(3)
@@ -950,7 +936,7 @@ Subroutine rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
   tau_s_l_omp=0d0
   j_s_l_omp=0d0
 
-  if(GS_RT == 'GS')then
+  if(GS_RT == calc_mode_gs)then
 
     select case(Nd)
     case(4)
@@ -990,7 +976,7 @@ Subroutine rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
       call err_finalize('Nd /= 4')
     end select
   
-  else  if(GS_RT == 'RT')then
+  else  if(GS_RT == calc_mode_rt)then
 
     select case(Nd)
     case(4)
@@ -1226,3 +1212,5 @@ Subroutine rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
 
   return
 End Subroutine rho_j_tau
+
+end subroutine Exc_Cor

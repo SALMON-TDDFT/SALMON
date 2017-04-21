@@ -108,17 +108,19 @@ contains
   end subroutine
 
   subroutine timer_reentrance_read(fd)
+    use backup_routines, only: load_value
     implicit none
     integer,intent(in) :: fd
-    read(fd) log_time(0:LOG_SIZE - 1)
-    read(fd) log_temp(0:LOG_SIZE - 1)
+    deallocate(log_time);   call load_value(fd, log_time)
+    deallocate(log_time_t); call load_value(fd, log_time_t)
   end subroutine
 
   subroutine timer_reentrance_write(fd)
+    use backup_routines, only: save_value
     implicit none
     integer,intent(in) :: fd
-    write(fd) log_time(0:LOG_SIZE - 1)
-    write(fd) log_temp(0:LOG_SIZE - 1)
+    call save_value(fd, log_time)
+    call save_value(fd, log_time_t)
   end subroutine
 
   subroutine timer_begin(id)

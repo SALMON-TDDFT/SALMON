@@ -29,7 +29,7 @@ from optparse import OptionParser
 from collections import deque
 
 input_list_sc = [
-    "entrance_option", "Time_shutdown", "entrance_iter", "SYSname",
+    "entrance_option", "Time_shutdown", "backup_frequency","entrance_iter", "SYSname",
     "directory", "functional", "cval", "propagator","ps_format", "PSmask_option",
     "alpha_mask", "gamma_mask", "eta_mask", "aL", "ax", "ay", "az", "Sym",
     "crystal_structure", "Nd", "NLx", "NLy", "NLz", "NKx", "NKy", "NKz",
@@ -42,7 +42,7 @@ input_list_sc = [
 ]
 
 input_list_ms = [
-    "entrance_option", "Time_shutdown", "entrance_iter", "SYSname",
+    "entrance_option", "Time_shutdown", "backup_frequency", "entrance_iter", "SYSname",
     "directory", "functional", "cval", "propagator", "ps_format", "PSmask_option",
     "alpha_mask", "gamma_mask", "eta_mask", "aL", "ax", "ay", "az", "Sym",
     "crystal_structure", "Nd", "NLx", "NLy", "NLz", "NKx", "NKy", "NKz",
@@ -60,8 +60,8 @@ output_list = [
         "cfunction",
     ]],
     ["control", [
-        "entrance_option", "Time_shutdown", "entrance_iter", "SYSname",
-        "directory",
+        "entrance_option", "Time_shutdown", "backup_frequency", "entrance_iter",
+        "SYSname", "directory",
     ]],
     ["system", [
         "functional", "cval", "aL", "ax", "ay", "az", "Sym",

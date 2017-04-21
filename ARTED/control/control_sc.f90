@@ -29,7 +29,7 @@ subroutine main
   use misc_routines, only: get_wtime
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
-  character(3) :: Rion_update
+  logical :: Rion_update
   character(10) :: functional_t
 !$ integer :: omp_get_max_threads  
 
@@ -60,7 +60,7 @@ subroutine main
   Time_start=get_wtime() !reentrance
   call comm_bcast(Time_start,proc_group(1))
 
-  Rion_update='on'
+  Rion_update = rion_update_on
 
   call Read_data
   if (entrance_option == 'reentrance' ) go to 2
@@ -93,14 +93,13 @@ subroutine main
 ! yabana
   functional_t = functional
   if(functional_t == 'TBmBJ') functional = 'PZM'
-  call Exc_Cor('GS')
+  call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
   if(functional_t == 'TBmBJ') functional = 'TBmBJ'
 ! yabana
   Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
-!  call Total_Energy(Rion_update,'GS')
-  call Total_Energy_omp(Rion_update,'GS') ! debug
-  call Ion_Force_omp(Rion_update,'GS')
-  if (MD_option /= 'Y') Rion_update = 'off'
+  call Total_Energy_omp(Rion_update,calc_mode_gs) ! debug
+  call Ion_Force_omp(Rion_update,calc_mode_gs)
+  if (MD_option /= 'Y') Rion_update = rion_update_off
   Eall_GS(0)=Eall
 
   if(comm_is_root()) then
@@ -158,12 +157,12 @@ subroutine main
 ! yabana
     functional_t = functional
     if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'PZM'
-    call Exc_Cor('GS')
+    call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
     if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'TBmBJ'
 ! yabana
     Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
-    call Total_Energy_omp(Rion_update,'GS')
-    call Ion_Force_omp(Rion_update,'GS')
+    call Total_Energy_omp(Rion_update,calc_mode_gs)
+    call Ion_Force_omp(Rion_update,calc_mode_gs)
     call sp_energy_omp
     call current_GS
     Eall_GS(iter)=Eall
@@ -213,7 +212,7 @@ subroutine main
 
   zu_GS0(:,:,:)=zu_GS(:,:,:)
 
-  zu(:,:,:)=zu_GS(:,1:NBoccmax,:)
+  zu_t(:,:,:)=zu_GS(:,1:NBoccmax,:)
   Rion_eq=Rion
   dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
 
@@ -221,11 +220,11 @@ subroutine main
   call psi_rho_GS
   call Hartree
 ! yabana
-  call Exc_Cor('GS')
+  call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
 ! yabana
   Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
   Vloc_GS(:)=Vloc(:)
-  call Total_Energy_omp(Rion_update,'GS')
+  call Total_Energy_omp(Rion_update,calc_mode_gs)
   Eall0=Eall
   if(comm_is_root()) write(*,*) 'Eall =',Eall
 
@@ -279,7 +278,7 @@ subroutine main
   do ixyz=1,3
     kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
   enddo
-  call current0
+  call current0(zu_t)
   javt(0,:)=jav(:)
 
   Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
@@ -294,6 +293,7 @@ subroutine main
   else
     position_option='rewind'
     entrance_iter=-1
+    call reset_rt_timer
   end if
 
   if (comm_is_root()) then
@@ -321,7 +321,6 @@ subroutine main
   call papi_begin
 #endif
 
-  call reset_rt_timer
   call timer_begin(LOG_DYNAMICS)
 !$acc enter data copyin(zu)
   do iter=entrance_iter+1,Nt
@@ -337,26 +336,26 @@ subroutine main
       Ac_tot(iter+1,:)=Ac_ext(iter+1,:)
     end if
 
-    call dt_evolve_KB(iter)
+    call dt_evolve_KB(iter,zu_t)
 
     do ixyz=1,3
       kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter+1,ixyz)
     enddo
 !$acc update device(kAc,kAc_new)
-    call current_RT
+    call current_RT(zu_t)
 
     javt(iter+1,:)=jav(:)
     if (MD_option == 'Y') then
 !$acc update self(zu)
-      call Ion_Force_omp(Rion_update,'RT')
+      call Ion_Force_omp(Rion_update,calc_mode_rt)
       if (iter/10*10 == iter) then
-        call Total_Energy_omp(Rion_update,'RT')
+        call Total_Energy_omp(Rion_update,calc_mode_rt)
       end if
     else
       if (iter/10*10 == iter) then
 !$acc update self(zu)
-        call Total_Energy_omp(Rion_update,'RT')
-        call Ion_Force_omp(Rion_update,'RT')
+        call Total_Energy_omp(Rion_update,calc_mode_rt)
+        call Ion_Force_omp(Rion_update,calc_mode_rt)
       end if
     end if
 
@@ -425,7 +424,7 @@ subroutine main
     end if
 !Adiabatic evolution
     if (AD_RHO /= 'No' .and. iter/100*100 == iter) then
-      call k_shift_wf(Rion_update,5)
+      call k_shift_wf(Rion_update,5,zu_t)
       if (comm_is_root()) then
         do ia=1,NI
           write(*,'(1x,i7,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
@@ -460,12 +459,23 @@ subroutine main
         write(*,*) procid(1),'iter =',iter
         iter_now=iter
 !$acc update self(zu)
+        call timer_end(LOG_DYNAMICS)
         call prep_Reentrance_write
         go to 1
       end if
     end if
 
     call timer_end(LOG_OTHER)
+
+    ! backup for system failure
+    if (need_backup .and. iter > 0 .and. mod(iter, backup_frequency) == 0) then
+      call timer_end(LOG_DYNAMICS)
+      call timer_end(LOG_ALL)
+      iter_now=iter
+      call prep_Reentrance_write
+      call timer_begin(LOG_ALL)
+      call timer_begin(LOG_DYNAMICS)
+    end if
   enddo !end of RT iteraction========================
 !$acc exit data copyout(zu)
   call timer_end(LOG_DYNAMICS)
@@ -516,7 +526,7 @@ subroutine main
 !====Analyzing calculation====================
 
 !Adiabatic evolution
-  call k_shift_wf_last(Rion_update,10)
+  call k_shift_wf_last(Rion_update,10,zu_t)
 
   call Fourier_tr
 
@@ -554,6 +564,7 @@ Subroutine Read_data
   use opt_variables, only: symmetric_load_balancing, is_symmetric_mode
   use environment
   use communication
+  use misc_routines
   implicit none
   integer :: ia,i,j
 
@@ -573,6 +584,11 @@ Subroutine Read_data
   end if
 
   if(comm_is_root())then
+
+    need_backup = (backup_frequency > 0)
+    write(*,*) 'need backup?',need_backup
+    if (need_backup) write(*,*) '  frequency (# of iter) :',backup_frequency
+
     write(*,*) 'entrance_iter=',entrance_iter
     write(*,*) SYSname
     write(*,*) directory
@@ -600,6 +616,11 @@ Subroutine Read_data
     write(*,*) 'KbTev=',KbTev ! sato
   end if
 
+
+  write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',procid(1),'/'
+  call create_directory(process_directory)
+
+  call comm_bcast(need_backup,proc_group(1))
   call comm_bcast(file_GS,proc_group(1))
   call comm_bcast(file_RT,proc_group(1))
   call comm_bcast(file_epst,proc_group(1))
@@ -779,7 +800,7 @@ Subroutine Read_data
   allocate(occ(NB,NK),wk(NK),esp(NB,NK))
   allocate(ovlp_occ_l(NB,NK),ovlp_occ(NB,NK))
   allocate(zu_GS(NL,NB,NK_s:NK_e),zu_GS0(NL,NB,NK_s:NK_e))
-  allocate(zu(NL,NBoccmax,NK_s:NK_e))
+  allocate(zu_t(NL,NBoccmax,NK_s:NK_e))
   allocate(ik_table(NKB),ib_table(NKB)) ! sato
   allocate(esp_var(NB,NK))
   allocate(NBocc(NK)) !redistribution
@@ -857,497 +878,4 @@ Subroutine Read_data
   return
 End Subroutine Read_data
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-subroutine prep_Reentrance_Read
-  use Global_Variables
-  use timer,       only: timer_reentrance_read
-  use opt_variables, only: opt_vars_initialize_p1, opt_vars_initialize_p2
-  use communication
-  use misc_routines, only: get_wtime
-  implicit none
-  real(8) :: time_in,time_out
-
-  call comm_sync_all
-  time_in=get_wtime()
-
-  write(cMyrank,'(I5.5)')procid(1)
-  file_reentrance=trim(directory)//'tmp_re.'//trim(cMyrank)
-  open(500,file=file_reentrance,form='unformatted')
-
-  read(500) iter_now,entrance_iter
-  ! need to exclude from reading data: 
-  ! Time_shutdown, Time_start, Time_now,iter_now,entrance_iter,entrance_option
-
-!======== read section ===========================
-!== read data ===!
-
-!ARTED version
-!  character(50),parameter :: ARTED_ver='ARTED_sc.2014.08.10.0'
-
-! constants
-!  real(8),parameter :: Pi=3.141592653589793d0
-!  complex(8),parameter :: zI=(0.d0,1.d0)
-!  real(8),parameter :: a_B=0.529177d0,Ry=13.6058d0
-!  real(8),parameter :: umass=1822.9d0
-
-!yabana
-!! DFT parameters
-!  real(8),parameter :: gammaU=-0.1423d0,beta1U=1.0529d0
-!  real(8),parameter :: beta2U=0.3334d0,AU=0.0311d0,BU=-0.048d0
-!  real(8),parameter :: CU=0.002d0,DU=-0.0116d0
-!yabana
-
-! grid 
-  read(500) NLx,NLy,NLz,Nd,NL,NG,NKx,NKy,NKz,NK,Sym,nGzero
-  read(500) NKxyz 
-  read(500) aL,ax,ay,az,aLx,aLy,aLz,aLxyz
-  read(500) bLx,bLy,bLz,Hx,Hy,Hz,Hxyz
-
-! pseudopotential
-!  integer,parameter :: Nrmax=3000,Lmax=4
-  read(500) ps_type
-  read(500) ps_format !shinohara
-  read(500) PSmask_option != 'n' !shinohara
-  read(500) alpha_mask, gamma_mask, eta_mask!shinohara
-  read(500) Nps,Nlma
-
-! material
-  read(500) NI,NE,NB,NBoccmax
-  read(500) Ne_tot
-
-! physical quantities
-  read(500) Eall,Eall0,jav(3),Tion
-  read(500) Ekin,Eloc,Enl,Eh,Exc,Eion,Eelemag                      
-
-!yabana
-  read(500) Nelec !FS set
-
-
-! Bloch momentum,laser pulse, electric field
-!  real(8) :: f0,Wcm2,pulseT,wave_length,omega,pulse_time,pdir(3),phi_CEP=0.00*2*pi
-  read(500) AE_shape
-  read(500) f0_1,IWcm2_1,tpulsefs_1,omegaev_1,omega_1,tpulse_1,Epdir_1(3),phi_CEP_1 ! sato
-  read(500) f0_2,IWcm2_2,tpulsefs_2,omegaev_2,omega_2,tpulse_2,Epdir_2(3),phi_CEP_2 ! sato
-  read(500) T1_T2fs,T1_T2
-
-! control parameters
-  read(500) NEwald                      !Ewald summation
-  read(500) aEwald
-  read(500) Ncg                        !# of conjugate gradient (cg)
-  read(500) dt,dAc,domega
-  read(500) Nscf,Nt,Nomega
-  read(500) Nmemory_MB                   !Modified-Broyden (MB) method
-  read(500) alpha_MB
-  read(500) NFSset_start,NFSset_every !Fermi Surface (FS) set 
-
-! file names, flags, etc
-  read(500) SYSname,directory
-  read(500) file_GS,file_RT
-  read(500) file_epst,file_epse
-  read(500) file_force_dR,file_j_ac
-  read(500) file_DoS,file_band
-  read(500) file_dns,file_ovlp,file_nex
-  read(500) ext_field
-  read(500) Longi_Trans
-  read(500) FSset_option,MD_option
-  read(500) AD_RHO !ovlp_option
-!yabana
-  read(500) functional
-  read(500) cval ! cvalue for TBmBJ. If cval<=0, calculated in the program
-!yabana
-  read(500) propagator
-
-!  read(500) procid(1),nprocs(1),ierr
-!  read(500) proc_group(2),NEWPROCS,NEWRANK ! sato
-  read(500) NK_ave,NG_ave,NK_s,NK_e,NG_s,NG_e
-  read(500) NK_remainder,NG_remainder
-! Timer
-!  read(500) Time_shutdown
-!  read(500) Time_start,Time_now
-!  read(500) iter_now,entrance_iter
-!  read(500) entrance_option    !initial or reentrance        
-  read(500) position_option
-
-
-! omp
-!  integer :: NUMBER_THREADS
-  read(500) NKB
-
-! sym
-  read(500) crystal_structure !sym
-
-! Finite temperature
-  read(500) KbTev
-
-! For reentrance 
-  read(500) cMyrank,file_reentrance
-
-
-! allocatable
-  allocate(Lx(NL),Ly(NL),Lz(NL),Gx(NG),Gy(NG),Gz(NG))
-  allocate(ifdx(-Nd:Nd,1:NL),ifdy(-Nd:Nd,1:NL),ifdz(-Nd:Nd,1:NL))
-  allocate(lap(-Nd:Nd),nab(-Nd:Nd))
-  allocate(lapx(-Nd:Nd),lapy(-Nd:Nd),lapz(-Nd:Nd))
-  allocate(nabx(-Nd:Nd),naby(-Nd:Nd),nabz(-Nd:Nd))
-  allocate(Lxyz(0:NLx-1,0:NLy-1,0:NLz-1))
-
-  read(500) Lx(:),Ly(:),Lz(:),Lxyz(:,:,:)
-  read(500) ifdx(:,:),ifdy(:,:),ifdz(:,:)
-  read(500) Gx(:),Gy(:),Gz(:)
-  read(500) lap(:),nab(:)
-  read(500) lapx(:),lapy(:),lapz(:)
-  read(500) nabx(:),naby(:),nabz(:)
-
-  allocate(Mps(NI),Jxyz(Nps,NI),Jxx(Nps,NI),Jyy(Nps,NI),Jzz(Nps,NI))
-  allocate(Mlps(NE),Lref(NE),Zps(NE),NRloc(NE))
-  allocate(NRps(NE),inorm(0:Lmax,NE),iuV(Nlma),a_tbl(Nlma))
-  allocate(rad(Nrmax,NE),Rps(NE),vloctbl(Nrmax,NE),udVtbl(Nrmax,0:Lmax,NE))
-  allocate(radnl(Nrmax,NE))
-  allocate(Rloc(NE),uV(Nps,Nlma),duV(Nps,Nlma,3),anorm(0:Lmax,NE))
-  allocate(dvloctbl(Nrmax,NE),dudVtbl(Nrmax,0:Lmax,NE))
-
-  read(500) Mps(:),Jxyz(:,:),Jxx(:,:),Jyy(:,:),Jzz(:,:)
-  read(500) Mlps(:),Lref(:),Zps(:),NRloc(:)
-  read(500) NRps(:),inorm(:,:),iuV(:),a_tbl(:)
-  read(500) rad(:,:),Rps(:),vloctbl(:,:),udVtbl(:,:,:)
-  read(500) radnl(:,:)
-  read(500) Rloc(:),uV(:,:),duV(:,:,:),anorm(:,:)
-  read(500) dvloctbl(:,:),dudVtbl(:,:,:)
-
-  allocate(Zatom(NE),Kion(NI))
-  allocate(Rion(3,NI),Mass(NE),Rion_eq(3,NI),dRion(3,NI,-1:Nt+1))
-  allocate(occ(NB,NK),wk(NK))
-  
-  read(500) Zatom(:),Kion(:)
-  read(500) Rion(:,:),Mass(:),Rion_eq(:,:),dRion(:,:,:)
-  read(500) occ(:,:),wk(:)
-
-
-  allocate(javt(0:Nt,3))
-  allocate(Vpsl(NL),Vh(NL),Vexc(NL),Eexc(NL),Vloc(NL),Vloc_GS(NL),Vloc_t(NL))
-  allocate(Vloc_new(NL),Vloc_old(NL,2))
-  allocate(tmass(NL),tjr(NL,3),tjr2(NL),tmass_t(NL),tjr_t(NL,3),tjr2_t(NL))
-  allocate(dVloc_G(NG_s:NG_e,NE))
-  allocate(rho(NL),rho_gs(NL))
-  allocate(rhoe_G(NG_s:NG_e),rhoion_G(NG_s:NG_e))
-  allocate(force(3,NI),esp(NB,NK),force_ion(3,NI))
-  allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
-  allocate(ovlp_occ_l(NB,NK),ovlp_occ(NB,NK))
-
-  read(500) javt(:,:)
-  read(500) Vpsl(:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)
-  read(500) Vloc_new(:),Vloc_old(:,:)
-  read(500) tmass(:),tjr(:,:),tjr2(:),tmass_t(:),tjr_t(:,:),tjr2_t(:)
-  read(500) dVloc_G(:,:)
-  read(500) rho(:),rho_gs(:)
-!  real(8),allocatable :: rho_in(:,:),rho_out(:,:) !MB method
-  read(500) rhoe_G(:),rhoion_G(:)
-  read(500) force(:,:),esp(:,:),force_ion(:,:)
-  read(500) Floc(:,:),Fnl(:,:),Fion(:,:)               
-  read(500) ovlp_occ_l(:,:),ovlp_occ(:,:)
-
-
-  allocate(NBocc(NK)) !redistribution
-  allocate(esp_vb_min(NK),esp_vb_max(NK)) !redistribution
-  allocate(esp_cb_min(NK),esp_cb_max(NK)) !redistribution
-!  allocate(Eall_GS(0:Nscf),esp_var_ave(1:Nscf),esp_var_max(1:Nscf),dns_diff(1:Nscf))
-
-  read(500) NBocc(:) !FS set
-  read(500) esp_vb_min(:),esp_vb_max(:) !FS set
-  read(500) esp_cb_min(:),esp_cb_max(:) !FS set
-!  read(500) Eall_GS(:),esp_var_ave(:),esp_var_max(:),dns_diff(:)
-
-  allocate(zu_GS(NL,NB,NK_s:NK_e),zu_GS0(NL,NB,NK_s:NK_e))
-  allocate(zu(NL,NBoccmax,NK_s:NK_e))
-  allocate(tpsi(NL),htpsi(NL),zwork(-Nd:NLx+Nd-1,-Nd:NLy+Nd-1,-Nd:NLz+Nd-1),ttpsi(NL))
-  allocate(work(-Nd:NLx+Nd-1,-Nd:NLy+Nd-1,-Nd:NLz+Nd-1))
-  allocate(esp_var(NB,NK))
-
-! wave functions, work array
-  read(500) zu(:,:,:),zu_GS(:,:,:),zu_GS0(:,:,:)
-!  read(500) tpsi(:),htpsi(:),zwork(:,:,:),ttpsi(:)
-!  read(500) work(:,:,:)
-  read(500) esp_var(:,:)
-
-  allocate(nxyz(-NLx/2:NLx/2-1,-NLy/2:NLy/2-1,-NLz/2:NLz/2-1)) !Hartree
-  allocate(rho_3D(0:NLx-1,0:NLy-1,0:NLz-1),Vh_3D(0:NLx-1,0:NLy-1,0:NLz-1))!Hartree
-  allocate(rhoe_G_temp(1:NG),rhoe_G_3D(-NLx/2:NLx/2-1,-NLy/2:NLy/2-1,-NLz/2:NLz/2-1))!Hartree
-  allocate(f1(0:NLx-1,0:NLy-1,-NLz/2:NLz/2-1),f2(0:NLx-1,-NLy/2:NLy/2-1,-NLz/2:NLz/2-1))!Hartree
-  allocate(f3(-NLx/2:NLx/2-1,-NLy/2:NLy/2-1,0:NLz-1),f4(-NLx/2:NLx/2-1,0:NLy-1,0:NLz-1))!Hartree
-  allocate(eGx(-NLx/2:NLx/2-1,0:NLx-1),eGy(-NLy/2:NLy/2-1,0:NLy-1),eGz(-NLz/2:NLz/2-1,0:NLz-1))!Hartree
-  allocate(eGxc(-NLx/2:NLx/2-1,0:NLx-1),eGyc(-NLy/2:NLy/2-1,0:NLy-1),eGzc(-NLz/2:NLz/2-1,0:NLz-1))!Hartree
-
-! variables for 4-times loop in Fourier transportation
-  read(500) nxyz(:,:,:)
-  read(500) rho_3D(:,:,:),Vh_3D(:,:,:)
-  read(500) rhoe_G_temp(:),rhoe_G_3D(:,:,:)
-  read(500) f1(:,:,:),f2(:,:,:),f3(:,:,:),f4(:,:,:)
-  read(500) eGx(:,:),eGy(:,:),eGz(:,:),eGxc(:,:),eGyc(:,:),eGzc(:,:)
-
-  allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
-  allocate(kAc(NK,3),kAc0(NK,3),kAc_new(NK,3))
-  allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
-
-  read(500) E_ext(:,:),E_ind(:,:),E_tot(:,:)
-  read(500) kAc(:,:),kAc0(:,:),kAc_new(:,:)                  !k+A(t)/c (kAc)
-  read(500) Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
-
-  allocate(ekr(Nps,NI)) ! sato
-  allocate(ekr_omp(Nps,NI,NK_s:NK_e))
-  allocate(tpsi_omp(NL,0:NUMBER_THREADS-1),htpsi_omp(NL,0:NUMBER_THREADS-1)) ! sato
-  allocate(ttpsi_omp(NL,0:NUMBER_THREADS-1)) ! sato
-  allocate(xk_omp(NL,0:NUMBER_THREADS-1),hxk_omp(NL,0:NUMBER_THREADS-1)) ! sato
-  allocate(gk_omp(NL,0:NUMBER_THREADS-1),pk_omp(NL,0:NUMBER_THREADS-1)) ! sato
-  allocate(pko_omp(NL,0:NUMBER_THREADS-1),txk_omp(NL,0:NUMBER_THREADS-1)) ! sato
-  allocate(ik_table(NKB),ib_table(NKB)) ! sato
-
-! sato
-  read(500) ekr(:,:)  
-! omp
-!  integer :: NUMBER_THREADS
-  read(500) ekr_omp(:,:,:)
-  read(500) tpsi_omp(:,:),ttpsi_omp(:,:),htpsi_omp(:,:)
-  read(500) xk_omp(:,:),hxk_omp(:,:),gk_omp(:,:),pk_omp(:,:),pko_omp(:,:),txk_omp(:,:)
-  read(500) ik_table(:),ib_table(:)
-
-
-  allocate(tau_s_l_omp(NL,0:NUMBER_THREADS-1),j_s_l_omp(NL,3,0:NUMBER_THREADS-1)) ! sato
-  read(500) tau_s_l_omp(:,:),j_s_l_omp(:,:,:)
-
-  allocate(itable_sym(Sym,NL)) ! sym
-  allocate(rho_l(NL),rho_tmp1(NL),rho_tmp2(NL)) !sym
-
-  read(500) itable_sym(:,:) ! sym
-  read(500) rho_l(:),rho_tmp1(:),rho_tmp2(:) !sym
-
-  read(500) flag_nlcc
-  if(flag_nlcc)then
-     allocate(rho_nlcc(NL),tau_nlcc(NL))
-     read(500)rho_nlcc(:),tau_nlcc(:)
-  end if
-
-
-  call timer_reentrance_read(500)
-  call opt_vars_initialize_p1
-  call opt_vars_initialize_p2
-
-!== read data ===!  
-
-  close(500)
-
-  call comm_sync_all
-  time_out=get_wtime()
-
-  if(comm_is_root())write(*,*)'Reentrance time read =',time_out-time_in,' sec'
-
-  return
-end subroutine prep_Reentrance_Read
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-subroutine prep_Reentrance_write
-  use Global_Variables
-  use timer, only: timer_reentrance_write
-  use communication
-  use misc_routines, only: get_wtime
-  implicit none
-  real(8) :: time_in,time_out
-
-  call comm_sync_all
-  time_in=get_wtime()
-
-  if (comm_is_root()) then
-    open(501,file=trim(directory)//trim(SYSname)//'_re.dat')
-    write(501,*) "'reentrance'"! entrance_option
-    write(501,*) Time_shutdown
-    write(501,*) "'"//trim(directory)//"'"
-    close(501)
-  end if
-
-
-  write(cMyrank,'(I5.5)')procid(1)
-
-  file_reentrance=trim(directory)//'tmp_re.'//trim(cMyrank)
-  open(500,file=file_reentrance,form='unformatted')
-
-  write(500) iter_now,iter_now !iter_now=entrance_iter
-
-  
-!======== write section ===========================
-!== write data ===!  
-
-! grid 
-  write(500) NLx,NLy,NLz,Nd,NL,NG,NKx,NKy,NKz,NK,Sym,nGzero
-  write(500) NKxyz 
-  write(500) aL,ax,ay,az,aLx,aLy,aLz,aLxyz
-  write(500) bLx,bLy,bLz,Hx,Hy,Hz,Hxyz
-
-! pseudopotential
-!  integer,parameter :: Nrmax=3000,Lmax=4
-  write(500) ps_type
-  write(500) ps_format !shinohara
-  write(500) PSmask_option != 'n' !shinohara
-  write(500) alpha_mask, gamma_mask, eta_mask!shinohara
-  write(500) Nps,Nlma
-
-! material
-  write(500) NI,NE,NB,NBoccmax
-  write(500) Ne_tot
-
-! physical quantities
-  write(500) Eall,Eall0,jav(3),Tion
-  write(500) Ekin,Eloc,Enl,Eh,Exc,Eion,Eelemag                      
-
-!yabana
-  write(500) Nelec !FS set
-
-
-! Bloch momentum,laser pulse, electric field
-!  real(8) :: f0,Wcm2,pulseT,wave_length,omega,pulse_time,pdir(3),phi_CEP=0.00*2*pi
-  write(500) AE_shape
-  write(500) f0_1,IWcm2_1,tpulsefs_1,omegaev_1,omega_1,tpulse_1,Epdir_1(3),phi_CEP_1 ! sato
-  write(500) f0_2,IWcm2_2,tpulsefs_2,omegaev_2,omega_2,tpulse_2,Epdir_2(3),phi_CEP_2 ! sato
-  write(500) T1_T2fs,T1_T2
-
-! control parameters
-  write(500) NEwald                      !Ewald summation
-  write(500) aEwald
-  write(500) Ncg
-  write(500) dt,dAc,domega
-  write(500) Nscf,Nt,Nomega
-  write(500) Nmemory_MB                   !Modified-Broyden (MB) method
-  write(500) alpha_MB
-  write(500) NFSset_start,NFSset_every !Fermi Surface (FS) set 
-
-! file names, flags, etc
-  write(500) SYSname,directory
-  write(500) file_GS,file_RT
-  write(500) file_epst,file_epse
-  write(500) file_force_dR,file_j_ac
-  write(500) file_DoS,file_band
-  write(500) file_dns,file_ovlp,file_nex
-  write(500) ext_field
-  write(500) Longi_Trans
-  write(500) FSset_option,MD_option
-  write(500) AD_RHO !ovlp_option
-!yabana
-  write(500) functional
-  write(500) cval ! cvalue for TBmBJ. If cval<=0, calculated in the program
-!yabana
-  write(500) propagator
-
-!  write(500) procid(1),nprocs(1),ierr
-!  write(500) proc_group(2),NEWPROCS,NEWRANK ! sato
-  write(500) NK_ave,NG_ave,NK_s,NK_e,NG_s,NG_e
-  write(500) NK_remainder,NG_remainder
-! Timer
-!  write(500) Time_shutdown
-!  write(500) Time_start,Time_now
-!  write(500) iter_now,entrance_iter
-!  write(500) entrance_option    !initial or reentrance        
-  write(500) position_option
-
-
-! omp
-!  integer :: NUMBER_THWRITES
-  write(500) NKB
-
-! sym
-  write(500) crystal_structure !sym
-
-! Finite temperature
-  write(500) KbTev
-
-! For reentrance 
-  write(500) cMyrank,file_reentrance
-
-
-! allocatable
-
-  write(500) Lx(:),Ly(:),Lz(:),Lxyz(:,:,:)
-  write(500) ifdx(:,:),ifdy(:,:),ifdz(:,:)
-  write(500) Gx(:),Gy(:),Gz(:)
-  write(500) lap(:),nab(:)
-  write(500) lapx(:),lapy(:),lapz(:)
-  write(500) nabx(:),naby(:),nabz(:)
-
-  write(500) Mps(:),Jxyz(:,:),Jxx(:,:),Jyy(:,:),Jzz(:,:)
-  write(500) Mlps(:),Lref(:),Zps(:),NRloc(:)
-  write(500) NRps(:),inorm(:,:),iuV(:),a_tbl(:)
-  write(500) rad(:,:),Rps(:),vloctbl(:,:),udVtbl(:,:,:)
-  write(500) radnl(:,:)
-  write(500) Rloc(:),uV(:,:),duV(:,:,:),anorm(:,:)
-  write(500) dvloctbl(:,:),dudVtbl(:,:,:)
-
-  write(500) Zatom(:),Kion(:)
-  write(500) Rion(:,:),Mass(:),Rion_eq(:,:),dRion(:,:,:)
-  write(500) occ(:,:),wk(:)
-
-
-  write(500) javt(:,:)
-  write(500) Vpsl(:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)
-  write(500) Vloc_new(:),Vloc_old(:,:)
-  write(500) tmass(:),tjr(:,:),tjr2(:),tmass_t(:),tjr_t(:,:),tjr2_t(:)
-  write(500) dVloc_G(:,:)
-  write(500) rho(:),rho_gs(:)
-!  real(8),allocatable :: rho_in(:,:),rho_out(:,:) !MB method
-  write(500) rhoe_G(:),rhoion_G(:)
-  write(500) force(:,:),esp(:,:),force_ion(:,:)
-  write(500) Floc(:,:),Fnl(:,:),Fion(:,:)               
-  write(500) ovlp_occ_l(:,:),ovlp_occ(:,:)
-
-
-  write(500) NBocc(:) !FS set
-  write(500) esp_vb_min(:),esp_vb_max(:) !FS set
-  write(500) esp_cb_min(:),esp_cb_max(:) !FS set
-!  write(500) Eall_GS(:),esp_var_ave(:),esp_var_max(:),dns_diff(:)
-
-! wave functions, work array
-  write(500) zu(:,:,:),zu_GS(:,:,:),zu_GS0(:,:,:)
-!  write(500) tpsi(:),htpsi(:),zwork(:,:,:),ttpsi(:)
-!  write(500) work(:,:,:)
-  write(500) esp_var(:,:)
-
-! variables for 4-times loop in Fourier transportation
-  write(500) nxyz(:,:,:)
-  write(500) rho_3D(:,:,:),Vh_3D(:,:,:)
-  write(500) rhoe_G_temp(:),rhoe_G_3D(:,:,:)
-  write(500) f1(:,:,:),f2(:,:,:),f3(:,:,:),f4(:,:,:)
-  write(500) eGx(:,:),eGy(:,:),eGz(:,:),eGxc(:,:),eGyc(:,:),eGzc(:,:)
-
-  write(500) E_ext(:,:),E_ind(:,:),E_tot(:,:)
-  write(500) kAc(:,:),kAc0(:,:),kAc_new(:,:)              !k+A(t)/c (kAc)
-  write(500) Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
-
-! sato
-  write(500) ekr(:,:)  
-! omp
-!  integer :: NUMBER_THWRITES
-  write(500) ekr_omp(:,:,:)
-  write(500) tpsi_omp(:,:),ttpsi_omp(:,:),htpsi_omp(:,:)
-  write(500) xk_omp(:,:),hxk_omp(:,:),gk_omp(:,:),pk_omp(:,:),pko_omp(:,:),txk_omp(:,:)
-  write(500) ik_table(:),ib_table(:)
-
-
-  write(500) tau_s_l_omp(:,:),j_s_l_omp(:,:,:)
-
-  write(500) itable_sym(:,:) ! sym
-  write(500) rho_l(:),rho_tmp1(:),rho_tmp2(:) !sym
-
-
-  write(500) flag_nlcc
-  if(flag_nlcc)then
-     write(500)rho_nlcc(:),tau_nlcc(:)
-  end if
-
-  call timer_reentrance_write(500)
-
-!== write data ===!  
-
-  close(500)
-  call comm_sync_all
-  time_out=get_wtime()
-
-  if(comm_is_root())write(*,*)'Reentrance time write =',time_out-time_in,' sec'
-
-  return
-end subroutine prep_Reentrance_write
 end module control_sc
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130

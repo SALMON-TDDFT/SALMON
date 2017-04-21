@@ -26,7 +26,7 @@
 #endif
 
 subroutine dt_evolve_KB(iter)
-  use global_variables, only: propagator,kAc,kAc0,Ac_tot
+  use global_variables, only: propagator,kAc,kAc0,Ac_tot,zu_t
   implicit none
   integer, intent(in) :: iter
 
@@ -47,7 +47,7 @@ contains
       kAc(:,ixyz)=kAc0(:,ixyz)+0.5d0*(Ac_tot(iter,ixyz) + Ac_tot(iter+1,ixyz) )
     enddo
 !$acc update device(kAc)
-    call dt_evolve_omp_KB
+    call dt_evolve_omp_KB(zu_t)
   end subroutine
 
   subroutine etrs_propagator
@@ -59,14 +59,18 @@ contains
       kAc_new(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter+1,ixyz)
     enddo
 !$acc update device(kAc,kAc_new)
-    call dt_evolve_etrs_omp_KB
+    call dt_evolve_etrs_omp_KB(zu_t)
   end subroutine
 end subroutine
 
-subroutine dt_evolve_KB_MS(ix_m,iy_m)
-  use global_variables, only: propagator,kAc,kAc0,Ac_new_m,Ac_m
+subroutine dt_evolve_KB_MS(ixy_m)
+  use global_variables, only: propagator,kAc,kAc0,Ac_new_m,Ac_m,zu_m,NX_table,NY_table
   implicit none
-  integer, intent(in) :: ix_m, iy_m
+  integer, intent(in) :: ixy_m
+  integer :: ix_m, iy_m
+
+  ix_m=NX_table(ixy_m)
+  iy_m=NY_table(ixy_m)
 
   select case(propagator)
     case('default')
@@ -85,7 +89,7 @@ contains
       kAc(:,ixyz)=kAc0(:,ixyz)+(Ac_new_m(ixyz,ix_m,iy_m)+Ac_m(ixyz,ix_m,iy_m))/2d0
     enddo
 !$acc update device(kAc)
-    call dt_evolve_omp_KB_MS
+    call dt_evolve_omp_KB_MS(zu_m(:,:,:,ixy_m))
   end subroutine
 
   subroutine etrs_propagator
@@ -97,13 +101,13 @@ contains
       kAc_new(:,ixyz)=kAc0(:,ixyz)+Ac_new_m(ixyz,ix_m,iy_m)
     enddo
 !$acc update device(kAc,kAc_new)
-    call dt_evolve_etrs_omp_KB
+    call dt_evolve_etrs_omp_KB(zu_m(:,:,:,ixy_m))
   end subroutine
 end subroutine
 
 ! ---------------------------------------------
 
-Subroutine dt_evolve_omp_KB
+Subroutine dt_evolve_omp_KB(zu)
   use Global_Variables
   use timer
 #ifdef ARTED_USE_NVTX
@@ -111,6 +115,7 @@ Subroutine dt_evolve_omp_KB
 #endif
   use opt_variables
   implicit none
+  complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
   integer    :: ik,ib
   integer    :: ia,j,i,ix,iy,iz
   real(8)    :: kr
@@ -168,11 +173,11 @@ Subroutine dt_evolve_omp_KB
     tjr2_t=tjr2
   end if
 
-  call hamiltonian(.false.)
+  call hamiltonian(zu,.false.)
 
-  call psi_rho_RT
+  call psi_rho_RT(zu)
   call Hartree
-  call Exc_Cor('RT')
+  call Exc_Cor(calc_mode_rt,NBoccmax,zu)
 
 !$omp parallel do
   do i=1,NL
@@ -199,11 +204,11 @@ Subroutine dt_evolve_omp_KB
 ! yabana
 
   NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
-  call hamiltonian(.true.)
+  call hamiltonian(zu,.true.)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB(): psi_rho_RT',4)
-  call psi_rho_RT
+  call psi_rho_RT(zu)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB(): Hartree',5)
@@ -212,7 +217,7 @@ Subroutine dt_evolve_omp_KB
 
 ! yabana
   NVTX_BEG('dt_evolve_omp_KB(): Exc_Cor',6)
-  call Exc_Cor('RT')
+  call Exc_Cor(calc_mode_rt,NBoccmax,zu)
   NVTX_END()
 ! yabana
 
@@ -235,7 +240,7 @@ Subroutine dt_evolve_omp_KB
   return
 End Subroutine dt_evolve_omp_KB
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-Subroutine dt_evolve_etrs_omp_KB
+Subroutine dt_evolve_etrs_omp_KB(zu)
   use Global_Variables
   use timer
 #ifdef ARTED_USE_NVTX
@@ -243,6 +248,7 @@ Subroutine dt_evolve_etrs_omp_KB
 #endif
   use opt_variables
   implicit none
+  complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
   integer    :: ik,ib
   integer    :: ia,j,i,ix,iy,iz
   real(8)    :: kr,dt_t
@@ -287,7 +293,7 @@ Subroutine dt_evolve_etrs_omp_KB
 !$acc update self(zu, ekr_omp, vloc)
 
   NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
-  call hamiltonian(.false.)
+  call hamiltonian(zu,.false.)
   NVTX_END()
 
 
@@ -340,11 +346,11 @@ Subroutine dt_evolve_etrs_omp_KB
      end do
 
      NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
-     call hamiltonian(.false.)
+     call hamiltonian(zu,.false.)
      NVTX_END()
 
      NVTX_BEG('dt_evolve_omp_KB(): psi_rho_RT',4)
-     call psi_rho_RT
+     call psi_rho_RT(zu)
      NVTX_END()
 
      NVTX_BEG('dt_evolve_omp_KB(): Hartree',5)
@@ -352,7 +358,7 @@ Subroutine dt_evolve_etrs_omp_KB
      NVTX_END()
 
      NVTX_BEG('dt_evolve_omp_KB(): Exc_Cor',6)
-     call Exc_Cor('RT')
+     call Exc_Cor(calc_mode_rt,NBoccmax,zu)
      NVTX_END()
 
 #ifdef _OPENACC
@@ -376,11 +382,11 @@ Subroutine dt_evolve_etrs_omp_KB
 
 
   NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
-  call hamiltonian(.true.)
+  call hamiltonian(zu,.true.)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB(): psi_rho_RT',4)
-  call psi_rho_RT
+  call psi_rho_RT(zu)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB(): Hartree',5)
@@ -388,7 +394,7 @@ Subroutine dt_evolve_etrs_omp_KB
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB(): Exc_Cor',6)
-  call Exc_Cor('RT')
+  call Exc_Cor(calc_mode_rt,NBoccmax,zu)
   NVTX_END()
 
 
@@ -411,12 +417,13 @@ Subroutine dt_evolve_etrs_omp_KB
   return
 End Subroutine dt_evolve_etrs_omp_KB
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-Subroutine dt_evolve_omp_KB_MS
+Subroutine dt_evolve_omp_KB_MS(zu)
   use Global_Variables
   use timer
   use nvtx
   use opt_variables
   implicit none
+  complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
   integer    :: ik,ib
   integer    :: ia,j,i,ix,iy,iz
   real(8)    :: kr
@@ -473,11 +480,11 @@ Subroutine dt_evolve_omp_KB_MS
     tjr2_t=tjr2
   end if
 
-  call hamiltonian(.false.)
+  call hamiltonian(zu,.false.)
 
-  call psi_rho_RT
+  call psi_rho_RT(zu)
   call Hartree
-  call Exc_Cor('RT')
+  call Exc_Cor(calc_mode_rt,NBoccmax,zu)
 
 !$omp parallel do
   do i=1,NL
@@ -502,11 +509,11 @@ Subroutine dt_evolve_omp_KB_MS
 ! yabana
 
   NVTX_BEG('dt_evolve_omp_KB_MS(): hamiltonian',3)
-  call hamiltonian(.true.)
+  call hamiltonian(zu,.true.)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB_MS(): psi_rho_RT',4)
-  call psi_rho_RT
+  call psi_rho_RT(zu)
   NVTX_END()
 
   NVTX_BEG('dt_evolve_omp_KB_MS(): Hartree',5)
@@ -515,7 +522,7 @@ Subroutine dt_evolve_omp_KB_MS
 
 ! yabana
   NVTX_BEG('dt_evolve_omp_KB_MS(): Hartree',5)
-  call Exc_Cor('RT')
+  call Exc_Cor(calc_mode_rt,NBoccmax,zu)
   NVTX_END()
 ! yabana
 

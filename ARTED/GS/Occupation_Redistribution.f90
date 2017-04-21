@@ -137,8 +137,8 @@ Subroutine Occupation_Redistribution
   end if
   deallocate(kv,kc,bv,bc,espv,espc)
 
-  deallocate(zu)
-  allocate(zu(NL,NBoccmax,NK_s:NK_e))
+  deallocate(zu_t)
+  allocate(zu_t(NL,NBoccmax,NK_s:NK_e))
   deallocate(ik_table,ib_table)
   NKB=(NK_e-NK_s+1)*NBoccmax ! sato
   allocate(ik_table(NKB),ib_table(NKB)) ! sato

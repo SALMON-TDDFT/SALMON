@@ -14,17 +14,25 @@
 !  limitations under the License.
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
-subroutine Ion_Force_omp(Rion_update,GS_RT)
-  use Global_Variables, only: zu,zu_GS,NB,NBoccmax
+subroutine Ion_Force_omp(Rion_update,GS_RT,ixy_m)
+  use Global_Variables, only: zu_t,zu_m,zu_GS,NB,NBoccmax,calc_mode_gs,calc_mode_rt
   implicit none
-  character(2),intent(in) :: GS_RT
-  character(3),intent(in) :: Rion_update
+  integer,intent(in) :: GS_RT
+  logical,intent(in) :: Rion_update
+  integer,intent(in),optional :: ixy_m
 
-  if(GS_RT == 'GS') then
-    call impl(Rion_update,zu_GS,NB)
-  else if(GS_RT == 'RT') then
-    call impl(Rion_update,zu,NBoccmax)
-  end if
+  select case(GS_RT)
+    case(calc_mode_gs)
+      call impl(Rion_update,zu_GS,NB)
+    case(calc_mode_rt)
+      if (present(ixy_m)) then
+        call impl(Rion_update,zu_m(:,:,:,ixy_m),NBoccmax)
+      else
+        call impl(Rion_update,zu_t,NBoccmax)
+      end if
+    case default
+      call err_finalize('ion_force_omp: gs_rt flag')
+  end select
 
 contains
   subroutine impl(Rion_update,zutmp,zu_NB)
@@ -32,7 +40,7 @@ contains
     use communication
     use timer
     implicit none
-    character(3),intent(in)  :: Rion_update
+    logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
     complex(8),intent(inout) :: zutmp(NL,zu_NB,NK_s:NK_e)
 
@@ -44,7 +52,7 @@ contains
     call timer_begin(LOG_ION_FORCE)
 
     !ion
-    if (Rion_update == 'on') then
+    if (Rion_update) then
       ftmp_l=0.d0
 !$omp parallel
       do ia=1,NI

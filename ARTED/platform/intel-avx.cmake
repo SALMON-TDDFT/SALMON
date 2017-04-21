@@ -8,7 +8,7 @@ set(LAPACK_FLAGS                "-mkl=parallel")
 set(ADDITIONAL_MACRO            "")
 set(ADDITIONAL_OPTIMIZE_FLAGS   "")
 
-set(Fortran_FLAGS_General       "-fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416")
+set(Fortran_FLAGS_General       "-fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893")
 set(C_FLAGS_General             "-Wall -restrict")
 
 set(CMAKE_Fortran_COMPILER      "mpiifort")

@@ -20,6 +20,7 @@ module inputfile
   integer, parameter :: fh_namelist = 901
   integer, parameter :: fh_atomic_spiecies = 902
   integer, parameter :: fh_atomic_positions = 903
+  integer, parameter :: fh_reentrance = 904
 
   integer :: inml_control
   integer :: inml_system
@@ -51,6 +52,7 @@ contains
       open(fh_namelist, file='.namelist.tmp', status='replace')
       open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
       open(fh_atomic_positions, file='.atomic_positions.tmp', status='replace')
+      open(fh_reentrance, file='.reenetrance.tmp', status='replace')
       
       do while (.true.)
         read(*, '(a)', iostat=ret) buff
@@ -70,6 +72,11 @@ contains
             cur = fh_atomic_positions
             cycle
           end if
+          ! Beginning of 'atomic_species' part
+          if (text == '&reentrance') then
+            cur = fh_reentrance
+            cycle
+          end if
           ! End of 'atomic_(spiecies|positions)' part
           if ((text == '/') .and. (cur /= fh_namelist)) then
             cur = fh_namelist
@@ -82,6 +89,7 @@ contains
       close(fh_namelist)
       close(fh_atomic_positions)
       close(fh_atomic_spiecies)
+      close(fh_reentrance)
     end if
     call comm_sync_all()
     return
@@ -95,6 +103,7 @@ contains
     ! control
     entrance_option = 'new'
     Time_shutdown = 86400
+    backup_frequency = 0
     entrance_iter = 0
     SYSname = ''
     directory = './'
@@ -187,6 +196,7 @@ contains
     namelist/control/ &
             & entrance_option, &
             & Time_shutdown, &
+            & backup_frequency, &
             & entrance_iter, &
             & SYSname, &
             & directory
@@ -298,6 +308,7 @@ contains
     
     call comm_bcast(entrance_option, proc_group(1))
     call comm_bcast(Time_shutdown, proc_group(1))
+    call comm_bcast(backup_frequency,proc_group(1))
     call comm_bcast(entrance_iter, proc_group(1))
     call comm_bcast(SYSname, proc_group(1))
     call comm_bcast(directory, proc_group(1))
@@ -434,10 +445,12 @@ contains
 
 
   subroutine read_input()
+    use global_variables, only: entrance_option
     implicit none
     
     call extract_stdin()
     call read_namelist()
+    if(entrance_option == 'reentrance')return
     call read_atomic_spiecies()
     call read_atomic_positions()
     
