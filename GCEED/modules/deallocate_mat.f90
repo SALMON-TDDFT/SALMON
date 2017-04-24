@@ -58,6 +58,11 @@ else if(iSCFRT==2.and.icalcforce==1)then
   deallocate(cgrad_wk)
 end if
 
+deallocate (rho_tmp)
+deallocate (vxc_tmp)
+deallocate (exc_dummy)
+deallocate (exc_dummy2)
+deallocate (exc_dummy3)
 
 END SUBROUTINE deallocate_mat
 

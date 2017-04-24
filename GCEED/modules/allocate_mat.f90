@@ -35,6 +35,12 @@ real(8),allocatable :: rgrad_wk(:,:,:,:,:,:)
 
 complex(8),allocatable :: cgrad_wk(:,:,:,:,:,:)
 
+real(8), allocatable :: rho_tmp(:,:,:)
+real(8), allocatable :: vxc_tmp(:,:,:)
+real(8), allocatable :: exc_dummy(:,:,:)
+real(8), allocatable :: exc_dummy2(:,:,:,:)
+real(8), allocatable :: exc_dummy3(:,:,:,:)
+
 CONTAINS
 
 !=======================================================================
@@ -125,6 +131,12 @@ if(iSCFRT==2)then
   end if
 
 end if
+
+allocate (rho_tmp(ng_num(1), ng_num(2), ng_num(3)))
+allocate (vxc_tmp(ng_num(1), ng_num(2), ng_num(3)))
+allocate (exc_dummy(ng_num(1), ng_num(2), ng_num(3)))
+allocate (exc_dummy2(ng_num(1), ng_num(2), ng_num(3),2))
+allocate (exc_dummy3(ng_num(1), ng_num(2), ng_num(3),3))
 
 END SUBROUTINE allocate_mat
 

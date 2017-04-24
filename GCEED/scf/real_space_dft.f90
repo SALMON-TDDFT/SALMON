@@ -190,7 +190,12 @@ if(istopt==1)then
       allocate( Vxc_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )  
     end if
     allocate( esp(itotMST,1) )
-    call Exc_cor_ns
+
+    if(ilsda==0)then
+      call conv_core_exc_cor
+    else if(ilsda==1)then
+      call Exc_cor_ns
+    end if
 
     call mpi_allgatherv_vlocal
 
@@ -352,7 +357,11 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(126)=elp3(126)+elp3(116)-elp3(115)
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      call Exc_Cor_ns
+      if(ilsda==0)then
+        call conv_core_exc_cor
+      else if(ilsda==1)then
+        call Exc_cor_ns
+      end if
     end if
    
     call mpi_allgatherv_vlocal
@@ -402,7 +411,11 @@ DFT_Iteration : do iter=1,iDiter(img)
     end if
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      call Exc_Cor_ns
+      if(ilsda==0)then
+        call conv_core_exc_cor
+      else if(ilsda==1)then
+        call Exc_cor_ns
+      end if
     end if
    
     call mpi_allgatherv_vlocal
