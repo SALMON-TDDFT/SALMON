@@ -49,7 +49,6 @@ ifeq ($(ARCH), intel-knl)
     FLAGS = -xMIC-AVX512 -qopenmp -qopt-ra-region-strategy=block -ansi-alias -fno-alias \
             -DARTED_STENCIL_OPTIMIZED \
             -DARTED_STENCIL_WITH_C \
-            -DARTED_STENCIL_WITH_C \
             -DARTED_EXPLICIT_VECTORIZATION \
             -DARTED_REDUCE_FOR_MANYCORE \
             -DARTED_ENABLE_SOFTWARE_PREFETCH
