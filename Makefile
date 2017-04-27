@@ -1,8 +1,8 @@
 # This is a makefile for SALMON program.
 # please select archtecture by deleting "#"
 
-ARCH = gnu_with_mkl
-#ARCH = intel
+#ARCH = gnu
+ARCH = intel
 #ARCH = fujitsu
 #ARCH = intel-knl
 
@@ -14,7 +14,7 @@ ARCH = gnu_with_mkl
 # LIBSCALAPACK: options for scalapack libraries   #
 ###################################################
 
-ifeq ($(ARCH), gnu_with_mkl)
+ifeq ($(ARCH), gnu)
     TARGET = salmon.cpu
     FC = mpifc
     CC = mpicc
