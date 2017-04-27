@@ -626,11 +626,9 @@ contains
     implicit none
     integer, intent(in) :: ixy_m
     integer :: il
-!$omp parallel default(none) &
-!$    shared(NL,Vh,Vh_m,Vexc, &
-!$           Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m,Vloc_old,Vloc_old_m) &
-!$    firstprivate(ixy_m)
-!$omp do private(il)
+!$omp parallel do &
+!$omp&    default(none) private(il) firstprivate(ixy_m) &
+!$omp&    shared(NL,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m,Vloc_old,Vloc_old_m)
     do il=1,NL
       Vh(il)         = Vh_m(il,ixy_m)
       Vexc(il)       = Vexc_m(il,ixy_m)
@@ -638,26 +636,23 @@ contains
       Vloc(il)       = Vloc_m(il,ixy_m)
       Vloc_old(il,:) = Vloc_old_m(il,:,ixy_m)
     end do
-!$omp end do
-!$omp end parallel
+!$omp end parallel do
   end subroutine
 
   subroutine put_macro_data(ixy_m)
     implicit none
     integer, intent(in) :: ixy_m
     integer :: il
-!$omp parallel default(none) &
-!$    shared(NL,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m) &
-!$    firstprivate(ixy_m)
-!$omp do private(il)
+!$omp parallel do &
+!$omp&    default(none) private(il) firstprivate(ixy_m) &
+!$omp&    shared(NL,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m)
     do il=1,NL
       Vh_m(il,ixy_m)   = Vh(il)
       Vexc_m(il,ixy_m) = Vexc(il)
       Eexc_m(il,ixy_m) = Eexc(il)
       Vloc_m(il,ixy_m) = Vloc(il)
     end do
-!$omp end do
-!$omp end parallel
+!$omp end parallel do
   end subroutine
 
   subroutine reset_gs_timer

@@ -355,8 +355,8 @@ subroutine dt_evolve_Ac_1d
   real(8) :: RR(3) ! rot rot Ac
 
 !$omp parallel do default(none) &
-!$    private(ix_m) &
-!$    shared(NXvacL_m,NXvacR_m,Ac_m,Ac_old_m,Ac_new_m)
+!$omp&    private(ix_m) &
+!$omp&    shared(NXvacL_m,NXvacR_m,Ac_m,Ac_old_m,Ac_new_m)
   do ix_m=NXvacL_m-1,NXvacR_m+1
     Ac_old_m(:,ix_m,1) = Ac_m    (:,ix_m,1)
     Ac_m    (:,ix_m,1) = Ac_new_m(:,ix_m,1)
@@ -364,9 +364,9 @@ subroutine dt_evolve_Ac_1d
 !$omp end parallel do
 
 !$omp parallel do default(none) &
-!$    private(ix_m,RR) &
-!$    shared(NXvacL_m,NXvacR_m,Ac_m,HX_m,j_m,Ac_old_m,Ac_new_m) &
-!$    firstprivate(dt)
+!$omp&    private(ix_m,RR) &
+!$omp&    shared(NXvacL_m,NXvacR_m,Ac_m,HX_m,j_m,Ac_old_m,Ac_new_m) &
+!$omp&    firstprivate(dt)
   do ix_m=NXvacL_m,NXvacR_m
     RR(1) = 0.0d0
     RR(2) = -(Ac_m(2,ix_m+1,1) - 2*Ac_m(2,ix_m,1) + Ac_m(2,ix_m-1,1)) * (1.0 / HX_m**2) 
@@ -388,8 +388,8 @@ subroutine dt_evolve_Ac_2d
   ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Ac_m,Ac_old_m,Ac_new_m)
+!$omp&    private(iy_m,ix_m) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Ac_m,Ac_old_m,Ac_new_m)
   do iy_m=NYvacB_m-1,NYvacT_m+1
     do ix_m=NXvacL_m-1,NXvacR_m+1
       Ac_old_m(:,ix_m,iy_m) = Ac_m    (:,ix_m,iy_m)
@@ -399,9 +399,9 @@ subroutine dt_evolve_Ac_2d
 !$omp end parallel do
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m,RR) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HX_m,HY_m,Ac_m,j_m,Ac_old_m,Ac_new_m) &
-!$    firstprivate(dt)
+!$omp&    private(iy_m,ix_m,RR) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HX_m,HY_m,Ac_m,j_m,Ac_old_m,Ac_new_m) &
+!$omp&    firstprivate(dt)
   do iy_m=NYvacB_m,NYvacT_m
     do ix_m=NXvacL_m,NXvacR_m
       RR(1) = +(-1.00d0/HY_m**2) * Ac_m(1, ix_m, iy_m-1) &
@@ -433,8 +433,8 @@ subroutine dt_evolve_Ac_2d
   select case(TwoD_shape)
   case('periodic')
 !$omp parallel do default(none) &
-!$    private(ix_m) &
-!$    shared(Ac_new_m,NXvacL_m,NXvacR_m,NYvacB_m,NYvacT_m)
+!$omp&    private(ix_m) &
+!$omp&    shared(Ac_new_m,NXvacL_m,NXvacR_m,NYvacB_m,NYvacT_m)
     do ix_m=NXvacL_m-1,NXvacR_m+1
       Ac_new_m(:,ix_m,NYvacB_m-1)=Ac_new_m(:,ix_m,NYvacT_m)
       Ac_new_m(:,ix_m,NYvacT_m+1)=Ac_new_m(:,ix_m,NYvacB_m)
@@ -442,8 +442,8 @@ subroutine dt_evolve_Ac_2d
 !$omp end parallel do
   case('isolated')
 !$omp parallel do default(none) &
-!$    private(ix_m) &
-!$    shared(Ac_new_m,NXvacL_m,NXvacR_m,NYvacB_m,NYvacT_m)
+!$omp&    private(ix_m) &
+!$omp&    shared(Ac_new_m,NXvacL_m,NXvacR_m,NYvacB_m,NYvacT_m)
     do ix_m=NXvacL_m-1,NXvacR_m+1
       Ac_new_m(:,ix_m,NYvacB_m-1)=Ac_new_m(:,ix_m,NYvacB_m)
       Ac_new_m(:,ix_m,NYvacT_m+1)=0.0d0
@@ -462,8 +462,8 @@ subroutine dt_evolve_Ac_2dc()
   real(8) :: Y, RR(3) ! rot rot Ac
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Ac_m,Ac_old_m,Ac_new_m)
+!$omp&    private(iy_m,ix_m) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Ac_m,Ac_old_m,Ac_new_m)
   do iy_m=NYvacB_m-1,NYvacT_m+1
     do ix_m=NXvacL_m-1,NXvacR_m+1
       Ac_old_m(:,ix_m,iy_m) = Ac_m    (:,ix_m,iy_m)
@@ -473,9 +473,9 @@ subroutine dt_evolve_Ac_2dc()
 !$omp end parallel do
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m,RR,Y) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HX_m,HY_m,Ac_m,j_m,Ac_old_m,Ac_new_m) &
-!$    firstprivate(dt)
+!$omp&    private(iy_m,ix_m,RR,Y) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HX_m,HY_m,Ac_m,j_m,Ac_old_m,Ac_new_m) &
+!$omp&    firstprivate(dt)
   do iy_m=NYvacB_m,NYvacT_m
     do ix_m=NXvacL_m,NXvacR_m
       Y = iy_m * HY_m
@@ -508,8 +508,8 @@ subroutine dt_evolve_Ac_2dc()
 
   ! Boundary condition
 !$omp parallel do default(none) &
-!$    private(ix_m) &
-!$    shared(Ac_new_m,NXvacL_m,NXvacR_m,NYvacB_m,NYvacT_m)
+!$omp&    private(ix_m) &
+!$omp&    shared(Ac_new_m,NXvacL_m,NXvacR_m,NYvacB_m,NYvacT_m)
   do ix_m=NXvacL_m-1,NXvacR_m+1
     Ac_new_m(1,ix_m,NYvacB_m-1)=Ac_new_m(1,ix_m,NYvacB_m)
     !!Following BCs are automatically satisfied by adequate initial state.
@@ -549,9 +549,9 @@ subroutine calc_elec_field()
   integer ix_m,iy_m
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Elec,Ac_new_m,Ac_old_m) &
-!$    firstprivate(dt)
+!$omp&    private(iy_m,ix_m) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Elec,Ac_new_m,Ac_old_m) &
+!$omp&    firstprivate(dt)
   do iy_m=NYvacB_m, NYvacT_m
     do ix_m=NXvacL_m, NXvacR_m
       Elec(:,ix_m,iy_m)=-(Ac_new_m(:,ix_m,iy_m)-Ac_old_m(:,ix_m,iy_m))/(2d0*dt)
@@ -569,8 +569,8 @@ subroutine calc_bmag_field_1d()
   ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do default(none) &
-!$    private(ix_m,Rc) &
-!$    shared(NXvacL_m,NXvacR_m,HX_m,Bmag,Ac_m)
+!$omp&    private(ix_m,Rc) &
+!$omp&    shared(NXvacL_m,NXvacR_m,HX_m,Bmag,Ac_m)
   do ix_m=NXvacL_m, NXvacR_m
     Rc(1) = 0.0d0
     Rc(2) = - (Ac_m(3,ix_m+1,1) - Ac_m(3,ix_m-1,1)) / (2 * HX_m)
@@ -592,8 +592,8 @@ subroutine calc_bmag_field_2d()
   ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m,Rc) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HY_m,HX_m,Bmag,Ac_m)
+!$omp&    private(iy_m,ix_m,Rc) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HY_m,HX_m,Bmag,Ac_m)
   do iy_m=NYvacB_m, NYvacT_m
     do ix_m=NXvacL_m, NXvacR_m
       Rc(1) = + (Ac_m(3, ix_m, iy_m+1) - Ac_m(3, ix_m, iy_m-1)) / (2*HY_m)
@@ -618,8 +618,8 @@ subroutine calc_bmag_field_2dc()
   ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m,Rc,Y) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HY_m,HX_m,Bmag,Ac_m)
+!$omp&    private(iy_m,ix_m,Rc,Y) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,HY_m,HX_m,Bmag,Ac_m)
   do iy_m=NYvacB_m, NYvacT_m
     do ix_m=NXvacL_m, NXvacR_m
       Y = iy_m * HY_m
@@ -660,12 +660,11 @@ subroutine calc_energy_joule()
   implicit none
   integer :: ix_m,iy_m
   ! calculate the Ohmic losses in the media
-  ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,energy_joule,j_m,Elec,aLxyz) &
-!$    firstprivate(dt)
+!$omp&    private(iy_m,ix_m) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,energy_joule,j_m,Elec,aLxyz) &
+!$omp&    firstprivate(dt)
   do iy_m=NYvacB_m,NYvacT_m
     do ix_m=NXvacL_m,NXvacR_m
       energy_joule(ix_m, iy_m) = energy_joule(ix_m, iy_m) &
@@ -684,11 +683,10 @@ subroutine calc_energy_elemag()
   integer :: ix_m,iy_m
   real(8) :: e2, b2
   ! calculate the total electromagnetic energy
-  ! (written by M.Uemoto on 2016-11-22)
 
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m,ix_m,e2,b2) &
-!$    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Elec,Bmag,energy_elemag,aLxyz)
+!$omp&    private(iy_m,ix_m,e2,b2) &
+!$omp&    shared(NYvacB_m,NYvacT_m,NXvacL_m,NXvacR_m,Elec,Bmag,energy_elemag,aLxyz)
   do iy_m=NYvacB_m,NYvacT_m
     do ix_m=NXvacL_m,NXvacR_m
       e2 = sum(Elec(:, ix_m, iy_m) ** 2)
@@ -711,9 +709,9 @@ real(8) function calc_pulse_xcenter()
   ex_tot = 0.0
   e_tot = 0.0
 !$omp parallel do collapse(2) default(none) &
-!$    private(iy_m, ix_m, x) & 
-!$    shared(NYvacB_m, NYvacT_m, NXvacL_m, NXvacR_m, HX_m, energy_elemag) &
-!$    reduction(+: ex_tot, e_tot)
+!$omp&    private(iy_m, ix_m, x) & 
+!$omp&    shared(NYvacB_m, NYvacT_m, NXvacL_m, NXvacR_m, HX_m, energy_elemag) &
+!$omp&    reduction(+: ex_tot, e_tot)
 do iy_m = NYvacB_m, NYvacT_m
   do ix_m = NXvacL_m, NXvacR_m
     x = ix_m * HX_m

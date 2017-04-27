@@ -1,14 +1,10 @@
 # This is a makefile for SALMON program.
-
-
-
 # please select archtecture by deleting "#"
 
+#ARCH = gnu
 ARCH = intel
 #ARCH = fujitsu
 #ARCH = intel-knl
-
-
 
 #### explanation for environmental values #########
 # FC: compiler                                    #
@@ -18,12 +14,24 @@ ARCH = intel
 # LIBSCALAPACK: options for scalapack libraries   #
 ###################################################
 
+ifeq ($(ARCH), gnu)
+    TARGET = salmon.cpu
+    FC = mpifc
+    CC = mpicc
+    FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-form -ffree-line-length-none
+    CFLAGS = -O3 -fopenmp -Wall
+    FILE_MATHLIB = lapack
+    LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5
+    LIBSCALAPACK = $(LIBLAPACK) -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
+    MODULE_SWITCH = -J
+endif
+
 ifeq ($(ARCH), intel)
     TARGET = salmon.cpu
     FC = mpiifort
     CC = mpiicc
-    FFLAGS = -O2 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std90 -warn all
-    CFLAGS = -O2 -qopenmp -ansi-alias -fno-alias -Wall -restrict
+    FFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std03 -warn all
+    CFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -Wall -restrict
     FILE_MATHLIB = lapack
     LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5
     LIBSCALAPACK = $(LIBLAPACK) -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
@@ -52,7 +60,7 @@ ifeq ($(ARCH), intel-knl)
             -DARTED_EXPLICIT_VECTORIZATION \
             -DARTED_REDUCE_FOR_MANYCORE \
             -DARTED_ENABLE_SOFTWARE_PREFETCH
-    FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416
+    FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std03 -warn all -diag-disable 6187,6477,6916,7025,7416
     CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
     FILE_MATHLIB = lapack
     LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5
@@ -60,6 +68,7 @@ ifeq ($(ARCH), intel-knl)
     SIMD_SET = IMCI
     MODULE_SWITCH = -module
 endif
+
 
 ####################################################
 ##### please do not modify following sentences #####
