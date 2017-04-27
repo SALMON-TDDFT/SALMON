@@ -19,7 +19,10 @@ module misc_routines
   public :: floor_pow2, ceiling_pow2
   public :: gen_logfilename
   public :: get_wtime
+
+#ifdef ARTED_USE_FORTRAN2008
   public :: create_directory
+#endif
 
 private
 contains
@@ -72,9 +75,11 @@ contains
 
   ! NOTE: execute_command_line() is standardized at Fortran2008.
   !       In specification, `Execute command line` is defined this feature.
+#ifdef ARTED_USE_FORTRAN2008
   subroutine create_directory(dirpath)
     implicit none
     character(*), intent(in) :: dirpath
     call execute_command_line('mkdir -p '//adjustl(trim(dirpath)), wait=.true.)
   end subroutine
+#endif
 end module

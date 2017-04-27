@@ -616,9 +616,12 @@ Subroutine Read_data
     write(*,*) 'KbTev=',KbTev ! sato
   end if
 
-
+#ifdef ARTED_USE_FORTRAN2008
   write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',procid(1),'/'
   call create_directory(process_directory)
+#else
+  process_directory = trim(directory)
+#endif
 
   call comm_bcast(need_backup,proc_group(1))
   call comm_bcast(file_GS,proc_group(1))
