@@ -251,6 +251,13 @@ Module Global_Variables
       logical,intent(in) :: Rion_update
       integer,intent(in),optional :: ixy_m
     end subroutine Ion_Force_omp
+  
+    subroutine hpsi_omp_KB_base(ik,tpsi,htpsi,ttpsi)
+      integer,intent(in)              :: ik
+      complex(8),intent(in)           ::  tpsi
+      complex(8),intent(out)          :: htpsi
+      complex(8),intent(out),optional :: ttpsi
+    end subroutine hpsi_omp_KB_base
   end interface
 
 #if defined(__KNC__) || defined(__AVX512F__)
