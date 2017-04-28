@@ -3,8 +3,11 @@
 
 #ARCH = gnu
 ARCH = intel
+#ARCH = intel-avx
+#ARCH = intel-avx2
 #ARCH = fujitsu
 #ARCH = intel-knl
+#ARCH = intel-knc
 
 #### explanation for environmental values #########
 # FC: compiler                                    #
@@ -21,8 +24,8 @@ ifeq ($(ARCH), gnu)
     FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-form -ffree-line-length-none
     CFLAGS = -O3 -fopenmp -Wall
     FILE_MATHLIB = lapack
-    LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5
-    LIBSCALAPACK = $(LIBLAPACK) -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
+    LIBSCALAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 \
+        -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
     MODULE_SWITCH = -J
 endif
 
@@ -33,8 +36,38 @@ ifeq ($(ARCH), intel)
     FFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std03 -warn all
     CFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -Wall -restrict
     FILE_MATHLIB = lapack
-    LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5
-    LIBSCALAPACK = $(LIBLAPACK) -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
+    LIBSCALAPACK = -mkl=cluster
+    MODULE_SWITCH = -module
+endif
+
+ifeq ($(ARCH), intel-avx)
+    TARGET = salmon.cpu
+    FC = mpiifort
+    CC = mpiicc
+    FLAGS = -xAVX -qopenmp -ansi-alias -fno-alias \
+            -DARTED_STENCIL_OPTIMIZED \
+            -DARTED_STENCIL_WITH_C \
+            -DARTED_EXPLICIT_VECTORIZATION \
+            -DARTED_REDUCE_FOR_MANYCORE 
+    FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
+    CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
+    FILE_MATHLIB = lapack
+    LIBSCALAPACK = -mkl=cluster
+    SIMD_SET = AVX
+    MODULE_SWITCH = -module
+endif
+
+ifeq ($(ARCH), intel-avx2)
+    TARGET = salmon.cpu
+    FC = mpiifort
+    CC = mpiicc
+    FLAGS = -xCORE-AVX2 -qopenmp -ansi-alias -fno-alias \
+            -DARTED_REDUCE_FOR_MANYCORE 
+    FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
+    CFLAGS = $(FLAGS) -O3 -Wall -restrict
+    FILE_MATHLIB = lapack
+    LIBSCALAPACK = -mkl=cluster
+    SIMD_SET = AVX
     MODULE_SWITCH = -module
 endif
 
@@ -45,7 +78,6 @@ ifeq ($(ARCH), fujitsu)
     FFLAGS = -O3 -Kfast,simd=1 -Cpp -Kocl,nooptmsg
     CFLAGS = -O3 -Kfast,simd=1 -Kocl,nooptmsg
     FILE_MATHLIB = lapack
-    LIBLAPACK = -SSL2BLAMP
     LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
     MODULE_SWITCH = -M
 endif
@@ -63,12 +95,29 @@ ifeq ($(ARCH), intel-knl)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std03 -warn all -diag-disable 6187,6477,6916,7025,7416
     CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
     FILE_MATHLIB = lapack
-    LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5
-    LIBSCALAPACK = $(LIBLAPACK) -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
+    LIBSCALAPACK = -mkl=cluster
     SIMD_SET = IMCI
     MODULE_SWITCH = -module
 endif
 
+ifeq ($(ARCH), intel-knc)
+    TARGET = salmon.mic
+    FC = mpiifort
+    CC = mpiicc
+    FLAGS = -mmic -qopenmp -qopt-assume-safe-padding -qopt-streaming-stores always -qopt-gather-scatter-unroll=4 \
+        -qopt-ra-region-strategy=block -ansi-alias -fno-alias \
+        -DARTED_STENCIL_OPTIMIZED \
+        -DARTED_STENCIL_WITH_C \
+        -DARTED_EXPLICIT_VECTORIZATION \
+        -DARTED_REDUCE_FOR_MANYCORE \
+        -DARTED_ENABLE_SOFTWARE_PREFETCH
+    FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
+    CFLAGS = $(FLAGS) -O3 -Wall -restrict
+    FILE_MATHLIB = lapack
+    LIBSCALAPACK = -mkl=cluster
+    SIMD_SET = IMCI
+    MODULE_SWITCH = -module
+endif
 
 ####################################################
 ##### please do not modify following sentences #####
