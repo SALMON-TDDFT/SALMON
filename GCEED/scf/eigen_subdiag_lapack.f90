@@ -63,7 +63,6 @@ use scf_data
 integer :: iter
 real(8) :: Rmat(iter,iter)
 real(8) :: evec(iter,iter)
-real(8) :: evec2(iter,iter)
       INTEGER            LWORK, MAXN
       INTEGER            LIWORK
       INTEGER,allocatable :: IWORK(:)
@@ -76,11 +75,10 @@ real(8) :: evec2(iter,iter)
 !      PARAMETER          ( LDA = MAXN, MONE = -1.0D+0, MAXPROCS = 512 )
       PARAMETER          ( MONE = -1.0D+0, MAXPROCS = 2048 )
       integer :: ii,jj
-      integer :: maxii,maxjj
       character(1) :: SCOPE,TOP
 !     ..
 !     .. Local Scalars ..
-      INTEGER            I, INFO, N, NB 
+      INTEGER            INFO, N, NB 
 !      INTEGER            CONTEXT, I, IAM, INFO, MYCOL, MYROW, N, NB, NPCOL, NPROCS, NPROW
 
 !     ..
@@ -95,7 +93,7 @@ real(8) :: evec2(iter,iter)
                          BLACS_GRIDINFO, BLACS_GRIDINIT, BLACS_PINFO,&
                          BLACS_SETUP, DESCINIT, PDLAMODHILB, PDLAPRNT,&
                          PDSYEV
-      INTEGER :: NP,NQ,IAROW,IACOL,TRILWMIN
+      INTEGER :: NP,NQ,TRILWMIN
 
 !     ..
 !     .. Executable Statements ..

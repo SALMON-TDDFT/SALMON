@@ -23,14 +23,10 @@ use allocate_mat_sub
 use read_pslfile_sub
 
 implicit none
-integer :: ix,iy,iz,i1,i2,mm,jj
-integer :: ii,iob,is,iatom
-integer :: ista_box(3),iend_box(3)
-real(8) :: box,rbox1,rbox2,rbox3,rbox1q,rbox1q12,rbox1q23,rbox1q31,rbox1e
-real(8) :: rbox_array(4),rbox_array2(4)
-real(8),allocatable :: rbox_array3(:,:),rbox_array4(:,:)
+integer :: ix,iy,iz,i1,mm,jj
+integer :: ii,iob,iatom
+real(8) :: rbox1,rbox1q,rbox1q12,rbox1q23,rbox1q31,rbox1e
 complex(8),allocatable :: cmatbox1(:,:,:),cmatbox2(:,:,:)
-real(8) :: rho_region_center
 real(8) :: absr2
 
 integer :: idensity, idiffDensity, ielf
@@ -42,10 +38,6 @@ complex(8) :: shtpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_st
                      1:iobnum,1)
 
 complex(8) :: cbox1,cbox2,cbox3
-
-integer :: ix_sta_Vbox(3),ix_end_Vbox(3)
-integer :: icount
-integer :: jsta,jend
 
 !$ call omp_set_num_threads(inumthreads)
 

@@ -16,7 +16,7 @@ subroutine calc_pmax(iobmax)
 use scf_data
 use new_world_sub
 implicit none
-integer :: iobmax,iss
+integer :: iobmax
 
 if(iSCFRT==1)then
   iobmax=iobnum

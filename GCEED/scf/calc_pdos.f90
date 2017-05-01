@@ -18,8 +18,6 @@ real(8) :: rbox_pdos3(-300:300,0:4,MI)
 real(8) :: pdos(-300:300,0:4,MI)
 real(8),parameter :: sigma_gd=0.01d0
 character(100) :: Outfile
-character(100) :: formbox
-
 
 call calc_pmax(iobmax)
 
@@ -57,7 +55,8 @@ do iob=1,iobmax
       do lm=L**2+1,(L+1)**2
         do iene=-300,300
           rbox_pdos3(iene,L,iatom)=rbox_pdos3(iene,L,iatom)  &
-            +abs(rbox_pdos2(lm,iatom))**2*exp(-(dble(iene)/10d0/2.d0/Ry-esp(iob_allob,1))**2/(2.d0*sigma_gd**2))/sqrt(2.d0*Pi*sigma_gd**2)
+            +abs(rbox_pdos2(lm,iatom))**2*  &
+             exp(-(dble(iene)/10d0/2.d0/Ry-esp(iob_allob,1))**2/(2.d0*sigma_gd**2))/sqrt(2.d0*Pi*sigma_gd**2)
         end do
       end do
     end do

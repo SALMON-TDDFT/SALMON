@@ -14,7 +14,7 @@ END INTERFACE
 CONTAINS
 
 !=======================================================================
-!========================== Hamiltonian Operation ( for real functions )
+!=======================================================================
 
 SUBROUTINE R_calc_gradient(wk,grad_wk)
 !$ use omp_lib

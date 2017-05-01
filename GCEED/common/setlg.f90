@@ -17,7 +17,6 @@ subroutine setlg(lg_sta,lg_end,lg_num,ista_Mx_ori,iend_Mx_ori,inum_Mx_ori,    &
 implicit none
 integer :: lg_sta(3),lg_end(3),lg_num(3)
 integer :: ista_Mx_ori(3),iend_Mx_ori(3),inum_Mx_ori(3)
-integer :: img
 integer :: Nd
 integer :: imesh_oddeven
 real(8) :: Hgs(3)

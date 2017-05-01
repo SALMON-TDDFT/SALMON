@@ -20,7 +20,6 @@ use hpsi2_sub
 use copy_psi_mesh_sub
 implicit none
 integer :: iob,job,ii,jj
-integer :: jmax
 integer :: ix,iy,iz,is
 real(8),allocatable :: Amat(:,:)
 real(8),allocatable :: Amat2(:,:)
@@ -28,12 +27,8 @@ real(8),allocatable :: Smat(:,:)
 real(8),allocatable :: tpsi(:,:,:),htpsi(:,:,:)
 real(8),allocatable :: psi_box(:,:,:,:)
 real(8) :: rbox,rbox1
-real(8),allocatable :: alpha(:),betav(:),eval(:)
-real(8),allocatable :: evec(:,:),evec_box(:)
-real(8) :: vmax
+real(8),allocatable :: evec(:,:)
 integer :: ier2
-real(8) :: rbox_array(itotMST)
-real(8) :: rbox_array2(itotMST)
 integer :: is_sta,is_end
 integer :: job_myob,iroot,icorr_j,iob_allob,job_allob
 integer :: iter

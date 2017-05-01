@@ -28,7 +28,7 @@ real(8):: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),  &
 integer :: iter,iob,job,iflag
 integer :: ix,iy,iz
 integer :: is,iobsta(2),iobend(2)
-real(8) :: sum0,sum1,xkHxk,xkxk,Rk,gkgk,xkpk,pkpk,pkHxk,pkHpk
+real(8) :: sum0,xkHxk,xkxk,Rk,gkgk,xkpk,pkpk,pkHxk,pkHpk
 real(8) :: uk,alpha,Ak,Bk,Ck
 real(8) , allocatable :: xk(:,:,:),hxk(:,:,:),gk(:,:,:),pk(:,:,:)
 real(8) , allocatable :: gk2(:,:,:)

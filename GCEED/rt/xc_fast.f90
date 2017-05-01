@@ -59,7 +59,6 @@ SUBROUTINE xc_LDA_fast(trho,Ex,Ec)
 use scf_data
 use new_world_sub
 implicit none
-integer :: js
 
 real(8),parameter :: gm=-0.1423d0
 ! letter s means small, letter l means large

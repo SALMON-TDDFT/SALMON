@@ -40,16 +40,7 @@ integer :: ibox
 integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
-integer :: INEWVEC,isize,itemp,idist
-integer :: itype1,itype2
-integer :: isize1(3),isize2(3)
-integer :: isubsize1(3),isubsize2(3)
-integer :: istart1(3),istart2(3)
-integer :: ixs,iys,izs
-integer :: ista_Mxin2(3,0:nproc-1),iend_Mxin2(3,0:nproc-1)
-integer :: inum_Mxin2(3,0:nproc-1)
 integer :: icomm
-integer :: istatuses2(12),ireqs2(12)
 
 
 if(iwk_size>=1.and.iwk_size<=3)then
@@ -287,16 +278,7 @@ integer :: ibox
 integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
-integer :: INEWVEC,isize,itemp,idist
-integer :: itype1,itype2
-integer :: isize1(3),isize2(3)
-integer :: isubsize1(3),isubsize2(3)
-integer :: istart1(3),istart2(3)
-integer :: ixs,iys,izs
-integer :: ista_Mxin2(3,0:nproc-1),iend_Mxin2(3,0:nproc-1)
-integer :: inum_Mxin2(3,0:nproc-1)
 integer :: icomm
-integer :: istatuses2(12),ireqs2(12)
 
 if(iwk_size>=1.and.iwk_size<=3)then
 

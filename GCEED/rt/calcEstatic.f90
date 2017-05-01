@@ -18,7 +18,7 @@ use scf_data
 use new_world_sub
 use sendrecvh_sub
 implicit none
-integer :: ist,ix,iy,iz,i1,i2,i3
+integer :: ist,ix,iy,iz
 complex(8),parameter :: zi=(0.d0,1.d0)
 real(8) :: Vh_wk(ng_sta(1)-Ndh:ng_end(1)+Ndh,   &
                  ng_sta(2)-Ndh:ng_end(2)+Ndh,   &

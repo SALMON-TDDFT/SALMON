@@ -99,7 +99,8 @@ else if(ifunc==4)then
       do ix=mg_sta(1),mg_end(1)
         htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
         tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
+          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
       end do
       end do
       end do
@@ -114,7 +115,8 @@ else if(ifunc==4)then
         do ix=mg_sta(1),mg_end(1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do
@@ -125,7 +127,8 @@ else if(ifunc==4)then
         do ix=mg_sta(1),mg_end(1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do
@@ -144,7 +147,8 @@ else if(ifunc==5)then
         cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
         htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
         tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
+          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
       end do
       end do
       end do
@@ -162,7 +166,8 @@ else if(ifunc==5)then
           cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do
@@ -174,7 +179,8 @@ else if(ifunc==5)then
           cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do
@@ -192,7 +198,8 @@ else if(ifunc==6)then
       do ix=mg_sta(1),mg_end(1)
         htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
         tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
+          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
       end do
       end do
       end do
@@ -207,7 +214,8 @@ else if(ifunc==6)then
         do ix=mg_sta(1),mg_end(1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do
@@ -218,7 +226,8 @@ else if(ifunc==6)then
         do ix=mg_sta(1),mg_end(1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do
@@ -236,7 +245,8 @@ else if(ifunc==7)then
         cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
         htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
         tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+        rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
+          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
       end do
       end do
       end do
@@ -254,7 +264,8 @@ else if(ifunc==7)then
           cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do
@@ -266,7 +277,8 @@ else if(ifunc==7)then
           cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
           htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
           tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
-          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
+            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
         end do
         end do
         end do

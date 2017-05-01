@@ -42,14 +42,17 @@ namelist / group_fundamental / Nenergy,dE, N_hamil, &
 namelist / group_parallel / inumthreads,nproc_ob,nproc_Mxin,nproc_Mxin_s,  &
                             isequential, num_datafiles_IN, num_datafiles_OUT, imesh_s_all, iflag_comm_rho
 namelist / group_hartree / Hconv, MEO, num_pole_xyz, lmax_MEO
-namelist / group_file / IC,IC_rt,OC_rt,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e,file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q, &
+namelist / group_file / IC,IC_rt,OC_rt,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,  &
+                        file_RT_e,file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q, &
     & file_RT_dip2_e,file_IN_rt,file_OUT_rt,fileTmp, fileTmp2, file_Projection
 namelist / group_extfield / ikind_eext, Fst, dir, dir2, romega, pulse_T,rlaser_I,tau, &
                             romega2, pulse_T2, rlaser_I2, tau2, delay, rcycle 
 namelist / group_propagation / dt, Ntime
-namelist / group_others / iparaway_ob,num_projection,iwrite_projection_ob,iwrite_projection_k,filename_pot,lasbound_sta,lasbound_end, &
+namelist / group_others / iparaway_ob,num_projection,iwrite_projection_ob,iwrite_projection_k,  &
+                          filename_pot,lasbound_sta,lasbound_end, &
     & iwrite_external,iflag_dip2,iflag_quadrupole,iflag_intelectron,num_dip2, dip2boundary, dip2center,& 
-    & iflag_fourier_omega, num_fourier_omega, fourier_omega, itotNtime2, iwdenoption,iwdenstep, numfile_movie, iflag_Estatic
+    & iflag_fourier_omega, num_fourier_omega, fourier_omega, itotNtime2, &
+    & iwdenoption,iwdenstep, numfile_movie, iflag_Estatic
 !===== namelist for group_fundamental =====
 Nenergy=2000
 dE=0.01d0

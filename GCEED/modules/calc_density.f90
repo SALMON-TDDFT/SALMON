@@ -30,7 +30,7 @@ subroutine R_calc_density(tpsi,ifunc)
 !$use omp_lib
 implicit none
 real(8) :: tpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1)
-integer :: inum,i1_allob
+integer :: i1_allob
 integer :: ix,iy,iz,i1,iss,iob
 integer :: iob_myob,icorr_p
 integer :: iob_start(2),iob_end(2)
@@ -115,7 +115,7 @@ subroutine C_calc_density(tpsi,ifunc)
 !$use omp_lib
 implicit none
 complex(8) :: tpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1)
-integer :: inum,i1_allob
+integer :: i1_allob
 integer :: ix,iy,iz,i1,iss,iob
 integer :: iob_myob,icorr_p
 integer :: iob_start(2),iob_end(2)

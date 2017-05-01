@@ -67,13 +67,11 @@ real(8),allocatable :: Qp_box(:,:,:),alpha_Rq_box(:,:,:),alpha_Iq_box(:,:,:)
 real(8),allocatable :: Sf(:),Sf2(:,:),Sq2(:,:,:)
 real(8) :: plz !polarizability
 integer :: jj
-integer :: iene,nntime,ix,iy,iz,i1,i2,i3
+integer :: iene,nntime,ix,iy,iz
 character(100):: timeFile
 character(100):: alpha2OutFile
 integer :: ia,ib
 real(8) :: rab
-real(8) :: box
-real(8) :: tt
 integer :: nprocs,nprocid
 
 nproc=nprocs
@@ -502,7 +500,8 @@ if(myrank.eq.0)then
       do iene=0,Nenergy
         write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
         do jj=1,num_dip2-1
-          write(1,'(6e16.8)',advance="no") (alpha2q_I(iii,iii,iene,jj), iii=1,3),alpha2q_I(1,2,iene,jj),alpha2q_I(2,3,iene,jj),alpha2q_I(3,1,iene,jj)
+          write(1,'(6e16.8)',advance="no") (alpha2q_I(iii,iii,iene,jj), iii=1,3),  &
+                                            alpha2q_I(1,2,iene,jj),alpha2q_I(2,3,iene,jj),alpha2q_I(3,1,iene,jj)
         end do
         write(1,'(6e16.8)',advance="yes") (alpha2q_I(iii,iii,iene,num_dip2), iii=1,3), &
             & alpha2q_I(1,2,iene,num_dip2),alpha2q_I(2,3,iene,num_dip2),alpha2q_I(3,1,iene,num_dip2)
@@ -624,39 +623,20 @@ implicit none
 
 complex(8),parameter :: zi=(0.d0,1.d0)
 integer :: ii,iob,i1,i2,i3,ix,iy,iz,jj,mm
-real(8) :: Ds
-real(8),allocatable :: R1(:,:,:),R2(:,:,:,:),R3(:,:,:)
-integer :: is,pstart(2),pend(2)
+real(8),allocatable :: R1(:,:,:),R2(:,:,:,:)
 character(10):: fileLaser
 integer:: idensity, idiffDensity, ielf
 integer :: IC_rt
-integer :: numon
-real(8):: Efactor
 integer :: iob_allob
 real(8) :: absr2
 
-real(8)    :: sum_curr
 real(8)    :: rbox_array(10)
 real(8)    :: rbox_array2(10)
 real(8)    :: rbox_arrayq(3,3)
 real(8)    :: rbox_arrayq2(3,3)
-real(8)    :: rbox1,rbox2,rbox3,rbox4
 real(8)    :: rbox1q,rbox1q12,rbox1q23,rbox1q31
-complex(8) :: curr_x0, curr_x1, curr_y0, curr_y1
-complex(8) :: sum_curr_x0, sum_curr_x1
-complex(8) :: sum_curr_y0, sum_curr_y1
-
-integer :: icount
-real(8)    :: rr
-real(8)    :: yyy
 
 complex(8), allocatable :: shtpsi(:,:,:,:,:)
-
-real(8) :: vecppp2(3,100)
-real(8) :: coocenter2(3,100)
-
-integer :: max_icell
-integer :: iix,iiy,iiz
 
 if(myrank==0.and.iflag_md==1)then
   open(15,file="distance.data")

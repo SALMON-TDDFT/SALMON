@@ -23,7 +23,6 @@ integer :: i1,ix,iy,iz,i2
 real(8) :: rNe
 real(8) :: rbox_array(10), rbox_arrayq(3, 3)
 real(8) :: rbox_array2(10), rbox_arrayq2(3, 3)
-real(8) :: Dp3(4)
 real(8) :: rbox1, rbox1q, rbox1q12, rbox1q23, rbox1q31
 real(8) :: fact
 real(8) :: absr2

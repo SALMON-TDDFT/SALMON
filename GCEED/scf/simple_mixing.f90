@@ -18,7 +18,6 @@ use scf_data
 implicit none
 
 integer :: ix,iy,iz
-integer :: is
 real(8),intent(IN) :: c1,c2
 
 !rho = c1*rho + c2*matmul( psi**2, occ )

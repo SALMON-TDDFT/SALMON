@@ -17,9 +17,7 @@ use scf_data
 use new_world_sub
 !$ use omp_lib
 implicit none
-integer :: ii,iatom,is
-integer :: ix,iy,iz
-integer :: icount
+integer :: ii,iatom
 integer :: ibox2
 integer :: icheck1,icheck2
 character(100) :: file_OUT,file_IN,LDA_Info,file_ini

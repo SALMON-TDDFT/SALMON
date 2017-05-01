@@ -49,22 +49,12 @@ CONTAINS
 !=======================================================================
 subroutine make_new_world
 implicit none
-integer :: ikind
-integer :: i,ipow,j
-integer :: i1,i2,i3,i4,i5
+integer :: i
+integer :: i1,i2,i3,i4
 integer :: ix,iy,iz
 integer :: ixs,iys,izs
-integer :: ibox,ibox2
+integer :: ibox
 integer :: icolor,ikey
-integer :: icolor_xyz(3),ikey_xyz(3)
-
-integer :: iarray_ascorder(0:nproc-1)
-integer :: iarray_ascorder2(0:nproc-1)
-integer :: icheck_ascorder_tmp
-integer :: icheck_ascorder_tmp2
-integer :: myrank_tmp
-
-integer,allocatable :: iarray_yzproc(:,:,:)
 
 !only for identifying spin
 !new_world for comm_spin
@@ -416,17 +406,14 @@ end subroutine make_new_world
 subroutine make_corr_pole
 implicit none
 
-integer :: a,i,j
+integer :: a,i
 integer :: ix,iy,iz
 integer :: ibox
-integer :: ipow
 integer :: j1,j2,j3
-integer :: nproc_Mxin_pole(3)
 integer,allocatable :: ista_Mxin_pole(:,:)
 integer,allocatable :: iend_Mxin_pole(:,:)
 integer,allocatable :: inum_Mxin_pole(:,:)
 integer,allocatable :: iflag_pole(:)
-integer, allocatable :: Mdvbox(:)
 integer :: amin,amax
 real(8) :: rmin,r
 real(8),allocatable :: Rion2(:,:)
@@ -681,11 +668,10 @@ subroutine mpi_allgatherv_vlocal
 !$ use omp_lib
 
 implicit none
-integer :: ikind
 integer :: i
 integer :: i1,i2,i3
 integer :: ix,iy,iz
-integer :: ibox,ibox2,ibox3,ibox4,ibox5
+integer :: ibox,ibox2,ibox3
 real(8),allocatable :: matbox11(:),matbox12(:)
 integer :: iscnt
 integer,allocatable :: ircnt(:)
@@ -810,7 +796,9 @@ do is=is_sta,is_end
             +(i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2))
       ibox2=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
 
-      call copyVlocal(matbox12(idisp(ibox2):(idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),ibox,ibox2,is)
+      call copyVlocal(matbox12(idisp(ibox2):  &
+                      (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),  &
+                      ibox,ibox2,is)
 
     end do
     end do
@@ -824,7 +812,9 @@ do is=is_sta,is_end
           +(i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2))*nproc_Mxin_mul
       ibox2=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
 
-      call copyVlocal(matbox12(idisp(ibox2):(idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),ibox,ibox2,is)
+      call copyVlocal(matbox12(idisp(ibox2):  &
+                      (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),  &
+                      ibox,ibox2,is)
 
     end do
     end do
@@ -848,7 +838,6 @@ subroutine mpibcast_mesh_s_kxc(Vbox)
 !$ use omp_lib
 
 implicit none
-integer :: ikind
 integer :: i
 integer :: i1,i2,i3
 integer :: ix,iy,iz

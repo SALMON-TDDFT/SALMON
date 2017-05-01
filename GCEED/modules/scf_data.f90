@@ -560,8 +560,6 @@ end subroutine snum_procs
 !======================================================================
 subroutine init_mesh_s
 implicit none
-integer :: i,j,i1,i2,i3,i4
-integer :: ipow,ibox
 
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 

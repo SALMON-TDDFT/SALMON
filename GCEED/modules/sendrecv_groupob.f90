@@ -48,7 +48,6 @@ integer :: ireq9,istatus9(MPI_STATUS_SIZE)
 integer :: ireq10,istatus10(MPI_STATUS_SIZE)
 integer :: ireq11,istatus11(MPI_STATUS_SIZE)
 integer :: ireq12,istatus12(MPI_STATUS_SIZE)
-integer :: istatus(MPI_STATUS_SIZE)
 logical :: flag
 
 iup=iup_array(1)
@@ -288,7 +287,6 @@ integer :: ireq9,istatus9(MPI_STATUS_SIZE)
 integer :: ireq10,istatus10(MPI_STATUS_SIZE)
 integer :: ireq11,istatus11(MPI_STATUS_SIZE)
 integer :: ireq12,istatus12(MPI_STATUS_SIZE)
-integer :: istatus(MPI_STATUS_SIZE)
 logical :: flag
 
 iup=iup_array(1)

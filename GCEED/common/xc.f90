@@ -89,7 +89,7 @@ real(8) :: dsf
 real(8),allocatable :: Ecu(:,:,:),Ecp(:,:,:)
 real(8),allocatable :: Vcu(:,:,:),Vcp(:,:,:)
 
-integer :: ix,iy,iz,ibox,ibox2
+integer :: ix,iy,iz
 real(8) :: sum1
 
 real(8) :: trho(mg_sta(1):mg_end(1),  &

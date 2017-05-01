@@ -20,8 +20,6 @@ use new_world_sub
 implicit none
 
 integer :: iob,ix,iy,iz
-integer :: k1,k2,k3
-integer :: ibox
 
 real(8) :: elftau(mg_sta(1):mg_end(1),   &
                   mg_sta(2):mg_end(2),   &

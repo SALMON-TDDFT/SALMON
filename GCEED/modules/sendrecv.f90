@@ -30,7 +30,7 @@ END INTERFACE
 CONTAINS
 
 !=======================================================================
-!========================== Hamiltonian Operation ( for real functions )
+!=======================================================================
 
 SUBROUTINE R_sendrecv(wk2)
 !$ use omp_lib
@@ -43,14 +43,6 @@ integer :: ibox
 integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
-integer :: INEWVEC,isize,itemp,idist
-integer :: itype1,itype2
-integer :: isize1(3),isize2(3)
-integer :: isubsize1(3),isubsize2(3)
-integer :: istart1(3),istart2(3)
-integer :: ixs,iys,izs
-integer :: ista_Mxin2(3,0:nproc-1),iend_Mxin2(3,0:nproc-1)
-integer :: inum_Mxin2(3,0:nproc-1)
 integer :: icomm
 
 
@@ -276,7 +268,7 @@ return
 END SUBROUTINE R_sendrecv
 
 !=======================================================================
-!========================= Hamiltonian Operation (for complex funcitons)
+!=======================================================================
 
 SUBROUTINE C_sendrecv(wk2)
 !$ use omp_lib
@@ -289,13 +281,6 @@ integer :: ibox
 integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
-integer :: INEWVEC,isize,itemp,idist
-integer :: itype1,itype2
-integer :: isize1(3),isize2(3)
-integer :: isubsize1(3),isubsize2(3)
-integer :: istart1(3),istart2(3)
-integer :: ixs,iys,izs
-integer :: ista_Mxin2(3,0:nproc-1),iend_Mxin2(3,0:nproc-1)
 integer :: icomm
 
 

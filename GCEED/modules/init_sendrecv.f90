@@ -41,21 +41,13 @@ complex(8),allocatable :: cmatbox2_x_h(:,:,:),cmatbox2_y_h(:,:,:),cmatbox2_z_h(:
 CONTAINS
 
 !=======================================================================
-!========================== Hamiltonian Operation ( for real functions )
+!=======================================================================
 
 SUBROUTINE init_updown
 !$ use omp_lib
 use new_world_sub
 
 implicit none
-
-integer :: i
-integer :: ibox
-integer :: ix,iy,iz
-integer :: ixs,iys,izs
-integer :: i4
-integer :: ista_Mxin2(3,0:nproc-1),iend_Mxin2(3,0:nproc-1)
-integer :: inum_Mxin2(3,0:nproc-1)
 
 iup_array(1)=newrank_comm_orbital+1
 idw_array(1)=newrank_comm_orbital-1

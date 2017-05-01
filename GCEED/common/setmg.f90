@@ -15,7 +15,7 @@
 subroutine setmg(mg_sta,mg_end,mg_num,mg_sta_all,mg_end_all,mg_num_all,  &
                  lg_sta,lg_end,lg_num,nproc,myrank,nproc_Mxin,nproc_ob,isequential)
 implicit none
-integer :: i1,i2,j1,j2,j3
+integer :: i1,j1,j2,j3
 integer :: ibox
 integer :: isequential
 integer :: nproc,myrank

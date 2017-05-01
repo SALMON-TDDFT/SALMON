@@ -22,18 +22,14 @@ use eigen_sub
 !$ use omp_lib
 implicit none
 
-integer :: ii,jj,iob,iter,ix,iy,iz,iflag,iflagdiis,ier2
+integer :: ii,jj,iob,iter,ix,iy,iz,ier2
 integer :: ibox,icount
 real(8),allocatable :: Rmat(:,:),Smat(:,:)
-real(8),allocatable :: Rmat2(:,:)
-real(8),allocatable :: b(:),c(:)
 real(8),allocatable :: betav(:)
 real(8),allocatable :: alpha(:),eval(:),evec(:,:)
 real(8) :: evalbox
-real(8) :: enemin
-real(8) :: sumbox
 real(8) :: rnorm
-real(8) :: rbox,rbox2
+real(8) :: rbox
 integer :: pcheck(1:itotMST,0:Ncg)
 
 real(8) :: phi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),      &

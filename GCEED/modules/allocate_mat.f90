@@ -49,8 +49,6 @@ CONTAINS
 SUBROUTINE allocate_mat
 
 implicit none
-integer :: ix,iy,iz,p
-integer :: ibox
 
 allocate (vecR(3,lg_sta(1):lg_end(1),    &
              lg_sta(2):lg_end(2),      &

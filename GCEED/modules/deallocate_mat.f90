@@ -27,7 +27,6 @@ CONTAINS
 SUBROUTINE deallocate_mat
 
 implicit none
-integer :: ix,iy,iz
 
 deallocate (vecR)
 deallocate (vecR_tmp)

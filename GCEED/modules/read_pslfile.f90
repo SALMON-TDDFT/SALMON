@@ -43,9 +43,7 @@ contains
 !==================================================================================================
 subroutine read_pslfile
 implicit none
-integer :: i,ak
-real(8) :: r
-integer :: L
+integer :: ak
 character(50) :: ps_file(MKI)
 
 allocate( Mlps0(MKI) )
@@ -263,13 +261,12 @@ subroutine read_psl_ABINIT(ak,ps_file)
   implicit none
   integer,intent(in) :: ak
   character(50),intent(in) :: ps_file(MKI)
-  integer :: i,irPC
-  real(8) :: r,rZps
+  integer :: i
+  real(8) :: rZps
   integer :: ll
   real(8) :: zatom, zion, pspdat,pspcod,pspxc,lmaxabinit,lloc,mmax,r2well,dl
   real(8) :: e99_0,e99_9,nproj,rcpsp,rms,ekb1,ekb2,epsatm,rchrg,fchrg,qchrg
   character(1) :: dummy_text
-  integer :: L
 
   step(ak)=0.01d0/a_B
 
@@ -323,14 +320,13 @@ subroutine read_psl_ABINIT_PBE(ak,ps_file)
 implicit none
 integer,intent(in) :: ak
 character(50),intent(in) :: ps_file(MKI)
-integer :: i,irPC,ibox
-real(8) :: r,rZps
+integer :: i,ibox
+real(8) :: rZps
 integer :: ll
 real(8) :: zatom, zion, pspdat,pspcod,pspxc,lmaxabinit,lloc,mmax,r2well
-real(8) :: e99_0,e99_9,nproj,rcpsp,rms,ekb1,ekb2,epsatm,rchrg,fchrg,qchrg
+real(8) :: rchrg,fchrg,qchrg
 character(1) :: dummy_text
 real(8) :: step_tmp(0:3)
-integer :: L
 
 step_tmp(0:3)=1.d8
 
@@ -372,7 +368,7 @@ subroutine read_psl_fhi(ak,ps_file)
 implicit none
 integer,intent(in) :: ak
 character(50),intent(in) :: ps_file(MKI)
-integer :: i,L,ibox
+integer :: i,ibox
 integer :: ll
 character(1) :: dummy_text
 real(8) :: step_tmp(0:3)

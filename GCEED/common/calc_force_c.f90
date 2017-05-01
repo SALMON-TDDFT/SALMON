@@ -22,7 +22,7 @@ complex(8) :: tzpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
                     mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
 integer :: ix,iy,iz,iob,ikoa,jj,j2,iatom,ia,ib,lm,ikoa2
 real(8) :: rbox1,rbox2
-complex(8) :: cbox1,cbox2
+complex(8) :: cbox1
 complex(8),allocatable :: uVpsibox(:,:,:,:),uVpsibox2(:,:,:,:)
 real(8) :: rforce1(3,MI),rforce2(3,MI),rforce3(3,MI),rforce41(3,MI),rforce42(3,MI)
 real(8) :: rab
@@ -97,7 +97,9 @@ do iatom=1,MI
       cbox1=0.d0
 !$OMP parallel do reduction( + : cbox1 )
       do jj=1,max_jMps_l(iatom)
-        cbox1=cbox1+uV(jMps_l(jj,iatom),lm,iatom)*tzpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
+        cbox1=cbox1+uV(jMps_l(jj,iatom),lm,iatom)*  &
+                      tzpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
+                            Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
       end do
       uVpsibox(iob,1,lm,iatom)=cbox1*Hvol/uVu(lm,iatom)
     end do loop_lm2
@@ -115,7 +117,8 @@ do iatom=1,MI
       do jj=1,max_jMps_l(iatom)
         do lm=1,(Mlps(ikoa)+1)**2
           rbox1=rbox1-2.d0*rocc(iob,1)*dble(uV(jMps_l(jj,iatom),lm,iatom)*   &
-                  conjg(cgrad_wk(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom),iob,1,j2))* &
+                  conjg(cgrad_wk(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
+                                 Jxyz(3,jMps_l(jj,iatom),iatom),iob,1,j2))* &
                   uVpsibox2(iob,1,lm,iatom))
         end do
       end do

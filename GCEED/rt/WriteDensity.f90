@@ -29,7 +29,6 @@ character(2)  :: denplane2
 integer       :: idensum2   
 real(8)       :: posplane2
 character(8)  :: fileNumber_data
-integer::icount
 
 allocate( rRho(lg_sta(1):lg_end(1), lg_sta(2):lg_end(2), lg_sta(3):lg_end(3)) )
 allocate( rRho2(lg_sta(1):lg_end(1), lg_sta(2):lg_end(2), lg_sta(3):lg_end(3)) )

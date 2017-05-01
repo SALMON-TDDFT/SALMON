@@ -17,7 +17,6 @@ use scf_data
 use new_world_sub
 implicit none
 integer :: iob,iroot
-integer :: iquotient
 
 if(ilsda==0.or.nproc_ob==1)then
   if(iparaway_ob==1)then

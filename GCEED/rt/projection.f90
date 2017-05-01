@@ -84,7 +84,8 @@ do iob=1,itotMST0
 end do
 if(myrank==0)then
   write(41,'(200f14.8)') dble(itt)*dt*2.41888d-2, &
-  & (coef(iwrite_projection_ob(iob),iwrite_projection_k(iob),1),iob=1,num_projection),sum(coef(1:itotMST,:,1)),sum(coef(1:itotMST0,:,1))
+  & (coef(iwrite_projection_ob(iob),iwrite_projection_k(iob),1),iob=1,num_projection),  &
+    sum(coef(1:itotMST,:,1)),sum(coef(1:itotMST0,:,1))
 end if
 if(mod(itt,100)==0)then
   if(myrank==0)then

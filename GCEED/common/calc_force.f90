@@ -105,7 +105,9 @@ do iatom=1,MI
       rbox1=0.d0
 !$OMP parallel do reduction( + : rbox1 )
       do jj=1,max_jMps_l(iatom)
-        rbox1=rbox1+uV(jMps_l(jj,iatom),lm,iatom)*psi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
+        rbox1=rbox1+uV(jMps_l(jj,iatom),lm,iatom)*  &
+                       psi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
+                           Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
       end do
       uVpsibox(iob,1,lm,iatom)=rbox1*Hvol/uVu(lm,iatom)
     end do loop_lm2

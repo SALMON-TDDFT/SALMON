@@ -18,9 +18,9 @@ use scf_data
 use allocate_psl_sub
 implicit none
 
-integer :: i,ix,iy,iz,ak
-integer :: j,a,intr,lm
-real(8) :: x,y,z,ratio1,ratio2
+integer :: ix,iy,iz,ak
+integer :: j,a,intr
+real(8) :: ratio1,ratio2
 
 real(8) :: r
 

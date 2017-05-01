@@ -28,7 +28,6 @@ implicit none
 real(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),   &
                   1:iobnum,1)
 integer :: iob,iter,ix,iy,iz,iflag
-integer :: ibox,ibox2
 integer,allocatable :: iflagdiis(:)
 integer,allocatable :: iobcheck(:,:)
 real(8),allocatable :: phi(:,:,:,:)
@@ -37,8 +36,7 @@ real(8),allocatable :: R1(:,:,:,:)
 real(8),allocatable :: phibar(:,:,:,:),Rbar(:,:,:,:)
 real(8),allocatable :: phibox(:,:,:),Rbox(:,:,:)
 real(8),allocatable :: psi_stock(:,:,:,:,:)
-real(8) :: rbox1,rbox2
-complex(8) :: cbox1,cbox2
+real(8) :: rbox1
 real(8),allocatable :: epsdiis(:,:),Rnorm(:,:)
 real(8) :: rnorm_diff_psi(itotMST,1)
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd)

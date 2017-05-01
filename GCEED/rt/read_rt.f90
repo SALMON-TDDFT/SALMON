@@ -19,8 +19,6 @@ use allocate_mat_sub
 implicit none
 integer       :: i1,i2,i3,jj,iob,is,it2,kk
 integer       :: ix,iy,iz
-real(8)       :: box
-complex(8)    :: cbox
 character(100) :: file_OUT_rt
 character(100) :: file_OUT_rt_data
 integer :: ibox
@@ -278,8 +276,6 @@ integer       :: i1,i2,i3,jj,iob,is,it2,kk
 integer       :: ix,iy,iz
 integer       :: IC_rt
 integer       :: Ntime
-real(8)       :: box
-complex(8)    :: cbox
 character(100) :: file_IN_rt
 character(100) :: file_IN_rt_data
 integer :: ibox

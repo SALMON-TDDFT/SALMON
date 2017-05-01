@@ -27,12 +27,11 @@ complex(8) :: tzpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg
                 1:iobnum,1)
 integer :: ifunc
 integer :: iob,ia,ib
-integer :: ix,iy,iz,i1,i2,i3
+integer :: ix,iy,iz
 real(8) :: rab
-complex(8) :: espbox
 real(8) :: sum1,sum2
 real(8) :: rbox
-complex(8) :: cbox,cbox2
+complex(8) :: cbox
 
 if(ifunc==1)then
 

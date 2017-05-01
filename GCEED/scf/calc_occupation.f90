@@ -15,10 +15,7 @@
 subroutine calc_occupation(iter)
 use scf_data
 implicit none
-real(8) :: factor
-integer :: i,p1,p2,p5,ik
 integer :: iter
-integer :: is
 integer :: is_sta,is_end
 integer :: pstart(2),pend(2)
 

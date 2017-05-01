@@ -24,7 +24,8 @@ do iatom=1,MI
     if(Jxyz(1,jj,iatom)>=mg_sta(1).and.Jxyz(1,jj,iatom)<=mg_end(1).and.  &
        Jxyz(2,jj,iatom)>=mg_sta(2).and.Jxyz(2,jj,iatom)<=mg_end(2).and.  &
        Jxyz(3,jj,iatom)>=mg_sta(3).and.Jxyz(3,jj,iatom)<=mg_end(3))then
-      numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))+1
+      numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=  &
+        numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))+1
     end if
   end do
 end do
@@ -53,8 +54,10 @@ do iatom=1,MI
     if(Jxyz(1,jj,iatom)>=mg_sta(1).and.Jxyz(1,jj,iatom)<=mg_end(1).and.  &
        Jxyz(2,jj,iatom)>=mg_sta(2).and.Jxyz(2,jj,iatom)<=mg_end(2).and.  &
        Jxyz(3,jj,iatom)>=mg_sta(3).and.Jxyz(3,jj,iatom)<=mg_end(3))then
-      numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))+1
-      iatomnum_ps(numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom)),Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=iatom
+      numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=  &
+        numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))+1
+      iatomnum_ps(numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom)),  &
+                             Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=iatom
     end if
   end do
 end do
@@ -82,8 +85,10 @@ do iatom=1,MI
     if(Jxyz(1,jj,iatom)>=mg_sta(1).and.Jxyz(1,jj,iatom)<=mg_end(1).and.  &
        Jxyz(2,jj,iatom)>=mg_sta(2).and.Jxyz(2,jj,iatom)<=mg_end(2).and.  &
        Jxyz(3,jj,iatom)>=mg_sta(3).and.Jxyz(3,jj,iatom)<=mg_end(3))then
-      numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))+1
-      Mps3rd(numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom)),Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=jj
+      numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=  &
+        numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))+1
+      Mps3rd(numatom_ps(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom)),  &
+                        Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))=jj
     end if
   end do
 end do

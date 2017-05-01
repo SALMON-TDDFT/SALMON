@@ -40,13 +40,11 @@ real(8) :: htpsi(iwk3sta(1):iwk3end(1),  &
                                iwk3sta(2):iwk3end(2),      &
                                iwk3sta(3):iwk3end(3))
 
-integer :: iatom,ix,iy,iz,jj,lm,ik,ibox,ibox2,iik
+integer :: iatom,ix,iy,iz,jj,lm,ik
 integer :: iob,nn,isub
 
 real(8) :: sumbox
 
-real(8) :: uVpsi
-real(8), allocatable :: wk(:,:,:)
 real(8), allocatable :: uVpsibox(:,:)
 real(8), allocatable :: uVpsibox2(:,:)
 real(8) :: rlap_wk(iwk3sta(1):iwk3end(1),  &
@@ -94,12 +92,16 @@ if(iflag_ps.eq.1)then
         if(iwk_size>=1.and.iwk_size<=2)then
 !$OMP parallel do reduction( + : sumbox )
           do jj=1,max_jMps_l(iatom)
-            sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom))
+            sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
+                     tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
+                          Jxyz(3,jMps_l(jj,iatom),iatom))
           end do
         else if(iwk_size>=11.and.iwk_size<=12)then
 !$OMP parallel do reduction( + : sumbox )
           do jj=1,max_jMps_l_s(iatom)
-            sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),Jxyz(3,jMps_l_s(jj,iatom),iatom))
+            sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*  &
+                     tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),  &
+                          Jxyz(3,jMps_l_s(jj,iatom),iatom))
           end do
         end if
         uVpsibox2(lm,iatom)=sumbox*Hvol/uVu(lm,iatom)
@@ -114,12 +116,16 @@ if(iflag_ps.eq.1)then
         if(iwk_size>=1.and.iwk_size<=2)then
 !$OMP parallel do reduction( + : sumbox )
           do jj=1,max_jMps_l(iatom)
-            sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom))
+            sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
+                     tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
+                          Jxyz(3,jMps_l(jj,iatom),iatom))
           end do
         else if(iwk_size>=11.and.iwk_size<=12)then
 !$OMP parallel do reduction( + : sumbox )
           do jj=1,max_jMps_l_s(iatom)
-            sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),Jxyz(3,jMps_l_s(jj,iatom),iatom))
+            sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*  &
+                     tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),  &
+                          Jxyz(3,jMps_l_s(jj,iatom),iatom))
           end do
         end if
         uVpsibox(lm,iatom)=sumbox*Hvol/uVu(lm,iatom)
@@ -229,15 +235,11 @@ complex(8) :: htpsi(iwk3sta(1):iwk3end(1),  &
                     iwk3sta(2):iwk3end(2),      &
                     iwk3sta(3):iwk3end(3))
 
-integer :: iatom,ix,iy,iz,jj,lm,ik,ibox,ibox2,iik
+integer :: iatom,ix,iy,iz,jj,lm,ik
 integer :: iob,nn,isub
 
 complex(8) :: sumbox
-complex(8) :: sumbox2
 
-!complex(8) :: uVpsi,wk(-Mx:Mx,-Mx:Mx,-Mx:Mx)
-complex(8) :: uVpsi
-complex(8), allocatable :: wk(:,:,:)
 complex(8) :: clap_wk( iwk3sta(1):iwk3end(1),  &
                       iwk3sta(2):iwk3end(2),      &
                       iwk3sta(3):iwk3end(3))
@@ -249,9 +251,6 @@ complex(8), allocatable :: uVpsibox(:,:)
 complex(8), allocatable :: uVpsibox2(:,:)
 
 complex(8), parameter :: zi=(0.d0,1.d0)
-
-integer :: icount
-real(8) :: x,y,z
 
 real(8) :: f0
 
@@ -301,7 +300,9 @@ if(iflag_ps.eq.1)then
       sumbox=0.d0
 !$OMP parallel do reduction( + : sumbox )
       do jj=1,max_jMps_l(iatom)
-        sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom))
+        sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
+                 tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
+                      Jxyz(3,jMps_l(jj,iatom),iatom))
       end do
       uVpsibox(lm,iatom)=sumbox*Hvol/uVu(lm,iatom)
     end do loop_lm2

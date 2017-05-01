@@ -27,7 +27,7 @@ integer :: icoo
 integer :: ista,iend
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: isd_addr,irv_addr,jsd_addr,jrv_addr,ksd_addr,krv_addr
-integer :: ii,k1,k2,k3
+integer :: ii
 integer :: istatus(MPI_STATUS_SIZE)
 real(8) :: rbox_array(ista:iend)
 
@@ -110,7 +110,7 @@ integer :: icoo
 integer :: ista,iend
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: isd_addr,irv_addr,jsd_addr,jrv_addr,ksd_addr,krv_addr
-integer :: ii,k1,k2,k3
+integer :: ii
 integer :: istatus(MPI_STATUS_SIZE)
 complex(8) :: cbox_array(ista:iend)
 

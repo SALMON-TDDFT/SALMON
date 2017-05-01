@@ -21,7 +21,6 @@ use scf_data
 
 implicit none
 integer :: ix,iy,iz,jj
-integer :: ista_box(3),iend_box(3)
 integer :: ix_sta_Vbox(3),ix_end_Vbox(3)
 
 !$ call omp_set_num_threads(inumthreads)

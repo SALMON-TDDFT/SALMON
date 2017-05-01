@@ -36,27 +36,17 @@ complex(8) :: tpsi_out(iwk2sta(1):iwk2end(1)+1,iwk2sta(2):iwk2end(2),iwk2sta(3):
                    1:iobnum,1)
 real(8) :: tVlocal(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),numspin)
 
-integer :: ist,ix,iy,iz,jj,iatom,lm,ikoa,ibox,ibox2,iob,j,ind
+integer :: ist,ix,iy,iz,jj,iatom,lm,ikoa,iob,j,ind
 integer :: ja
 integer :: nn,isub
 integer :: ispin
 integer :: iix,iiy,iiz
 
 complex(8) :: sumbox
-complex(8) :: sumbox2
-complex(8) :: cbox
-
-complex(8) :: uVpsi
-complex(8), allocatable :: wk(:,:,:)
-complex(8), allocatable :: grad_wk(:,:,:,:,:,:)
 
 complex(8), parameter :: zi=(0.d0,1.d0)
 complex(8),allocatable :: uVpsibox3(:,:,:,:)
 complex(8),allocatable :: uVpsibox4(:,:,:,:)
-
-logical :: flag
-
-integer :: icount
 
 real(8) :: fdN0
 real(8) :: fdN1(0:12,3)
@@ -205,11 +195,15 @@ if(iflag_ps.eq.1)then
           sumbox=0.d0
           if(iwk_size>=1.and.iwk_size<=2)then
             do jj=1,max_jMps_l(iatom)
-              sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
+              sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
+                       tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
+                            Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
             end do
           else if(iwk_size>=11.and.iwk_size<=12)then
             do jj=1,max_jMps_l_s(iatom)
-              sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),Jxyz(3,jMps_l_s(jj,iatom),iatom),iob,1)
+              sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*  &
+                       tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),  &
+                            Jxyz(3,jMps_l_s(jj,iatom),iatom),iob,1)
             end do
           end if
           uVpsibox3(lm,iatom,iob,1)=sumbox*Hvol/uVu(lm,iatom)

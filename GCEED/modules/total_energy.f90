@@ -21,12 +21,11 @@ real(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),  
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd)
 real(8) :: htpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 integer :: iob,ia,ib
-integer :: ix,iy,iz,i1,i2,i3
+integer :: ix,iy,iz
 real(8) :: rab
-real(8) :: espbox
 real(8) :: esp2(itotMST,1)
 real(8) :: sum1,sum2
-real(8) :: rbox,rbox2
+real(8) :: rbox
 integer :: iob_allob
 
 iwk_size=2
@@ -131,12 +130,11 @@ complex(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)
 complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd)
 complex(8) :: htpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 integer :: iob,ia,ib
-integer :: ix,iy,iz,i1,i2,i3
+integer :: ix,iy,iz
 real(8) :: rab
-complex(8) :: espbox
 real(8) :: esp2(itotMST,1)
 real(8) :: sum1,sum2
-complex(8) :: cbox,cbox2
+complex(8) :: cbox
 integer :: iob_allob
 
 elp3(861)=MPI_Wtime()

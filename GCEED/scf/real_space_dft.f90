@@ -44,24 +44,12 @@ implicit none
 
 integer :: ix,iy,iz,ik,ikoa
 integer :: is
-integer :: iter,iatom,iob,p1,p2,p5,ii,jj,iflag,ibox
-integer :: ibox1,ibox3
-integer :: ibox_array(3)
-real(8) :: box
+integer :: iter,iatom,iob,p1,p2,p5,ii,jj,iflag
 real(8) :: sum0,sum1
-real(8),allocatable :: rbox_array(:)
-real(8),allocatable :: rbox_array2(:)
 character(100) :: file_OUT,file_IN,LDA_Info,file_ini
 character(100) :: file_atoms_coo
-real(8),allocatable :: tpsi_old(:,:,:)
-real(8),allocatable :: tpsi(:,:,:)
-complex(8),allocatable :: ztpsi_old(:,:,:)
-complex(8),allocatable :: ztpsi(:,:,:)
-integer :: ibox2
 character(100)::fileRho
 real(8) :: rNebox1,rNebox2
-complex(8),allocatable :: shtpsi(:,:,:,:,:)
-complex(8),allocatable :: zpsi_tmp(:,:,:,:,:)
 
 integer :: nprocs,nprocid
 

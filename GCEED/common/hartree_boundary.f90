@@ -28,37 +28,19 @@ real(8) :: trho(mg_sta(1):mg_end(1),    &
                mg_sta(3):mg_end(3))
 
 integer,parameter :: maxiter=1000
-integer :: ii,jj,ix,iy,iz,lm,LL,icen,iter,itag
+integer :: ii,jj,ix,iy,iz,lm,LL,icen
 integer :: ixbox,iybox,izbox
-integer :: ibox,iup,idw,jup,jdw,kup,kdw,k1,k2,k3,k,i1,i2,i3
-integer :: ipow
-integer :: INEWVEC
-integer :: isend,irecv,istatus(mpi_status_size),isendrank,ireq
-integer :: icolor,ikey,new_world,newprocs,newrank
-integer :: ibox2
-integer :: ireq1,ireq2
+integer :: k
 integer :: istart(0:nproc-1),iend(0:nproc-1)
-integer :: ista_mesh(3,0:nproc-1),iend_mesh(3,0:nproc-1)
-integer :: ista_MI,iend_MI
-integer :: ista_Mdv,iend_Mdv
-integer :: npdev8,myrankdev8
-integer :: idivnumMI
-integer :: idivnumMdv
-integer :: inum(0:nproc-1)
-integer :: Lbox,lmbox
 integer :: icount
 integer,allocatable :: itrho(:)
-integer :: itrho2
 integer :: num_center
 real(8) :: Ylm
 real(8) :: Ylm2(25)
 integer :: L2(25)
-real(8) :: xx,yy,zz,rr,sum1,sum2,ak,ck,xxxx,yyyy,zzzz,rrrr,sumbox(3),sumbox1,sumbox2,sumbox3
-real(8) :: wk2box,rholm2box
+real(8) :: xx,yy,zz,rr,sum1,xxxx,yyyy,zzzz,rrrr,sumbox1,sumbox2,sumbox3
+real(8) :: rholm2box
 real(8),allocatable :: rholm(:,:),rholm2(:,:)
-real(8) :: tot(0:nproc-1),tottmp
-real(8) :: totbox
-real(8),allocatable :: matbox1(:,:,:),matbox2(:,:,:)
 real(8) :: center_trho2(3)
 real(8),allocatable :: center_trho(:,:)
 real(8),allocatable :: center_trho_nume_deno(:,:)
@@ -66,9 +48,6 @@ real(8),allocatable :: center_trho_nume_deno2(:,:)
 real(8) :: wk2(ng_sta(1)-Ndh:ng_end(1)+Ndh,    &
                ng_sta(2)-Ndh:ng_end(2)+Ndh,      &
                ng_sta(3)-Ndh:ng_end(3)+Ndh)
-real(8) :: zk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
-real(8) :: tk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
-real(8) :: pk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
 real(8) :: xp2,yp2,zp2,xy,yz,xz
 real(8) :: deno(25)
 real(8) :: rinv

@@ -32,10 +32,8 @@ real(8) :: tVh(mg_sta(1):mg_end(1),    &
 
 integer,parameter :: maxiter=1000
 integer :: ix,iy,iz,iter
-integer :: icount
-integer,allocatable :: itrho(:)
 real(8) :: sum1,sum2,ak,ck
-real(8) :: tot(0:nproc-1),tottmp
+real(8) :: tottmp
 real(8) :: totbox
 real(8) :: wk2(ng_sta(1)-Ndh:ng_end(1)+Ndh,    &
                ng_sta(2)-Ndh:ng_end(2)+Ndh,      &
@@ -46,7 +44,6 @@ real(8) :: rlap_wk(ng_sta(1):ng_end(1),    &
 real(8) :: zk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
 real(8) :: tk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
 real(8) :: pk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
-real(8) :: rbox
 
 !$ call omp_set_num_threads(inumthreads)
 

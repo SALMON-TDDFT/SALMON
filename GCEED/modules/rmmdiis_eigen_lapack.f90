@@ -32,11 +32,7 @@ subroutine R_eigenval(Smat, eval, iter)
 
 implicit none
 integer :: ii,iter
-real(8) :: Smat(iter,iter),Amat(iter,iter),eval(iter)
-complex(8) :: comp_eval(iter)
-real(8) :: Rmat(iter,iter)
-real(8) :: alpha(iter),betav(iter)
-real(8) :: evec(iter,iter)
+real(8) :: Smat(iter,iter),eval(iter)
 character :: JOBVL*1, JOBVR*1
 integer :: INFO, LDA, LDB, LDVL, LDVR, LWORK, N
 real(8),allocatable :: A( :, : ), ALPHAI( : ), ALPHAR( : )
@@ -157,8 +153,6 @@ implicit none
 integer :: ii,iter
 complex(8) :: Smat(iter,iter)
 real(8) :: eval(iter)
-complex(8) :: Amat(iter,iter)
-complex(8) :: comp_eval(iter)
 character :: JOBVL*1, JOBVR*1
 integer :: INFO, LDA, LDB, LDVL, LDVR, LWORK, N
 complex(8),allocatable :: A( :, : ), ALPHA( : )

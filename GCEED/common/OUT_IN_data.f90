@@ -21,10 +21,8 @@ use read_pslfile_sub
 use allocate_psl_sub
 use allocate_mat_sub
 implicit none
-integer :: i1,i2,i3,is,iob,jj
+integer :: is,iob,jj
 integer :: ix,iy,iz
-real(8) :: box
-complex(8) :: cbox
 real(8),allocatable :: matbox(:,:,:),matbox2(:,:,:)
 complex(8),allocatable :: cmatbox(:,:,:),cmatbox2(:,:,:)
 character(100) :: file_OUT
@@ -397,12 +395,8 @@ use new_world_sub
 use allocate_mat_sub
 implicit none
 integer :: NI0,Ndv0,Nps0,Nd0
-integer :: ii,i1,i2,i3,is,iob,jj,ibox,j1,j2,j3
+integer :: ii,is,iob,jj,ibox,j1,j2,j3
 integer :: ix,iy,iz
-integer :: ireq, istatus(MPI_STATUS_SIZE)
-integer :: ibox_array(3)
-real(8) :: box
-complex(8) :: cbox
 real(8),allocatable :: matbox(:,:,:)
 real(8),allocatable :: matbox2(:,:,:)
 real(8),allocatable :: matbox3(:,:,:)
@@ -419,7 +413,6 @@ integer :: iend_Mxin_datafile(3)
 integer :: inum_Mxin_datafile(3)
 integer :: nproc_xyz_datafile(3)
 character(8) :: fileNumber_data
-integer,allocatable :: Ixyzbox(:,:,:)
 integer :: maxMdvbox
 integer :: iob_myob
 integer :: icheck_corrkob
@@ -428,24 +421,15 @@ integer :: is_sta,is_end
 integer :: p0
 integer :: iobnum0
 integer :: icount
-integer :: jsta,jend
-integer :: iix,iiy,iiz,kx,ky,kz,kkx,kky,kkz,iik
-integer :: iix_sta,iiy_sta,iiz_sta
-integer :: iix_sta0,iiy_sta0,iiz_sta0
-integer :: iix_end,iiy_end,iiz_end
 complex(8),parameter :: zi=(0.d0,1.d0)
 
 integer :: ig_sta(3),ig_end(3),ig_num(3)
-integer :: ig_sta_read(3),ig_end_read(3),ig_num_read(3)
 real(8),allocatable :: matbox_read(:,:,:)
 real(8),allocatable :: matbox_read2(:,:,:)
 complex(8),allocatable :: cmatbox_read(:,:,:)
 complex(8),allocatable :: cmatbox_read2(:,:,:)
 real(8),allocatable :: matbox_read3(:,:,:)
 complex(8),allocatable :: cmatbox_read3(:,:,:)
-integer :: idisp
-complex(8) :: expikr
-integer :: irank(3)
 integer :: icheck_read
 integer :: ifilenum_data
 integer :: icomm
@@ -1242,11 +1226,10 @@ SUBROUTINE outRho(file_OUT2)
 use scf_data
 use new_world_sub
 implicit none
-integer :: i1,i2,i3,is
+integer :: i1,i2,i3
 real(8) :: box
 real(8),allocatable :: matbox(:,:,:),matbox2(:,:,:)
 character(30),intent(in) :: file_OUT2
-real(8)::hh
 
 allocate( matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), lg_sta(3):lg_end(3)) )
 allocate( matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), lg_sta(3):lg_end(3)) )
@@ -1285,28 +1268,4 @@ end if
 deallocate(matbox,matbox2)
 END SUBROUTINE outRho
 !---------------------------------------------------------------------------
-
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-subroutine cubePrep(nin)
-use scf_data
-integer,intent(in)::nin
-integer::i1,nn
-real(8)::hh
-character(8)::totNumAtom
-nn=nin+100
-write(totNumAtom,'(i8)') MI
-write(nn,*) " Orbital calculation"
-write(nn,*) " SCF Molecular Orbitals"
-write(nn,'(a8, 3f16.8)')"-"//adjustl(totNumAtom),-lg_end(1)*Hgs(1)*a_B,-lg_end(2)*Hgs(2)*a_B,-lg_end(3)*Hgs(3)*a_B
-write(nn,'(i3, 3f16.8)') lg_num(1), Hgs(1)*a_B, 0.0, 0.0 
-write(nn,'(i3, 3f16.8)') lg_num(2), 0.0, Hgs(2)*a_B, 0.0  
-write(nn,'(i3, 3f16.8)') lg_num(3), 0.0, 0.0, Hgs(3)*a_B 
-do i1=1,MI    
-  write(nn,'(i5,f5.1, 3f16.8)') iAtomicNumber(i1), real(iAtomicNumber(i1)), Rion(1,i1)*a_B, Rion(2,i1)*a_B, Rion(3,i1)*a_B
-enddo
-write(nn,'(2i5)') 1, n
-end subroutine cubePrep
-!======================================================================
 
