@@ -619,7 +619,7 @@ subroutine main
 !  if(comm_is_root(1)) then
 !    close(940)
 !  endif
-  call comm_finalize
+  !call comm_finalize
 
 contains
   subroutine get_macro_data(ixy_m)

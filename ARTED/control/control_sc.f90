@@ -538,7 +538,6 @@ subroutine main
   if (comm_is_root()) call timer_show_hour('Total time =',LOG_ALL)
 
 1 if(comm_is_root()) write(*,*)  'This calculation is shutdown successfully!'
-  call comm_finalize
 
 contains
   subroutine reset_gs_timer
