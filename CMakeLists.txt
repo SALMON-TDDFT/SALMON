@@ -77,7 +77,7 @@ option_set(ENABLE_LARGE_BLOCKING          "Enable large blocking for accelerator
 option_set(USE_OLD_PROPAGATOR             "Use old propagator for comparing to past results"         OFF)
 
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}")
-set(TARGET_NAME            "SALMON${TARGET_SUFFIX}")
+set(TARGET_NAME            "salmon${TARGET_SUFFIX}")
 
 set(CMAKE_Fortran_FLAGS    "${ARCH} ${OPENMP_FLAGS} ${Fortran_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_Fortran_FLAGS}")
 set(CMAKE_C_FLAGS          "${ARCH} ${OPENMP_FLAGS} ${C_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_C_FLAGS}")
