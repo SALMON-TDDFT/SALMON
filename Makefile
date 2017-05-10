@@ -222,19 +222,20 @@ OBJS = $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_core) $(OBJ_main)
 .SUFFIXES:
 .SUFFIXES: .F .F90 .o
 
+.PHONY: all clean
+
+all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ -I $(OBJDIR) $(OBJS) $(LIBSCALAPACK)
 
 $(OBJDIR)/%.o : %.f90
-	@if [ ! -d $(basename $@) ]; then mkdir -p $(basename $@); fi
+	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $<
 
 $(OBJDIR)/%.o : %.c
-	@if [ ! -d $(basename $@) ]; then mkdir -p $(basename $@); fi
+	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CC) $(CFLAGS) -o $@ -c $<
-
-
 
 $(OBJS_GCEED): $(addprefix GCEED/,$(MOD_GCEED))
 $(OBJS_ARTED): $(addprefix ARTED/,$(MOD_ARTED))
