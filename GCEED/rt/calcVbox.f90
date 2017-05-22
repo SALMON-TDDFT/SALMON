@@ -23,8 +23,6 @@ implicit none
 integer :: ix,iy,iz,jj
 integer :: ix_sta_Vbox(3),ix_end_Vbox(3)
 
-!$ call omp_set_num_threads(inumthreads)
-
 elp3(511)=MPI_Wtime()
 
 if(icalcforce==1.or.iflag_md==1)then

@@ -56,8 +56,6 @@ real(8) :: wk2(iwk2sta(1):iwk2end(1),  &
 
 integer :: ispin
 
-!$ call omp_set_num_threads(inumthreads)
-
 call set_ispin(iob,ispin)
 
 if(iflag_ps==1) then
@@ -260,8 +258,6 @@ real(8) :: fdN0
 real(8) :: fdN1(0:12,3)
 
 integer :: j,ind
-
-!$ call omp_set_num_threads(inumthreads)
 
 call set_ispin(iob,ispin)
 

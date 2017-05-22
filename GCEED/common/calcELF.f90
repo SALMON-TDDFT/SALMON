@@ -60,8 +60,6 @@ real(8), allocatable :: matbox2(:,:,:)
 !call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 elp3(801)=MPI_Wtime()
 
-!$ call omp_set_num_threads(inumthreads)
-
 !$OMP parallel do
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)

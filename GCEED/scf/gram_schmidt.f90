@@ -30,8 +30,6 @@ integer :: iroot
 integer :: icorr_p
 integer :: is_sta,is_end
 
-!$ call omp_set_num_threads(inumthreads)
-
 call set_isstaend(is_sta,is_end)
 
 if(ilsda == 0)then

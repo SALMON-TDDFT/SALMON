@@ -39,7 +39,7 @@ character(100) :: file_external
 namelist / group_fundamental / Nenergy,dE, N_hamil, &
                                icalcforce, iflag_md, idisnum, iwrite_projection, &
                                itwproj, iwrite_projnum, itcalc_ene
-namelist / group_parallel / inumthreads,nproc_ob,nproc_Mxin,nproc_Mxin_s,  &
+namelist / group_parallel / nproc_ob,nproc_Mxin,nproc_Mxin_s,  &
                             isequential, num_datafiles_IN, num_datafiles_OUT, imesh_s_all, iflag_comm_rho
 namelist / group_hartree / Hconv, MEO, num_pole_xyz, lmax_MEO
 namelist / group_file / IC,IC_rt,OC_rt,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,  &
@@ -88,7 +88,6 @@ if(iwrite_projection==1.and.itwproj==-1)then
 end if
 
 !===== namelist for group_parallel =====
-inumthreads=1
 nproc_ob=0
 nproc_Mxin(1:3)=0
 nproc_Mxin_s(1:3)=0
@@ -104,7 +103,6 @@ if(myrank==0)then
     stop
   end if
 end if
-call MPI_Bcast(inumthreads,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(nproc_ob,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(nproc_Mxin,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(nproc_Mxin_s,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)

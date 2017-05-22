@@ -41,8 +41,6 @@ real(8),allocatable :: epsdiis(:,:),Rnorm(:,:)
 real(8) :: rnorm_diff_psi(itotMST,1)
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd)
 
-!$ call omp_set_num_threads(inumthreads)
-
 allocate (htphi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate (phibox(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate (Rbox(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))

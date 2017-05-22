@@ -39,8 +39,6 @@ integer :: icorr,jcorr
 integer :: iroot
 integer :: is_sta,is_end
 
-!$ call omp_set_num_threads(inumthreads)
-
 allocate (xk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate (hxk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate (gk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))

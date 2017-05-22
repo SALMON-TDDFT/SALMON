@@ -75,8 +75,8 @@ ifeq ($(ARCH), fujitsu)
     TARGET = salmon.cpu
     FC = mpifrtpx
     CC = mpifccpx
-    FFLAGS = -O3 -Kfast,simd=1 -Cpp -Kocl,nooptmsg
-    CFLAGS = -O3 -Kfast,simd=1 -Kocl,nooptmsg
+    FFLAGS = -O3 -Kfast,openmp,simd=1 -Cpp -Kocl,nooptmsg
+    CFLAGS = -O3 -Kfast,openmp,simd=1 -Kocl,nooptmsg
     FILE_MATHLIB = lapack
     LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
     MODULE_SWITCH = -M
