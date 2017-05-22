@@ -41,8 +41,6 @@ real(8) :: phibar(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),      &
 real(8) :: Rbar(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),      &
                          mg_sta(3):mg_end(3),0:Ncg)
 
-!$ call omp_set_num_threads(inumthreads)
-
 allocate(Rmat(iter,iter))
 allocate(Smat(iter,iter))
 allocate(alpha(iter),betav(iter),eval(iter))

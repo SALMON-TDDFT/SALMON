@@ -26,8 +26,6 @@ real(8) :: grad_wk(3,iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3
 
 integer :: ix,iy,iz
 
-!$ call omp_set_num_threads(inumthreads)
-
 if(iwk_size==1.or.iwk_size==11)then
   wk2=0.d0
 !$OMP parallel do
@@ -64,8 +62,6 @@ complex(8) :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end
 complex(8) :: grad_wk(3,iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 
 integer :: ix,iy,iz
-
-!$ call omp_set_num_threads(inumthreads)
 
 if(iwk_size==1.or.iwk_size==11)then
   wk2=0.d0

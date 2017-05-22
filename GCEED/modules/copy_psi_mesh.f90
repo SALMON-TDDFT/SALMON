@@ -38,8 +38,6 @@ integer :: icheck_corrkob
 real(8),allocatable :: matbox(:,:,:)
 real(8),allocatable :: matbox2(:,:,:)
 
-!$ call omp_set_num_threads(inumthreads)
-
 allocate(matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 allocate(matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 
@@ -118,8 +116,6 @@ integer :: ix,iy,iz,iob,iob_myob
 integer :: icheck_corrkob
 complex(8),allocatable :: matbox(:,:,:)
 complex(8),allocatable :: matbox2(:,:,:)
-
-!$ call omp_set_num_threads(inumthreads)
 
 allocate(matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 allocate(matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))

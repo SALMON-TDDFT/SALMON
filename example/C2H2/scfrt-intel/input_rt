@@ -7,7 +7,6 @@
 &group_fundamental
 /
 &group_parallel
-  inumthreads=24
   nproc_ob=1
   nproc_Mxin(1)=1
   nproc_Mxin(2)=1

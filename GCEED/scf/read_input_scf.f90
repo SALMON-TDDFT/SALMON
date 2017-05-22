@@ -29,7 +29,7 @@ namelist / group_fundamental / imesh_oddeven,iflag_stopt,iter_stopt,Ncg,iDiterYB
                                MST, ifMST, iflag_convergence, ithresholdVh, threshold_norm_diff_rho, &
                                threshold_square_norm_diff_Vlocal,      &
                                mixrate, Nmemory_MB, icalcforce
-namelist / group_parallel/ inumthreads,nproc_ob,nproc_Mxin,nproc_Mxin_s,  &
+namelist / group_parallel/ nproc_ob,nproc_Mxin,nproc_Mxin_s,  &
                            isequential,num_datafiles_IN,num_datafiles_OUT,imesh_s_all
 namelist / group_hartree / Hconv, MEO, num_pole_xyz, lmax_MEO
 namelist / group_file / IC,OC,file_IN,file_OUT,LDA_Info
@@ -158,7 +158,6 @@ else if(ilsda == 1) then
 end if
 
 !===== namelist for group_parallel =====
-inumthreads=1
 nproc_ob=0
 nproc_Mxin(1:3)=0
 nproc_Mxin_s(1:3)=0
@@ -181,7 +180,6 @@ if(myrank==0)then
     stop
   end if
 end if
-call MPI_Bcast(inumthreads,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(nproc_ob,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(nproc_Mxin,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(nproc_Mxin_s,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)

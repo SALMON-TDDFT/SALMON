@@ -113,8 +113,6 @@ real(8) :: cNmat(0:12,0:12),bNmat(0:12,0:12)
 
 integer :: iflag_ps
 
-integer :: inumthreads
-
 integer :: inumcpu_check
 
 integer :: ierr,nproc,myrank

@@ -27,7 +27,6 @@ real(8) :: trho(mg_sta(1):mg_end(1),  &
 real(8) :: trho_s(mg_sta(1):mg_end(1),  &
                 mg_sta(2):mg_end(2),  &
                 mg_sta(3):mg_end(3),2)
-!$ call omp_set_num_threads(inumthreads)
 
 !$OMP parallel do
 do iz=ng_sta(3),ng_end(3)
@@ -128,8 +127,6 @@ real(8) :: Vc_s_LDA(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
                      mg_sta(3):mg_end(3),2)
 real(8) :: Vxc_s_LDA(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
                       mg_sta(3):mg_end(3),2)
-
-!$ call omp_set_num_threads(inumthreads)
 
 if(ilsda==1)then
   allocate(Ecu(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &

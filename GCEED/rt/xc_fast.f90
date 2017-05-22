@@ -30,8 +30,6 @@ real(8) :: Ex(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
 real(8) :: Ec(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
              mg_sta(3):mg_end(3))
 
-!$ call omp_set_num_threads(inumthreads)
-
 !$OMP parallel do
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
@@ -84,8 +82,6 @@ real(8) :: Ex(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
              mg_sta(3):mg_end(3))
 real(8) :: Ec(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
              mg_sta(3):mg_end(3))
-
-!$ call omp_set_num_threads(inumthreads)
 
 !$OMP parallel do &
 !$OMP private(Cx,rs,zeta,sf,dsf)

@@ -54,8 +54,6 @@ real(8) :: rinv
 real(8) :: rbox
 real(8),allocatable :: Rion2(:,:)
 
-!$ call omp_set_num_threads(inumthreads)
-
 iwk_size=12
 call make_iwksta_iwkend
 

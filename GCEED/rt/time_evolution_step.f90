@@ -39,8 +39,6 @@ complex(8) :: shtpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_st
 
 complex(8) :: cbox1,cbox2,cbox3
 
-!$ call omp_set_num_threads(inumthreads)
-
 elp3(511)=MPI_Wtime()
 
 idensity=0

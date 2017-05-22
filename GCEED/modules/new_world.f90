@@ -678,8 +678,6 @@ integer,allocatable :: ircnt(:)
 integer,allocatable :: idisp(:)
 integer :: is,is_sta,is_end
 
-!$ call omp_set_num_threads(inumthreads)
-
 elp3(1001)=MPI_Wtime()
 
 elp3(1002)=MPI_Wtime()
@@ -849,8 +847,6 @@ real(8) :: Vbox(mg_sta(1):mg_end(1),  &
 integer :: iscnt
 integer,allocatable :: ircnt(:)
 integer,allocatable :: idisp(:)
-
-!$ call omp_set_num_threads(inumthreads)
 
 if(nproc_ob/=1.or.nproc_Mxin_mul/=1)then
 
