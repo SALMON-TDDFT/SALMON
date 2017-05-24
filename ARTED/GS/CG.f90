@@ -21,6 +21,7 @@ Subroutine CG_omp(iter_cg_max)
   use Global_Variables
   use communication
   use timer
+  use hpsi, only: hpsi_omp_KB_GS
   implicit none
   real(8),parameter :: delta_cg=1.d-15
   integer iter,ik,ib,ibt

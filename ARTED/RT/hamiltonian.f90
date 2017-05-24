@@ -29,6 +29,7 @@ subroutine hamiltonian(zu,flag_current)
   use timer
   use omp_lib
   use opt_variables
+  use hpsi, only: hpsi_omp_KB_RT
   implicit none
   integer    :: tid
   integer    :: ikb,ik,ib,i
