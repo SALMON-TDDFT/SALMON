@@ -39,10 +39,41 @@ Subroutine init_Ac
     javt=0.d0
     Ac_ext=0.d0
 
-    select case(AE_shape)
+! Pump
+    select case(pulse_shape_1)
+    case('cos2')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_1
+        if (abs(tt)<0.5d0*tpulse_1) then
+          Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*(cos(0.5d0*pi*tt/tpulse_1))**2 &
+            *sin(omega_1*tt+phi_CEP_1*2d0*pi)
+        end if
+      enddo
+    case('cos3')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_1
+        if (abs(tt)<0.5d0*tpulse_1) then
+          Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*(cos(0.5d0*pi*tt/tpulse_1))**3 &
+            *sin(omega_1*tt+phi_CEP_1*2d0*pi)
+        end if
+      enddo
+    case('cos4')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_1
+        if (abs(tt)<0.5d0*tpulse_1) then
+          Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*(cos(0.5d0*pi*tt/tpulse_1))**4 &
+            *sin(omega_1*tt+phi_CEP_1*2d0*pi)
+        end if
+      enddo
+    case('cos6')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_1
+        if (abs(tt)<0.5d0*tpulse_1) then
+          Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*(cos(0.5d0*pi*tt/tpulse_1))**6 &
+            *sin(omega_1*tt+phi_CEP_1*2d0*pi)
+        end if
+      enddo
     case('Esin2sin')
-! pulse shape : E(t)=f0*sin(Pi t/T)**2 *sin (omega t+phi_CEP*2d0*pi) 
-! pump laser
       do iter=0,Nt+1
         tt=iter*dt
         if (tt<tpulse_1) then
@@ -58,24 +89,6 @@ Subroutine init_Ac
         endif
       enddo
 
-! probe laser
-      do iter=0,Nt+1
-        tt=iter*dt
-        if(tt-T1_T2 <= 0d0)then
-          
-        else if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<tpulse_2) ) then
-          Ac_ext(iter,:)=Ac_ext(iter,:)+Epdir_2(:)*f0_2*(&
-            &-(cos(omega_2*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(2*omega_2)&
-            &+(cos((omega_2+2*Pi/tpulse_2)*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(4*(omega_2+2*Pi/tpulse_2))&
-            &+(cos((omega_2-2*Pi/tpulse_2)*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(4*(omega_2-2*Pi/tpulse_2))&
-            &-0.5*(cos(omega_2*tpulse_2+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(omega_2*((omega_2*tpulse_2/(2*pi))**2-1.d0))&
-            &*(3.d0*((tt-T1_T2)/tpulse_2)**2-2.d0*((tt-T1_T2)/tpulse_2)**3)&
-            &)
-        else
-          Ac_ext(iter,:)=Ac_ext(iter-1,:)
-        endif
-      enddo
-
     case('Asin2cos')
 ! pulse shape : A(t)=f0/omega*sin(Pi t/T)**2 *cos (omega t+phi_CEP*2d0*pi) 
 ! pump laser
@@ -85,14 +98,7 @@ Subroutine init_Ac
           Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*(sin(pi*tt/tpulse_1))**2*cos(omega_1*tt+phi_CEP_1*2d0*pi)
         end if
       enddo
-! probe laser
-      do iter=0,Nt+1
-        tt=iter*dt
-        if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<tpulse_2) ) then
-          Ac_ext(iter,:)=Ac_ext(iter,:) &
-            &-Epdir_2(:)*f0_2/omega_2*(sin(pi*(tt-T1_T2)/tpulse_2))**2*cos(omega_2*(tt-T1_T2)+phi_CEP_2*2d0*pi)
-        endif
-      enddo
+
     case('input')
       Ac_ext=0d0
       if(comm_is_root())then
@@ -115,9 +121,92 @@ Subroutine init_Ac
           Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*cos(omega_1*tt+phi_CEP_1*2d0*pi)
         end if
       enddo
-
+    case('none')
+!there is no pump
+    case default
+      call Err_finalize("Invalid pulse_shape_1 parameter!")
     end select
 
+
+! Probe
+    select case(pulse_shape_2)
+    case('cos2')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_2 - T1_T2
+        if (abs(tt)<0.5d0*tpulse_2) then
+          Ac_ext(iter,:)=Ac_ext(iter,:) &
+            -Epdir_2(:)*f0_2/omega_2*(cos(0.5d0*pi*tt/tpulse_2))**2 &
+            *sin(omega_2*tt+phi_CEP_2*2d0*pi)
+        end if
+      enddo
+
+    case('cos3')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_2 - T1_T2
+        if (abs(tt)<0.5d0*tpulse_2) then
+          Ac_ext(iter,:)=Ac_ext(iter,:) &
+            -Epdir_2(:)*f0_2/omega_2*(cos(0.5d0*pi*tt/tpulse_2))**3 &
+            *sin(omega_2*tt+phi_CEP_2*2d0*pi)
+        end if
+      enddo
+
+    case('cos4')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_2 - T1_T2
+        if (abs(tt)<0.5d0*tpulse_2) then
+          Ac_ext(iter,:)=Ac_ext(iter,:) &
+            -Epdir_2(:)*f0_2/omega_2*(cos(0.5d0*pi*tt/tpulse_2))**4 &
+            *sin(omega_2*tt+phi_CEP_2*2d0*pi)
+        end if
+      enddo
+
+    case('cos6')
+      do iter=0,Nt+1
+        tt=iter*dt - 0.5d0*tpulse_2 - T1_T2
+        if (abs(tt)<0.5d0*tpulse_2) then
+          Ac_ext(iter,:)=Ac_ext(iter,:) &
+            -Epdir_2(:)*f0_2/omega_2*(cos(0.5d0*pi*tt/tpulse_2))**6 &
+            *sin(omega_2*tt+phi_CEP_2*2d0*pi)
+        end if
+      enddo
+
+    case('Esin2sin')
+! probe laser
+      do iter=0,Nt+1
+        tt=iter*dt
+        if(tt-T1_T2 <= 0d0)then
+          
+        else if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<tpulse_2) ) then
+          Ac_ext(iter,:)=Ac_ext(iter,:)+Epdir_2(:)*f0_2*(&
+            &-(cos(omega_2*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(2*omega_2)&
+            &+(cos((omega_2+2*Pi/tpulse_2)*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(4*(omega_2+2*Pi/tpulse_2))&
+            &+(cos((omega_2-2*Pi/tpulse_2)*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(4*(omega_2-2*Pi/tpulse_2))&
+            &-0.5*(cos(omega_2*tpulse_2+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(omega_2*((omega_2*tpulse_2/(2*pi))**2-1.d0))&
+            &*(3.d0*((tt-T1_T2)/tpulse_2)**2-2.d0*((tt-T1_T2)/tpulse_2)**3)&
+            &)
+        else
+          Ac_ext(iter,:)=Ac_ext(iter-1,:)
+        endif
+      enddo
+
+    case('Asin2cos')
+! pulse shape : A(t)=f0/omega*sin(Pi t/T)**2 *cos (omega t+phi_CEP*2d0*pi) 
+! probe laser
+      do iter=0,Nt+1
+        tt=iter*dt
+        if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<tpulse_2) ) then
+          Ac_ext(iter,:)=Ac_ext(iter,:) &
+            &-Epdir_2(:)*f0_2/omega_2*(sin(pi*(tt-T1_T2)/tpulse_2))**2*cos(omega_2*(tt-T1_T2)+phi_CEP_2*2d0*pi)
+        endif
+      enddo
+    case('input')
+!There is no probe
+    case('Asin2_cw')
+!There is no probe
+    case('none')
+    case default
+      call Err_finalize("Invalid pulse_shape_1 parameter!")
+    end select
     Ac_ind=0.d0
   end select
   Ac_tot=Ac_ind+Ac_ext

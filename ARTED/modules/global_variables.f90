@@ -110,7 +110,7 @@ Module Global_Variables
 
 ! Bloch momentum,laser pulse, electric field
 !  real(8) :: f0,Wcm2,pulseT,wave_length,omega,pulse_time,pdir(3),phi_CEP=0.00*2*pi
-  character(8) :: AE_shape
+  character(8) :: pulse_shape_1,pulse_shape_2
   real(8) :: f0_1,IWcm2_1,tpulsefs_1,omegaev_1,omega_1,tpulse_1,Epdir_1(3),phi_CEP_1 ! sato
   real(8) :: f0_2,IWcm2_2,tpulsefs_2,omegaev_2,omega_2,tpulse_2,Epdir_2(3),phi_CEP_2 ! sato
   real(8) :: T1_T2fs,T1_T2
