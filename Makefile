@@ -9,7 +9,7 @@ ARCH = intel
 #ARCH = intel-knl
 #ARCH = intel-knc
 
-USE_SCALAPACK = yes
+USE_SCALAPACK = no
 
 #### explanation for environmental values #########
 # FC: compiler                                    #
@@ -26,6 +26,7 @@ ifeq ($(ARCH), gnu)
     FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-form -ffree-line-length-none
     CFLAGS = -O3 -fopenmp -Wall
     FILE_MATHLIB = lapack
+    LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 -lm
     LIBSCALAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 \
         -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
     MODULE_SWITCH = -J
@@ -38,6 +39,7 @@ ifeq ($(ARCH), intel)
     FFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std03 -warn all
     CFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -Wall -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     MODULE_SWITCH = -module
 endif
@@ -54,6 +56,7 @@ ifeq ($(ARCH), intel-avx)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
     CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = AVX
     MODULE_SWITCH = -module
@@ -68,6 +71,7 @@ ifeq ($(ARCH), intel-avx2)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
     CFLAGS = $(FLAGS) -O3 -Wall -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = AVX
     MODULE_SWITCH = -module
@@ -80,6 +84,7 @@ ifeq ($(ARCH), fujitsu)
     FFLAGS = -O3 -Kfast,openmp,simd=1 -Cpp -Kocl,nooptmsg
     CFLAGS = -O3 -Kfast,openmp,simd=1 -Kocl,nooptmsg
     FILE_MATHLIB = lapack
+    LIBLAPACK = -SSL2BLAMP
     LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
     MODULE_SWITCH = -M
 endif
@@ -97,6 +102,7 @@ ifeq ($(ARCH), intel-knl)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std03 -warn all -diag-disable 6187,6477,6916,7025,7416
     CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = IMCI
     MODULE_SWITCH = -module
@@ -116,6 +122,7 @@ ifeq ($(ARCH), intel-knc)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
     CFLAGS = $(FLAGS) -O3 -Wall -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = IMCI
     MODULE_SWITCH = -module
@@ -234,8 +241,14 @@ OBJS = $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_core) $(OBJ_main)
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+
+ifeq ($(USE_SCALAPACK), yes)
+    $(TARGET): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ -I $(OBJDIR) $(OBJS) $(LIBSCALAPACK)
+else
+    $(TARGET): $(OBJS)
+	$(FC) $(FFLAGS) -o $@ -I $(OBJDIR) $(OBJS) $(LIBLAPACK)
+endif
 
 $(OBJDIR)/%.o : %.f90
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
