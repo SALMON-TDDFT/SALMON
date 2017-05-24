@@ -70,7 +70,7 @@ Subroutine input_pseudopotential_YS
       case(15) ; atom_symbol = 'P ' ; Mass(ik)=31.d0
       case(16) ; atom_symbol = 'S ' ; Mass(ik)=32.d0
       case(17) ; atom_symbol = 'Cl' ; Mass(ik)=35.d0
-      case(18) ; atom_symbol = 'Al' ; Mass(ik)=40.d0
+      case(18) ; atom_symbol = 'Ar' ; Mass(ik)=40.d0
       case(19) ; atom_symbol = 'K ' ; Mass(ik)=39.d0
       case(20) ; atom_symbol = 'Ca' ; Mass(ik)=40.d0
       case(21) ; atom_symbol = 'Sc' ; Mass(ik)=45.d0
