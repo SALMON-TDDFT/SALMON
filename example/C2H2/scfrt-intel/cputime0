@@ -1,30 +1,30 @@
 ==================== elapsed time ====================
-elapsed time bef. reading lda data [s] =       0.00043011
-elapsed time for reading lda data [s]  =       0.17445302
-elapsed time for allocating zpsi [s]   =       0.00000095
-elapsed time for reading rt data [s]   =       0.00593901
-elapsed time for rt initialization [s] =       0.05453587
-elapsed time for prep. time prop. [s]  =       0.00000310
+elapsed time bef. reading lda data [s] =       0.00196290
+elapsed time for reading lda data [s]  =       0.20593309
+elapsed time for allocating zpsi [s]   =       0.00000191
+elapsed time for reading rt data [s]   =       0.00648117
+elapsed time for rt initialization [s] =       0.06323886
+elapsed time for prep. time prop. [s]  =       0.00000215
 elapsed time for prev iterations [s]   =       0.00000000
-elapsed time for rt iterations [s]     =     108.68310499
+elapsed time for rt iterations [s]     =      74.39338803
 elapsed time for aft iterations [s]    =       0.00000000
-elapsed time aft. rt iterations [s]    =       0.00014186
+elapsed time aft. rt iterations [s]    =       0.00085306
 elapsed time for writing rt data [s]   =       0.00000000
-elapsed time aft. writing rt data [s]  =       0.02046919
-total time [s]                         =     108.93909812
+elapsed time aft. writing rt data [s]  =       0.02783704
+total time [s]                         =      74.69970202
 ======================================================
 =========== elapsed time for rt iterations ===========
-elapsed time for Vbox [s]              =       0.00002766
-elapsed time for time propagation [s]  =      56.33523226
+elapsed time for Vbox [s]              =       0.00003982
+elapsed time for time propagation [s]  =      14.56821752
 elapsed time for calculating rho [s]   =       0.00000000
 elapsed time for Allreduce rho [s]     =       0.00000000
-elapsed time for Hartree routine [s]   =      51.48017454
-elapsed time for Exc_Cor routine [s]   =       0.51393580
-elapsed time for bcast Vhxc [s]        =       0.19822192
-elapsed time for calculating Dp [s]    =       0.26137924
-elapsed time for calculating Etot [s]  =       0.13638902
-elapsed time for writing info etc. [s] =       0.00001407
-total time for rt iterations [s]       =     108.68293476
+elapsed time for Hartree routine [s]   =      58.50589228
+elapsed time for Exc_Cor routine [s]   =       0.98211646
+elapsed time for bcast Vhxc [s]        =       0.28407621
+elapsed time for calculating Dp [s]    =       0.26233888
+elapsed time for calculating Etot [s]  =       0.03092098
+elapsed time for writing info etc. [s] =       0.00001526
+total time for rt iterations [s]       =      74.39248347
 ======================================================
 ======================================================
 =========== communication time =======================
@@ -40,22 +40,22 @@ copy (9) [s]                           =       0.00000000
 copy (10) [s]                          =       0.00000000
 copy (11) [s]                          =       0.00000000
 copy (12) [s]                          =       0.00000000
-time for sendrecv [s]                  =       0.00005341
+time for sendrecv [s]                  =       0.00006914
 Allreduce for nonlocal [s]             =       0.00000000
-Allreduce for rhobox [s]               =       0.01627350
-Allreduce in Hartree (1) [s]           =       0.00008750
+Allreduce for rhobox [s]               =       0.01857758
+Allreduce in Hartree (1) [s]           =       0.00012374
 Allreduce in Hartree (2) [s]           =       0.00000000
 Allreduce in Hartree (3) [s]           =       0.00000000
 Allreduce in Hartree (4) [s]           =       0.00000000
 Allreduce in Hartree (5) [s]           =       0.00000000
 Allreduce in Hartree (6) [s]           =       0.00000000
-Allgatherv [s]                         =       0.04114413
-Allreduce in total_energy_ex (1) [s]   =       0.00034595
-Allreduce in total_energy_ex (2) [s]   =       0.00008440
-Allreduce in dipole calc. [s]          =       0.00031614
+Allgatherv [s]                         =       0.02328444
+Allreduce in total_energy_ex (1) [s]   =       0.00035310
+Allreduce in total_energy_ex (2) [s]   =       0.00007939
+Allreduce in dipole calc. [s]          =       0.00007915
 =========== analysis =================================
-isend, irecv, wait [s]                 =       0.00005341
-Allgatherv [s]                         =       0.04114413
-Allreduce [s]                          =       0.01710749
+isend, irecv, wait [s]                 =       0.00006914
+Allgatherv [s]                         =       0.02328444
+Allreduce [s]                          =       0.01921296
 Allreduce (related to num of nodes )   =       0.00000000
-Allreduce (not related to num of nodes)=       0.01710749
+Allreduce (not related to num of nodes)=       0.01921296

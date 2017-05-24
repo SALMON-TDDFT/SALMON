@@ -1,4 +1,4 @@
-Fri Feb 17 20:30:00 JST 2017
+Wed May 24 16:45:57 JST 2017
  MI =           4
  ----------------------------------- init_mesh
  Mx     =          36          36          36
@@ -20,922 +20,922 @@ Fri Feb 17 20:30:00 JST 2017
  ion =     4  uVu integral table
          0.00000
  -----------------------------------------------
- iter =     0     Total Energy =      -162.28863281     Vh iteration = 214
+ iter =     0     Total Energy =      -162.28863360     Vh iteration = 214
      1         0.1601      2       -40.9232      3        -9.3499      4       -23.7309
      5       -13.5896
  -----------------------------------------------
- iter =     1     Total Energy =      -354.33417175     Vh iteration = 165
+ iter =     1     Total Energy =      -354.33417245     Vh iteration = 165
      1       -54.5363      2       -40.6345      3       -36.6983      4       -33.8113
      5       -10.6736
 iter and square of norm of difference of rho =      1 0.10735395E+00
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     2     Total Energy =      -402.47459303     Vh iteration = 179
+ iter =     2     Total Energy =      -402.47459358     Vh iteration = 179
      1       -53.2832      2       -38.4269      3       -38.2822      4       -35.8577
      5       -24.6394
 iter and square of norm of difference of rho =      2 0.12657825E+00
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     3     Total Energy =      -392.14367790     Vh iteration = 178
+ iter =     3     Total Energy =      -392.14367851     Vh iteration = 178
      1       -48.1673      2       -35.3693      3       -34.0861      4       -31.3897
      5       -25.7739
 iter and square of norm of difference of rho =      3 0.96571311E-01
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     4     Total Energy =      -379.72472947     Vh iteration = 176
+ iter =     4     Total Energy =      -379.72473007     Vh iteration = 176
      1       -43.2980      2       -32.4344      3       -30.6157      4       -27.4730
      5       -24.3485
 iter and square of norm of difference of rho =      4 0.68544785E-01
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     5     Total Energy =      -369.27566943     Vh iteration = 174
+ iter =     5     Total Energy =      -369.27567003     Vh iteration = 174
      1       -39.0251      2       -29.7964      3       -27.7073      4       -24.0713
      5       -22.3961
 iter and square of norm of difference of rho =      5 0.48611815E-01
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     6     Total Energy =      -361.19408104     Vh iteration = 172
+ iter =     6     Total Energy =      -361.19408163     Vh iteration = 172
      1       -35.3534      2       -27.4312      3       -25.3491      4       -21.1857
      5       -20.4056
 iter and square of norm of difference of rho =      6 0.34583574E-01
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     7     Total Energy =      -355.03412227     Vh iteration = 169
+ iter =     7     Total Energy =      -355.03412290     Vh iteration = 169
      1       -32.2573      2       -25.3356      3       -23.4300      4       -18.7370
      5       -18.4752
 iter and square of norm of difference of rho =      7 0.24674681E-01
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     8     Total Energy =      -350.46971192     Vh iteration = 164
+ iter =     8     Total Energy =      -350.46971262     Vh iteration = 164
      1       -29.6756      2       -23.4721      3       -21.8726      4       -16.7337
      5       -16.6784
 iter and square of norm of difference of rho =      8 0.17837318E-01
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =     9     Total Energy =      -347.12671526     Vh iteration = 160
+ iter =     9     Total Energy =      -347.12671607     Vh iteration = 160
      1       -27.5355      2       -21.8522      3       -20.5882      4       -15.1767
      5       -14.9577
 iter and square of norm of difference of rho =      9 0.12816288E-01
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    10     Total Energy =      -344.74733529     Vh iteration = 157
+ iter =    10     Total Energy =      -344.74733625     Vh iteration = 157
      1       -25.7869      2       -20.4485      3       -19.5194      4       -13.8366
      5       -13.5374
-iter and square of norm of difference of rho =     10 0.92827544E-02
+iter and square of norm of difference of rho =     10 0.92827540E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    11     Total Energy =      -343.07861052     Vh iteration = 156
+ iter =    11     Total Energy =      -343.07861163     Vh iteration = 156
      1       -24.3594      2       -19.2564      3       -18.6126      4       -12.6912
      5       -12.3714
-iter and square of norm of difference of rho =     11 0.66688610E-02
+iter and square of norm of difference of rho =     11 0.66688606E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    12     Total Energy =      -341.94158455     Vh iteration = 154
+ iter =    12     Total Energy =      -341.94158577     Vh iteration = 154
      1       -23.2102      2       -18.2512      3       -17.8327      4       -11.7374
      5       -11.4246
-iter and square of norm of difference of rho =     12 0.48577605E-02
+iter and square of norm of difference of rho =     12 0.48577600E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    13     Total Energy =      -341.17775175     Vh iteration = 153
+ iter =    13     Total Energy =      -341.17775306     Vh iteration = 153
      1       -22.2838      2       -17.4177      3       -17.1543      4       -10.9453
      5       -10.6576
-iter and square of norm of difference of rho =     13 0.35268129E-02
+iter and square of norm of difference of rho =     13 0.35268125E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    14     Total Energy =      -340.67271892     Vh iteration = 151
+ iter =    14     Total Energy =      -340.67272023     Vh iteration = 151
      1       -21.5455      2       -16.7319      3       -16.5578      4       -10.2982
      5       -10.0404
-iter and square of norm of difference of rho =     14 0.26319503E-02
+iter and square of norm of difference of rho =     14 0.26319500E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    15     Total Energy =      -340.34273330     Vh iteration = 149
+ iter =    15     Total Energy =      -340.34273460     Vh iteration = 149
      1       -20.9550      2       -16.1758      3       -16.0329      4        -9.7693
      5        -9.5434
-iter and square of norm of difference of rho =     15 0.19637349E-02
+iter and square of norm of difference of rho =     15 0.19637347E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    16     Total Energy =      -340.12384840     Vh iteration = 148
+ iter =    16     Total Energy =      -340.12384961     Vh iteration = 148
      1       -20.4863      2       -15.7272      3       -15.5685      4        -9.3405
      5        -9.1439
-iter and square of norm of difference of rho =     16 0.15224613E-02
+iter and square of norm of difference of rho =     16 0.15224611E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    17     Total Energy =      -339.98108330     Vh iteration = 147
+ iter =    17     Total Energy =      -339.98108442     Vh iteration = 147
      1       -20.1123      2       -15.3696      3       -15.1607      4        -8.9923
      5        -8.8223
-iter and square of norm of difference of rho =     17 0.11737572E-02
+iter and square of norm of difference of rho =     17 0.11737571E-02
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    18     Total Energy =      -339.88308918     Vh iteration = 145
+ iter =    18     Total Energy =      -339.88309019     Vh iteration = 145
      1       -19.8152      2       -15.0850      3       -14.8022      4        -8.7104
      5        -8.5634
-iter and square of norm of difference of rho =     18 0.94065745E-03
+iter and square of norm of difference of rho =     18 0.94065736E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    19     Total Energy =      -339.81822769     Vh iteration = 144
+ iter =    19     Total Energy =      -339.81822861     Vh iteration = 144
      1       -19.5777      2       -14.8602      3       -14.4901      4        -8.4818
      5        -8.3546
-iter and square of norm of difference of rho =     19 0.74172807E-03
+iter and square of norm of difference of rho =     19 0.74172797E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    20     Total Energy =      -339.77176207     Vh iteration = 141
+ iter =    20     Total Energy =      -339.77176290     Vh iteration = 141
      1       -19.3882      2       -14.6820      3       -14.2187      4        -8.2964
      5        -8.1861
-iter and square of norm of difference of rho =     20 0.60455804E-03
+iter and square of norm of difference of rho =     20 0.60455794E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    21     Total Energy =      -339.74067586     Vh iteration = 140
+ iter =    21     Total Energy =      -339.74067664     Vh iteration = 140
      1       -19.2360      2       -14.5412      3       -13.9849      4        -8.1458
      5        -8.0499
-iter and square of norm of difference of rho =     21 0.48072419E-03
+iter and square of norm of difference of rho =     21 0.48072407E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    22     Total Energy =      -339.71813357     Vh iteration = 137
+ iter =    22     Total Energy =      -339.71813428     Vh iteration = 137
      1       -19.1137      2       -14.4289      3       -13.7836      4        -8.0231
      5        -7.9395
-iter and square of norm of difference of rho =     22 0.39302823E-03
+iter and square of norm of difference of rho =     22 0.39302811E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    23     Total Energy =      -339.70331970     Vh iteration = 136
+ iter =    23     Total Energy =      -339.70332040     Vh iteration = 136
      1       -19.0147      2       -14.3393      3       -13.6113      4        -7.9228
      5        -7.8498
-iter and square of norm of difference of rho =     23 0.31224587E-03
+iter and square of norm of difference of rho =     23 0.31224575E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    24     Total Energy =      -339.69306461     Vh iteration = 133
+ iter =    24     Total Energy =      -339.69306527     Vh iteration = 133
      1       -18.9344      2       -14.2670      3       -13.4640      4        -7.8405
      5        -7.7767
-iter and square of norm of difference of rho =     24 0.25434357E-03
+iter and square of norm of difference of rho =     24 0.25434346E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    25     Total Energy =      -339.68699797     Vh iteration = 130
+ iter =    25     Total Energy =      -339.68699863     Vh iteration = 130
      1       -18.8687      2       -14.2083      3       -13.3383      4        -7.7726
      5        -7.7168
-iter and square of norm of difference of rho =     25 0.20113030E-03
+iter and square of norm of difference of rho =     25 0.20113019E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    26     Total Energy =      -339.68354413     Vh iteration = 124
+ iter =    26     Total Energy =      -339.68354477     Vh iteration = 124
      1       -18.8147      2       -14.1603      3       -13.2308      4        -7.7162
      5        -7.6673
-iter and square of norm of difference of rho =     26 0.16299229E-03
+iter and square of norm of difference of rho =     26 0.16299220E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    27     Total Energy =      -339.68220394     Vh iteration = 117
+ iter =    27     Total Energy =      -339.68220458     Vh iteration = 117
      1       -18.7698      2       -14.1207      3       -13.1387      4        -7.6691
      5        -7.6262
-iter and square of norm of difference of rho =     27 0.12822544E-03
+iter and square of norm of difference of rho =     27 0.12822536E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    28     Total Energy =      -339.68165154     Vh iteration = 111
+ iter =    28     Total Energy =      -339.68165216     Vh iteration = 111
      1       -18.7321      2       -14.0878      3       -13.0595      4        -7.6291
      5        -7.5915
-iter and square of norm of difference of rho =     28 0.10350437E-03
+iter and square of norm of difference of rho =     28 0.10350430E-03
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    29     Total Energy =      -339.68191553     Vh iteration = 106
+ iter =    29     Total Energy =      -339.68191616     Vh iteration = 106
      1       -18.7001      2       -14.0605      3       -12.9910      4        -7.5950
      5        -7.5621
-iter and square of norm of difference of rho =     29 0.81049114E-04
+iter and square of norm of difference of rho =     29 0.81049060E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    30     Total Energy =      -339.68247219     Vh iteration = 103
+ iter =    30     Total Energy =      -339.68247281     Vh iteration = 103
      1       -18.6727      2       -14.0377      3       -12.9313      4        -7.5656
      5        -7.5368
-iter and square of norm of difference of rho =     30 0.65298006E-04
+iter and square of norm of difference of rho =     30 0.65297955E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    31     Total Energy =      -339.68357107     Vh iteration =  98
+ iter =    31     Total Energy =      -339.68357169     Vh iteration =  98
      1       -18.6489      2       -14.0189      3       -12.8792      4        -7.5401
      5        -7.5150
-iter and square of norm of difference of rho =     31 0.50919513E-04
+iter and square of norm of difference of rho =     31 0.50919479E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    32     Total Energy =      -339.68472045     Vh iteration =  95
+ iter =    32     Total Energy =      -339.68472106     Vh iteration =  95
      1       -18.6282      2       -14.0033      3       -12.8331      4        -7.5178
      5        -7.4958
-iter and square of norm of difference of rho =     32 0.41030622E-04
+iter and square of norm of difference of rho =     32 0.41030587E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    33     Total Energy =      -339.68606168     Vh iteration =  92
+ iter =    33     Total Energy =      -339.68606229     Vh iteration =  92
      1       -18.6099      2       -13.9907      3       -12.7923      4        -7.4983
      5        -7.4790
-iter and square of norm of difference of rho =     33 0.31867440E-04
+iter and square of norm of difference of rho =     33 0.31867419E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    34     Total Energy =      -339.68738188     Vh iteration =  89
+ iter =    34     Total Energy =      -339.68738249     Vh iteration =  89
      1       -18.5937      2       -13.9805      3       -12.7558      4        -7.4809
      5        -7.4640
-iter and square of norm of difference of rho =     34 0.25735022E-04
+iter and square of norm of difference of rho =     34 0.25735002E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    35     Total Energy =      -339.68879110     Vh iteration =  86
+ iter =    35     Total Energy =      -339.68879171     Vh iteration =  86
      1       -18.5792      2       -13.9723      3       -12.7231      4        -7.4655
      5        -7.4508
-iter and square of norm of difference of rho =     35 0.19906290E-04
+iter and square of norm of difference of rho =     35 0.19906278E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    36     Total Energy =      -339.69007096     Vh iteration =  83
+ iter =    36     Total Energy =      -339.69007157     Vh iteration =  83
      1       -18.5663      2       -13.9660      3       -12.6935      4        -7.4517
      5        -7.4389
-iter and square of norm of difference of rho =     36 0.16144235E-04
+iter and square of norm of difference of rho =     36 0.16144225E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    37     Total Energy =      -339.69138604     Vh iteration =  80
+ iter =    37     Total Energy =      -339.69138666     Vh iteration =  80
      1       -18.5547      2       -13.9613      3       -12.6668      4        -7.4395
      5        -7.4282
-iter and square of norm of difference of rho =     37 0.12436012E-04
+iter and square of norm of difference of rho =     37 0.12436006E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    38     Total Energy =      -339.69251442     Vh iteration =  77
+ iter =    38     Total Energy =      -339.69251502     Vh iteration =  77
      1       -18.5443      2       -13.9578      3       -12.6425      4        -7.4284
      5        -7.4186
-iter and square of norm of difference of rho =     38 0.10150550E-04
+iter and square of norm of difference of rho =     38 0.10150545E-04
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    39     Total Energy =      -339.69366449     Vh iteration =  75
+ iter =    39     Total Energy =      -339.69366510     Vh iteration =  75
      1       -18.5348      2       -13.9553      3       -12.6205      4        -7.4185
      5        -7.4099
-iter and square of norm of difference of rho =     39 0.77863077E-05
+iter and square of norm of difference of rho =     39 0.77863049E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    40     Total Energy =      -339.69460836     Vh iteration =  72
+ iter =    40     Total Energy =      -339.69460897     Vh iteration =  72
      1       -18.5264      2       -13.9538      3       -12.6003      4        -7.4096
      5        -7.4021
-iter and square of norm of difference of rho =     40 0.64095915E-05
+iter and square of norm of difference of rho =     40 0.64095890E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    41     Total Energy =      -339.69559615     Vh iteration =  71
+ iter =    41     Total Energy =      -339.69559676     Vh iteration =  71
      1       -18.5186      2       -13.9530      3       -12.5820      4        -7.4016
      5        -7.3951
-iter and square of norm of difference of rho =     41 0.48949649E-05
+iter and square of norm of difference of rho =     41 0.48949632E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    42     Total Energy =      -339.69636959     Vh iteration =  68
+ iter =    42     Total Energy =      -339.69637019     Vh iteration =  68
      1       -18.5117      2       -13.9527      3       -12.5652      4        -7.3944
      5        -7.3887
-iter and square of norm of difference of rho =     42 0.40715232E-05
+iter and square of norm of difference of rho =     42 0.40715214E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    43     Total Energy =      -339.69720076     Vh iteration =  67
-     1       -18.5054      2       -13.9529      3       -12.5500      4        -7.3879
+ iter =    43     Total Energy =      -339.69720136     Vh iteration =  67
+     1       -18.5054      2       -13.9530      3       -12.5500      4        -7.3879
      5        -7.3830
-iter and square of norm of difference of rho =     43 0.30943758E-05
+iter and square of norm of difference of rho =     43 0.30943747E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    44     Total Energy =      -339.69782381     Vh iteration =  63
+ iter =    44     Total Energy =      -339.69782441     Vh iteration =  63
      1       -18.4998      2       -13.9535      3       -12.5361      4        -7.3821
      5        -7.3778
-iter and square of norm of difference of rho =     44 0.26050728E-05
+iter and square of norm of difference of rho =     44 0.26050714E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    45     Total Energy =      -339.69851751     Vh iteration =  62
+ iter =    45     Total Energy =      -339.69851811     Vh iteration =  62
      1       -18.4946      2       -13.9543      3       -12.5235      4        -7.3769
      5        -7.3731
-iter and square of norm of difference of rho =     45 0.19691462E-05
+iter and square of norm of difference of rho =     45 0.19691453E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    46     Total Energy =      -339.69902216     Vh iteration =  59
+ iter =    46     Total Energy =      -339.69902276     Vh iteration =  59
      1       -18.4900      2       -13.9554      3       -12.5119      4        -7.3721
      5        -7.3688
-iter and square of norm of difference of rho =     46 0.16802166E-05
+iter and square of norm of difference of rho =     46 0.16802155E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    47     Total Energy =      -339.69958417     Vh iteration =  57
+ iter =    47     Total Energy =      -339.69958478     Vh iteration =  57
      1       -18.4858      2       -13.9565      3       -12.5014      4        -7.3679
      5        -7.3650
-iter and square of norm of difference of rho =     47 0.12622223E-05
+iter and square of norm of difference of rho =     47 0.12622216E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    48     Total Energy =      -339.69999440     Vh iteration =  55
+ iter =    48     Total Energy =      -339.69999500     Vh iteration =  55
      1       -18.4821      2       -13.9578      3       -12.4918      4        -7.3641
      5        -7.3616
-iter and square of norm of difference of rho =     48 0.10931799E-05
+iter and square of norm of difference of rho =     48 0.10931789E-05
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    49     Total Energy =      -339.70045797     Vh iteration =  54
+ iter =    49     Total Energy =      -339.70045857     Vh iteration =  54
      1       -18.4787      2       -13.9591      3       -12.4832      4        -7.3607
      5        -7.3585
-iter and square of norm of difference of rho =     49 0.81550561E-06
+iter and square of norm of difference of rho =     49 0.81550512E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    50     Total Energy =      -339.70080043     Vh iteration =  51
+ iter =    50     Total Energy =      -339.70080102     Vh iteration =  51
      1       -18.4757      2       -13.9605      3       -12.4752      4        -7.3576
      5        -7.3557
-iter and square of norm of difference of rho =     50 0.71798855E-06
+iter and square of norm of difference of rho =     50 0.71798772E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    51     Total Energy =      -339.70117437     Vh iteration =  50
+ iter =    51     Total Energy =      -339.70117498     Vh iteration =  50
      1       -18.4730      2       -13.9619      3       -12.4681      4        -7.3549
      5        -7.3532
-iter and square of norm of difference of rho =     51 0.53152754E-06
+iter and square of norm of difference of rho =     51 0.53152714E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    52     Total Energy =      -339.70147203     Vh iteration =  47
+ iter =    52     Total Energy =      -339.70147263     Vh iteration =  47
      1       -18.4705      2       -13.9632      3       -12.4615      4        -7.3524
      5        -7.3510
-iter and square of norm of difference of rho =     52 0.47642471E-06
+iter and square of norm of difference of rho =     52 0.47642401E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    53     Total Energy =      -339.70177247     Vh iteration =  46
+ iter =    53     Total Energy =      -339.70177307     Vh iteration =  46
      1       -18.4683      2       -13.9646      3       -12.4556      4        -7.3502
      5        -7.3489
-iter and square of norm of difference of rho =     53 0.34975483E-06
+iter and square of norm of difference of rho =     53 0.34975450E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    54     Total Energy =      -339.70200032     Vh iteration =  44
+ iter =    54     Total Energy =      -339.70200091     Vh iteration =  44
      1       -18.4664      2       -13.9659      3       -12.4501      4        -7.3482
      5        -7.3471
-iter and square of norm of difference of rho =     54 0.31964946E-06
+iter and square of norm of difference of rho =     54 0.31964886E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    55     Total Energy =      -339.70226675     Vh iteration =  42
+ iter =    55     Total Energy =      -339.70226735     Vh iteration =  42
      1       -18.4646      2       -13.9672      3       -12.4452      4        -7.3464
      5        -7.3455
-iter and square of norm of difference of rho =     55 0.23259245E-06
+iter and square of norm of difference of rho =     55 0.23259217E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    56     Total Energy =      -339.70243511     Vh iteration =  40
+ iter =    56     Total Energy =      -339.70243570     Vh iteration =  40
      1       -18.4630      2       -13.9685      3       -12.4407      4        -7.3448
      5        -7.3440
-iter and square of norm of difference of rho =     56 0.21703133E-06
+iter and square of norm of difference of rho =     56 0.21703083E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    57     Total Energy =      -339.70262710     Vh iteration =  39
+ iter =    57     Total Energy =      -339.70262771     Vh iteration =  39
      1       -18.4616      2       -13.9697      3       -12.4366      4        -7.3434
      5        -7.3427
-iter and square of norm of difference of rho =     57 0.15650279E-06
+iter and square of norm of difference of rho =     57 0.15650256E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    58     Total Energy =      -339.70278031     Vh iteration =  37
+ iter =    58     Total Energy =      -339.70278090     Vh iteration =  37
      1       -18.4603      2       -13.9708      3       -12.4329      4        -7.3421
      5        -7.3415
-iter and square of norm of difference of rho =     58 0.14922639E-06
+iter and square of norm of difference of rho =     58 0.14922597E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    59     Total Energy =      -339.70302700     Vh iteration =  34
+ iter =    59     Total Energy =      -339.70302759     Vh iteration =  34
      1       -18.4592      2       -13.9719      3       -12.4295      4        -7.3410
      5        -7.3405
-iter and square of norm of difference of rho =     59 0.10666225E-06
+iter and square of norm of difference of rho =     59 0.10666204E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    60     Total Energy =      -339.70304612     Vh iteration =  34
+ iter =    60     Total Energy =      -339.70304671     Vh iteration =  34
      1       -18.4581      2       -13.9730      3       -12.4264      4        -7.3400
      5        -7.3395
-iter and square of norm of difference of rho =     60 0.10397821E-06
+iter and square of norm of difference of rho =     60 0.10397784E-06
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    61     Total Energy =      -339.70341166     Vh iteration =  30
+ iter =    61     Total Energy =      -339.70341223     Vh iteration =  30
      1       -18.4573      2       -13.9740      3       -12.4236      4        -7.3391
      5        -7.3387
-iter and square of norm of difference of rho =     61 0.73696146E-07
+iter and square of norm of difference of rho =     61 0.73695966E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    62     Total Energy =      -339.70337600     Vh iteration =  30
+ iter =    62     Total Energy =      -339.70337661     Vh iteration =  30
      1       -18.4564      2       -13.9750      3       -12.4210      4        -7.3382
      5        -7.3379
-iter and square of norm of difference of rho =     62 0.73439758E-07
+iter and square of norm of difference of rho =     62 0.73439444E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    63     Total Energy =      -339.70358451     Vh iteration =  28
+ iter =    63     Total Energy =      -339.70358512     Vh iteration =  28
      1       -18.4557      2       -13.9759      3       -12.4187      4        -7.3375
      5        -7.3372
-iter and square of norm of difference of rho =     63 0.51671225E-07
+iter and square of norm of difference of rho =     63 0.51671069E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    64     Total Energy =      -339.70373474     Vh iteration =  26
+ iter =    64     Total Energy =      -339.70373530     Vh iteration =  26
      1       -18.4551      2       -13.9768      3       -12.4165      4        -7.3369
      5        -7.3366
-iter and square of norm of difference of rho =     64 0.52590206E-07
+iter and square of norm of difference of rho =     64 0.52589933E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    65     Total Energy =      -339.70383580     Vh iteration =  25
+ iter =    65     Total Energy =      -339.70383629     Vh iteration =  25
      1       -18.4544      2       -13.9776      3       -12.4146      4        -7.3363
      5        -7.3361
-iter and square of norm of difference of rho =     65 0.36792865E-07
+iter and square of norm of difference of rho =     65 0.36792728E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    66     Total Energy =      -339.70400055     Vh iteration =  23
+ iter =    66     Total Energy =      -339.70400120     Vh iteration =  23
      1       -18.4539      2       -13.9783      3       -12.4128      4        -7.3358
      5        -7.3356
-iter and square of norm of difference of rho =     66 0.38203613E-07
+iter and square of norm of difference of rho =     66 0.38203381E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    67     Total Energy =      -339.70612029     Vh iteration =  11
+ iter =    67     Total Energy =      -339.70612119     Vh iteration =  11
      1       -18.4540      2       -13.9793      3       -12.4115      4        -7.3358
      5        -7.3356
-iter and square of norm of difference of rho =     67 0.26645455E-07
+iter and square of norm of difference of rho =     67 0.26645337E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    68     Total Energy =      -339.70385269     Vh iteration =  29
+ iter =    68     Total Energy =      -339.70385347     Vh iteration =  29
      1       -18.4530      2       -13.9797      3       -12.4096      4        -7.3348
      5        -7.3347
-iter and square of norm of difference of rho =     68 0.28109565E-07
+iter and square of norm of difference of rho =     68 0.28109317E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    69     Total Energy =      -339.70558196     Vh iteration =  10
-     1       -18.4530      2       -13.9805      3       -12.4085      4        -7.3348
+ iter =    69     Total Energy =      -339.70558275     Vh iteration =  10
+     1       -18.4530      2       -13.9805      3       -12.4086      4        -7.3348
      5        -7.3347
-iter and square of norm of difference of rho =     69 0.19554661E-07
+iter and square of norm of difference of rho =     69 0.19554544E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    70     Total Energy =      -339.70457272     Vh iteration =  19
+ iter =    70     Total Energy =      -339.70457358     Vh iteration =  19
      1       -18.4523      2       -13.9810      3       -12.4071      4        -7.3342
      5        -7.3341
-iter and square of norm of difference of rho =     70 0.21022562E-07
+iter and square of norm of difference of rho =     70 0.21022398E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    71     Total Energy =      -339.70642112     Vh iteration =   7
+ iter =    71     Total Energy =      -339.70642193     Vh iteration =   7
      1       -18.4525      2       -13.9818      3       -12.4063      4        -7.3343
      5        -7.3342
-iter and square of norm of difference of rho =     71 0.14662031E-07
+iter and square of norm of difference of rho =     71 0.14661948E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    72     Total Energy =      -339.70404748     Vh iteration =  25
+ iter =    72     Total Energy =      -339.70404760     Vh iteration =  25
      1       -18.4516      2       -13.9819      3       -12.4048      4        -7.3335
      5        -7.3334
-iter and square of norm of difference of rho =     72 0.15872663E-07
+iter and square of norm of difference of rho =     72 0.15872528E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    73     Total Energy =      -339.70544250     Vh iteration =   7
+ iter =    73     Total Energy =      -339.70544265     Vh iteration =   7
      1       -18.4517      2       -13.9826      3       -12.4041      4        -7.3335
      5        -7.3334
-iter and square of norm of difference of rho =     73 0.11124248E-07
+iter and square of norm of difference of rho =     73 0.11124157E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    74     Total Energy =      -339.70615999     Vh iteration =   8
+ iter =    74     Total Energy =      -339.70616010     Vh iteration =   8
      1       -18.4517      2       -13.9831      3       -12.4033      4        -7.3335
      5        -7.3334
-iter and square of norm of difference of rho =     74 0.12204776E-07
+iter and square of norm of difference of rho =     74 0.12204648E-07
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    75     Total Energy =      -339.70560169     Vh iteration =  11
+ iter =    75     Total Energy =      -339.70560168     Vh iteration =  11
      1       -18.4513      2       -13.9834      3       -12.4024      4        -7.3331
      5        -7.3331
-iter and square of norm of difference of rho =     75 0.85773036E-08
+iter and square of norm of difference of rho =     75 0.85772726E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    76     Total Energy =      -339.70656441     Vh iteration =   2
+ iter =    76     Total Energy =      -339.70656443     Vh iteration =   2
      1       -18.4513      2       -13.9840      3       -12.4019      4        -7.3331
      5        -7.3331
-iter and square of norm of difference of rho =     76 0.95022563E-08
+iter and square of norm of difference of rho =     76 0.95021623E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    77     Total Energy =      -339.70425526     Vh iteration =  21
+ iter =    77     Total Energy =      -339.70425536     Vh iteration =  21
      1       -18.4506      2       -13.9840      3       -12.4008      4        -7.3324
      5        -7.3324
-iter and square of norm of difference of rho =     77 0.67611453E-08
+iter and square of norm of difference of rho =     77 0.67610959E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    78     Total Energy =      -339.70505724     Vh iteration =   3
+ iter =    78     Total Energy =      -339.70505730     Vh iteration =   3
      1       -18.4506      2       -13.9845      3       -12.4003      4        -7.3325
      5        -7.3325
-iter and square of norm of difference of rho =     78 0.74325759E-08
+iter and square of norm of difference of rho =     78 0.74323684E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    79     Total Energy =      -339.70589772     Vh iteration =   6
+ iter =    79     Total Energy =      -339.70589750     Vh iteration =   6
      1       -18.4507      2       -13.9849      3       -12.3999      4        -7.3326
      5        -7.3325
-iter and square of norm of difference of rho =     79 0.53835500E-08
+iter and square of norm of difference of rho =     79 0.53834683E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    80     Total Energy =      -339.70647022     Vh iteration =   2
+ iter =    80     Total Energy =      -339.70647006     Vh iteration =   2
      1       -18.4507      2       -13.9853      3       -12.3995      4        -7.3326
      5        -7.3325
-iter and square of norm of difference of rho =     80 0.58772900E-08
+iter and square of norm of difference of rho =     80 0.58771914E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    81     Total Energy =      -339.70440430     Vh iteration =  21
+ iter =    81     Total Energy =      -339.70440518     Vh iteration =  21
      1       -18.4501      2       -13.9852      3       -12.3987      4        -7.3320
      5        -7.3320
-iter and square of norm of difference of rho =     81 0.42907894E-08
+iter and square of norm of difference of rho =     81 0.42907064E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    82     Total Energy =      -339.70490113     Vh iteration =   2
+ iter =    82     Total Energy =      -339.70490189     Vh iteration =   2
      1       -18.4501      2       -13.9856      3       -12.3983      4        -7.3320
      5        -7.3320
-iter and square of norm of difference of rho =     82 0.46909694E-08
+iter and square of norm of difference of rho =     82 0.46909015E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    83     Total Energy =      -339.70537288     Vh iteration =   2
+ iter =    83     Total Energy =      -339.70537347     Vh iteration =   2
      1       -18.4501      2       -13.9859      3       -12.3981      4        -7.3320
      5        -7.3320
-iter and square of norm of difference of rho =     83 0.34778057E-08
+iter and square of norm of difference of rho =     83 0.34776548E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    84     Total Energy =      -339.70584713     Vh iteration =   6
+ iter =    84     Total Energy =      -339.70584757     Vh iteration =   6
      1       -18.4502      2       -13.9861      3       -12.3978      4        -7.3321
      5        -7.3320
-iter and square of norm of difference of rho =     84 0.37837050E-08
+iter and square of norm of difference of rho =     84 0.37834897E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    85     Total Energy =      -339.70622033     Vh iteration =   1
+ iter =    85     Total Energy =      -339.70622122     Vh iteration =   1
      1       -18.4502      2       -13.9864      3       -12.3975      4        -7.3321
      5        -7.3320
-iter and square of norm of difference of rho =     85 0.28155622E-08
+iter and square of norm of difference of rho =     85 0.28153006E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    86     Total Energy =      -339.70655897     Vh iteration =   1
+ iter =    86     Total Energy =      -339.70656044     Vh iteration =   1
      1       -18.4502      2       -13.9866      3       -12.3973      4        -7.3321
      5        -7.3320
-iter and square of norm of difference of rho =     86 0.30211979E-08
+iter and square of norm of difference of rho =     86 0.30202649E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    87     Total Energy =      -339.70636502     Vh iteration =   7
+ iter =    87     Total Energy =      -339.70636934     Vh iteration =   7
      1       -18.4502      2       -13.9867      3       -12.3969      4        -7.3320
      5        -7.3320
-iter and square of norm of difference of rho =     87 0.22937594E-08
+iter and square of norm of difference of rho =     87 0.22934481E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    88     Total Energy =      -339.70665952     Vh iteration =   1
+ iter =    88     Total Energy =      -339.70666369     Vh iteration =   1
      1       -18.4501      2       -13.9869      3       -12.3967      4        -7.3320
      5        -7.3320
-iter and square of norm of difference of rho =     88 0.24652266E-08
+iter and square of norm of difference of rho =     88 0.24650780E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    89     Total Energy =      -339.70694666     Vh iteration =   1
+ iter =    89     Total Energy =      -339.70695097     Vh iteration =   1
      1       -18.4501      2       -13.9871      3       -12.3966      4        -7.3320
      5        -7.3320
-iter and square of norm of difference of rho =     89 0.18715133E-08
+iter and square of norm of difference of rho =     89 0.18712027E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    90     Total Energy =      -339.70712951     Vh iteration =   2
+ iter =    90     Total Energy =      -339.70713379     Vh iteration =   2
      1       -18.4501      2       -13.9873      3       -12.3964      4        -7.3320
      5        -7.3319
-iter and square of norm of difference of rho =     90 0.20063758E-08
+iter and square of norm of difference of rho =     90 0.20062339E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    91     Total Energy =      -339.70734060     Vh iteration =   2
+ iter =    91     Total Energy =      -339.70734489     Vh iteration =   2
      1       -18.4501      2       -13.9874      3       -12.3962      4        -7.3320
      5        -7.3319
-iter and square of norm of difference of rho =     91 0.15596185E-08
+iter and square of norm of difference of rho =     91 0.15594281E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    92     Total Energy =      -339.70749601     Vh iteration =   2
+ iter =    92     Total Energy =      -339.70750033     Vh iteration =   2
      1       -18.4501      2       -13.9876      3       -12.3960      4        -7.3320
      5        -7.3319
-iter and square of norm of difference of rho =     92 0.16572748E-08
+iter and square of norm of difference of rho =     92 0.16571356E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    93     Total Energy =      -339.70765874     Vh iteration =   2
+ iter =    93     Total Energy =      -339.70766306     Vh iteration =   2
      1       -18.4501      2       -13.9877      3       -12.3959      4        -7.3320
      5        -7.3319
-iter and square of norm of difference of rho =     93 0.13005321E-08
+iter and square of norm of difference of rho =     93 0.13004072E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    94     Total Energy =      -339.70456968     Vh iteration =  20
+ iter =    94     Total Energy =      -339.70457114     Vh iteration =  20
      1       -18.4493      2       -13.9873      3       -12.3952      4        -7.3312
      5        -7.3312
-iter and square of norm of difference of rho =     94 0.13677473E-08
+iter and square of norm of difference of rho =     94 0.13676336E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    95     Total Energy =      -339.70464954     Vh iteration =   1
+ iter =    95     Total Energy =      -339.70465097     Vh iteration =   1
      1       -18.4493      2       -13.9874      3       -12.3951      4        -7.3312
      5        -7.3312
-iter and square of norm of difference of rho =     95 0.10711585E-08
+iter and square of norm of difference of rho =     95 0.10710926E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    96     Total Energy =      -339.70469726     Vh iteration =   1
+ iter =    96     Total Energy =      -339.70469865     Vh iteration =   1
      1       -18.4493      2       -13.9875      3       -12.3950      4        -7.3312
      5        -7.3312
-iter and square of norm of difference of rho =     96 0.11261100E-08
+iter and square of norm of difference of rho =     96 0.11260152E-08
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    97     Total Energy =      -339.70472909     Vh iteration =   1
+ iter =    97     Total Energy =      -339.70473039     Vh iteration =   1
      1       -18.4493      2       -13.9876      3       -12.3949      4        -7.3312
      5        -7.3312
-iter and square of norm of difference of rho =     97 0.89031325E-09
+iter and square of norm of difference of rho =     97 0.89029200E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    98     Total Energy =      -339.70474171     Vh iteration =   1
+ iter =    98     Total Energy =      -339.70474295     Vh iteration =   1
      1       -18.4493      2       -13.9877      3       -12.3948      4        -7.3312
      5        -7.3312
-iter and square of norm of difference of rho =     98 0.92940195E-09
+iter and square of norm of difference of rho =     98 0.92933689E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =    99     Total Energy =      -339.70475239     Vh iteration =   1
+ iter =    99     Total Energy =      -339.70475354     Vh iteration =   1
      1       -18.4493      2       -13.9878      3       -12.3947      4        -7.3313
      5        -7.3312
-iter and square of norm of difference of rho =     99 0.74244753E-09
+iter and square of norm of difference of rho =     99 0.74243253E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   100     Total Energy =      -339.70475415     Vh iteration =   1
+ iter =   100     Total Energy =      -339.70475523     Vh iteration =   1
      1       -18.4493      2       -13.9879      3       -12.3947      4        -7.3313
      5        -7.3312
-iter and square of norm of difference of rho =    100 0.76755511E-09
+iter and square of norm of difference of rho =    100 0.76750665E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   101     Total Energy =      -339.70475865     Vh iteration =   1
+ iter =   101     Total Energy =      -339.70475964     Vh iteration =   1
      1       -18.4494      2       -13.9879      3       -12.3946      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    101 0.61962240E-09
+iter and square of norm of difference of rho =    101 0.61960513E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   102     Total Energy =      -339.70476112     Vh iteration =   1
+ iter =   102     Total Energy =      -339.70476203     Vh iteration =   1
      1       -18.4494      2       -13.9880      3       -12.3945      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    102 0.63429529E-09
+iter and square of norm of difference of rho =    102 0.63425614E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   103     Total Energy =      -339.70476729     Vh iteration =   1
+ iter =   103     Total Energy =      -339.70476811     Vh iteration =   1
      1       -18.4494      2       -13.9881      3       -12.3945      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    103 0.51718252E-09
+iter and square of norm of difference of rho =    103 0.51716336E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   104     Total Energy =      -339.70477540     Vh iteration =   1
+ iter =   104     Total Energy =      -339.70477614     Vh iteration =   1
      1       -18.4494      2       -13.9881      3       -12.3944      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    104 0.52469515E-09
+iter and square of norm of difference of rho =    104 0.52466403E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   105     Total Energy =      -339.70478695     Vh iteration =   1
+ iter =   105     Total Energy =      -339.70478759     Vh iteration =   1
      1       -18.4494      2       -13.9882      3       -12.3944      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    105 0.43176239E-09
+iter and square of norm of difference of rho =    105 0.43174448E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   106     Total Energy =      -339.70480242     Vh iteration =   1
+ iter =   106     Total Energy =      -339.70480299     Vh iteration =   1
      1       -18.4494      2       -13.9882      3       -12.3944      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    106 0.43460324E-09
+iter and square of norm of difference of rho =    106 0.43458168E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   107     Total Energy =      -339.70482069     Vh iteration =   1
+ iter =   107     Total Energy =      -339.70482117     Vh iteration =   1
      1       -18.4494      2       -13.9883      3       -12.3943      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    107 0.36056893E-09
+iter and square of norm of difference of rho =    107 0.36055642E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   108     Total Energy =      -339.70484365     Vh iteration =   1
+ iter =   108     Total Energy =      -339.70484405     Vh iteration =   1
      1       -18.4494      2       -13.9883      3       -12.3943      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    108 0.36049583E-09
+iter and square of norm of difference of rho =    108 0.36047397E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   109     Total Energy =      -339.70486870     Vh iteration =   1
+ iter =   109     Total Energy =      -339.70486900     Vh iteration =   1
      1       -18.4494      2       -13.9883      3       -12.3943      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    109 0.30124246E-09
+iter and square of norm of difference of rho =    109 0.30123585E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   110     Total Energy =      -339.70489840     Vh iteration =   1
+ iter =   110     Total Energy =      -339.70489864     Vh iteration =   1
      1       -18.4494      2       -13.9884      3       -12.3942      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    110 0.29945156E-09
+iter and square of norm of difference of rho =    110 0.29943219E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   111     Total Energy =      -339.70492956     Vh iteration =   1
+ iter =   111     Total Energy =      -339.70492970     Vh iteration =   1
      1       -18.4494      2       -13.9884      3       -12.3942      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    111 0.25181410E-09
+iter and square of norm of difference of rho =    111 0.25180047E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   112     Total Energy =      -339.70496486     Vh iteration =   1
+ iter =   112     Total Energy =      -339.70496494     Vh iteration =   1
      1       -18.4494      2       -13.9884      3       -12.3942      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    112 0.24910541E-09
+iter and square of norm of difference of rho =    112 0.24909724E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   113     Total Energy =      -339.70500099     Vh iteration =   1
+ iter =   113     Total Energy =      -339.70500098     Vh iteration =   1
      1       -18.4494      2       -13.9884      3       -12.3941      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    113 0.21064827E-09
+iter and square of norm of difference of rho =    113 0.21063983E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   114     Total Energy =      -339.70504046     Vh iteration =   1
+ iter =   114     Total Energy =      -339.70504040     Vh iteration =   1
      1       -18.4494      2       -13.9885      3       -12.3941      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    114 0.20755159E-09
+iter and square of norm of difference of rho =    114 0.20754567E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   115     Total Energy =      -339.70508020     Vh iteration =   1
+ iter =   115     Total Energy =      -339.70508005     Vh iteration =   1
      1       -18.4494      2       -13.9885      3       -12.3941      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    115 0.17638635E-09
+iter and square of norm of difference of rho =    115 0.17637906E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   116     Total Energy =      -339.70512233     Vh iteration =   1
+ iter =   116     Total Energy =      -339.70512214     Vh iteration =   1
      1       -18.4494      2       -13.9885      3       -12.3941      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    116 0.17321606E-09
+iter and square of norm of difference of rho =    116 0.17320712E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   117     Total Energy =      -339.70516423     Vh iteration =   1
+ iter =   117     Total Energy =      -339.70516398     Vh iteration =   1
      1       -18.4494      2       -13.9885      3       -12.3941      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    117 0.14785476E-09
+iter and square of norm of difference of rho =    117 0.14784620E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   118     Total Energy =      -339.70520757     Vh iteration =   1
-     1       -18.4494      2       -13.9885      3       -12.3941      4        -7.3313
+ iter =   118     Total Energy =      -339.70520730     Vh iteration =   1
+     1       -18.4495      2       -13.9885      3       -12.3941      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    118 0.14478961E-09
+iter and square of norm of difference of rho =    118 0.14477956E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   119     Total Energy =      -339.70525026     Vh iteration =   1
+ iter =   119     Total Energy =      -339.70524994     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3313
      5        -7.3313
-iter and square of norm of difference of rho =    119 0.12406896E-09
+iter and square of norm of difference of rho =    119 0.12406100E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   120     Total Energy =      -339.70529351     Vh iteration =   1
-     1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3313
-     5        -7.3313
-iter and square of norm of difference of rho =    120 0.12119810E-09
- Ne=   10.0000000000000     
- -----------------------------------------------
- iter =   121     Total Energy =      -339.70533576     Vh iteration =   1
+ iter =   120     Total Energy =      -339.70529317     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    121 0.10420734E-09
+iter and square of norm of difference of rho =    120 0.12119032E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   122     Total Energy =      -339.70537780     Vh iteration =   1
+ iter =   121     Total Energy =      -339.70533538     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    122 0.10156875E-09
+iter and square of norm of difference of rho =    121 0.10419832E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   123     Total Energy =      -339.70541854     Vh iteration =   1
+ iter =   122     Total Energy =      -339.70537742     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    123 0.87589197E-10
+iter and square of norm of difference of rho =    122 0.10155924E-09
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   124     Total Energy =      -339.70545846     Vh iteration =   1
+ iter =   123     Total Energy =      -339.70541815     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    124 0.85192191E-10
+iter and square of norm of difference of rho =    123 0.87584518E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   125     Total Energy =      -339.70549686     Vh iteration =   1
+ iter =   124     Total Energy =      -339.70545807     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    125 0.73658430E-10
+iter and square of norm of difference of rho =    124 0.85184581E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   126     Total Energy =      -339.70553393     Vh iteration =   1
+ iter =   125     Total Energy =      -339.70549646     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    126 0.71492793E-10
+iter and square of norm of difference of rho =    125 0.73651160E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   127     Total Energy =      -339.70556934     Vh iteration =   1
+ iter =   126     Total Energy =      -339.70553354     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    127 0.61956161E-10
+iter and square of norm of difference of rho =    126 0.71487484E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   128     Total Energy =      -339.70560306     Vh iteration =   1
+ iter =   127     Total Energy =      -339.70556895     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    128 0.60006982E-10
+iter and square of norm of difference of rho =    127 0.61949195E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   129     Total Energy =      -339.70563502     Vh iteration =   1
+ iter =   128     Total Energy =      -339.70560268     Vh iteration =   1
+     1       -18.4495      2       -13.9886      3       -12.3940      4        -7.3314
+     5        -7.3313
+iter and square of norm of difference of rho =    128 0.60004232E-10
+ Ne=   10.0000000000000     
+ -----------------------------------------------
+ iter =   129     Total Energy =      -339.70563466     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    129 0.52109866E-10
+iter and square of norm of difference of rho =    129 0.52099852E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   130     Total Energy =      -339.70566504     Vh iteration =   1
+ iter =   130     Total Energy =      -339.70566471     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    130 0.50359038E-10
+iter and square of norm of difference of rho =    130 0.50353558E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   131     Total Energy =      -339.70569327     Vh iteration =   1
+ iter =   131     Total Energy =      -339.70569298     Vh iteration =   1
      1       -18.4495      2       -13.9886      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    131 0.43813661E-10
+iter and square of norm of difference of rho =    131 0.43808858E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   132     Total Energy =      -339.70571942     Vh iteration =   1
+ iter =   132     Total Energy =      -339.70571917     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    132 0.42246537E-10
+iter and square of norm of difference of rho =    132 0.42238467E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   133     Total Energy =      -339.70574381     Vh iteration =   1
+ iter =   133     Total Energy =      -339.70574360     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    133 0.36821595E-10
+iter and square of norm of difference of rho =    133 0.36817784E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   134     Total Energy =      -339.70576605     Vh iteration =   1
+ iter =   134     Total Energy =      -339.70576588     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    134 0.35415193E-10
+iter and square of norm of difference of rho =    134 0.35412924E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   135     Total Energy =      -339.70578659     Vh iteration =   1
+ iter =   135     Total Energy =      -339.70578647     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    135 0.30930872E-10
+iter and square of norm of difference of rho =    135 0.30923250E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   136     Total Energy =      -339.70580500     Vh iteration =   1
+ iter =   136     Total Energy =      -339.70580490     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    136 0.29668769E-10
+iter and square of norm of difference of rho =    136 0.29673014E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   137     Total Energy =      -339.70582181     Vh iteration =   1
+ iter =   137     Total Energy =      -339.70582176     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    137 0.25967094E-10
+iter and square of norm of difference of rho =    137 0.25960893E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   138     Total Energy =      -339.70583654     Vh iteration =   1
+ iter =   138     Total Energy =      -339.70583653     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    138 0.24845201E-10
+iter and square of norm of difference of rho =    138 0.24841577E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   139     Total Energy =      -339.70584982     Vh iteration =   1
+ iter =   139     Total Energy =      -339.70584986     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    139 0.21786687E-10
+iter and square of norm of difference of rho =    139 0.21783570E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   140     Total Energy =      -339.70586112     Vh iteration =   1
+ iter =   140     Total Energy =      -339.70586119     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    140 0.20795315E-10
+iter and square of norm of difference of rho =    140 0.20788158E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   141     Total Energy =      -339.70587111     Vh iteration =   1
+ iter =   141     Total Energy =      -339.70587123     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    141 0.18276564E-10
+iter and square of norm of difference of rho =    141 0.18270902E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   142     Total Energy =      -339.70587926     Vh iteration =   1
+ iter =   142     Total Energy =      -339.70587938     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    142 0.17392434E-10
+iter and square of norm of difference of rho =    142 0.17393784E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   143     Total Energy =      -339.70588625     Vh iteration =   1
+ iter =   143     Total Energy =      -339.70588649     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    143 0.15329738E-10
+iter and square of norm of difference of rho =    143 0.15329089E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   144     Total Energy =      -339.70589152     Vh iteration =   1
+ iter =   144     Total Energy =      -339.70589184     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    144 0.14552452E-10
+iter and square of norm of difference of rho =    144 0.14549148E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   145     Total Energy =      -339.70589580     Vh iteration =   1
+ iter =   145     Total Energy =      -339.70589621     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    145 0.12856226E-10
+iter and square of norm of difference of rho =    145 0.12857335E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   146     Total Energy =      -339.70589855     Vh iteration =   1
+ iter =   146     Total Energy =      -339.70589901     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    146 0.12171820E-10
+iter and square of norm of difference of rho =    146 0.12171070E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   147     Total Energy =      -339.70590042     Vh iteration =   1
+ iter =   147     Total Energy =      -339.70590098     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    147 0.10787504E-10
+iter and square of norm of difference of rho =    147 0.10788122E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   148     Total Energy =      -339.70590096     Vh iteration =   1
+ iter =   148     Total Energy =      -339.70590156     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    148 0.10187590E-10
+iter and square of norm of difference of rho =    148 0.10187196E-10
  Ne=   10.0000000000000     
  -----------------------------------------------
- iter =   149     Total Energy =      -339.70590071     Vh iteration =   1
+ iter =   149     Total Energy =      -339.70590141     Vh iteration =   1
      1       -18.4495      2       -13.9887      3       -12.3939      4        -7.3314
      5        -7.3313
-iter and square of norm of difference of rho =    149 0.90570331E-11
+iter and square of norm of difference of rho =    149 0.90557103E-11
  Ne=   10.0000000000000     
 ==================== elapsed time ====================
-elapsed time before initializing [s]  =       0.01928687
-elapsed time for initializing [s]     =       1.36319208
-elapsed time for scf iterations [s]   =     157.67708302
-elapsed time for writing data [s]     =       1.31450987
-elapsed time after writing data [s]   =       0.00110102
-total time [s]                        =     160.37517285
+elapsed time before initializing [s]  =       0.00563598
+elapsed time for initializing [s]     =       1.47259402
+elapsed time for scf iterations [s]   =     196.29532409
+elapsed time for writing data [s]     =       1.35391402
+elapsed time after writing data [s]   =       0.00189400
+total time [s]                        =     199.12936211
 ======================================================
 ================== in scf iterations =================
-elapsed time for copying psi [s]      =       0.00005198
-elapsed time for optimizing psi [s]   =      76.69882107
-elapsed time for Gram Schmidt [s]     =       2.30853224
-elapsed time for calculating rho  [s] =       0.49961281
-elapsed time for Hartree routine  [s] =      63.75946307
-elapsed time for Exc_Cor routine  [s] =       1.98106837
-elapsed time for calculating Etot [s] =      12.03611660
-elapsed time for subspace-diag. [s]   =       0.00000811
-elapsed time for writing info. [s]    =       0.23242402
-total time for scf iterations [s]     =     157.51615071
+elapsed time for copying psi [s]      =       0.00006676
+elapsed time for optimizing psi [s]   =     101.95036149
+elapsed time for Gram Schmidt [s]     =       2.27954149
+elapsed time for calculating rho  [s] =       0.44357896
+elapsed time for Hartree routine  [s] =      72.27182865
+elapsed time for Exc_Cor routine  [s] =       2.06049538
+elapsed time for calculating Etot [s] =      16.36274576
+elapsed time for subspace-diag. [s]   =       0.00000644
+elapsed time for writing info. [s]    =       0.79198599
+total time for scf iterations [s]     =     196.16065001
 ======================================================
 ================== in subspace-diag. =================
 elapsed time for initialization [s]   =       0.00000000
@@ -952,13 +952,13 @@ elapsed time for PDELSET (1) [s]      =       0.00000000
 elapsed time for PDSYEVX [s]          =       0.00000000
 elapsed time for PDELSET (2) [s]      =       0.00000000
 ======================================================
-elapsed time for CG [s]               =      74.38636065
+elapsed time for CG [s]               =     100.37212133
 elapsed time for DIIS [s]             =       0.00000000
 comm. for inner product in CG, DIIS[s]=       0.00000000
-elapsed time for Gram Schmidt [s]     =       2.30853224
+elapsed time for Gram Schmidt [s]     =       2.27954149
 comm. for inner product in GS (1) [s] =       0.00000000
 comm. for inner product in GS (2) [s] =       0.00000000
 hpsi2 in CG [s]                       =       0.00000000
 gk in CG [s]                          =       0.00000000
 ======================================================
-Fri Feb 17 20:32:41 JST 2017
+Wed May 24 16:49:17 JST 2017
