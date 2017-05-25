@@ -1,4 +1,4 @@
-! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi
+! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi, Shunsuke A. Sato
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 subroutine read_input_rt(IC_rt,OC_rt,Ntime,Nenergy,dE,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
     & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
     & file_IN_rt,file_OUT_rt)
+use input
 use scf_data
 use new_world_sub
 !$ use omp_lib
@@ -53,6 +54,11 @@ namelist / group_others / iparaway_ob,num_projection,iwrite_projection_ob,iwrite
     & iwrite_external,iflag_dip2,iflag_quadrupole,iflag_intelectron,num_dip2, dip2boundary, dip2center,& 
     & iflag_fourier_omega, num_fourier_omega, fourier_omega, itotNtime2, &
     & iwdenoption,iwdenstep, numfile_movie, iflag_Estatic
+
+if(myrank ==0)then
+   open(fh_namelist, file='.namelist.tmp', status='old')
+end if
+
 !===== namelist for group_fundamental =====
 Nenergy=2000
 dE=0.01d0
@@ -66,7 +72,8 @@ iwrite_projnum=0
 itwproj=-1
 itcalc_ene=1
 if(myrank==0)then
-  read(*,NML=group_fundamental)
+  read(fh_namelist,NML=group_fundamental)
+  rewind(fh_namelist)
 end if
 call MPI_Bcast(Nenergy,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(dE,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -97,7 +104,8 @@ num_datafiles_OUT=1
 imesh_s_all=1
 iflag_comm_rho=1
 if(myrank==0)then
-  read(*,NML=group_parallel)
+  read(fh_namelist,NML=group_parallel)
+  rewind(fh_namelist)
   if(isequential<=0.or.isequential>=3)then
     write(*,*) "isequential must be equal to 1 or 2."
     stop
@@ -130,7 +138,8 @@ nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 dt=0.d0
 Ntime=0
 if(myrank==0)then
-  read(*,NML=group_propagation)
+  read(fh_namelist,NML=group_propagation)
+  rewind(fh_namelist)
 end if
 call MPI_Bcast(dt,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(Ntime,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -149,7 +158,8 @@ num_pole_xyz(1:3)=1
 MEO=2
 lmax_MEO=4
 if(myrank==0)then
-  read(*,NML=group_hartree) 
+  read(fh_namelist,NML=group_hartree) 
+  rewind(fh_namelist)
   if(MEO<=0.or.MEO>=4)then
     write(*,*) "MEO must be equal to 1 or 2 or 3."
     stop
@@ -189,7 +199,8 @@ file_Projection='projection.data'
 fileTmp='progress'
 fileTmp2='diff'
 if(myrank==0)then
-  read(*,NML=group_file)
+  read(fh_namelist,NML=group_file)
+  rewind(fh_namelist)
 end if
 call MPI_Bcast(IC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(IC_rt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -224,7 +235,8 @@ tau2(1:2)=0.d0
 delay=0.d0
 rcycle=0.d0
 if(myrank==0)then
-  read(*,NML=group_extfield)
+  read(fh_namelist,NML=group_extfield)
+  rewind(fh_namelist)
   if(ikind_eext==-1)then
     write(*,*) "please set ikind_eext."
     stop
@@ -322,7 +334,8 @@ iwdenstep=0
 numfile_movie=1
 iflag_Estatic=0
 if(myrank==0)then
-  read(*,NML=group_others)
+  read(fh_namelist,NML=group_others)
+  rewind(fh_namelist)
 end if
 call MPI_Bcast(iparaway_ob,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(num_projection,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -366,5 +379,7 @@ end if
 if(iwdenoption==0)then
   iwdenstep=0
 end if
+
+if(myrank ==0)close(fh_namelist)
 
 end subroutine read_input_rt
