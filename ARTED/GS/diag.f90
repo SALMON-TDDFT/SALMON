@@ -23,6 +23,7 @@ Subroutine diag_omp
   use Global_Variables
   use timer
   use omp_lib
+  use hpsi, only: hpsi_omp_KB_GS
   implicit none
   integer,parameter :: matz=1
   integer           :: ik,ib1,ib2

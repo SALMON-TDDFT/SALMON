@@ -34,8 +34,8 @@ add_dependencies(${CONTROL_LIB}
                  ${FDTD_LIB}
                  )
 add_dependencies(${PREP_LIB}    ${MODULE_LIB})
-add_dependencies(${GS_LIB}      ${MODULE_LIB})
-add_dependencies(${RT_LIB}      ${MODULE_LIB})
+add_dependencies(${GS_LIB}      ${MODULE_LIB} ${COMMON_LIB})
+add_dependencies(${RT_LIB}      ${MODULE_LIB} ${COMMON_LIB})
 add_dependencies(${COMMON_LIB}  ${MODULE_LIB})
 add_dependencies(${STENCIL_LIB} ${MODULE_LIB})
 add_dependencies(${FDTD_LIB}    ${MODULE_LIB})

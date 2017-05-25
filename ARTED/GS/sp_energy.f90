@@ -21,6 +21,7 @@ Subroutine sp_energy_omp
   use Global_Variables
   use communication
   use timer
+  use hpsi, only: hpsi_omp_KB_GS
   implicit none
   integer :: ik,ib
   real(8) :: esp_l(NB,NK)
