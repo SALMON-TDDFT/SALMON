@@ -9,6 +9,8 @@ ARCH = intel
 #ARCH = intel-knl
 #ARCH = intel-knc
 
+USE_SCALAPACK = no
+
 #### explanation for environmental values #########
 # FC: compiler                                    #
 # FFLAGS: compiler option                         # 
@@ -24,6 +26,7 @@ ifeq ($(ARCH), gnu)
     FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-form -ffree-line-length-none
     CFLAGS = -O3 -fopenmp -Wall
     FILE_MATHLIB = lapack
+    LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 -lm
     LIBSCALAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 \
         -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
     MODULE_SWITCH = -J
@@ -36,6 +39,7 @@ ifeq ($(ARCH), intel)
     FFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std03 -warn all
     CFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -Wall -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     MODULE_SWITCH = -module
 endif
@@ -52,6 +56,7 @@ ifeq ($(ARCH), intel-avx)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
     CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = AVX
     MODULE_SWITCH = -module
@@ -66,6 +71,7 @@ ifeq ($(ARCH), intel-avx2)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
     CFLAGS = $(FLAGS) -O3 -Wall -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = AVX
     MODULE_SWITCH = -module
@@ -78,6 +84,7 @@ ifeq ($(ARCH), fujitsu)
     FFLAGS = -O3 -Kfast,openmp,simd=1 -Cpp -Kocl,nooptmsg
     CFLAGS = -O3 -Kfast,openmp,simd=1 -Kocl,nooptmsg
     FILE_MATHLIB = lapack
+    LIBLAPACK = -SSL2BLAMP
     LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
     MODULE_SWITCH = -M
 endif
@@ -95,6 +102,7 @@ ifeq ($(ARCH), intel-knl)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std03 -warn all -diag-disable 6187,6477,6916,7025,7416
     CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = IMCI
     MODULE_SWITCH = -module
@@ -114,6 +122,7 @@ ifeq ($(ARCH), intel-knc)
     FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
     CFLAGS = $(FLAGS) -O3 -Wall -restrict
     FILE_MATHLIB = lapack
+    LIBLAPACK = -mkl=cluster
     LIBSCALAPACK = -mkl=cluster
     SIMD_SET = IMCI
     MODULE_SWITCH = -module
@@ -130,11 +139,16 @@ SRC_core = exc_cor.f90
 SRC_GCEED = gceed.f90 read_input_gceed.f90 
 
 SRC_SCF_GCEED = real_space_dft.f90 subspace_diag.f90 simple_mixing.f90 copy_density.f90 \
-                eigen_subdiag_$(FILE_MATHLIB).f90 prep_ini.f90 \
-                gram_schmidt.f90 calc_rho_in.f90 subdgemm_$(FILE_MATHLIB).f90 \
+                prep_ini.f90 gram_schmidt.f90 calc_rho_in.f90 subdgemm_$(FILE_MATHLIB).f90 \
                 calc_occupation.f90 read_input_scf.f90 sendrecv_copy.f90 \
                 deallocate_sendrecv_groupob.f90 structure_opt.f90 ybcg.f90 \
                 rmmdiis_eigen.f90 rmmdiis.f90 calc_dos.f90 calc_pdos.f90 
+
+ifeq ($(USE_SCALAPACK), yes)
+   SRC_SCF_LAPACK_GCEED = eigen_subdiag_scalapack.f90
+else
+   SRC_SCF_LAPACK_GCEED = eigen_subdiag_$(FILE_MATHLIB).f90
+endif
 
 SRC_RT_GCEED = real_time_dft.f90 taylor.f90 taylor_coe.f90 WriteDensity.f90 read_rt.f90 \
                time_evolution_step.f90 hpsi_groupob.f90 gradient_ex.f90 \
@@ -156,16 +170,16 @@ SRC_COMMON_GCEED = calcELF.f90 psl.f90 hartree.f90 ylm.f90 xc.f90 OUT_IN_data.f9
                    conv_p0.f90 conv_p.f90 set_ispin.f90 read_copy_pot.f90 \
                    set_gridcoo.f90 calc_force_c.f90 conv_core_exc_cor.f90
 
-MOD_GCEED = modules/scf_data.f90 modules/allocate_mat.f90 modules/new_world.f90 \
-            modules/init_sendrecv.f90 modules/sendrecv.f90 modules/laplacian2.f90 \
-            modules/gradient2.f90 modules/hpsi2.f90 \
-            modules/deallocate_mat.f90 modules/copy_psi_mesh.f90 modules/inner_product.f90 \
-            modules/rmmdiis_eigen_$(FILE_MATHLIB).f90 modules/share_mesh_1d_old.f90 \
-            modules/read_pslfile.f90 modules/total_energy.f90 modules/calc_density.f90 \
-            modules/change_order.f90 modules/allocate_sendrecv_groupob.f90 modules/allocate_psl.f90 \
-            modules/gradient.f90 modules/sendrecvh.f90 modules/calc_invA_$(FILE_MATHLIB).f90 \
-            modules/writebox_rt.f90 modules/readbox_rt.f90 modules/sendrecv_groupob.f90 \
-            modules/sendrecv_groupob_ngp.f90 
+MOD_GCEED = scf_data.f90 allocate_mat.f90 new_world.f90 \
+            init_sendrecv.f90 sendrecv.f90 laplacian2.f90 \
+            gradient2.f90 hpsi2.f90 \
+            deallocate_mat.f90 copy_psi_mesh.f90 inner_product.f90 \
+            rmmdiis_eigen_$(FILE_MATHLIB).f90 share_mesh_1d_old.f90 \
+            read_pslfile.f90 total_energy.f90 calc_density.f90 \
+            change_order.f90 allocate_sendrecv_groupob.f90 allocate_psl.f90 \
+            gradient.f90 sendrecvh.f90 calc_invA_$(FILE_MATHLIB).f90 \
+            writebox_rt.f90 readbox_rt.f90 sendrecv_groupob.f90 \
+            sendrecv_groupob_ngp.f90 
 
 SRC_ARTED0 = main.f90 common/Exc_Cor.f90 common/Hartree.f90 common/hpsi.f90 \
             common/ion_force.f90 common/preprocessor.f90 common/psi_rho.f90 \
@@ -204,10 +218,11 @@ OBJDIR = obj
 
 OBJ_GCEED = $(addprefix $(OBJDIR)/GCEED/,$(SRC_GCEED:.f90=.o))
 OBJ_SCF_GCEED = $(addprefix $(OBJDIR)/GCEED/scf/,$(SRC_SCF_GCEED:.f90=.o))
+OBJ_SCF_LAPACK_GCEED = $(addprefix $(OBJDIR)/GCEED/scf/,$(SRC_SCF_LAPACK_GCEED:.f90=.o))
 OBJ_RT_GCEED = $(addprefix $(OBJDIR)/GCEED/rt/,$(SRC_RT_GCEED:.f90=.o))
 OBJ_COMMON_GCEED = $(addprefix $(OBJDIR)/GCEED/common/,$(SRC_COMMON_GCEED:.f90=.o))
-OBJM_GCEED = $(addprefix $(OBJDIR)/GCEED/,$(MOD_GCEED:.f90=.o))
-OBJS_GCEED = $(OBJM_GCEED) $(OBJ_SCF_GCEED) $(OBJ_RT_GCEED) $(OBJ_COMMON_GCEED) $(OBJ_GCEED)  
+OBJM_GCEED = $(addprefix $(OBJDIR)/GCEED/modules/,$(MOD_GCEED:.f90=.o))
+OBJS_GCEED = $(OBJM_GCEED) $(OBJ_SCF_LAPACK_GCEED) $(OBJ_SCF_GCEED) $(OBJ_RT_GCEED) $(OBJ_COMMON_GCEED) $(OBJ_GCEED)  
 
 OBJ_ARTED = $(addprefix $(OBJDIR)/ARTED/,$(SRC_ARTED:.f90=.o))
 C_OBJ_ARTED = $(addprefix $(OBJDIR)/ARTED/,$(C_SRC_ARTED:.c=.o))
@@ -226,8 +241,14 @@ OBJS = $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_core) $(OBJ_main)
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+
+ifeq ($(USE_SCALAPACK), yes)
+    $(TARGET): $(OBJS)
 	$(FC) $(FFLAGS) -o $@ -I $(OBJDIR) $(OBJS) $(LIBSCALAPACK)
+else
+    $(TARGET): $(OBJS)
+	$(FC) $(FFLAGS) -o $@ -I $(OBJDIR) $(OBJS) $(LIBLAPACK)
+endif
 
 $(OBJDIR)/%.o : %.f90
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
@@ -237,7 +258,7 @@ $(OBJDIR)/%.o : %.c
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-$(OBJS_GCEED): $(addprefix GCEED/,$(MOD_GCEED))
+$(OBJS_GCEED): $(addprefix GCEED/modules/,$(MOD_GCEED))
 $(OBJS_ARTED): $(addprefix ARTED/,$(MOD_ARTED))
 
 clean: 
