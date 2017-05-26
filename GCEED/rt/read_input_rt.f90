@@ -15,7 +15,7 @@
 subroutine read_input_rt(IC_rt,OC_rt,Ntime,Nenergy,dE,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
     & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
     & file_IN_rt,file_OUT_rt)
-use input
+use inputoutput
 use scf_data
 use new_world_sub
 !$ use omp_lib
@@ -76,7 +76,7 @@ if(myrank==0)then
   rewind(fh_namelist)
 end if
 call MPI_Bcast(Nenergy,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(dE,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(dE,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr); dE = dE*uenergy_to_au
 call MPI_Bcast(N_hamil,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(icalcforce,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_md,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -141,7 +141,7 @@ if(myrank==0)then
   read(fh_namelist,NML=group_propagation)
   rewind(fh_namelist)
 end if
-call MPI_Bcast(dt,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(dt,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr); dt=dt*utime_to_au
 call MPI_Bcast(Ntime,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 if(dt<=1.d-10)then
   write(*,*) "please set dt."
@@ -294,17 +294,26 @@ if(myrank==0)then
 end if
 call MPI_Bcast(ikind_eext,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(Fst,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  Fst=Fst*(uenergy_to_au/ulength_to_au)
 call MPI_Bcast(dir,3,MPI_Character,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(dir2,2,MPI_Character,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(romega,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+romega = romega*uenergy_to_au
 call MPI_Bcast(pulse_T,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+pulse_T=pulse_T*utime_to_au
 call MPI_Bcast(rlaser_I,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(tau,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+tau_1=tau_1*utime_to_au
 call MPI_Bcast(romega2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+romega2 = romega2*uenergy_to_au
 call MPI_Bcast(pulse_T2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+pulse_T2=pulse_T2*utime_to_au
 call MPI_Bcast(rlaser_I2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(tau2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+tau_2=tau_2*utime_to_au
+
 call MPI_Bcast(delay,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+delay=delay*utime_to_au
 call MPI_Bcast(rcycle,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
 !===== namelist for group_others =====

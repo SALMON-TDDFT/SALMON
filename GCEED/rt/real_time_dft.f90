@@ -1,4 +1,4 @@
-! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi
+! Copyright 2017 Shunsuke A. Sato, Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 
 MODULE global_variables_rt
-
+use inputoutput
 use scf_data
 use allocate_mat_sub
 use deallocate_mat_sub
@@ -102,13 +102,13 @@ call read_input_rt(IC_rt,OC_rt,Ntime,Nenergy,dE,file_IN,file_RT,file_alpha,file_
 if(myrank.eq.0)then
   write(*,*)
   write(*,*) "Total time step      =",Ntime
-  write(*,*) "Time step[fs]        =",dt
+  write(*,*) "Time step[fs]        =",dt*1au_time_fs
   write(*,*) "Field strength[?]    =",Fst
   if(ikind_eext <= 1)then
     write(*,*) "      direction      =  ",dir
   end if
   write(*,*) "Energy range         =",Nenergy
-  write(*,*) "Energy resolution[eV]=",dE
+  write(*,*) "Energy resolution[eV]=",dE*1au_energy_ev
   write(*,*) "ikind_eext is           ", ikind_eext
   write(*,*) "Step for writing dens=", iwdenstep
   write(*,*) "Plane showing density=", denplane
@@ -117,22 +117,24 @@ if(myrank.eq.0)then
   select case (ikind_eext)
     case(1,6,7,8,15)
       write(*,'(a21,f5.2,a4)') "Laser frequency     =",       &
-                           romega, "[eV]"
+                           romega*1au_energy_ev, "[eV]"
       write(*,'(a21,f16.8,a4)') "Pulse width of laser=",      &
-                           pulse_T,"[fs]"
+                           pulse_T*1au_time_fs,"[fs]"
       write(*,'(a21,e16.8,a8)') "Laser intensity      =",      &
                            rlaser_I, "[W/cm^2]"
       write(*,'(a21,e16.8,a8)') "tau                  =",      &
-                           tau, "[fs]"
+                           tau*1au_time_fs, "[fs]"
     case(4,12)
       write(*,'(a21,2f5.2,a4)') "Laser frequency     =",       &
-                          romega2(1),romega2(2), "[eV]"
+                          romega2(1)*1au_energy_ev &
+                          ,romega2(2)*1au_energy_ev, "[eV]"
       write(*,'(a21,2f16.8,a4)') "Pulse width of laser=",      &
-                          pulse_T2(1),pulse_T2(2),"[fs]"
+                          pulse_T2(1)*1au_time_fs&
+                          ,pulse_T2(2)*1au_time_fs,"[fs]"
       write(*,'(a21,2e16.8,a8)') "Laser intensity      =",      &
                           rlaser_I2(1),rlaser_I2(2), "[W/cm^2]"
       write(*,'(a21,f16.8,a4)') "delay time           =",      &
-                          delay, "[fs]"
+                          delay*1au_time_fs, "[fs]"
       write(*,'(a21,f16.8)') "rcycle                =",rcycle
   end select
   
@@ -160,25 +162,25 @@ select case (ikind_eext)
   case(0,10)
     Fst=Fst/5.14223d1
 end select
-dE=dE/2d0/Ry 
-dt=dt*fs2eVinv*2.d0*Ry!a.u. ! 1[fs] = 1.51925 [1/eV]  !2.d0*Ry*1.51925d0
+dE=dE !/2d0/Ry 
+dt=dt !*fs2eVinv*2.d0*Ry!a.u. ! 1[fs] = 1.51925 [1/eV]  !2.d0*Ry*1.51925d0
 
 if(idensum==0) posplane=posplane/a_B 
 
 select case (ikind_eext)
   case(1,6:8,11,15)
-    romega=romega/2.d0/Ry 
-    pulse_T=pulse_T*fs2eVinv*2.d0*Ry 
+    romega=romega !/2.d0/Ry 
+    pulse_T=pulse_T !*fs2eVinv*2.d0*Ry 
     Fst=sqrt(rlaser_I)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
-    tau=tau*fs2eVinv*2.d0*Ry 
+    tau=tau !*fs2eVinv*2.d0*Ry 
     lasbound_sta(1:3)=lasbound_sta(1:3)/a_B
     lasbound_end(1:3)=lasbound_end(1:3)/a_B
   case(4,12)
-    romega2=romega2/2.d0/Ry 
-    pulse_T2=pulse_T2*fs2eVinv*2.d0*Ry 
+    romega2=romega2 !/2.d0/Ry 
+    pulse_T2=pulse_T2 !*fs2eVinv*2.d0*Ry 
     Fst2=sqrt(rlaser_I2)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
-    tau2=tau2*fs2eVinv*2.d0*Ry 
-    delay  = delay*fs2eVinv*2.d0*Ry 
+    tau2=tau2 !*fs2eVinv*2.d0*Ry 
+    delay  = delay !*fs2eVinv*2.d0*Ry 
 end select
 
 if(iflag_fourier_omega==1)then

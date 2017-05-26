@@ -15,7 +15,7 @@
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 module inputfile
-  use input
+  use inputoutput
   implicit none
   
   
@@ -240,7 +240,7 @@ contains
     call comm_bcast(functional, proc_group(1))
     call comm_bcast(cval, proc_group(1))
     call comm_bcast(propagator,proc_group(1))
-    call comm_bcast(aL, proc_group(1))
+    call comm_bcast(aL, proc_group(1)); aL = aL*ulength_to_au ! convert to a.u.
     call comm_bcast(ax, proc_group(1))
     call comm_bcast(ay, proc_group(1))
     call comm_bcast(az, proc_group(1))
@@ -262,7 +262,7 @@ contains
     call comm_bcast(NKz, proc_group(1))
     call comm_bcast(file_kw, proc_group(1))
     call comm_bcast(Nt, proc_group(1))
-    call comm_bcast(dt, proc_group(1))
+    call comm_bcast(dt, proc_group(1)); dt = dt*utime_to_au ! convert to a.u.
     call comm_bcast(ps_format, proc_group(1))
     call comm_bcast(PSmask_option, proc_group(1))
     call comm_bcast(alpha_mask, proc_group(1))
@@ -279,7 +279,7 @@ contains
     call comm_bcast(NFSset_every, proc_group(1))
     call comm_bcast(Nscf, proc_group(1))
     call comm_bcast(Longi_Trans, proc_group(1))
-    call comm_bcast(dAc, proc_group(1))
+    call comm_bcast(dAc, proc_group(1)); dAc = dAc*(uenergy_to_au/ulength_to_au)
     call comm_bcast(AE_shape, proc_group(1))
     call comm_bcast(IWcm2_1, proc_group(1))
     call comm_bcast(tpulsefs_1, proc_group(1))
@@ -293,13 +293,13 @@ contains
     call comm_bcast(Epdir_2, proc_group(1))
     call comm_bcast(T1_T2fs, proc_group(1))
     call comm_bcast(Nomega, proc_group(1))
-    call comm_bcast(domega, proc_group(1))
+    call comm_bcast(domega, proc_group(1)); domega=domega*uenergy_to_au
     call comm_bcast(FDTDdim, proc_group(1))
     call comm_bcast(TwoD_shape, proc_group(1))
     call comm_bcast(NX_m, proc_group(1))
     call comm_bcast(NY_m, proc_group(1))
-    call comm_bcast(HX_m, proc_group(1))
-    call comm_bcast(HY_m, proc_group(1))
+    call comm_bcast(HX_m, proc_group(1)); HX_m=HX_m*ulength_to_au
+    call comm_bcast(HY_m, proc_group(1)); HY_m=HY_m*ulength_to_au
     call comm_bcast(NKsplit, proc_group(1))
     call comm_bcast(NXYsplit, proc_group(1))
     call comm_bcast(NXvacL_m, proc_group(1))
