@@ -18,9 +18,9 @@ module inputoutput
 
   implicit none
 !Physical constant
-  real(8),parameter :: 1au_time_fs = 0.02418884326505d0
-  real(8),parameter :: 1au_energy_ev = 27.21138505d0
-  real(8),parameter :: 1au_length_aa = 0.52917721067d0
+  real(8),parameter :: au_time_fs = 0.02418884326505d0
+  real(8),parameter :: au_energy_ev = 27.21138505d0
+  real(8),parameter :: au_length_aa = 0.52917721067d0
 
 
   integer, parameter :: fh_namelist = 901
@@ -43,10 +43,11 @@ module inputoutput
   integer :: inml_multiscale
 
 !Input/Output units
-  character(16) :: unit_time,unit_length,unit_energy
+  character(16) :: unit_time,unit_length,unit_energy,unit_charge
   real(8) :: utime_to_au, utime_from_au
-  real(8) :: length_to_au, length_from_au
-  real(8) :: energy_to_au, energy_from_au
+  real(8) :: ulength_to_au, ulength_from_au
+  real(8) :: uenergy_to_au, uenergy_from_au
+  real(8) :: ucharge_to_au, ucharge_from_au
 
 contains
 
@@ -114,11 +115,12 @@ contains
   end subroutine read_stdin
 
   subroutine read_input_common(myrank,cfunction)
+    implicit none
     include 'mpif.h'
     integer,intent(in) :: myrank
     character(30),intent(out) :: cfunction
     integer :: ierr
-    implicit none
+
 
     namelist/group_function/ cfunction
     namelist/units/ &
@@ -137,6 +139,7 @@ contains
       unit_time='au'
       unit_length='au'
       unit_energy='au'
+      unit_charge='au'
       read(fh_namelist, nml=units, iostat=inml_units)
       rewind(fh_namelist)
 
@@ -164,11 +167,10 @@ contains
       utime_to_au   = 1d0
       utime_from_au = 1d0
     case('fs','femtosecond')
-      utime_to_au   = 1d0/1au_time_fs
-      utime_from_au = 1au_time_fs
+      utime_to_au   = 1d0/au_time_fs
+      utime_from_au = au_time_fs
     case default
-      if(myrank == 0)write(*,*)"Invalid unit for time."
-      stop
+      stop "Invalid unit for time."
     end select
 
 ! Unit for length
@@ -177,11 +179,10 @@ contains
       ulength_to_au   = 1d0
       ulength_from_au = 1d0
     case('AA','angstrom','Angstrom')
-      ulength_to_au   = 1d0/1au_length_aa
-      ulength_from_au = 1au_length_aa
+      ulength_to_au   = 1d0/au_length_aa
+      ulength_from_au = au_length_aa
     case default
-      if(myrank == 0)write(*,*)"Invalid unit for length."
-      stop
+      stop "Invalid unit for length."
     end select
 
 ! Unit for energy
@@ -190,11 +191,19 @@ contains
       uenergy_to_au   = 1d0
       uenergy_from_au = 1d0
     case('ev','eV')
-      uenergy_to_au   = 1d0/1au_energy_ev
-      uenergy_from_au = 1au_energy_ev
+      uenergy_to_au   = 1d0/au_energy_ev
+      uenergy_from_au = au_energy_ev
     case default
-      if(myrank == 0)write(*,*)"Invalid unit for energy."
-      stop
+      stop "Invalid unit for energy."
+    end select
+
+! Unit for charge
+    select case(unit_charge)
+    case('au','a.u.')
+      ucharge_to_au   = 1d0
+      ucharge_from_au = 1d0
+    case default
+      stop "Invalid unit for time."
     end select
 
   end subroutine initialize_inputoutput_units

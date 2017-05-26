@@ -153,7 +153,7 @@ if(Ntime==0)then
 end if
 
 !===== namelist for group_hartree =====
-Hconv=1.d-12
+Hconv=1.d-12*(uenergy_from_au/au_energy_ev) ! [eV]
 num_pole_xyz(1:3)=1
 MEO=2
 lmax_MEO=4
@@ -170,12 +170,13 @@ if(myrank==0)then
   end if
 end if
 call MPI_Bcast(Hconv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3     ! Convergence criterion
 call MPI_Bcast(MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(num_pole_xyz,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(lmax_MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
 num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
-Hconv  = Hconv/(2d0*Ry)**2d0/a_B**3     ! Convergence criterion
+!Hconv  = Hconv/(2d0*Ry)**2d0/a_B**3     ! Convergence criterion
 
 !===== namelist for group_file =====
 IC=1
@@ -221,7 +222,7 @@ end if
 
 !===== namelist for group_extfield =====
 ikind_eext=-1
-Fst=0.25d0
+Fst=0.25d0*(au_length_aa/au_energy_ev)*(uenergy_from_au/ulength_from_au)
 dir='w'
 dir2='w+'
 romega=0.d0
@@ -303,14 +304,14 @@ call MPI_Bcast(pulse_T,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 pulse_T=pulse_T*utime_to_au
 call MPI_Bcast(rlaser_I,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(tau,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-tau_1=tau_1*utime_to_au
+tau=tau*utime_to_au
 call MPI_Bcast(romega2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 romega2 = romega2*uenergy_to_au
 call MPI_Bcast(pulse_T2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 pulse_T2=pulse_T2*utime_to_au
 call MPI_Bcast(rlaser_I2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(tau2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-tau_2=tau_2*utime_to_au
+tau=tau*utime_to_au
 
 call MPI_Bcast(delay,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 delay=delay*utime_to_au
@@ -319,8 +320,8 @@ call MPI_Bcast(rcycle,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 !===== namelist for group_others =====
 
 iparaway_ob=2
-lasbound_sta(:)=-1.d7
-lasbound_end(:)=1.d7
+lasbound_sta(:)=-1.d7/au_length_aa*ulength_from_au
+lasbound_end(:)=1.d7/au_length_aa*ulength_from_au
 num_projection=1
 do ii=1,200
   iwrite_projection_ob(ii)=ii
@@ -352,17 +353,22 @@ call MPI_Bcast(iwrite_projection_ob,200,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iwrite_projection_k,200,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(filename_pot,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(lasbound_sta,3,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+lasbound_sta = lasbound_sta *ulength_to_au
 call MPI_Bcast(lasbound_end,3,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+lasbound_end = lasbound_end *ulength_to_au
 call MPI_Bcast(iwrite_external,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_dip2,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_quadrupole,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_intelectron,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(num_dip2,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(dip2boundary,100,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+dip2boundary = dip2boundary*ulength_to_au
 call MPI_Bcast(dip2center,100,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+dip2center = dip2center*ulength_to_au
 call MPI_Bcast(iflag_fourier_omega,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(num_fourier_omega,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(fourier_omega,200,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+fourier_omega = fourier_omega*uenergy_to_au
 call MPI_Bcast(itotNtime2,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iwdenoption,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iwdenstep,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -376,7 +382,7 @@ else if(iflag_dip2==1)then
   allocate(rto(1:num_dip2-1))
   allocate(idip2int(1:num_dip2-1))
 
-  dip2center(:)=dip2center(:)/a_B
+!  dip2center(:)=dip2center(:)/a_B
 end if
 
 if(myrank==0)then

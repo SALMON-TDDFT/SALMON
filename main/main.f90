@@ -1,5 +1,5 @@
 program main
-  use input
+  use inputoutput
   implicit none
   integer :: nprocs,myrank
   character(30) :: cfunction
