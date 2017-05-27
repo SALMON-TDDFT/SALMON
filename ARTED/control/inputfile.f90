@@ -346,21 +346,27 @@ contains
 !Note; NI = MI, NE = MKI
 
     allocate(Zatom(NE), Lref(NE))
-    do i=1, NE
-      Zatom(i) = iZatom(i)
-      Lref(i) = Lloc_ps(i)
 
-      select case(ps_format(i))
-      case('default')
-      case('KY')        ; ipsfileform(i)=n_Yabana_Bertsch_psformat
-      case('ABINIT')    ; ipsfileform(i)=n_ABINIT_psformat
-      case('FHI')       ; ipsfileform(i)=n_FHI_psformat
-      case('ABINITFHI') ; ipsfileform(i)=n_ABINITFHI_psformat
-      case default
-        call err_finalize('Invalid ps_format')
-      end select
+    if (comm_is_root()) then
+       do i=1, NE
+          Zatom(i) = iZatom(i)
+          Lref(i) = Lloc_ps(i)
 
-    end do
+          select case(ps_format(i))
+          case('default')
+          case('KY')        ; ipsfileform(i)=n_Yabana_Bertsch_psformat
+          case('ABINIT')    ; ipsfileform(i)=n_ABINIT_psformat
+          case('FHI')       ; ipsfileform(i)=n_FHI_psformat
+          case('ABINITFHI') ; ipsfileform(i)=n_ABINITFHI_psformat
+          case default
+             call err_finalize('Invalid ps_format')
+          end select
+       end do
+    end if
+
+    call comm_bcast(Zatom, proc_group(1))
+    call comm_bcast(Lref, proc_group(1))
+    call comm_bcast(ipsfileform, proc_group(1))
 
 !    if (comm_is_root()) then
 !      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='old')

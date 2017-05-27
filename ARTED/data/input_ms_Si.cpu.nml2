@@ -22,8 +22,6 @@
 	Nelec=32
 	MD_option='N'
 	AD_RHO='No'
-	NE=1
-	NI=8
 	/
 &propagation
 	propagator='etrs'
@@ -44,7 +42,6 @@
 	dt=0.08
 	/
 &pseudo
-	ps_format='KY'
 	PSmask_option='n'
 	alpha_mask=0.8d0
 	gamma_mask=1.8d0
@@ -93,9 +90,13 @@
 	NXvacL_m=-2000
 	NXvacR_m=256
 	/
-&atomic_spiecies
-	1	14	2
-	/
+&group_atom
+  MI=8
+  MKI=1
+  iZatom(1)=14
+  ps_format(1)='KY'
+  Lloc_ps(1)=2
+/
 &atomic_positions
 	1	.0	.0	.0	1
 	2	.25	.25	.25	1

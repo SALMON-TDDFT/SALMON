@@ -23,8 +23,6 @@
 	ext_field='LF'
 	MD_option='N'
 	AD_RHO='No'
-	NE=2
-	NI=18
 	/
 &propagation
 	propagator='etrs'
@@ -45,7 +43,6 @@
 	dt=0.04
 	/
 &pseudo
-	ps_format='KY'
 	PSmask_option='n'
 	alpha_mask=0.8d0
 	gamma_mask=1.8d0
@@ -85,10 +82,16 @@
 	/
 &multiscale
 	/
-&atomic_spiecies
-	1	14	2
-	2	8	1
-	/
+&group_atom
+  MI=14
+  MKI=2
+  iZatom(1)=14
+  ps_format(1)='KY'
+  Lloc_ps(1)=2
+  iZatom(2)=8
+  ps_format(2)='KY'
+  Lloc_ps(2)=1
+/
 &atomic_positions
 	1	.9701	.5000	.0000	1
 	2	.2649	.7350	.6667	1
