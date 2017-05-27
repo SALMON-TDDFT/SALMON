@@ -246,7 +246,7 @@ contains
       read(fh_namelist, nml=multiscale, iostat=inml_multiscale)
       rewind(fh_namelist)
       file_atoms_coo='none' ! defaylt
-      read(fh_namelist, nml=group_atom iostat=inml_group_atom)
+      read(fh_namelist, nml=group_atom, iostat=inml_group_atom)
       close(fh_namelist)
     end if
     
@@ -330,7 +330,7 @@ contains
     call comm_bcast(file_atoms_coo, proc_group(1))
     call comm_bcast(Lmax_ps, proc_group(1))
     call comm_bcast(Lloc_ps, proc_group(1))
-    call comm_bcast(ps_format, proc_group(1))
+!    call comm_bcast(ps_format, proc_group(1)) ! Implementation for bcast of character-array is needed.
 
     call comm_sync_all()
     return
@@ -350,12 +350,12 @@ contains
       Zatom(i) = iZatom(i)
       Lref(i) = Lloc_ps(i)
 
-      select case(ps_format(iatom))
+      select case(ps_format(i))
       case('default')
-      case('KY')        ; ipsfileform(iatom)=n_Yabana_Bertsch_psformat
-      case('ABINIT')    ; ipsfileform(iatom)=n_ABINIT_psformat
-      case('FHI')       ; ipsfileform(iatom)=n_FHI_psformat
-      case('ABINITFHI') ; ipsfileform(iatom)=n_ABINITFHI_psformat
+      case('KY')        ; ipsfileform(i)=n_Yabana_Bertsch_psformat
+      case('ABINIT')    ; ipsfileform(i)=n_ABINIT_psformat
+      case('FHI')       ; ipsfileform(i)=n_FHI_psformat
+      case('ABINITFHI') ; ipsfileform(i)=n_ABINITFHI_psformat
       case default
         call err_finalize('Invalid ps_format')
       end select

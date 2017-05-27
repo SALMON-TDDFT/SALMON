@@ -56,7 +56,7 @@ contains
     
     if (myrank == 0) then
       open(fh_namelist, file='.namelist.tmp', status='replace')
-      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
+!      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
       open(fh_atomic_positions, file='.atomic_positions.tmp', status='replace')
       open(fh_reentrance, file='.reenetrance.tmp', status='replace')
       
@@ -68,11 +68,11 @@ contains
           text = trim(adjustl(buff))
           ! Comment lines
           if (text(1:1) == '!') cycle
-          ! Beginning of 'atomic_species' part
-          if (text == '&atomic_spiecies') then
-            cur = fh_atomic_spiecies
-            cycle
-          end if
+!          ! Beginning of 'atomic_species' part
+!          if (text == '&atomic_spiecies') then
+!            cur = fh_atomic_spiecies
+!            cycle
+!          end if
           ! Beginning of 'atomic_positions' part
           if (text == '&atomic_positions') then
             cur = fh_atomic_positions
@@ -94,7 +94,7 @@ contains
       end do
       close(fh_namelist)
       close(fh_atomic_positions)
-      close(fh_atomic_spiecies)
+!      close(fh_atomic_spiecies)
       close(fh_reentrance)
     end if
 

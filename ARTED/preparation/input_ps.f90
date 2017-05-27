@@ -15,6 +15,8 @@
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine input_pseudopotential_YS
+  use salmon_global,only : ipsfileform,n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
+    &,n_ABINITFHI_psformat,n_FHI_psformat,ps_format
   use Global_Variables,only : Pi,Zatom,Mass,NE,directory,ps_format,PSmask_option&
        &,Nrmax,Lmax,Mlps,Lref,Zps,NRloc,NRps,inorm&
        &,rad,Rps,vloctbl,udVtbl,radnl,Rloc,anorm,dvloctbl,dudVtbl &
@@ -23,7 +25,7 @@ Subroutine input_pseudopotential_YS
   implicit none
   integer,parameter :: Lmax0=4,Nrmax0=50000
   real(8),parameter :: Eps0=1d-10
-  integer :: ik,Mr,l,i
+  integer :: ik,Mr,l,i,ik2
   real(8) :: rRC(0:Lmax0)
   real(8) :: r1,r2,r3,r4
   real(8) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)   !zero in radial index for taking derivative
@@ -145,7 +147,7 @@ Subroutine input_pseudopotential_YS
 
       write(*,*) '===================pseudopotential data==================='
       write(*,*) 'ik ,atom_symbol=',ik, atom_symbol
-      write(*,*) 'ps_format =',ps_format
+      write(*,*) 'ps_format =',ps_format(ik)
       write(*,*) 'ps_file =',ps_file
 
       select case (ipsfileform(ik))
@@ -211,7 +213,7 @@ Subroutine input_pseudopotential_YS
         stop 'Wrong PSmask_option at input_pseudopotential_YS'
       end if
 
-      open(4,file=trim(directory)//"PS_"//trim(atom_symbol)//"_"//trim(ps_format)//"_"//trim(PSmask_option)//".dat")
+      open(4,file=trim(directory)//"PS_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//"_"//trim(PSmask_option)//".dat")
       write(4,*) "# Mr=",Mr
       write(4,*) "# Rps(ik), NRps(ik)",Rps(ik), NRps(ik)
       write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
@@ -285,7 +287,7 @@ Subroutine input_pseudopotential_YS
         dvpploc(Mr)=dvpploc(Mr-1)+(dvpploc(Mr-1)-dvpploc(Mr-2))/(rad(Mr,ik)-rad(Mr-1,ik))*(rad(Mr+1,ik)-rad(Mr,ik))
       end do
 
-      open(4,file="PSbeforemask_"//trim(atom_symbol)//"_"//trim(ps_format)//".dat")
+      open(4,file="PSbeforemask_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
       write(4,*) "# Mr =",Mr
       write(4,*) "# Rps(ik), NRps(ik)",Rps(ik), NRps(ik)
       write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
@@ -296,7 +298,7 @@ Subroutine input_pseudopotential_YS
 
       call PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
 
-      open(4,file="PSaftermask_"//trim(atom_symbol)//"_"//trim(ps_format)//".dat")
+      open(4,file="PSaftermask_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
       write(4,*) "# Mr =",Mr
       write(4,*) "# Rps(ik), NRps(ik)",Rps(ik), NRps(ik)
       write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
@@ -400,7 +402,8 @@ Subroutine input_pseudopotential_YS
 End Subroutine input_pseudopotential_YS
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
-  use Global_Variables,only :Pi,Hx,Hy,Hz,rad,Rps,NRps,Mlps,Lref,ps_format,alpha_mask,gamma_mask,eta_mask
+  use salmon_global,only :ps_format
+  use Global_Variables,only :Pi,Hx,Hy,Hz,rad,Rps,NRps,Mlps,Lref,alpha_mask,gamma_mask,eta_mask
   implicit none
 !argument
   integer,intent(in) :: Nrmax0,Lmax0,Mr,ik
@@ -456,7 +459,7 @@ Subroutine PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
     end do
   end do
 
-  open(4,file="PSFourier_"//trim(atom_symbol)//"_"//trim(ps_format)//".dat")
+  open(4,file="PSFourier_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
   write(4,*) "# Kmax, NKmax =",Kmax,NKmax
   write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
   write(4,*) "#  Pi/max(Hx,Hy,Hz) =", Pi/max(Hx,Hy,Hz)
@@ -779,19 +782,19 @@ Subroutine Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
   if(Mr.gt.Nrmax0) stop 'Mr>Nrmax0 at Read_PS_ABINIT'
   if(Mlps(ik).gt.Lmax0) stop 'Mlps(ik)>Lmax0 at Read_PS_ABINIT'
   if(Mlps(ik).gt.Lmax) stop 'Mlps(ik)>Lmax at Read_PS_ABINIT'
-  do ll=0,lmaxabinit
+  do ll=0,Mlps(ik)
     read(4,*) l,e99_0,e99_9,nproj,rcpsp
     read(4,*) rms,ekb1,ekb2,epsatm
     rRC(ll) = rcpsp
   end do
   read(4,*) rchrg,fchrg,qchrg
-  do ll=0,lmaxabinit
+  do ll=0,Mlps(ik)
     read(4,*) dummy_text
     do i=1,(Mr+1)/3
       read(4,*) vpp(3*(i-1),ll),vpp(3*(i-1)+1,ll),vpp(3*(i-1)+2,ll)
     end do
   end do
-  do ll=0,lmaxabinit
+  do ll=0,Mlps(ik)
     read(4,*) dummy_text
     do i=1,(Mr+1)/3
       read(4,*) upp(3*(i-1),ll),upp(3*(i-1)+1,ll),upp(3*(i-1)+2,ll)

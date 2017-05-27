@@ -2,6 +2,7 @@ set(TARGET_NAME   salmon_module)
 
 set(SOURCES
     input.f90
+    salmon_global.f90
 )
 
 add_library(${TARGET_NAME} STATIC ${SOURCES})
