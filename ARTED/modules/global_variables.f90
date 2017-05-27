@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 Module Global_Variables
+  use salmon_global
 !ARTED version
   character(50),parameter :: ARTED_ver='ARTED.1.6.0 (based on 2014.08.10.2)'
 
@@ -51,7 +52,6 @@ Module Global_Variables
 ! pseudopotential
   integer,parameter :: Nrmax=3000,Lmax=4
   character(2) :: ps_type
-  character(10) :: ps_format !shinohara
   character(1) :: PSmask_option = 'n' !shinohara
   real(8) :: alpha_mask = 0.8d0 , gamma_mask = 1.8d0, eta_mask = 15.d0 !shinohara
   integer :: Nps,Nlma

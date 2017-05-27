@@ -33,6 +33,7 @@ module input
   integer :: inml_pseudo
   integer :: inml_response
   integer :: inml_multiscale
+  integer :: inml_group_atom
 
 
 

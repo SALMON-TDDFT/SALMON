@@ -1,5 +1,4 @@
-! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi
-!
+! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi                Shunsuke A. Sato
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
 ! You may obtain a copy of the License at
@@ -20,12 +19,11 @@
 !**********************************************************************************
 
 MODULE scf_data
-
+use salmon_global
 implicit none
 include 'mpif.h'
 !-------------------- Parameters
 integer, parameter :: maxntmg=10
-integer, parameter :: maxMKI=10
 
 ! Physical constants
 real(8),parameter :: E2=14.4d0, H2M=3.81d0, a_B=0.529177d0
@@ -167,15 +165,13 @@ integer :: istopt
 
 integer :: ntmg
 
-integer :: MI,MKI,MST(2),ifMST(2),itotMST
+integer :: MST(2),ifMST(2),itotMST
 integer :: itotfMST
 integer :: MST0(2),itotMST0
 integer :: Mx(3),Mxin(3),Mxin_old(3)
 
 integer,allocatable :: Kion(:)    ! Label for ions
 real(8),allocatable :: Rion(:,:)  ! Ion coordinates
-integer :: iZatom(maxMKI)   ! Charge of ion
-integer :: ipsfileform(maxMKI)   ! file format for pseudo potential
 character(8),allocatable :: AtomName(:)   
 integer,allocatable :: iAtomicNumber(:)   
 integer,allocatable :: istopt_a(:)    
