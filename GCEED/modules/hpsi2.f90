@@ -1,5 +1,5 @@
-! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi
-!
+! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi,
+!                Shunsuke A. Sato
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
 ! You may obtain a copy of the License at
@@ -211,7 +211,7 @@ call calc_laplacian2(wk2,rlap_wk)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)
-  htpsi(ix,iy,iz)=htpsi(ix,iy,iz)-1d0/2d0*rlap_wk(ix,iy,iz)
+  htpsi(ix,iy,iz)=htpsi(ix,iy,iz)-0.5d0*rlap_wk(ix,iy,iz)
 end do                         
 end do
 end do
@@ -349,18 +349,18 @@ if(isub==0)then
   do iy=iwk3sta(2),iwk3end(2)
   do ix=iwk3sta(1),iwk3end(1)
     htpsi(ix,iy,iz)=(Vlocal(ix,iy,iz,ispin)+fdN0)*tpsi(ix,iy,iz)     &
-      +fdN1(1,1)*tpsi(ix+1,iy,iz) + fdN1(1,1)*tpsi(ix-1,iy,iz)      &
-      +fdN1(1,2)*tpsi(ix,iy+1,iz) + fdN1(1,2)*tpsi(ix,iy-1,iz)      &
-      +fdN1(1,3)*tpsi(ix,iy,iz+1) + fdN1(1,3)*tpsi(ix,iy,iz-1)      &
-      +fdN1(2,1)*tpsi(ix+2,iy,iz) + fdN1(2,1)*tpsi(ix-2,iy,iz)      &
-      +fdN1(2,2)*tpsi(ix,iy+2,iz) + fdN1(2,2)*tpsi(ix,iy-2,iz)      &
-      +fdN1(2,3)*tpsi(ix,iy,iz+2) + fdN1(2,3)*tpsi(ix,iy,iz-2)      &
-      +fdN1(3,1)*tpsi(ix+3,iy,iz) + fdN1(3,1)*tpsi(ix-3,iy,iz)      &
-      +fdN1(3,2)*tpsi(ix,iy+3,iz) + fdN1(3,2)*tpsi(ix,iy-3,iz)      &
-      +fdN1(3,3)*tpsi(ix,iy,iz+3) + fdN1(3,3)*tpsi(ix,iy,iz-3)      &
-      +fdN1(4,1)*tpsi(ix+4,iy,iz) + fdN1(4,1)*tpsi(ix-4,iy,iz)      &
-      +fdN1(4,2)*tpsi(ix,iy+4,iz) + fdN1(4,2)*tpsi(ix,iy-4,iz)      &
-      +fdN1(4,3)*tpsi(ix,iy,iz+4) + fdN1(4,3)*tpsi(ix,iy,iz-4) 
+      +fdN1(1,1)*(tpsi(ix+1,iy,iz) + tpsi(ix-1,iy,iz))      &
+      +fdN1(1,2)*(tpsi(ix,iy+1,iz) + tpsi(ix,iy-1,iz))      &
+      +fdN1(1,3)*(tpsi(ix,iy,iz+1) + tpsi(ix,iy,iz-1))      &
+      +fdN1(2,1)*(tpsi(ix+2,iy,iz) + tpsi(ix-2,iy,iz))      &
+      +fdN1(2,2)*(tpsi(ix,iy+2,iz) + tpsi(ix,iy-2,iz))      &
+      +fdN1(2,3)*(tpsi(ix,iy,iz+2) + tpsi(ix,iy,iz-2))      &
+      +fdN1(3,1)*(tpsi(ix+3,iy,iz) + tpsi(ix-3,iy,iz))      &
+      +fdN1(3,2)*(tpsi(ix,iy+3,iz) + tpsi(ix,iy-3,iz))      &
+      +fdN1(3,3)*(tpsi(ix,iy,iz+3) + tpsi(ix,iy,iz-3))      &
+      +fdN1(4,1)*(tpsi(ix+4,iy,iz) + tpsi(ix-4,iy,iz))      &
+      +fdN1(4,2)*(tpsi(ix,iy+4,iz) + tpsi(ix,iy-4,iz))      &
+      +fdN1(4,3)*(tpsi(ix,iy,iz+4) + tpsi(ix,iy,iz-4)) 
   end do
   end do
   end do

@@ -1,5 +1,5 @@
 ! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi
-!
+!                Shunsuke A. Sato
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
 ! You may obtain a copy of the License at
@@ -91,14 +91,14 @@ if(Nd==4)then
       do ix=iwk3sta(1),iwk3end(1)
         htpsi(ix,iy,iz,iob,1) =   &
           ( tVlocal(ix,iy,iz,ispin)+fdN0)*tpsi(ix,iy,iz,iob,1)  &
-          +fdN1(1,1)* tpsi(ix+1,iy,iz,iob,1) + fdN1(1,1)* tpsi(ix-1,iy,iz,iob,1)  &
-          +fdN1(2,1)* tpsi(ix+2,iy,iz,iob,1) + fdN1(2,1)* tpsi(ix-2,iy,iz,iob,1)  &
-          +fdN1(3,1)* tpsi(ix+3,iy,iz,iob,1) + fdN1(3,1)* tpsi(ix-3,iy,iz,iob,1)  &
-          +fdN1(4,1)* tpsi(ix+4,iy,iz,iob,1) + fdN1(4,1)* tpsi(ix-4,iy,iz,iob,1)  &
-          +fdN1(1,2)* tpsi(ix,iy+1,iz,iob,1) + fdN1(1,2)* tpsi(ix,iy-1,iz,iob,1)  &
-          +fdN1(2,2)* tpsi(ix,iy+2,iz,iob,1) + fdN1(2,2)* tpsi(ix,iy-2,iz,iob,1)  &
-          +fdN1(3,2)* tpsi(ix,iy+3,iz,iob,1) + fdN1(3,2)* tpsi(ix,iy-3,iz,iob,1)  &
-          +fdN1(4,2)* tpsi(ix,iy+4,iz,iob,1) + fdN1(4,2)* tpsi(ix,iy-4,iz,iob,1)  
+          +fdN1(1,1)*(tpsi(ix+1,iy,iz,iob,1) + tpsi(ix-1,iy,iz,iob,1))  &
+          +fdN1(2,1)*(tpsi(ix+2,iy,iz,iob,1) + tpsi(ix-2,iy,iz,iob,1))  &
+          +fdN1(3,1)*(tpsi(ix+3,iy,iz,iob,1) + tpsi(ix-3,iy,iz,iob,1))  &
+          +fdN1(4,1)*(tpsi(ix+4,iy,iz,iob,1) + tpsi(ix-4,iy,iz,iob,1))  &
+          +fdN1(1,2)*(tpsi(ix,iy+1,iz,iob,1) + tpsi(ix,iy-1,iz,iob,1))  &
+          +fdN1(2,2)*(tpsi(ix,iy+2,iz,iob,1) + tpsi(ix,iy-2,iz,iob,1))  &
+          +fdN1(3,2)*(tpsi(ix,iy+3,iz,iob,1) + tpsi(ix,iy-3,iz,iob,1))  &
+          +fdN1(4,2)*(tpsi(ix,iy+4,iz,iob,1) + tpsi(ix,iy-4,iz,iob,1))  
       end do
       end do
 !$OMP end do nowait
@@ -106,10 +106,10 @@ if(Nd==4)then
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
         htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)  &
-          +fdN1(1,3)* tpsi(ix,iy,iz+1,iob,1) + fdN1(1,3)* tpsi(ix,iy,iz-1,iob,1)  &
-          +fdN1(2,3)* tpsi(ix,iy,iz+2,iob,1) + fdN1(2,3)* tpsi(ix,iy,iz-2,iob,1)  &
-          +fdN1(3,3)* tpsi(ix,iy,iz+3,iob,1) + fdN1(3,3)* tpsi(ix,iy,iz-3,iob,1)  &
-          +fdN1(4,3)* tpsi(ix,iy,iz+4,iob,1) + fdN1(4,3)* tpsi(ix,iy,iz-4,iob,1)
+          +fdN1(1,3)*(tpsi(ix,iy,iz+1,iob,1) + tpsi(ix,iy,iz-1,iob,1))  &
+          +fdN1(2,3)*(tpsi(ix,iy,iz+2,iob,1) + tpsi(ix,iy,iz-2,iob,1))  &
+          +fdN1(3,3)*(tpsi(ix,iy,iz+3,iob,1) + tpsi(ix,iy,iz-3,iob,1))  &
+          +fdN1(4,3)*(tpsi(ix,iy,iz+4,iob,1) + tpsi(ix,iy,iz-4,iob,1))
       end do
       end do
 !$OMP end do nowait
@@ -134,8 +134,8 @@ else
         htpsi(ix,iy,iz,iob,1) = (tVlocal(ix,iy,iz,ispin)+fdN0) *tpsi(ix,iy,iz,iob,1)  
         do ist=1,Nd  
           htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)         &
-            +fdN1(ist,1)* tpsi(ix+ist,iy,iz,iob,1) + fdN1(ist,1)* tpsi(ix-ist,iy,iz,iob,1)     &
-            +fdN1(ist,2)* tpsi(ix,iy+ist,iz,iob,1) + fdN1(ist,2)* tpsi(ix,iy-ist,iz,iob,1)
+            +fdN1(ist,1)* (tpsi(ix+ist,iy,iz,iob,1) + tpsi(ix-ist,iy,iz,iob,1))     &
+            +fdN1(ist,2)* (tpsi(ix,iy+ist,iz,iob,1) + tpsi(ix,iy-ist,iz,iob,1))
         end do 
       end do
       end do
@@ -145,7 +145,7 @@ else
       do ix=iwk3sta(1),iwk3end(1)
         do ist=1,Nd  
           htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)  &
-            +fdN1(ist,3)* tpsi(ix,iy,iz+ist,iob,1) + fdN1(ist,3)* tpsi(ix,iy,iz-ist,iob,1)
+            +fdN1(ist,3)* (tpsi(ix,iy,iz+ist,iob,1) + tpsi(ix,iy,iz-ist,iob,1))
         end do 
       end do
       end do
