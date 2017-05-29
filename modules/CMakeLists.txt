@@ -1,7 +1,7 @@
 set(TARGET_NAME   salmon_module)
 
 set(SOURCES
-    input.f90
+    inputoutput.f90
     salmon_global.f90
 )
 

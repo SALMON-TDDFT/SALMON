@@ -1,20 +1,20 @@
-! Copyright 2017 Katsuyuki Nobusada, Masashi Noda, Kazuya Ishimura, Kenji Iida, Maiku Yamaguchi
 !
-! Licensed under the Apache License, Version 2.0 (the "License");
-! you may not use this file except in compliance with the License.
-! You may obtain a copy of the License at
+!  Copyright 2017 SALMON developers
 !
-!     http://www.apache.org/licenses/LICENSE-2.0
+!  Licensed under the Apache License, Version 2.0 (the "License");
+!  you may not use this file except in compliance with the License.
+!  You may obtain a copy of the License at
 !
-! Unless required by applicable law or agreed to in writing, software
-! distributed under the License is distributed on an "AS IS" BASIS,
-! WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-! See the License for the specific language governing permissions and
-! limitations under the License.
-
-
+!      http://www.apache.org/licenses/LICENSE-2.0
+!
+!  Unless required by applicable law or agreed to in writing, software
+!  distributed under the License is distributed on an "AS IS" BASIS,
+!  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+!  See the License for the specific language governing permissions and
+!  limitations under the License.
+!
 MODULE global_variables_rt
-
+use inputoutput
 use scf_data
 use allocate_mat_sub
 use deallocate_mat_sub
@@ -102,13 +102,13 @@ call read_input_rt(IC_rt,OC_rt,Ntime,Nenergy,dE,file_IN,file_RT,file_alpha,file_
 if(myrank.eq.0)then
   write(*,*)
   write(*,*) "Total time step      =",Ntime
-  write(*,*) "Time step[fs]        =",dt
+  write(*,*) "Time step[fs]        =",dt*au_time_fs
   write(*,*) "Field strength[?]    =",Fst
   if(ikind_eext <= 1)then
     write(*,*) "      direction      =  ",dir
   end if
   write(*,*) "Energy range         =",Nenergy
-  write(*,*) "Energy resolution[eV]=",dE
+  write(*,*) "Energy resolution[eV]=",dE*au_energy_ev
   write(*,*) "ikind_eext is           ", ikind_eext
   write(*,*) "Step for writing dens=", iwdenstep
   write(*,*) "Plane showing density=", denplane
@@ -117,37 +117,39 @@ if(myrank.eq.0)then
   select case (ikind_eext)
     case(1,6,7,8,15)
       write(*,'(a21,f5.2,a4)') "Laser frequency     =",       &
-                           romega, "[eV]"
+                           romega*au_energy_ev, "[eV]"
       write(*,'(a21,f16.8,a4)') "Pulse width of laser=",      &
-                           pulse_T,"[fs]"
+                           pulse_T*au_time_fs,"[fs]"
       write(*,'(a21,e16.8,a8)') "Laser intensity      =",      &
                            rlaser_I, "[W/cm^2]"
       write(*,'(a21,e16.8,a8)') "tau                  =",      &
-                           tau, "[fs]"
+                           tau*au_time_fs, "[fs]"
     case(4,12)
       write(*,'(a21,2f5.2,a4)') "Laser frequency     =",       &
-                          romega2(1),romega2(2), "[eV]"
+                          romega2(1)*au_energy_ev &
+                          ,romega2(2)*au_energy_ev, "[eV]"
       write(*,'(a21,2f16.8,a4)') "Pulse width of laser=",      &
-                          pulse_T2(1),pulse_T2(2),"[fs]"
+                          pulse_T2(1)*au_time_fs&
+                          ,pulse_T2(2)*au_time_fs,"[fs]"
       write(*,'(a21,2e16.8,a8)') "Laser intensity      =",      &
                           rlaser_I2(1),rlaser_I2(2), "[W/cm^2]"
       write(*,'(a21,f16.8,a4)') "delay time           =",      &
-                          delay, "[fs]"
+                          delay*au_time_fs, "[fs]"
       write(*,'(a21,f16.8)') "rcycle                =",rcycle
   end select
   
   if(iflag_dip2 == 1) then
     write(*,'(a21)',advance="no") "dipole boundary      ="
     do jj=1,num_dip2-2
-      write(*,'(1e16.8,a8)',advance="no") dip2boundary(jj), "[A],"
+      write(*,'(1e16.8,a8)',advance="no") dip2boundary(jj)*au_length_aa, "[A],"
     end do
-    write(*,'(1e16.8,a8)',advance="yes") dip2boundary(num_dip2-1), "[A]"
+    write(*,'(1e16.8,a8)',advance="yes") dip2boundary(num_dip2-1)*au_length_aa, "[A]"
   end if
   
   if(iflag_fourier_omega == 1) then
     write(*,'(a61)') "===== List of frequencies for fourier transform (in eV) ====="
     do jj=1,num_fourier_omega  
-      write(*,'(f16.8)') fourier_omega(jj)
+      write(*,'(f16.8)') fourier_omega(jj)*au_energy_ev
     end do
     write(*,'(a61)') "============================================================="
   end if
@@ -158,31 +160,31 @@ debye2au = 0.393428d0
 
 select case (ikind_eext)
   case(0,10)
-    Fst=Fst/5.14223d1
+    Fst=Fst !/5.14223d1
 end select
-dE=dE/2d0/Ry 
-dt=dt*fs2eVinv*2.d0*Ry!a.u. ! 1[fs] = 1.51925 [1/eV]  !2.d0*Ry*1.51925d0
+dE=dE !/2d0/Ry 
+dt=dt !*fs2eVinv*2.d0*Ry!a.u. ! 1[fs] = 1.51925 [1/eV]  !2.d0*Ry*1.51925d0
 
 if(idensum==0) posplane=posplane/a_B 
 
 select case (ikind_eext)
   case(1,6:8,11,15)
-    romega=romega/2.d0/Ry 
-    pulse_T=pulse_T*fs2eVinv*2.d0*Ry 
+    romega=romega !/2.d0/Ry 
+    pulse_T=pulse_T !*fs2eVinv*2.d0*Ry 
     Fst=sqrt(rlaser_I)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
-    tau=tau*fs2eVinv*2.d0*Ry 
-    lasbound_sta(1:3)=lasbound_sta(1:3)/a_B
-    lasbound_end(1:3)=lasbound_end(1:3)/a_B
+    tau=tau !*fs2eVinv*2.d0*Ry 
+    lasbound_sta(1:3)=lasbound_sta(1:3) !/a_B
+    lasbound_end(1:3)=lasbound_end(1:3) !/a_B
   case(4,12)
-    romega2=romega2/2.d0/Ry 
-    pulse_T2=pulse_T2*fs2eVinv*2.d0*Ry 
+    romega2=romega2 !/2.d0/Ry 
+    pulse_T2=pulse_T2 !*fs2eVinv*2.d0*Ry 
     Fst2=sqrt(rlaser_I2)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
-    tau2=tau2*fs2eVinv*2.d0*Ry 
-    delay  = delay*fs2eVinv*2.d0*Ry 
+    tau2=tau2 !*fs2eVinv*2.d0*Ry 
+    delay  = delay !*fs2eVinv*2.d0*Ry 
 end select
 
 if(iflag_fourier_omega==1)then
-   fourier_omega(1:num_fourier_omega)=fourier_omega(1:num_fourier_omega)/2.d0/Ry 
+   fourier_omega(1:num_fourier_omega)=fourier_omega(1:num_fourier_omega) !/2.d0/Ry 
 end if
 
 elp3(402)=MPI_Wtime()
@@ -226,11 +228,11 @@ elp3(403)=MPI_Wtime()
 
 if(iflag_dip2==1) then
   if(imesh_oddeven==1)then
-    dip2boundary(1:num_dip2-1)=dip2boundary(1:num_dip2-1)/a_B
+    dip2boundary(1:num_dip2-1)=dip2boundary(1:num_dip2-1) !/a_B
     idip2int(1:num_dip2-1)=nint(dip2boundary(1:num_dip2-1)/Hgs(1))
     rto(1:num_dip2-1)=(dip2boundary(1:num_dip2-1)-((dble(idip2int(1:num_dip2-1))-0.5d0)*Hgs(1)))/Hgs(1)
   else if(imesh_oddeven==2)then
-    dip2boundary(1:num_dip2-1)=dip2boundary(1:num_dip2-1)/a_B
+    dip2boundary(1:num_dip2-1)=dip2boundary(1:num_dip2-1) !/a_B
     idip2int(1:num_dip2-1)=nint(dip2boundary(1:num_dip2-1)/Hgs(1)+0.5d0)
     rto(1:num_dip2-1)=(dip2boundary(1:num_dip2-1)-((dble(idip2int(1:num_dip2-1))-1.0d0)*Hgs(1)))/Hgs(1)
   end if
@@ -316,7 +318,7 @@ end if
 ntmg=1
 ! 'Hartree' parameter
 
-Hconv  = Hconv/(2d0*Ry)**2d0/a_B**3   ! Convergence criterion
+Hconv  = Hconv !/(2d0*Ry)**2d0/a_B**3   ! Convergence criterion
 iterVh = 0        ! Iteration counter
 
 

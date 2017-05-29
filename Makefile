@@ -211,7 +211,8 @@ MOD_ARTED = modules/backup_routines.f90 modules/communication.f90 \
             modules/performance_analyzer.f90 control/control_ms.f90 \
             control/control_sc.f90 
 
-MOD_SALMON = input.f90 salmon_global.f90
+
+MOD_SALMON = inputoutput.f90 salmon_global.f90
 
 
 OBJDIR = obj
