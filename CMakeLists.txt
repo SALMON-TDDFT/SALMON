@@ -128,14 +128,15 @@ set(FILE_MATHLIB lapack)
 set(CORE_LIB src/core)
 set(ARTED_LIB ARTED)
 set(GCEED_LIB GCEED)
+set(SALMON_MODULE_LIB modules)
 
 add_subdirectory(${ARTED_LIB})
 add_subdirectory(${GCEED_LIB})
 add_subdirectory(${CORE_LIB})
+add_subdirectory(${SALMON_MODULE_LIB})
 
 add_executable(${TARGET_NAME}
                main/main.f90
-               main/read_input.f90
                main/setup_parallel.f90
                main/end_parallel.f90
                )
