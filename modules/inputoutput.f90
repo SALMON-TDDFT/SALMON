@@ -151,6 +151,7 @@ contains
     call mpi_bcast(unit_time,16,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(unit_length,16,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(unit_energy,16,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(unit_charge,16,mpi_character,0,mpi_comm_world,ierr)
 
 
     call initialize_inputoutput_units
@@ -203,7 +204,7 @@ contains
       ucharge_to_au   = 1d0
       ucharge_from_au = 1d0
     case default
-      stop "Invalid unit for time."
+      stop "Invalid unit for charge."
     end select
 
   end subroutine initialize_inputoutput_units
