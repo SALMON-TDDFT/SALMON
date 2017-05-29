@@ -15,87 +15,12 @@
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 module inputfile
+  use input
   implicit none
-  
-  integer, parameter :: fh_namelist = 901
-  integer, parameter :: fh_atomic_spiecies = 902
-  integer, parameter :: fh_atomic_positions = 903
-  integer, parameter :: fh_reentrance = 904
-
-  integer :: inml_control
-  integer :: inml_system
-  integer :: inml_incident
-  integer :: inml_propagation
-  integer :: inml_rgrid
-  integer :: inml_kgrid
-  integer :: inml_tstep
-  integer :: inml_electrons
-  integer :: inml_pseudo
-  integer :: inml_response
-  integer :: inml_multiscale
-  
   
   
 contains
 
-
-
-  subroutine extract_stdin()
-    use communication, only: comm_is_root, comm_sync_all
-    implicit none
-    
-    integer :: cur = fh_namelist
-    integer :: ret = 0
-    character(100) :: buff, text
-    
-    if (comm_is_root()) then
-      open(fh_namelist, file='.namelist.tmp', status='replace')
-      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
-      open(fh_atomic_positions, file='.atomic_positions.tmp', status='replace')
-      open(fh_reentrance, file='.reenetrance.tmp', status='replace')
-      
-      do while (.true.)
-        read(*, '(a)', iostat=ret) buff
-        if (ret < 0) then
-          exit
-        else
-          text = trim(adjustl(buff))
-          ! Comment lines
-          if (text(1:1) == '!') cycle
-          ! Beginning of 'atomic_species' part
-          if (text == '&atomic_spiecies') then
-            cur = fh_atomic_spiecies
-            cycle
-          end if
-          ! Beginning of 'atomic_positions' part
-          if (text == '&atomic_positions') then
-            cur = fh_atomic_positions
-            cycle
-          end if
-          ! Beginning of 'atomic_species' part
-          if (text == '&reentrance') then
-            cur = fh_reentrance
-            cycle
-          end if
-          ! End of 'atomic_(spiecies|positions)' part
-          if ((text == '/') .and. (cur /= fh_namelist)) then
-            cur = fh_namelist
-            cycle
-          end if
-          
-          write(cur, '(a)') text
-        end if
-      end do
-      close(fh_namelist)
-      close(fh_atomic_positions)
-      close(fh_atomic_spiecies)
-      close(fh_reentrance)
-    end if
-    call comm_sync_all()
-    return
-  end subroutine extract_stdin
-
-  
   
   subroutine set_default_param()
     use Global_Variables
@@ -448,7 +373,7 @@ contains
     use global_variables, only: entrance_option
     implicit none
     
-    call extract_stdin()
+!    call extract_stdin()
     call read_namelist()
     if(entrance_option == 'reentrance')return
     call read_atomic_spiecies()

@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine read_input_gceed(procid,cfunction2)
-
+  use input
   implicit none
   include 'mpif.h'
   character(30),intent(out) :: cfunction2
@@ -23,7 +23,9 @@ subroutine read_input_gceed(procid,cfunction2)
   namelist / group_function2 / cfunction2
 
   if(procid==0)then
-    read(*,nml=group_function2)
+    open(fh_namelist, file='.namelist.tmp', status='old')
+    read(fh_namelist,nml=group_function2)
+    close(fh_namelist)
   end if
   call mpi_bcast(cfunction2,30,mpi_character,0,mpi_comm_world,ierr)
 

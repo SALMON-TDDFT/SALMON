@@ -132,9 +132,10 @@ endif
 ##### please do not modify following sentences #####
 ####################################################
 
-SRC_main = main.f90 end_parallel.f90 read_input.f90 setup_parallel.f90
+SRC_main = main.f90 end_parallel.f90 setup_parallel.f90
 
 SRC_core = exc_cor.f90
+
 
 SRC_GCEED = gceed.f90 read_input_gceed.f90 
 
@@ -210,8 +211,7 @@ MOD_ARTED = modules/backup_routines.f90 modules/communication.f90 \
             modules/performance_analyzer.f90 control/control_ms.f90 \
             control/control_sc.f90 
 
-
-
+MOD_SALMON = input.f90
 
 
 OBJDIR = obj
@@ -231,8 +231,9 @@ OBJS_ARTED= $(OBJM_ARTED) $(OBJ_ARTED) $(C_OBJ_ARTED)
 
 OBJ_main = $(addprefix $(OBJDIR)/main/,$(SRC_main:.f90=.o))
 OBJ_core = $(addprefix $(OBJDIR)/src/core/,$(SRC_core:.f90=.o))
+OBJS_module = $(addprefix $(OBJDIR)/modules/,$(MOD_SALMON:.f90=.o))
 
-OBJS = $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_core) $(OBJ_main)
+OBJS = $(OBJS_module) $(OBJS_GCEED) $(OBJS_ARTED) $(OBJ_core) $(OBJ_main) 
 
 .SUFFIXES:
 .SUFFIXES: .F .F90 .o
@@ -260,6 +261,7 @@ $(OBJDIR)/%.o : %.c
 
 $(OBJS_GCEED): $(addprefix GCEED/modules/,$(MOD_GCEED))
 $(OBJS_ARTED): $(addprefix ARTED/,$(MOD_ARTED))
+$(OBJS_module): $(addprefix modules/,$(MOD_SALMON))
 
 clean: 
 	rm -f $(TARGET)

@@ -1,11 +1,11 @@
 program main
-
+  use input
   implicit none
   integer :: nprocs,myrank
   character(30) :: cfunction
 
   call setup_parallel(nprocs,myrank)
-  call read_input(myrank,cfunction)
+  call read_stdin(myrank,cfunction)
 
   select case(cfunction)
   case("nanostructure")

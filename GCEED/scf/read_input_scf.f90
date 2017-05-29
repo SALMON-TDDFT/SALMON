@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine read_input_scf(file_IN,file_OUT,LDA_Info,file_ini,iDiterYBCG,file_atoms_coo)
+use input
 use scf_data
 use new_world_sub
 !$ use omp_lib
@@ -39,11 +40,14 @@ namelist / group_scf_analysis / iflag_writepsi, iflag_ELF, iflag_dos, iflag_pdos
 namelist / group_others / iparaway_ob,iscf_order,iswitch_orbital_mesh,iflag_psicube,  &
                           lambda1_diis, lambda2_diis, file_ini
 
-
 ! 'Hartree' parameter
 
 iterVh = 0         ! Iteration counter
 
+
+if(myrank ==0)then
+   open(fh_namelist, file='.namelist.tmp', status='old')
+end if
 !===== namelist for group_fundamental =====
 imesh_oddeven=2
 ik_oddeven=2
@@ -73,7 +77,8 @@ MST(1:2)=0
 ifMST(1:2)=0
 
 if(myrank==0)then
-  read(*,NML=group_fundamental) 
+  read(fh_namelist,NML=group_fundamental) 
+  rewind(fh_namelist)
   if(iflag_stopt==0) iter_stopt=1 ! overwrite iter_stopt
   if(imesh_oddeven<=0.or.imesh_oddeven>=3)then
     write(*,*) "imesh_oddeven must be equal to 1 or 2."
@@ -167,7 +172,8 @@ num_datafiles_IN=1
 num_datafiles_OUT=1
 imesh_s_all=1
 if(myrank==0)then
-  read(*,NML=group_parallel)
+  read(fh_namelist,NML=group_parallel)
+  rewind(fh_namelist)
   ibox2=1
   icheck1=0
   icheck2=0
@@ -210,7 +216,8 @@ num_pole_xyz(1:3)=-1
 MEO=3
 lmax_MEO=4
 if(myrank==0)then
-  read(*,NML=group_hartree) 
+  read(fh_namelist,NML=group_hartree) 
+  rewind(fh_namelist)
   if(MEO<=0.or.MEO>=4)then
     write(*,*) "MEO must be equal to 1 or 2 or 3."
     stop
@@ -235,7 +242,8 @@ file_IN='file_IN'
 file_OUT='file_OUT'
 LDA_Info='LDA_Info'
 if(myrank==0)then
-  read(*,NML=group_file) 
+  read(fh_namelist,NML=group_file) 
+  rewind(fh_namelist)
   if(IC<0.or.IC>=2)then
     write(*,*) "IC must be equal to 0 or 1."
     stop
@@ -256,7 +264,8 @@ file_atoms_coo='file_atoms_coo'
 Mlps(:)=-1
 Lref(:)=-1
 if(myrank==0)then
-  read(*,NML=group_atom) 
+  read(fh_namelist,NML=group_atom) 
+  rewind(fh_namelist)
 end if
 
 call MPI_Bcast(MI,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -321,7 +330,8 @@ iflag_dos=0
 iflag_pdos=0
 
 if(myrank==0)then
-  read(*,NML=group_scf_analysis)
+  read(fh_namelist,NML=group_scf_analysis)
+  rewind(fh_namelist)
   if(iflag_writepsi<0.or.iflag_writepsi>1)then
     write(*,*) "iflag_writepsi must be equal to 0 or 1."
     stop
@@ -353,7 +363,8 @@ iflag_psicube=0
 lambda1_diis=0.5d0
 lambda2_diis=0.3d0
 if(myrank==0)then
-  read(*,NML=group_others) 
+  read(fh_namelist,NML=group_others) 
+  rewind(fh_namelist)
   if(iparaway_ob<=0.or.iparaway_ob>=3)then
     write(*,*) "iparaway_ob must be equal to 1 or 2."
     stop
@@ -389,6 +400,8 @@ end if
 nproc_Mxin_mul=nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 call make_new_world
+
+if(myrank ==0)close(fh_namelist)
 
 return
 
