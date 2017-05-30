@@ -1,11 +1,14 @@
 program main
-  use input
+  use inputoutput
   implicit none
   integer :: nprocs,myrank
   character(30) :: cfunction
 
   call setup_parallel(nprocs,myrank)
-  call read_stdin(myrank,cfunction)
+  call read_stdin(myrank)
+  call read_input_common(myrank,cfunction)
+! read_stdin and read_input_common will be wrapped by a single routine routine
+! after proper implementation for 'cfunction'.
 
   select case(cfunction)
   case("nanostructure")

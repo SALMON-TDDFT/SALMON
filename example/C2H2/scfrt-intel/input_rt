@@ -1,3 +1,9 @@
+&units
+unit_length='Angstrom'
+unit_energy='eV'
+unit_time='fs'
+/
+
 &group_function
   cfunction='nanostructure'
 /

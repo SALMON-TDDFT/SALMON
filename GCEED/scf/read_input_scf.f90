@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine read_input_scf(file_IN,file_OUT,LDA_Info,file_ini,iDiterYBCG,file_atoms_coo)
-use input
+use inputoutput
 use scf_data
 use new_world_sub
 !$ use omp_lib
@@ -137,8 +137,8 @@ call MPI_Bcast(ilsda,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(MST,2,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(ifMST,2,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
-Harray=Harray/a_B
-rLsize=rLsize/a_B
+Harray=Harray*ulength_to_au
+rLsize=rLsize*ulength_to_au
 
 if(ilsda==1)then
   nproc_ob_spin(1)=(nproc_ob+1)/2
@@ -233,7 +233,7 @@ call MPI_Bcast(num_pole_xyz,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(lmax_MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
 num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
-Hconv  = Hconv/(2d0*Ry)**2d0/a_B**3     ! Convergence criterion
+Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3     ! Convergence criterion
 
 !===== namelist for group_file =====
 IC=0
@@ -392,7 +392,7 @@ call MPI_Bcast(iflag_pdos,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 if(iflag_ps==1)then
   do ii=1,3
     do iatom=1,MI
-      Rion(ii,iatom)=Rion(ii,iatom)/a_B
+      Rion(ii,iatom)=Rion(ii,iatom)*ulength_to_au
     end do
   end do
 end if
