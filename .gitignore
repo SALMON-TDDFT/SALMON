@@ -8,6 +8,9 @@
 *.cpu
 *.mic
 
+# temporary namelist
+*.tmp
+
 
 ######################################################
 # Created by https://www.gitignore.io/api/c,cmake,fortran
