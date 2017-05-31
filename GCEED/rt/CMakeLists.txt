@@ -1,0 +1,21 @@
+set(SOURCES
+    add_polynomial.f90
+    aft_fourier.f90
+    calcEstatic.f90
+    calcVbox.f90
+    dip.f90
+    gradient_ex.f90
+    hpsi_groupob.f90
+    projection.f90
+    read_input_rt.f90
+    read_rt.f90
+    real_time_dft.f90
+    taylor_coe.f90
+    taylor.f90
+    time_evolution_step.f90
+    total_energy_groupob.f90
+    WriteDensity.f90
+    xc_fast.f90
+    )
+
+add_library(${RT_LIB} ${SOURCES})
