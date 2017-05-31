@@ -61,6 +61,7 @@ module communication
     ! 1-D array
     module procedure comm_bcast_array1d_integer
     module procedure comm_bcast_array1d_real8
+    module procedure comm_bcast_array1d_character
 
     ! 2-D array
     module procedure comm_bcast_array2d_integer
@@ -316,6 +317,21 @@ contains
       rank = 0
     end if
     MPI_ERROR_CHECK(call MPI_Bcast(val, size(val), MPI_REAL8, rank, level, ierr))
+  end subroutine
+
+  subroutine comm_bcast_array1d_character(val, level, root)
+    use mpi
+    implicit none
+    character(*), intent(inout)        :: val(:)
+    integer,      intent(in)           :: level
+    integer,      intent(in), optional :: root
+    integer :: rank, ierr
+    if (present(root)) then
+      rank = root
+    else
+      rank = 0
+    end if
+    MPI_ERROR_CHECK(call MPI_Bcast(val, size(val)*len(val), MPI_CHARACTER, rank, level, ierr))
   end subroutine
 
   subroutine comm_get_min_array1d_real8(invalue, outvalue, N, level)
