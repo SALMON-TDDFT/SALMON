@@ -330,7 +330,7 @@ contains
     call comm_bcast(file_atoms_coo, proc_group(1))
     call comm_bcast(Lmax_ps, proc_group(1))
     call comm_bcast(Lloc_ps, proc_group(1))
-!    call comm_bcast(ps_format, proc_group(1)) ! Implementation for bcast of character-array is needed.
+    call comm_bcast(ps_format, proc_group(1)) 
 
     call comm_sync_all()
     return
