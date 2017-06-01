@@ -26,7 +26,6 @@ unit_time='fs'
   Ntime=100
 /
 &group_hartree
-  Hconv=1.d-8
   MEO=3
   num_pole_xyz(1)=2
   num_pole_xyz(2)=2

@@ -60,9 +60,13 @@ iflag_subspace_diag=0
 iDiter_nosubspace_diag=10
 ntmg=1
 iflag_convergence=2
-ithresholdVh(:)=1.d-11
-threshold_norm_diff_rho(:)=1.d-11
-threshold_square_norm_diff_Vlocal(:)=1.d-11
+ithresholdVh(:)=1
+
+! Convergence criterion, ||rho(i)-rho(i-1)||**2/(# of grids), 1.d-17 a.u. = 6.75d-17 AA**(-3)
+threshold_norm_diff_rho(:)=1.d-17/ulength_from_au**3
+
+! Convergence criterion, ||Vlocal(i)-Vlocal(i-1)||**2/(# of grids), 1.d-17 a.u. = 1.10d-15 eV**2*AA**3
+threshold_square_norm_diff_Vlocal(:)=1.d-17*uenergy_from_au**2*ulength_from_au**3
 mixrate=0.1d0
 Nmemory_MB=8
 icalcforce=0
@@ -211,7 +215,9 @@ nproc_Mxin_mul=nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 
 !===== namelist for group_hartree =====
-Hconv=1.d-8
+! Convergence criterion, ||Vh(i)-Vh(i-1)||**2/(# of grids), 1.d-15 a.u. = 1.10d-13 eV**2*AA**3
+Hconv=1.d-15*uenergy_from_au**2*ulength_from_au**3
+
 num_pole_xyz(1:3)=-1
 MEO=3
 lmax_MEO=4
@@ -233,7 +239,7 @@ call MPI_Bcast(num_pole_xyz,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(lmax_MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
 num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
-Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3     ! Convergence criterion
+Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3
 
 !===== namelist for group_file =====
 IC=0
