@@ -31,7 +31,6 @@ unit_time='fs'
   nproc_Mxin_s(3)=1
 /
 &group_hartree
-  Hconv=1.d-5
   MEO=3
   num_pole_xyz(1)=2
   num_pole_xyz(2)=2

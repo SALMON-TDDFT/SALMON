@@ -64,6 +64,7 @@ message(STATUS "user-defined CFLAGS = ${CMAKE_C_FLAGS}")
 option_set(USE_TLOG                       "Use TLOG library"                                         OFF)
 option_set(USE_PAPI                       "Use Performance API"                                      OFF)
 option_set(USE_NVTX                       "Use NVIDIA Tools Extension Library"                       OFF)
+option_set(USE_SCALAPACK                  "Use ScaLAPACK Library"                                    OFF)
 option_set(OPT_STENCIL                    "Optimize stencil code"                                    ON)
 option_set(DOMAIN_IS_POW2                 "Stencil domain is power of two"                           OFF)
 option_set(ENABLE_CURRENT_PREPROCESSING   "Enable preprocessing of the current computation in RT"    OFF)
@@ -79,7 +80,7 @@ set(TARGET_NAME            "salmon${TARGET_SUFFIX}")
 
 set(CMAKE_Fortran_FLAGS    "${ARCH} ${OPENMP_FLAGS} ${Fortran_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_Fortran_FLAGS}")
 set(CMAKE_C_FLAGS          "${ARCH} ${OPENMP_FLAGS} ${C_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_C_FLAGS}")
-set(EXTERNAL_LIBS          "${ScaLAPACK_FLAGS}")
+set(EXTERNAL_LIBS          "")
 
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR})
 
@@ -95,6 +96,15 @@ if (USE_NVTX)
   add_definitions(-DARTED_USE_NVTX)
   link_directories(${CUDA_TOOLKIT_ROOT_DIR}/lib64)
   set(EXTERNAL_LIBS ${EXTERNAL_LIBS} nvToolsExt)
+endif ()
+
+### Numerical library
+if (USE_SCALAPACK)
+  set(FILE_MATHLIB scalapack)
+  set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${ScaLAPACK_FLAGS})
+else ()
+  set(FILE_MATHLIB lapack)
+  set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${LAPACK_FLAGS})
 endif ()
 
 add_definitions_if(ENABLE_CURRENT_PREPROCESSING -DARTED_CURRENT_PREPROCESSING)
@@ -117,8 +127,6 @@ add_definitions("${ADDITIONAL_MACRO}")
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/workaround.cmake)
 
-# Numerical library
-set(FILE_MATHLIB lapack)
 
 ### Build target
 set(CORE_LIB src/core)

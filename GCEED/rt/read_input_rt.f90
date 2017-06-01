@@ -154,7 +154,8 @@ if(Ntime==0)then
 end if
 
 !===== namelist for group_hartree =====
-Hconv=1.d-12*(uenergy_from_au/au_energy_ev) ! [eV]
+! Convergence criterion, ||Vh(i)-Vh(i-1)||**2/(# of grids), 1.d-15 a.u. = 1.10d-13 eV**2*AA**3
+Hconv=1.d-15*uenergy_from_au**2*ulength_from_au**3
 num_pole_xyz(1:3)=1
 MEO=2
 lmax_MEO=4
@@ -171,13 +172,12 @@ if(myrank==0)then
   end if
 end if
 call MPI_Bcast(Hconv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3     ! Convergence criterion
+Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3
 call MPI_Bcast(MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(num_pole_xyz,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(lmax_MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
 num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
-!Hconv  = Hconv/(2d0*Ry)**2d0/a_B**3     ! Convergence criterion
 
 !===== namelist for group_file =====
 IC=1
