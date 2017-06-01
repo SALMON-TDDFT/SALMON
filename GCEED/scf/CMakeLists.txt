@@ -5,8 +5,7 @@ set(SOURCES
     calc_rho_in.f90
     copy_density.f90
     deallocate_sendrecv_groupob.f90
-    eigen_subdiag_lapack.f90
-    eigen_subdiag_scalapack.f90
+    eigen_subdiag_${FILE_MATHLIB}.f90
     gram_schmidt.f90
     prep_ini.f90
     read_input_scf.f90
