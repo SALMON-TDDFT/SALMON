@@ -193,7 +193,7 @@ Iteration : do iter=1,maxiter
 
   sum2=tottmp*Hvol
 
-  if ( abs(sum2) < Hconv ) exit
+  if ( abs(sum2) < Hconv*dble(lg_num(1)*lg_num(2)*lg_num(3)) ) exit
 
   ck=sum2/sum1 ; sum1=sum2
 
@@ -210,7 +210,9 @@ end do Iteration
 
 iterVh=iter
 if ( iterVh>maxiter .and. myrank.eq.0) then
-   write(*,*) "Warning:Vh iteration is not converged, sum2=",sum2
+   write(*,*) "Warning:Vh iteration is not converged"
+   write(*,'("||tVh(i)-tVh(i-1)||**2/(# of grids) = ",e15.8)') &
+                              sum2/dble(lg_num(1)*lg_num(2)*lg_num(3))
 end if
 
 return

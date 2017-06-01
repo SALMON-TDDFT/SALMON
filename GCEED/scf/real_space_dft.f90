@@ -17,6 +17,7 @@
 
 MODULE global_variables_scf
 
+use inputoutput
 use scf_data
 use hpsi2_sub
 use allocate_mat_sub
@@ -425,7 +426,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end do
     end do
     call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
-    sum1=sum1*Hvol
+    sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
   else if(iflag_convergence==3)then
     sum0=0.d0
 !$OMP parallel do reduction(+:sum0)
@@ -437,7 +438,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end do
     end do
     call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
-    sum1=sum1*Hvol
+    sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
   end if
 
   if(myrank.eq.0) then
@@ -452,9 +453,10 @@ DFT_Iteration : do iter=1,iDiter(img)
       write(*,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,1)*2d0*Ry,iob=p1,p2)
     end do
     if(iflag_convergence==2)then
-      write(*,'("iter and square of norm of difference of rho = ",i6,e15.8)') Miter,sum1/a_B**3
+      write(*,'("iter and ||rho(i)-rho(i-1)||**2/(# of grids) = ",i6,e15.8)') Miter,sum1/a_B**3
     else if(iflag_convergence==3)then
-      write(*,'("iter and square of norm of difference of Vlocal = ",i6,e15.8)') Miter, sum1*(2.d0*Ry)**2*a_B**3
+      write(*,'("iter and ||Vlocal(i)-Vlocal(i-1)||**2/(# of grids) = ",i6,e15.8)') Miter,     &
+                                                                       sum1*(2.d0*Ry)**2*a_B**3
     end if
   end if 
   rNebox1=0.d0 
