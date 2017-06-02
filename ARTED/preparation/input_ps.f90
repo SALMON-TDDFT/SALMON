@@ -15,6 +15,8 @@
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine input_pseudopotential_YS
+  use salmon_global,only : ipsfileform,n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
+    &,n_ABINITFHI_psformat,n_FHI_psformat,ps_format
   use Global_Variables,only : Pi,Zatom,Mass,NE,directory,ps_format,PSmask_option&
        &,Nrmax,Lmax,Mlps,Lref,Zps,NRloc,NRps,inorm&
        &,rad,Rps,vloctbl,udVtbl,radnl,Rloc,anorm,dvloctbl,dudVtbl &
@@ -23,7 +25,7 @@ Subroutine input_pseudopotential_YS
   implicit none
   integer,parameter :: Lmax0=4,Nrmax0=50000
   real(8),parameter :: Eps0=1d-10
-  integer :: ik,Mr,l,i
+  integer :: ik,Mr,l,i,ik2
   real(8) :: rRC(0:Lmax0)
   real(8) :: r1,r2,r3,r4
   real(8) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)   !zero in radial index for taking derivative
@@ -40,18 +42,20 @@ Subroutine input_pseudopotential_YS
   allocate(flag_nlcc_element(NE)); flag_nlcc_element(:) = .false. ;flag_nlcc = .false.
 
   if (comm_is_root()) then
+
+    do ik=1,NE
+
 ! --- Making prefix ---
-    select case (ps_format)
-    case('KY')        ; ps_postfix = '_rps.dat'
-    case('ABINIT')    ; ps_postfix = '.pspnc'
-    case('ABINITFHI') ; ps_postfix = '.fhi'
-    case('FHI')       ; ps_postfix = '.cpi'
+      select case (ipsfileform(ik))
+      case(n_Yabana_Bertsch_psformat)   ; ps_postfix = '_rps.dat'
+      case(n_ABINIT_psformat)           ; ps_postfix = '.pspnc'
+      case(n_ABINITFHI_psformat)        ; ps_postfix = '.fhi'
+      case(n_FHI_psformat)              ; ps_postfix = '.cpi'
 !    case('ATOM')      ; ps_postfix = '.psf' !Not implemented yet
-    case default ; stop 'Unprepared ps_format is required input_pseudopotential_YS'
-    end select
+      case default ; stop 'Unprepared ps_format is required input_pseudopotential_YS'
+      end select
 
 ! --- input pseudopotential and wave function ---
-    do ik=1,NE
       select case (Zatom(ik))
       case (1) ; atom_symbol = 'H ' ; Mass(ik)=1.d0
       case (2) ; atom_symbol = 'He' ; Mass(ik)=4.d0
@@ -143,15 +147,19 @@ Subroutine input_pseudopotential_YS
 
       write(*,*) '===================pseudopotential data==================='
       write(*,*) 'ik ,atom_symbol=',ik, atom_symbol
-      write(*,*) 'ps_format =',ps_format
+      write(*,*) 'ps_format =',ps_format(ik)
       write(*,*) 'ps_file =',ps_file
 
-      select case (ps_format)
-      case('KY')        ; call Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
-      case('ABINIT')    ; call Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
-      case('ABINITFHI') ; call Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,&
+      select case (ipsfileform(ik))
+      case(n_Yabana_Bertsch_psformat)
+        call Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
+      case(n_ABINIT_psformat)
+        call Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
+      case(n_ABINITFHI_psformat)
+        call Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,&
         rhor_nlcc,flag_nlcc_element,ik,ps_file)
-      case('FHI')       ; call Read_PS_FHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
+      case(n_FHI_psformat)
+        call Read_PS_FHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
 !      case('ATOM')      ; call Read_PS_ATOM
       case default ; stop 'Unprepared ps_format is required input_pseudopotential_YS'
       end select
@@ -205,7 +213,7 @@ Subroutine input_pseudopotential_YS
         stop 'Wrong PSmask_option at input_pseudopotential_YS'
       end if
 
-      open(4,file=trim(directory)//"PS_"//trim(atom_symbol)//"_"//trim(ps_format)//"_"//trim(PSmask_option)//".dat")
+      open(4,file=trim(directory)//"PS_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//"_"//trim(PSmask_option)//".dat")
       write(4,*) "# Mr=",Mr
       write(4,*) "# Rps(ik), NRps(ik)",Rps(ik), NRps(ik)
       write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
@@ -279,7 +287,7 @@ Subroutine input_pseudopotential_YS
         dvpploc(Mr)=dvpploc(Mr-1)+(dvpploc(Mr-1)-dvpploc(Mr-2))/(rad(Mr,ik)-rad(Mr-1,ik))*(rad(Mr+1,ik)-rad(Mr,ik))
       end do
 
-      open(4,file="PSbeforemask_"//trim(atom_symbol)//"_"//trim(ps_format)//".dat")
+      open(4,file="PSbeforemask_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
       write(4,*) "# Mr =",Mr
       write(4,*) "# Rps(ik), NRps(ik)",Rps(ik), NRps(ik)
       write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
@@ -290,7 +298,7 @@ Subroutine input_pseudopotential_YS
 
       call PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
 
-      open(4,file="PSaftermask_"//trim(atom_symbol)//"_"//trim(ps_format)//".dat")
+      open(4,file="PSaftermask_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
       write(4,*) "# Mr =",Mr
       write(4,*) "# Rps(ik), NRps(ik)",Rps(ik), NRps(ik)
       write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
@@ -394,7 +402,8 @@ Subroutine input_pseudopotential_YS
 End Subroutine input_pseudopotential_YS
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
-  use Global_Variables,only :Pi,Hx,Hy,Hz,rad,Rps,NRps,Mlps,Lref,ps_format,alpha_mask,gamma_mask,eta_mask
+  use salmon_global,only :ps_format
+  use Global_Variables,only :Pi,Hx,Hy,Hz,rad,Rps,NRps,Mlps,Lref,alpha_mask,gamma_mask,eta_mask
   implicit none
 !argument
   integer,intent(in) :: Nrmax0,Lmax0,Mr,ik
@@ -450,7 +459,7 @@ Subroutine PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
     end do
   end do
 
-  open(4,file="PSFourier_"//trim(atom_symbol)//"_"//trim(ps_format)//".dat")
+  open(4,file="PSFourier_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
   write(4,*) "# Kmax, NKmax =",Kmax,NKmax
   write(4,*) "# Mlps(ik), Lref(ik) =",Mlps(ik), Lref(ik)
   write(4,*) "#  Pi/max(Hx,Hy,Hz) =", Pi/max(Hx,Hy,Hz)
@@ -698,6 +707,7 @@ real(8) Function dxjl(x,l)
 End Function dxjl
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
+  use salmon_global,only : Lmax_ps
   use Global_Variables,only : a_B, Ry,Nrmax,Lmax,Mlps,Zps,rad
   implicit none
 !argument
@@ -736,10 +746,13 @@ Subroutine Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
     rad(i,ik)=(i-1)*step
   enddo
 
+  if(Lmax_ps(ik) >= 0)Mlps(ik) = Lmax_ps(ik) ! Maximum angular momentum given by input
+
   return
 End Subroutine Read_PS_KY
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
+  use salmon_global,only : Lmax_ps
 !See http://www.abinit.org/downloads/psp-links/psp-links/lda_tm
   use Global_Variables,only : Nrmax,Lmax,Mlps,Zps,rad,Lref
   implicit none
@@ -793,12 +806,15 @@ Subroutine Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
     rad(i+1,ik) = 1.0d2*(dble(i)/dble(mmax-1)+1.0d-2)**5 - 1.0d-8
   end do
 
+  if(Lmax_ps(ik) >= 0)Mlps(ik) = Lmax_ps(ik) ! Maximum angular momentum given by input
+
   return
 End Subroutine Read_PS_ABINIT
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,rhor_nlcc,flag_nlcc_element,ik,ps_file)
 !This is for  FHI pseudopotential listed in abinit web page and not for original FHI98PP.
 !See http://www.abinit.org/downloads/psp-links/lda_fhi
+  use salmon_global,only : Lmax_ps
   use Global_Variables,only : Nrmax,Lmax,Mlps,Zps,rad,pi,NE
   implicit none
 !argument
@@ -882,12 +898,15 @@ Subroutine Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,rhor_nlcc,flag_nlcc_ele
     rRC(l)=maxval(rRC_mat(l,:))
   end do
 
+  if(Lmax_ps(ik) >= 0)Mlps(ik) = Lmax_ps(ik) ! Maximum angular momentum given by input
+
   return
 End Subroutine Read_PS_ABINITFHI
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Read_PS_FHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
 !This is for original FHI98PP and not for FHI pseudopotential listed in abinit web page
 !See http://th.fhi-berlin.mpg.de/th/fhi98md/fhi98PP/
+  use salmon_global,only : Lmax_ps
   use Global_Variables,only : Nrmax,Lmax,Mlps,Zps,rad
   implicit none
 !argument
@@ -949,6 +968,8 @@ Subroutine Read_PS_FHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
     end do
     rRC(l)=maxval(rRC_mat(l,:))
   end do
+
+  if(Lmax_ps(ik) >= 0)Mlps(ik) = Lmax_ps(ik) ! Maximum angular momentum given by input
 
   return
 End Subroutine Read_PS_FHI

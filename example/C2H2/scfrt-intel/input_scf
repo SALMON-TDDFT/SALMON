@@ -47,10 +47,10 @@ unit_time='fs'
   iZatom(2)=1
   ipsfileform(1)=1
   ipsfileform(2)=1
-  Mlps(1)=1
-  Mlps(2)=0
-  Lref(1)=1
-  Lref(2)=0
+  Lmax_ps(1)=1
+  Lmax_ps(2)=0
+  Lloc_ps(1)=1
+  Lloc_ps(2)=0
   file_atoms_coo='coo.data'
 /
 &group_scf_analysis

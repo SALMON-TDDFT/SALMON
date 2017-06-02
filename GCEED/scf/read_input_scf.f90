@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine read_input_scf(file_IN,file_OUT,LDA_Info,file_ini,iDiterYBCG,file_atoms_coo)
+use salmon_global
 use inputoutput
 use scf_data
 use new_world_sub
@@ -35,7 +36,7 @@ namelist / group_parallel/ nproc_ob,nproc_Mxin,nproc_Mxin_s,  &
                            isequential,num_datafiles_IN,num_datafiles_OUT,imesh_s_all
 namelist / group_hartree / Hconv, MEO, num_pole_xyz, lmax_MEO
 namelist / group_file / IC,OC,file_IN,file_OUT,LDA_Info
-namelist / group_atom / MI,MKI,iZatom,ipsfileform,file_atoms_coo, Mlps, Lref
+namelist / group_atom / MI,MKI,iZatom,ipsfileform,file_atoms_coo, Lmax_ps, Lloc_ps, ps_format
 namelist / group_scf_analysis / iflag_writepsi, iflag_ELF, iflag_dos, iflag_pdos
 namelist / group_others / iparaway_ob,iscf_order,iswitch_orbital_mesh,iflag_psicube,  &
                           lambda1_diis, lambda2_diis, file_ini
@@ -266,13 +267,34 @@ MI=0
 MKI=0 
 iZatom(:)=0
 ipsfileform(:)=1
+ps_format = 'default'
 file_atoms_coo='file_atoms_coo'
-Mlps(:)=-1
-Lref(:)=-1
+Lmax_ps(:)=-1
+Lloc_ps(:)=-1
 if(myrank==0)then
   read(fh_namelist,NML=group_atom) 
   rewind(fh_namelist)
+
+  Mlps(:) = Lmax_ps(:)
+  Lref(:) = Lloc_ps(:)
+
+!ps format conversion
+  do iatom = 1,MKI
+    select case(ps_format(iatom))
+    case('default')
+    case('KY')        ; ipsfileform(iatom)=n_Yabana_Bertsch_psformat
+    case('ABINIT')    ; ipsfileform(iatom)=n_ABINIT_psformat
+    case('FHI')       ; ipsfileform(iatom)=n_FHI_psformat
+    case('ABINITFHI') !; ipsfileform(iatom)=n_ABINITFHI_psformat
+      write(*,"(A)") "Invalid ps_format. ABINITFHI format is not supported for isolated systems."
+    stop
+    case default
+      write(*,"(A)") "Invalid ps_format."
+    stop
+    end select
+  end do
 end if
+
 
 call MPI_Bcast(MI,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(MKI,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)

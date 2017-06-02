@@ -559,6 +559,7 @@ contains
 end subroutine main
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine Read_data
+  use salmon_global
   use Global_Variables
   use opt_variables, only: symmetric_load_balancing, is_symmetric_mode
   use environment
@@ -594,7 +595,7 @@ Subroutine Read_data
     write(*,*) 'functional=',functional
     if(functional == 'TBmBJ') write(*,*) 'cvalue=',cval
     write(*,*) 'propagator=',propagator
-    write(*,*) 'ps_format =',ps_format !shinohara
+    write(*,*) 'ps_format =',ps_format(1:NE) !shinohara
     write(*,*) 'PSmask_option =',PSmask_option !shinohara
     write(*,*) 'alpha_mask, gamma_mask, eta_mask =',alpha_mask, gamma_mask, eta_mask !shinohara
     file_GS=trim(directory)//trim(SYSname)//'_GS.out'

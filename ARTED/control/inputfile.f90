@@ -23,6 +23,7 @@ contains
 
   
   subroutine set_default_param()
+    use salmon_global
     use Global_Variables
     implicit none
     ! control
@@ -46,8 +47,6 @@ contains
     ext_field = ''
     MD_option = 'N'
     AD_RHO = 'N'
-    NE = 0
-    NI = 0
     ! rgrid
     Nd = 4
     NLx = 0
@@ -62,7 +61,6 @@ contains
     Nt = -1
     dt = 0
     ! pseudo
-    ps_format = ''
     PSmask_option = 'n'
     alpha_mask = 0.8d0
     gamma_mask = 1.8d0
@@ -109,14 +107,25 @@ contains
     NXYsplit = 0
     NXvacL_m = 0
     NXvacR_m = 0
+    !group_atom
+    MI=0  ;NI = 0
+    MKI=0 ;NE = 0
+    iZatom = -1
+    ipsfileform = n_Yabana_Bertsch_psformat
+    Lmax_ps = -1
+    Lloc_ps = -1
+    ps_format = 'KY'
+
     return
   end subroutine set_default_param
 
   
   subroutine read_namelist()
+    use salmon_global
     use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
     use Global_Variables
     implicit none
+    character(100) :: file_atoms_coo
     
     namelist/control/ &
             & entrance_option, &
@@ -138,9 +147,7 @@ contains
             & Nelec, &
             & ext_field, &
             & MD_option, &
-            & AD_RHO, &
-            & NE, &
-            & NI
+            & AD_RHO
     namelist/rgrid/ &
             & Nd, &
             & NLx, &
@@ -155,7 +162,6 @@ contains
             & Nt, &
             & dt
     namelist/pseudo/ &
-            & ps_format, &
             & PSmask_option, &
             & alpha_mask, &
             & gamma_mask, &
@@ -202,6 +208,16 @@ contains
             & NXYsplit, &
             & NXvacL_m, &
             & NXvacR_m
+
+    namelist/group_atom/ &
+            & MI, &
+            & MKI, &
+            & iZatom, &
+            & ipsfileform, &
+            & file_atoms_coo, &
+            & Lmax_ps, &
+            & Lloc_ps, &
+            & ps_format
       
     if (comm_is_root()) then
       call set_default_param()
@@ -228,6 +244,9 @@ contains
       read(fh_namelist, nml=response, iostat=inml_response)
       rewind(fh_namelist)
       read(fh_namelist, nml=multiscale, iostat=inml_multiscale)
+      rewind(fh_namelist)
+      file_atoms_coo='none' ! defaylt
+      read(fh_namelist, nml=group_atom, iostat=inml_group_atom)
       close(fh_namelist)
     end if
     
@@ -263,7 +282,6 @@ contains
     call comm_bcast(file_kw, proc_group(1))
     call comm_bcast(Nt, proc_group(1))
     call comm_bcast(dt, proc_group(1)); dt = dt*utime_to_au ! convert to a.u.
-    call comm_bcast(ps_format, proc_group(1))
     call comm_bcast(PSmask_option, proc_group(1))
     call comm_bcast(alpha_mask, proc_group(1))
     call comm_bcast(gamma_mask, proc_group(1))
@@ -304,34 +322,68 @@ contains
     call comm_bcast(NXYsplit, proc_group(1))
     call comm_bcast(NXvacL_m, proc_group(1))
     call comm_bcast(NXvacR_m, proc_group(1))
+
+    call comm_bcast(MI, proc_group(1)); NI = MI ! GCEED to ARTED
+    call comm_bcast(MKI, proc_group(1)); NE = MKI ! GCEED to ARTED
+    call comm_bcast(iZatom, proc_group(1))
+    call comm_bcast(ipsfileform, proc_group(1))
+    call comm_bcast(file_atoms_coo, proc_group(1))
+    call comm_bcast(Lmax_ps, proc_group(1))
+    call comm_bcast(Lloc_ps, proc_group(1))
+    call comm_bcast(ps_format, proc_group(1)) 
+
     call comm_sync_all()
     return
   end subroutine read_namelist
 
 
   subroutine read_atomic_spiecies()
+    use salmon_global
     use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
     use Global_Variables, only: NE, Zatom, Lref
     implicit none
     integer :: i, index, Zatom_tmp, Lref_tmp
-    
+!Note; NI = MI, NE = MKI
+
     allocate(Zatom(NE), Lref(NE))
-    
+
     if (comm_is_root()) then
-      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='old')
-      do i=1, NE
-        read(fh_atomic_spiecies, *) index, zatom_tmp, lref_tmp
-        if (i == index) then
-          Zatom(i) = Zatom_tmp
-          Lref(i) = Lref_tmp
-        else
-          call err_finalize('atomic_spiecies is not ordered')
-        end if
-      end do
-      close(fh_atomic_positions)
+       do i=1, NE
+          Zatom(i) = iZatom(i)
+          Lref(i) = Lloc_ps(i)
+
+          select case(ps_format(i))
+          case('default')
+          case('KY')        ; ipsfileform(i)=n_Yabana_Bertsch_psformat
+          case('ABINIT')    ; ipsfileform(i)=n_ABINIT_psformat
+          case('FHI')       ; ipsfileform(i)=n_FHI_psformat
+          case('ABINITFHI') ; ipsfileform(i)=n_ABINITFHI_psformat
+          case default
+             call err_finalize('Invalid ps_format')
+          end select
+       end do
     end if
+
     call comm_bcast(Zatom, proc_group(1))
     call comm_bcast(Lref, proc_group(1))
+    call comm_bcast(ipsfileform, proc_group(1))
+
+!    if (comm_is_root()) then
+!      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='old')
+!      do i=1, NE
+!        read(fh_atomic_spiecies, *) index, zatom_tmp, lref_tmp
+!        if (i == index) then
+!          Zatom(i) = Zatom_tmp
+!          Lref(i) = Lref_tmp
+!        else
+!          call err_finalize('atomic_spiecies is not ordered')
+!        end if
+!      end do
+!      close(fh_atomic_positions)
+!    end if
+!    call comm_bcast(Zatom, proc_group(1))
+!    call comm_bcast(Lref, proc_group(1))
+
     call comm_sync_all()
     return
   end subroutine
@@ -429,7 +481,6 @@ contains
       print '("#",4X,A,"=",I1)', 'Nt', Nt
       print '("#",4X,A,"=",ES12.5)', 'dt', dt
       print '("#namelist: ",A,", status=",I1)', 'pseudo', inml_pseudo
-      print '("#",4X,A,"=",A)', 'ps_format', ps_format
       print '("#",4X,A,"=",A)', 'PSmask_option', PSmask_option
       print '("#",4X,A,"=",ES12.5)', 'alpha_mask', alpha_mask
       print '("#",4X,A,"=",ES12.5)', 'gamma_mask', gamma_mask

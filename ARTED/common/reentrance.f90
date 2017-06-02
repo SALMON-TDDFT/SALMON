@@ -130,7 +130,6 @@ subroutine prep_backup_values(is_backup)
 
 ! pseudopotential
   BACKUP(ps_type)
-  BACKUP(ps_format)
   BACKUP(PSmask_option)
   BACKUP(alpha_mask)
   BACKUP(gamma_mask)
