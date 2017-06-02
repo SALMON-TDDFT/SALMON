@@ -7,13 +7,32 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/setup.cmake)
 ### Project settings
 project(SALMON Fortran C)
 
+# optimization options
+option_set(USE_TLOG                       "Use TLOG library"                                         OFF)
+option_set(USE_PAPI                       "Use Performance API"                                      OFF)
+option_set(USE_NVTX                       "Use NVIDIA Tools Extension Library"                       OFF)
+option_set(USE_SCALAPACK                  "Use ScaLAPACK Library"                                    OFF)
+option_set(OPT_STENCIL                    "Optimize stencil code"                                    ON)
+option_set(DOMAIN_IS_POW2                 "Stencil domain is power of two"                           OFF)
+option_set(ENABLE_CURRENT_PREPROCESSING   "Enable preprocessing of the current computation in RT"    OFF)
+option_set(ENABLE_ARRAY_PADDING           "Enable array padding for the stencil"                     ON)
+option_set(ENABLE_EXPLICIT_VEC            "Enable explicit vectorization for the stencil"            OFF)
+option_set(ENABLE_LOOP_BLOCKING           "Enable loop blocking at the stencil"                      OFF)
+option_set(ENABLE_SWPREFETCH              "Enable software prefetch in the explicit vec of stencil"  OFF)
+option_set(ENABLE_REDUCE_FOR_MANYCORE     "Enable optimized reduction code for many-core processor"  OFF)
+option_set(ENABLE_LARGE_BLOCKING          "Enable large blocking for accelerator"                    OFF)
+
+
+# cross-compile or native-compile
 if (${CMAKE_CROSSCOMPILING})
   #
   # (For supercomputer systems) cross compile mode, use toolchain file.
   #
   message(STATUS "Target platform ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 else ()
+  #
   # (For PC clusters and PC) compiler environment detects automatically.
+  #
   message(STATUS "Target platform is Native (${CMAKE_HOST_SYSTEM})")
 
   set(TARGET_SUFFIX ".cpu")
@@ -49,31 +68,20 @@ else ()
   set(CMAKE_C_FLAGS_RELEASE       "-O3")
   set(C_FLAGS_General             "${MPI_C_COMPILE_FLAGS}")
 
-  find_package(OpenMP    REQUIRED)
-  find_package(ScaLAPACK REQUIRED)
+  find_package(OpenMP REQUIRED)
+  set(OPENMP_FLAGS ${OpenMP_C_FLAGS})
 
-  set(OPENMP_FLAGS    ${OpenMP_C_FLAGS})
-  set(ScaLAPACK_FLAGS ${ScaLAPACK_LINKER_FLAGS} ${ScaLAPACK_LIBRARIES})
+  if (USE_SCALAPACK)
+    find_package(ScaLAPACK REQUIRED)
+    set(ScaLAPACK_FLAGS ${ScaLAPACK_LINKER_FLAGS} ${ScaLAPACK_LIBRARIES})
+  else ()
+    find_package(LAPACK REQUIRED)
+    set(LAPACK_FLAGS ${LAPACK_LINKER_FLAGS} ${LAPACK_LIBRARIES})
+  endif ()
 endif ()
 
 message(STATUS "user-defined FFLAGS = ${CMAKE_Fortran_FLAGS}")
 message(STATUS "user-defined CFLAGS = ${CMAKE_C_FLAGS}")
-
-
-### Set optimize options
-option_set(USE_TLOG                       "Use TLOG library"                                         OFF)
-option_set(USE_PAPI                       "Use Performance API"                                      OFF)
-option_set(USE_NVTX                       "Use NVIDIA Tools Extension Library"                       OFF)
-option_set(USE_SCALAPACK                  "Use ScaLAPACK Library"                                    OFF)
-option_set(OPT_STENCIL                    "Optimize stencil code"                                    ON)
-option_set(DOMAIN_IS_POW2                 "Stencil domain is power of two"                           OFF)
-option_set(ENABLE_CURRENT_PREPROCESSING   "Enable preprocessing of the current computation in RT"    OFF)
-option_set(ENABLE_ARRAY_PADDING           "Enable array padding for the stencil"                     ON)
-option_set(ENABLE_EXPLICIT_VEC            "Enable explicit vectorization for the stencil"            OFF)
-option_set(ENABLE_LOOP_BLOCKING           "Enable loop blocking at the stencil"                      OFF)
-option_set(ENABLE_SWPREFETCH              "Enable software prefetch in the explicit vec of stencil"  OFF)
-option_set(ENABLE_REDUCE_FOR_MANYCORE     "Enable optimized reduction code for many-core processor"  OFF)
-option_set(ENABLE_LARGE_BLOCKING          "Enable large blocking for accelerator"                    OFF)
 
 set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}")
 set(TARGET_NAME            "salmon${TARGET_SUFFIX}")
