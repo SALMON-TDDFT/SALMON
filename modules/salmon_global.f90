@@ -117,7 +117,7 @@ module salmon_global
 
 !! &emfield
   character(2)   :: trans_longi
-  character(16)  :: ae_shape
+  character(16)  :: ae_shape1
   real(8)        :: amplitude1
   real(8)        :: rlaser_int1
   real(8)        :: pulse_tw1
@@ -125,6 +125,7 @@ module salmon_global
   real(8)        :: epdir_re1(3)
   real(8)        :: epdir_im1(3)
   real(8)        :: phi_cep1
+  character(16)  :: ae_shape2
   real(8)        :: amplitude2
   real(8)        :: rlaser_int2
   real(8)        :: pulse_tw2
