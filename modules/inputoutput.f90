@@ -15,7 +15,7 @@
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 module inputoutput
-
+  use salmon_global
   implicit none
 !Physical constant
   real(8),parameter :: au_time_fs = 0.02418884326505d0
@@ -44,7 +44,6 @@ module inputoutput
   integer :: inml_group_atom
 
 !Input/Output units
-  character(16) :: unit_time,unit_length,unit_energy,unit_charge
   real(8) :: utime_to_au, utime_from_au
   real(8) :: ulength_to_au, ulength_from_au
   real(8) :: uenergy_to_au, uenergy_from_au
