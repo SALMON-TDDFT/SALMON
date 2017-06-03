@@ -46,10 +46,11 @@ module salmon_global
   character(256) :: sysname
   character(256) :: directory
                  
-!! &units        
+!! &units
   character(16)  :: unit_time
   character(16)  :: unit_length
-  character(16)  :: unit_energy,unit_charge
+  character(16)  :: unit_energy
+  character(16)  :: unit_charge
                  
 !! &parallel
   character(1)   :: domain_parallel

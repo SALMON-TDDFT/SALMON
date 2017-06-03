@@ -31,7 +31,8 @@ Subroutine err_finalize(err_message)
 End Subroutine Err_finalize
 
 
-subroutine arted(x_nprocs, x_myrank, x_cfunction)
+subroutine arted(x_nprocs, x_myrank)
+  use salmon_global, only:    use_ms_maxwell
   use Global_Variables, only: calc_mode, &
                             & calc_mode_sc, &
                             & calc_mode_ms
@@ -47,23 +48,21 @@ subroutine arted(x_nprocs, x_myrank, x_cfunction)
   implicit none
   integer, intent(in) :: x_myrank
   integer, intent(in) :: x_nprocs
-  character(30), intent(in) :: x_cfunction
   
   proc_group(:) = MPI_COMM_WORLD
   nprocs(:) = x_nprocs
   procid(:) = x_myrank
-  calc_mode = x_cfunction
 
   call read_arted()
   !call dump_inputdata
 
-  select case(calc_mode)
-  case (calc_mode_sc)
+  select case(use_ms_maxwell)
+  case ('y')
     call main_sc
-  case (calc_mode_ms)
+  case ('n')
     call main_ms
   case default
-    call Err_finalize("Invalid calc_mode parameter!")
+    call Err_finalize("Invalid use_ms_maxwell parameter!")
   end select
   
   return
