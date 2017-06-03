@@ -109,7 +109,7 @@ module salmon_global
   integer        :: nfsset_every
   integer        :: nscf
   integer        :: ngeometry_opt
-  character(1)   :: subspace_diag
+  character(1)   :: subspace_diagonalization
   character(16)  :: cmixing
   real(8)        :: rmixrate
   character(3)   :: convergence
@@ -119,15 +119,15 @@ module salmon_global
   character(2)   :: trans_longi
   character(16)  :: ae_shape
   real(8)        :: amplitude1
-  real(8)        :: rlaser_i1
-  real(8)        :: pulse_t1
+  real(8)        :: rlaser_int1
+  real(8)        :: pulse_tw1
   real(8)        :: omega1
   real(8)        :: epdir_re1(3)
   real(8)        :: epdir_im1(3)
   real(8)        :: phi_cep1
   real(8)        :: amplitude2
-  real(8)        :: rlaser_i2
-  real(8)        :: pulse_t2
+  real(8)        :: rlaser_int2
+  real(8)        :: pulse_tw2
   real(8)        :: omega2
   real(8)        :: epdir_re2(3)
   real(8)        :: epdir_im2(3)
@@ -154,7 +154,7 @@ module salmon_global
   integer        :: nxvacr_m
 
 !! &analysis
-  character(2)   :: projection
+  character(2)   :: projection_option
   integer        :: nenergy
   real(8)        :: de
   character(1)   :: out_psi

@@ -27,8 +27,6 @@ use allocate_psl_sub
 implicit none
 
 integer       :: Ntime
-integer       :: Nenergy
-real(8)       :: dE
 character(100) :: file_RT
 character(100) :: file_alpha
 character(100) :: file_RT_q
@@ -95,7 +93,7 @@ inumcpu_check=0
 call setbN
 call setcN
 
-call read_input_rt(IC_rt,OC_rt,Ntime,Nenergy,dE,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
+call read_input_rt(IC_rt,OC_rt,Ntime,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
     & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
     & file_IN_rt,file_OUT_rt)
 

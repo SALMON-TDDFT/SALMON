@@ -40,7 +40,7 @@ real(8) :: tVlocal(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),n
 integer :: ist,ix,iy,iz,jj,iatom,lm,ikoa,iob,j,ind
 integer :: ja
 integer :: nn,isub
-integer :: ispin
+integer :: jspin
 integer :: iix,iiy,iiz
 
 complex(8) :: sumbox
@@ -84,14 +84,14 @@ if(Nd==4)then
   end do
   do iob=1,iobmax
     call calc_allob(iob,iob_allob)
-    call set_ispin(iob_allob,ispin)
+    call set_ispin(iob_allob,jspin)
 !$OMP parallel private(iz)
     do iz=iwk3sta(3),iwk3end(3)
 !$OMP do
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
         htpsi(ix,iy,iz,iob,1) =   &
-          ( tVlocal(ix,iy,iz,ispin)+fdN0)*tpsi(ix,iy,iz,iob,1)  &
+          ( tVlocal(ix,iy,iz,jspin)+fdN0)*tpsi(ix,iy,iz,iob,1)  &
           +fdN1(1,1)*(tpsi(ix+1,iy,iz,iob,1) + tpsi(ix-1,iy,iz,iob,1))  &
           +fdN1(2,1)*(tpsi(ix+2,iy,iz,iob,1) + tpsi(ix-2,iy,iz,iob,1))  &
           +fdN1(3,1)*(tpsi(ix+3,iy,iz,iob,1) + tpsi(ix-3,iy,iz,iob,1))  &
@@ -120,7 +120,7 @@ if(Nd==4)then
 else
   do iob=1,iobmax
     call calc_allob(iob,iob_allob)
-    call set_ispin(iob_allob,ispin)
+    call set_ispin(iob_allob,jspin)
     fdN0=-0.5d0*cNmat(0,Nd)*f0
     do j=1,3
       do ind=1,Nd
@@ -132,7 +132,7 @@ else
 !$OMP do
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
-        htpsi(ix,iy,iz,iob,1) = (tVlocal(ix,iy,iz,ispin)+fdN0) *tpsi(ix,iy,iz,iob,1)  
+        htpsi(ix,iy,iz,iob,1) = (tVlocal(ix,iy,iz,jspin)+fdN0) *tpsi(ix,iy,iz,iob,1)  
         do ist=1,Nd  
           htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)         &
             +fdN1(ist,1)* (tpsi(ix+ist,iy,iz,iob,1) + tpsi(ix-ist,iy,iz,iob,1))     &

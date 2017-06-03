@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine read_input_rt(IC_rt,OC_rt,Ntime,Nenergy,dE,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
+subroutine read_input_rt(IC_rt,OC_rt,Ntime,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
     & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
     & file_IN_rt,file_OUT_rt)
 use inputoutput
@@ -23,8 +23,7 @@ use new_world_sub
 implicit none
 integer :: ii
 integer :: IC_rt,OC_rt
-integer :: Ntime, Nenergy
-real(8) :: dE
+integer :: Ntime
 character(LEN=100) :: file_IN
 character(LEN=100) :: file_OUT_rt, file_IN_rt
 character(100) :: file_RT
