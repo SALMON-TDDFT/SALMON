@@ -824,7 +824,8 @@ Subroutine Read_data
 
   call comm_sync_all
 
-  aLx=ax*aL;    aLy=ay*aL;    aLz=az*aL
+!  aLx=ax*aL;    aLy=ay*aL;    aLz=az*aL
+  aLx=aL(1);    aLy=aL(2);    aLz=aL(3)
   aLxyz=aLx*aLy*aLz
   bLx=2*Pi/aLx; bLy=2*Pi/aLy; bLz=2*Pi/aLz
   Hx=aLx/NLx;   Hy=aLy/NLy;   Hz=aLz/NLz

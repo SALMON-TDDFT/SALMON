@@ -34,13 +34,12 @@ Module Global_Variables
 
   integer :: iter_now,entrance_iter
   character(10) :: entrance_option    !initial or reentrance
-  real(8) :: Time_shutdown
   real(8) :: Time_start,Time_now
 
 ! grid
   integer :: NLx,NLy,NLz,Nd,NL,NG,NKx,NKy,NKz,NK,Sym,nGzero
   integer :: NKxyz 
-  real(8) :: aL,ax,ay,az,aLx,aLy,aLz,aLxyz
+  real(8) :: ax,ay,az,aLx,aLy,aLz,aLxyz
   real(8) :: bLx,bLy,bLz,Hx,Hy,Hz,Hxyz
   integer,allocatable :: Lx(:),Ly(:),Lz(:),Lxyz(:,:,:)
   integer,allocatable :: ifdx(:,:),ifdy(:,:),ifdz(:,:)
@@ -52,8 +51,6 @@ Module Global_Variables
 ! pseudopotential
   integer,parameter :: Nrmax=3000,Lmax=4
   character(2) :: ps_type
-  character(1) :: PSmask_option = 'n' !shinohara
-  real(8) :: alpha_mask = 0.8d0 , gamma_mask = 1.8d0, eta_mask = 15.d0 !shinohara
   integer :: Nps,Nlma
   integer,allocatable :: Mps(:),Jxyz(:,:),Jxx(:,:),Jyy(:,:),Jzz(:,:)
   integer,allocatable :: Mlps(:),Lref(:),Zps(:),NRloc(:)
@@ -85,7 +82,6 @@ Module Global_Variables
   real(8),allocatable :: force(:,:),esp(:,:),force_ion(:,:)
   real(8),allocatable :: Floc(:,:),Fnl(:,:),Fion(:,:)               
   real(8),allocatable :: ovlp_occ_l(:,:),ovlp_occ(:,:)
-  integer :: Nelec !FS set
   integer,allocatable :: NBocc(:) !FS set
   real(8),allocatable :: esp_vb_min(:),esp_vb_max(:) !FS set
   real(8),allocatable :: esp_cb_min(:),esp_cb_max(:) !FS set
@@ -110,32 +106,23 @@ Module Global_Variables
 
 ! Bloch momentum,laser pulse, electric field
 !  real(8) :: f0,Wcm2,pulseT,wave_length,omega,pulse_time,pdir(3),phi_CEP=0.00*2*pi
-  character(8) :: AE_shape
   real(8) :: f0_1,IWcm2_1,tpulsefs_1,omegaev_1,omega_1,tpulse_1,Epdir_1(3),phi_CEP_1 ! sato
   real(8) :: f0_2,IWcm2_2,tpulsefs_2,omegaev_2,omega_2,tpulse_2,Epdir_2(3),phi_CEP_2 ! sato
-  real(8) :: T1_T2fs,T1_T2
+  real(8) :: T1_T2fs
   real(8),allocatable :: E_ext(:,:),E_ind(:,:),E_tot(:,:)
   real(8),allocatable :: kAc(:,:),kAc0(:,:),kAc_new(:,:)                  !k+A(t)/c (kAc)
   real(8),allocatable :: Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
 
 ! control parameters
-  integer :: NEwald=4                      !Ewald summation
-  real(8) :: aEwald=0.5d0
-  integer :: Ncg=10                        !# of conjugate gradient (cg)
-  real(8) :: dt,dAc,domega
-  integer :: Nscf,Nt,Nomega
-  integer :: Nmemory_MB=8                   !Modified-Broyden (MB) method
-  real(8) :: alpha_MB=0.75
-  integer :: NFSset_start=75,NFSset_every=25 !Fermi Surface (FS) set 
+  real(8) :: dAc,domega
+  integer :: Nomega
 
 ! file names, flags, etc
-  character(128) :: SYSname,directory
   character(256) :: file_GS,file_RT
   character(256) :: file_epst,file_epse
   character(256) :: file_force_dR,file_j_ac
   character(256) :: file_DoS,file_band
   character(256) :: file_dns,file_ovlp,file_nex
-  character(256) :: file_kw              ! non-uniform k-grid
   character(256) :: file_energy_transfer ! 940
   character(256) :: file_ac_vac          ! 941
   character(256) :: file_ac_vac_back     ! 942
@@ -146,13 +133,11 @@ Module Global_Variables
 
   character(2) :: ext_field
   character(2) :: Longi_Trans
-  character(1) :: FSset_option,MD_option
+  character(1) :: MD_option
   character(2) :: AD_RHO !ovlp_option
 !yabana
   character(10) :: functional
-  real(8) :: cval ! cvalue for TBmBJ. If cval<=0, calculated in the program
 !yabana
-  character(10) :: propagator = 'default' ! propagation scheme: default, or etrs
 
   integer :: NK_ave,NG_ave,NK_s,NK_e,NG_s,NG_e
   integer :: NK_remainder,NG_remainder
@@ -173,7 +158,6 @@ Module Global_Variables
   real(8),allocatable :: tau_s_l_omp(:,:),j_s_l_omp(:,:,:)
 
 ! sym
-  character(50) :: crystal_structure !sym
   integer,allocatable :: itable_sym(:,:) ! sym
   real(8),allocatable :: rho_l(:),rho_tmp1(:),rho_tmp2(:) !sym
 
@@ -181,14 +165,11 @@ Module Global_Variables
   real(8) :: KbTev
 
 ! multi scale
-  character(20) :: FDTDdim,TwoD_shape
   integer :: NXY_s,NXY_e ! sato
-  integer :: NKsplit,NXYsplit ! sato
   integer :: macRANK,kRANK ! sato
 
-  real(8) :: HX_m,HY_m
-  integer :: NX_m,NXvacL_m,NXvacR_m
-  integer :: NY_m,NYvacT_m,NYvacB_m
+
+  integer :: NYvacT_m,NYvacB_m
   real(8),allocatable :: Ac_m(:,:,:),Ac_new_m(:,:,:),Ac_old_m(:,:,:)
   real(8),allocatable :: Elec(:,:,:),Bmag(:,:,:)
   real(8),allocatable :: j_m(:,:,:)
@@ -221,13 +202,11 @@ Module Global_Variables
   integer :: Ndata_out, Ndata_out_per_proc
   
 
-  character(30) :: calc_mode
   character(30), parameter :: calc_mode_sc = 'singlecell'
   character(30), parameter :: calc_mode_ms = 'multiscale'
 
   integer :: reentrance_switch = 0
 
-  integer :: backup_frequency = 10000 ! # of iteration
   logical :: need_backup      = .FALSE.
 
 

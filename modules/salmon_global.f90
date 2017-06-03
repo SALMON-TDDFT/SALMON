@@ -33,7 +33,7 @@ module salmon_global
 
 !Input variables
 !! &calculation
-  character(20)  :: calc_mode
+  character(16)  :: calc_mode
   character(1)   :: use_ehrenfest_md
   character(1)   :: use_ms_maxwell
   character(1)   :: use_force
@@ -44,7 +44,7 @@ module salmon_global
   integer        :: backup_frequency
   real(8)        :: time_shutdown
   character(256) :: sysname
-  character(256) :: dirctory
+  character(256) :: directory
                  
 !! &units        
   character(16)  :: unit_time
@@ -86,10 +86,10 @@ module salmon_global
 
 !! &rgrid
   real(8)        :: dl(3)
-  integer        :: nl(3)
+  integer        :: num_rgrid(3)
 
 !! &kgrid
-  integer        :: nk(3)
+  integer        :: num_kgrid(3)
   character(256) :: file_kw
 
 !! &tgrid
@@ -131,7 +131,7 @@ module salmon_global
   real(8)        :: omega2
   real(8)        :: epdir_re2(3)
   real(8)        :: epdir_im2(3)
-  real(8)        :: phi_cep1
+  real(8)        :: phi_cep2
   real(8)        :: t1_t2
   character(1)   :: quadrupole
   character(8)   :: quadrupole_pot
