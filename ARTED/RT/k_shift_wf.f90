@@ -26,7 +26,7 @@ Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
   complex(8),intent(in) :: zu(NL,NBoccmax,NK_s:NK_e)
   integer :: iter_GS,ik,ib1,ib2
 
-  if(AD_RHO == 'GS')then
+  if(projection_option == 'gs')then
     Vloc_t(:)=Vloc(:)
     Vloc(:)=Vloc_GS(:)
   end if
@@ -53,7 +53,7 @@ Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
   enddo
   call comm_summation(ovlp_occ_l,ovlp_occ,NK*NB,proc_group(2))
 
-  if(AD_RHO == 'GS')then
+  if(projection_option == 'gs')then
     Vloc(:)=Vloc_t(:)
   end if
 
@@ -72,7 +72,7 @@ Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max,zu)
   real(8) :: esp_all(NB,NK)
   integer :: iter_GS,ik,ib1,ib2,ib,ia
 
-  if(AD_RHO == 'GS')then
+  if(projection_option == 'gs')then
     Vloc_t(:)=Vloc(:)
     Vloc(:)=Vloc_GS(:)
   end if
@@ -121,7 +121,7 @@ Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max,zu)
 
   end if
 
-  if(AD_RHO == 'GS')then
+  if(projection_option == 'gs')then
     Vloc(:)=Vloc_t(:)
   end if
 

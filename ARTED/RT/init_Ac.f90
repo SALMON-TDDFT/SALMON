@@ -21,14 +21,14 @@ Subroutine init_Ac
   integer :: iter
   real(8) :: tt
 
-  select case(ext_field)
-  case('LR')
+  select case(AE_shape)
+  case('impulse')
     Ac_ext(:,1)=Epdir_1(1)*dAc
     Ac_ext(:,2)=Epdir_1(2)*dAc
     Ac_ext(:,3)=Epdir_1(3)*dAc
     Ac_ind=0.d0
     javt=0.d0
-  case('LF')
+  case default
     f0_1=5.338d-9*sqrt(IWcm2_1)      ! electric field in a.u.
     omega_1=omegaev_1/(2d0*Ry)  ! frequency in a.u.
     tpulse_1=tpulsefs_1/0.02418d0 ! pulse duration in a.u.

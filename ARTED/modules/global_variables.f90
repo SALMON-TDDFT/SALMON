@@ -37,9 +37,10 @@ Module Global_Variables
   real(8) :: Time_start,Time_now
 
 ! grid
-  integer :: NLx,NLy,NLz,Nd,NL,NG,NKx,NKy,NKz,NK,Sym,nGzero
+  integer,parameter :: Nd = 4
+  integer :: NLx,NLy,NLz,NL,NG,NKx,NKy,NKz,NK,Sym,nGzero
   integer :: NKxyz 
-  real(8) :: ax,ay,az,aLx,aLy,aLz,aLxyz
+  real(8) :: aLx,aLy,aLz,aLxyz
   real(8) :: bLx,bLy,bLz,Hx,Hy,Hz,Hxyz
   integer,allocatable :: Lx(:),Ly(:),Lz(:),Lxyz(:,:,:)
   integer,allocatable :: ifdx(:,:),ifdy(:,:),ifdz(:,:)
@@ -132,10 +133,10 @@ Module Global_Variables
   character(256) :: file_ac_init         ! 902
   character(256) :: process_directory
 
-  character(2) :: ext_field
-  character(2) :: Longi_Trans
-  character(1) :: MD_option
-  character(2) :: AD_RHO !ovlp_option
+!  character(2) :: ext_field ! this variable is removed
+!  character(2) :: Longi_Trans ! this variable is replaced by trans_longi
+!  character(1) :: MD_option ! this variable is replaced by use_ehrenfest_md
+!  character(2) :: AD_RHO !ovlp_option ! This variable is replaced by projection_option
 !yabana
   character(10) :: functional
 !yabana

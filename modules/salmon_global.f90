@@ -20,8 +20,6 @@ module salmon_global
 !Parameters for pseudo-potential
   integer, parameter :: maxMKI=10
   integer :: MI,MKI
-  integer :: Lmax_ps(maxMKI),Lloc_ps(maxMKI)
-  integer :: iZatom(maxMKI)   ! Charge of ion
    !shinohara
   integer :: ipsfileform(maxMKI)   ! file format for pseudo potential
 ! List of pseudopotential file formats
@@ -75,6 +73,9 @@ module salmon_global
 
 !! &pseudo
   character(256) :: pseudodir
+  integer        :: Lmax_ps(maxMKI)
+  integer        :: Lloc_ps(maxMKI)
+  integer        :: iZatom(maxMKI)
   character(16)  :: ps_format(maxMKI)
   character(1)   :: psmask_option
   real(8)        :: alpha_mask
