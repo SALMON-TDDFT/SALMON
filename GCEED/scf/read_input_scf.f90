@@ -26,9 +26,14 @@ integer :: icheck1,icheck2
 character(100) :: file_OUT,file_IN,LDA_Info,file_ini
 character(100) :: file_atoms_coo
 integer :: iDiterYBCG
+integer :: inml_group_fundamental, &
+         & inml_group_parallel, &
+         & inml_group_hartree, &
+         & inml_group_file, &
+         & inml_group_others
 namelist / group_fundamental / imesh_oddeven,iDiterYBCG,   &
                                iDiter_nosubspace_diag, &
-                               ntmg, &
+                               ntmg, MST, &
                                ifMST, ithresholdVh, threshold_norm_diff_rho, &
                                threshold_square_norm_diff_Vlocal
 
@@ -81,7 +86,7 @@ MST(1:2)=0
 ifMST(1:2)=0
 
 if(myrank==0)then
-  read(fh_namelist,NML=group_fundamental) 
+  read(fh_namelist,NML=group_fundamental, iostat=inml_group_fundamental) 
   rewind(fh_namelist)
   if(iflag_stopt==0) iter_stopt=1 ! overwrite iter_stopt
   if(imesh_oddeven<=0.or.imesh_oddeven>=3)then
@@ -120,7 +125,6 @@ rLsize(1:3,1)=al(1:3)
 iDiter = nscf
 ilsda = ispin
 
-MST = nstate
 select case(convergence)
 case('rho')
   iflag_convergence = 1
@@ -213,7 +217,7 @@ nproc_Mxin_s(1:3)=0
 isequential=2
 imesh_s_all=1
 if(myrank==0)then
-  read(fh_namelist,NML=group_parallel)
+  read(fh_namelist,NML=group_parallel, iostat=inml_group_parallel)
   rewind(fh_namelist)
   ibox2=1
   icheck1=0
@@ -263,7 +267,7 @@ Hconv=1.d-15*uenergy_from_au**2*ulength_from_au**3
 !MEO=3
 lmax_MEO=4
 if(myrank==0)then
-  read(fh_namelist,NML=group_hartree) 
+  read(fh_namelist,NML=group_hartree, iostat=inml_group_hartree) 
   rewind(fh_namelist)
   if(MEO<=0.or.MEO>=4)then
     write(*,*) "MEO must be equal to 1 or 2 or 3."
@@ -289,7 +293,7 @@ file_IN='file_IN'
 file_OUT='file_OUT'
 LDA_Info='LDA_Info'
 if(myrank==0)then
-  read(fh_namelist,NML=group_file) 
+  read(fh_namelist,NML=group_file, iostat=inml_group_file ) 
   rewind(fh_namelist)
   if(IC<0.or.IC>=2)then
     write(*,*) "IC must be equal to 0 or 1."
@@ -443,7 +447,7 @@ iflag_psicube=0
 lambda1_diis=0.5d0
 lambda2_diis=0.3d0
 if(myrank==0)then
-  read(fh_namelist,NML=group_others) 
+  read(fh_namelist,NML=group_others, iostat=inml_group_others) 
   rewind(fh_namelist)
   if(iparaway_ob<=0.or.iparaway_ob>=3)then
     write(*,*) "iparaway_ob must be equal to 1 or 2."

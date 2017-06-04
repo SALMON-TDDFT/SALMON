@@ -37,6 +37,14 @@ character(100) :: file_RT_dip2_q
 character(100) :: file_alpha_dip2_q
 character(100) :: file_RT_dip2_e
 character(100) :: file_external
+integer :: inml_group_fundamental, &
+         & inml_group_parallel, &
+         & inml_group_hartree, &
+         & inml_group_file, &
+         & inml_group_extfield, &
+         & inml_group_others
+
+
 namelist / group_fundamental / idisnum, iwrite_projection, &
                                itwproj, iwrite_projnum, itcalc_ene
 namelist / group_parallel /  isequential, imesh_s_all, iflag_comm_rho
@@ -67,7 +75,7 @@ iwrite_projnum=0
 itwproj=-1
 itcalc_ene=1
 if(myrank==0)then
-  read(fh_namelist,NML=group_fundamental)
+  read(fh_namelist,NML=group_fundamental, iostat=inml_group_fundamental)
   rewind(fh_namelist)
 end if
 
@@ -116,7 +124,7 @@ isequential=2
 imesh_s_all=1
 iflag_comm_rho=1
 if(myrank==0)then
-  read(fh_namelist,NML=group_parallel)
+  read(fh_namelist,NML=group_parallel, iostat=inml_group_parallel)
   rewind(fh_namelist)
   if(isequential<=0.or.isequential>=3)then
     write(*,*) "isequential must be equal to 1 or 2."
@@ -173,7 +181,7 @@ end if
 Hconv=1.d-15*uenergy_from_au**2*ulength_from_au**3
 lmax_MEO=4
 if(myrank==0)then
-  read(fh_namelist,NML=group_hartree) 
+  read(fh_namelist,NML=group_hartree, iostat=inml_group_hartree ) 
   rewind(fh_namelist)
   if(MEO<=0.or.MEO>=4)then
     write(*,*) "MEO must be equal to 1 or 2 or 3."
@@ -214,7 +222,7 @@ file_Projection='projection.data'
 fileTmp='progress'
 fileTmp2='diff'
 if(myrank==0)then
-  read(fh_namelist,NML=group_file)
+  read(fh_namelist,NML=group_file, iostat=inml_group_file)
   rewind(fh_namelist)
 end if
 call MPI_Bcast(IC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -257,7 +265,7 @@ tau2(1:2)=0.d0
 delay=0.d0
 rcycle=0.d0
 if(myrank==0)then
-  read(fh_namelist,NML=group_extfield)
+  read(fh_namelist,NML=group_extfield, iostat=inml_group_extfield)
   rewind(fh_namelist)
   if(ikind_eext==-1)then
     write(*,*) "please set ikind_eext."
@@ -365,7 +373,7 @@ iwdenstep=0
 numfile_movie=1
 iflag_Estatic=0
 if(myrank==0)then
-  read(fh_namelist,NML=group_others)
+  read(fh_namelist,NML=group_others, iostat=inml_group_others)
   rewind(fh_namelist)
 end if
 call MPI_Bcast(iparaway_ob,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)

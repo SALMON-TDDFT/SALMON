@@ -332,8 +332,8 @@ contains
     nproc_ob          = 0
     nproc_domain      = 0
     nproc_domain_s    = 0
-    num_datafiles_in  = 0
-    num_datafiles_out = 0
+    num_datafiles_in  = 1
+    num_datafiles_out = 1
 !! == default for &system
     iperiodic          = 0
     ispin              = 0
@@ -379,7 +379,7 @@ contains
     nfsset_start  = 75
     nfsset_every  = 25
     nscf          = 0
-    ngeometry_opt = 0
+    ngeometry_opt = 1
     subspace_diagonalization = 'y'
     cmixing       = 'broyden'
     rmixrate      = 0.5d0
@@ -522,6 +522,7 @@ contains
     call mpi_bcast(iperiodic,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(ispin,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(al,3,mpi_real8,0,mpi_comm_world,ierr)
+    al = al * ulength_to_au
     call mpi_bcast(isym,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(crystal_structure,32,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(nstate,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -750,10 +751,10 @@ contains
       print '("#namelist: ",A,", status=",I1)', 'pseudo', inml_pseudo
       print '("#",4X,A,"=",A)', 'pseudodir', pseudodir
       do i = 1,nelem
-        print '("#",4X,A,"=",I1,2x,I1)', 'Lmax_ps(i)',i, Lmax_ps(i)
-        print '("#",4X,A,"=",I1,2x,I1)', 'Lloc_ps(i)',i, Lloc_ps(i)
-        print '("#",4X,A,"=",I1,2x,I1)', 'iZatom(i)',i, iZatom(i)
-        print '("#",4X,A,"=",I1,2x,A)', 'ps_format(i)', i,ps_format(i)
+        print '("#",4X,A,"=",I2,2x,I4)', 'Lmax_ps(i)',i, Lmax_ps(i)
+        print '("#",4X,A,"=",I2,2x,I4)', 'Lloc_ps(i)',i, Lloc_ps(i)
+        print '("#",4X,A,"=",I2,2x,I4)', 'iZatom(i)',i, iZatom(i)
+        print '("#",4X,A,"=",I2,2x,A)', 'ps_format(i)', i,ps_format(i)
       end do
       print '("#",4X,A,"=",A)', 'psmask_option', psmask_option
       print '("#",4X,A,"=",ES12.5)', 'alpha_mask', alpha_mask

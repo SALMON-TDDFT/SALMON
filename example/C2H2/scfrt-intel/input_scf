@@ -1,60 +1,71 @@
 &units
-unit_length='Angstrom'
-unit_energy='eV'
-unit_time='fs'
+  unit_length='Angstrom'
+  unit_energy='eV'
+  unit_time='fs'
 /
 
-&group_function
-  cfunction='nanostructure'
+&calculation
+  calc_mode = 'GS'
 /
-&group_function2
-  cfunction2='scf'
+
+&parallel
+  domain_parallel = 'y'
+  nproc_ob = 1
+  nproc_domain = 1,1,1
+  nproc_domain_s = 1,1,1
 /
-&group_fundamental
-  Harray(1,1)=0.25d0
-  Harray(2,1)=0.25d0
-  Harray(3,1)=0.25d0
-  rLsize(1,1)=16.d0
-  rLsize(2,1)=16.d0
-  rLsize(3,1)=16.d0
-  MST(1)=5
-  ifMST(1)=5
-  mixrate=0.1d0
+
+&system
+  iperiodic = 0
+  al = 16d0, 16d0, 16d0
+  nstate = 5
+  nelem = 2
+  natom = 4
+  file_atom='coo.data'
 /
-&group_parallel
-  nproc_ob=1
-  nproc_Mxin(1)=1
-  nproc_Mxin(2)=1
-  nproc_Mxin(3)=1
-  nproc_Mxin_s(1)=1
-  nproc_Mxin_s(2)=1
-  nproc_Mxin_s(3)=1
-/
-&group_hartree
-  MEO=3
-  num_pole_xyz(1)=2
-  num_pole_xyz(2)=2
-  num_pole_xyz(3)=2
-/
-&group_file
-  file_OUT='C2H2.data'
-  LDA_Info='C2H2.info'
-/
-&group_atom
-  MI=4
-  MKI=2
+
+&pseudo
   iZatom(1)=6
   iZatom(2)=1
-  ipsfileform(1)=1
-  ipsfileform(2)=1
+  ps_format(1)='KY'
+  ps_format(2)='KY'
   Lmax_ps(1)=1
   Lmax_ps(2)=0
   Lloc_ps(1)=1
   Lloc_ps(2)=0
-  file_atoms_coo='coo.data'
 /
-&group_scf_analysis
+
+&rgrid
+  dl = 0.25d0, 0.25d0, 0.25d0
 /
-&group_others
+
+&scf
+  rmixrate = 0.1d0
+  ncg = 4
+  nscf = 1000
 /
+
+
+
+&hartree
+ meo = 3
+ num_pole_xyz = 2,2,2 
+/
+
+
+
+&group_fundamental
+  MST(1)=5
+  ifMST(1)=5
+/
+
+&group_file
+  file_OUT='C2H2.data'
+  LDA_Info='C2H2.info'
+/
+
+
+
+
+
 
