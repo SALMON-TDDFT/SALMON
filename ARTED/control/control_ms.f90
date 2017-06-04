@@ -526,7 +526,7 @@ subroutine main
       if (comm_is_root(1) .and. iter/100*100 == iter) then
         write(*,*) 'Total time =',(Time_now-Time_start)
       end if
-      if ((Time_now - Time_start)>Time_shutdown) then 
+      if ((Time_now - Time_start)>Time_shutdown .and. Time_shutdown >= 0d0) then 
         reentrance_switch=1
       end if
     end if

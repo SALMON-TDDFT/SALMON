@@ -454,7 +454,7 @@ subroutine main
       if (comm_is_root() .and. iter/100*100 == iter) then
         write(*,*) 'Total time =',(Time_now-Time_start)
       end if
-      if ((Time_now - Time_start)>Time_shutdown) then 
+      if ((Time_now - Time_start)>Time_shutdown .and. Time_shutdown >= 0d0) then 
         call comm_sync_all
         write(*,*) procid(1),'iter =',iter
         iter_now=iter

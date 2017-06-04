@@ -29,6 +29,8 @@ Subroutine init_Ac
     Ac_ind=0.d0
     javt=0.d0
   case default
+    if(IWcm2_1 < 0d0)IWcm2_1 = 0d0
+    if(IWcm2_2 < 0d0)IWcm2_2 = 0d0
     f0_1=5.338d-9*sqrt(IWcm2_1)      ! electric field in a.u.
     omega_1=omegaev_1/(2d0*Ry)  ! frequency in a.u.
     tpulse_1=tpulsefs_1/0.02418d0 ! pulse duration in a.u.
