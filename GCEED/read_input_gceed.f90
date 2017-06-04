@@ -22,11 +22,13 @@ subroutine read_input_gceed(procid,cfunction2)
   integer :: ierr
   namelist / group_function2 / cfunction2
 
-  if(procid==0)then
-    open(fh_namelist, file='.namelist.tmp', status='old')
-    read(fh_namelist,nml=group_function2)
-    close(fh_namelist)
-  end if
-  call mpi_bcast(cfunction2,30,mpi_character,0,mpi_comm_world,ierr)
+!  if(procid==0)then
+!    open(fh_namelist, file='.namelist.tmp', status='old')
+!    read(fh_namelist,nml=group_function2)
+!    close(fh_namelist)
+!  end if
+!  call mpi_bcast(cfunction2,30,mpi_character,0,mpi_comm_world,ierr)
+
+  cfunction2 = trim(calc_mode)
 
 end subroutine read_input_gceed
