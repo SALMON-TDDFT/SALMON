@@ -407,7 +407,7 @@ contains
     quadrupole     = 'n'
     quadrupole_pot = ''
 !! == default for &linear_response
-    e_impulse = 5d-5*uenergy_to_au/ulength_to_au*utime_to_au ! a.u.
+    e_impulse = 5d-5*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'

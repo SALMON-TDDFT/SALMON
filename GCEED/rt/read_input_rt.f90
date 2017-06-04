@@ -324,7 +324,6 @@ if(myrank==0)then
 end if
 call MPI_Bcast(ikind_eext,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(Fst,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  Fst=Fst*(uenergy_to_au/ulength_to_au)
 call MPI_Bcast(dir,3,MPI_Character,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(dir2,2,MPI_Character,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(romega,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)

@@ -4,41 +4,39 @@ unit_energy='eV'
 unit_time='fs'
 /
 
-&group_function
-  cfunction='nanostructure'
+&calculation
+  calc_mode='RT'
 /
-&group_function2
-  cfunction2='rt'
+
+&parallel
+  domain_parallel = 'y'
+  nproc_ob = 1
+  nproc_domain = 1,1,1
+  nproc_domain_s = 1,1,1
 /
-&group_fundamental
-/
-&group_parallel
-  nproc_ob=1
-  nproc_Mxin(1)=1
-  nproc_Mxin(2)=1
-  nproc_Mxin(3)=1
-  nproc_Mxin_s(1)=1
-  nproc_Mxin_s(2)=1
-  nproc_Mxin_s(3)=1
-/
-&group_propagation
+
+&tgrid
   dt=1.31644d-3
-  Ntime=100
+  Nt=100
 /
-&group_hartree
-  MEO=3
-  num_pole_xyz(1)=2
-  num_pole_xyz(2)=2
-  num_pole_xyz(3)=2
+
+&emfield
+  ae_shape1 = 'impulse'
 /
+&linear_response
+  e_impulse = 0.00604721081d0
+/
+&hartree
+ meo = 3
+ num_pole_xyz = 2,2,2 
+/
+
 &group_file
   file_IN='C2H2.data'
   file_RT='C2H2-RT.data'
   file_alpha='C2H2-ALP.data'
 /
 &group_extfield
-  ikind_eext=0
-  Fst=0.25d0
   dir='z'
 /
 &group_others
