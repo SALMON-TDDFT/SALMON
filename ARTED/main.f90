@@ -58,9 +58,9 @@ subroutine arted(x_nprocs, x_myrank)
 
   select case(use_ms_maxwell)
   case ('y')
-    call main_sc
-  case ('n')
     call main_ms
+  case ('n')
+    call main_sc
   case default
     call Err_finalize("Invalid use_ms_maxwell parameter!")
   end select
