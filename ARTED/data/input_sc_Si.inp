@@ -1,0 +1,73 @@
+&calculation
+  calc_mode = 'GS_RT'
+/
+
+&control
+  sysname = 'Si'
+/
+
+&system
+  iperiodic = 3
+  al = 10.26d0,10.26d0,10.26d0
+  isym = 8 
+  crystal_structure = 'diamond'
+  nstate = 32
+  nelec = 32
+  nelem = 1
+  natom = 8
+/
+
+
+&pseudo
+  iZatom(1)=14
+  ps_format(1)='KY'
+  Lloc_ps(1)=2
+/
+
+&functional
+  xc ='TBmBJ'
+  cval = 1d0
+/
+
+&rgrid
+  num_rgrid = 12,12,12
+/
+
+&kgrid
+  num_kgrid = 4,4,4
+/
+
+&tgrid
+ nt=3000
+ dt=0.16  
+/
+
+&propagation
+  propagator='etrs'
+/
+
+&scf
+  ncg = 5
+  nscf = 120
+/
+
+&emfield
+  trans_longi = 'tr'
+  ae_shape1 = 'Asin2cos'
+  rlaser_int1 = 1d14
+  pulse_tw1 = 441.195136248d0
+  omega1 = 0.05696145187d0
+  epdir_re1 = 0.,0.,1.
+/
+
+
+&atomic_positions
+	1	.0	.0	.0	1
+	2	.25	.25	.25	1
+	3	.5	.0	.5	1
+	4	.0	.5	.5	1
+	5	.5	.5	.0	1
+	6	.75	.25	.75	1
+	7	.25	.75	.75	1
+	8	.75	.75	.25	1
+	/

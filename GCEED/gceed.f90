@@ -21,9 +21,9 @@ subroutine gceed(nprocs,procid)
 
   call read_input_gceed(procid,cfunction2)
 
-  if(cfunction2=="scf")then
+  if(cfunction2=="GS")then
     call real_space_dft(nprocs,procid)
-  else if(cfunction2=="rt")then
+  else if(cfunction2=="RT")then
     call real_time_dft(nprocs,procid)
   end if
 

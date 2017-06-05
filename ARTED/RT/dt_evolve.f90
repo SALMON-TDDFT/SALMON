@@ -31,7 +31,7 @@ subroutine dt_evolve_KB(iter)
   integer, intent(in) :: iter
 
   select case(propagator)
-    case('default')
+    case('middlepoint')
       call default_propagator
     case('etrs')
       call etrs_propagator
@@ -73,7 +73,7 @@ subroutine dt_evolve_KB_MS(ixy_m)
   iy_m=NY_table(ixy_m)
 
   select case(propagator)
-    case('default')
+    case('middlepoint')
       call default_propagator
     case('etrs')
       call etrs_propagator

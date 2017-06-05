@@ -84,7 +84,6 @@ subroutine prep_backup_values(is_backup)
   BACKUP(NLx)
   BACKUP(NLy)
   BACKUP(NLz)
-  BACKUP(Nd)
   BACKUP(NL)
   BACKUP(NG)
   BACKUP(NKx)
@@ -94,10 +93,7 @@ subroutine prep_backup_values(is_backup)
   BACKUP(Sym)
   BACKUP(nGzero)
   BACKUP(NKxyz)
-  BACKUP(aL)
-  BACKUP(ax)
-  BACKUP(ay)
-  BACKUP(az)
+!  BACKUP(aL) ! temporary removed since non-allocatable array is not supported yet.
   BACKUP(aLx)
   BACKUP(aLy)
   BACKUP(aLz)
@@ -318,11 +314,10 @@ subroutine prep_backup_values(is_backup)
   BACKUP(file_ac_m)
   BACKUP(file_ac)
 
-  BACKUP(ext_field)
-  BACKUP(Longi_Trans)
+  BACKUP(trans_longi)
   BACKUP(FSset_option)
-  BACKUP(MD_option)
-  BACKUP(AD_RHO)
+  BACKUP(use_ehrenfest_md)
+  BACKUP(projection_option)
   BACKUP(functional)
   BACKUP(cval)
   BACKUP(propagator)
@@ -465,7 +460,8 @@ subroutine prep_backup_values(is_backup)
 
 contains
   function gen_filename(base, procid)
-    use global_variables, only: directory, process_directory
+    use salmon_global
+    use global_variables, only: process_directory
     implicit none
     character(*), intent(in)      :: base
     integer, intent(in), optional :: procid

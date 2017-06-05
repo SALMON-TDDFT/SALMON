@@ -13,16 +13,16 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine set_ispin(iob,ispin)
+subroutine set_ispin(iob,jspin)
 use scf_data
 !$ use omp_lib
 implicit none
-integer :: iob,ispin
+integer :: iob,jspin
 
 if(iob<=MST(1))then
-  ispin=1 
+  jspin=1 
 else
-  ispin=2
+  jspin=2
 end if
 
 return

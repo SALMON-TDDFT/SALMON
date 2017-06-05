@@ -99,7 +99,7 @@ subroutine main
   Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
   call Total_Energy_omp(Rion_update,calc_mode_gs) ! debug
   call Ion_Force_omp(Rion_update,calc_mode_gs)
-  if (MD_option /= 'Y') Rion_update = rion_update_off
+  if (use_ehrenfest_md /= 'y') Rion_update = rion_update_off
   Eall_GS(0)=Eall
 
   if(comm_is_root()) then
@@ -300,7 +300,7 @@ subroutine main
     open(7,file=file_epst,position = position_option)
     open(8,file=file_dns,position = position_option)
     open(9,file=file_force_dR,position = position_option)
-    if (AD_RHO /= 'No') then 
+    if (projection_option /= 'no') then 
       open(404,file=file_ovlp,position = position_option) 
       open(408,file=file_nex,position = position_option) 
     end if
@@ -325,14 +325,14 @@ subroutine main
 !$acc enter data copyin(zu)
   do iter=entrance_iter+1,Nt
 
-    if (Longi_Trans == 'Lo') then 
+    if (trans_longi == 'lo') then 
       Ac_ind(iter+1,:)=2*Ac_ind(iter,:)-Ac_ind(iter-1,:)-4*Pi*javt(iter,:)*dt**2
       if (Sym /= 1) then
         Ac_ind(iter+1,1)=0.d0
         Ac_ind(iter+1,2)=0.d0
       end if
       Ac_tot(iter+1,:)=Ac_ext(iter+1,:)+Ac_ind(iter+1,:)
-    else if (Longi_Trans == 'Tr') then 
+    else if (trans_longi == 'tr') then 
       Ac_tot(iter+1,:)=Ac_ext(iter+1,:)
     end if
 
@@ -345,7 +345,7 @@ subroutine main
     call current_RT(zu_t)
 
     javt(iter+1,:)=jav(:)
-    if (MD_option == 'Y') then
+    if (use_ehrenfest_md == 'y') then
 !$acc update self(zu)
       call Ion_Force_omp(Rion_update,calc_mode_rt)
       if (iter/10*10 == iter) then
@@ -373,7 +373,7 @@ subroutine main
     enddo
     force=force+force_ion
 !pseudo potential update
-    if (MD_option == 'Y') then
+    if (use_ehrenfest_md == 'y') then
       Tion=0.d0
       do ia=1,NI
         dRion(:,ia,iter+1)=2*dRion(:,ia,iter)-dRion(:,ia,iter-1)+force(:,ia)*dt**2/(umass*Mass(Kion(ia)))
@@ -423,7 +423,7 @@ subroutine main
       end if
     end if
 !Adiabatic evolution
-    if (AD_RHO /= 'No' .and. iter/100*100 == iter) then
+    if (projection_option /= 'no' .and. iter/100*100 == iter) then
       call k_shift_wf(Rion_update,5,zu_t)
       if (comm_is_root()) then
         do ia=1,NI
@@ -454,7 +454,7 @@ subroutine main
       if (comm_is_root() .and. iter/100*100 == iter) then
         write(*,*) 'Total time =',(Time_now-Time_start)
       end if
-      if ((Time_now - Time_start)>Time_shutdown) then 
+      if ((Time_now - Time_start)>Time_shutdown .and. Time_shutdown >= 0d0) then 
         call comm_sync_all
         write(*,*) procid(1),'iter =',iter
         iter_now=iter
@@ -510,7 +510,7 @@ subroutine main
     close(7)
     close(8)
     close(9)
-    if (AD_RHO /= 'No') then
+    if (projection_option /= 'no') then
       close(404)
       close(408)                                                      
     end if
@@ -609,7 +609,7 @@ Subroutine Read_data
     file_dns=trim(directory)//trim(SYSname)//'_dns.out'
     file_ovlp=trim(directory)//trim(SYSname)//'_ovlp.out'
     file_nex=trim(directory)//trim(SYSname)//'_nex.out'
-    write(*,*) 'aL,ax,ay,az=',aL,ax,ay,az
+    write(*,*) 'al(1),al(2),al(3)=',al(1),al(2),al(3)
     write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym
     write(*,*) 'Nd,NLx,NLy,NLz,NKx,NKy,NKz=',Nd,NLx,NLy,NLz,NKx,NKy,NKz
     write(*,*) 'NEwald, aEwald =',NEwald, aEwald 
@@ -683,7 +683,8 @@ Subroutine Read_data
   
   call comm_sync_all
 
-  aLx=ax*aL;    aLy=ay*aL;    aLz=az*aL
+!  aLx=ax*aL;    aLy=ay*aL;    aLz=az*aL
+  aLx=aL(1);    aLy=aL(2);    aLz=aL(3)
   aLxyz=aLx*aLy*aLz
   bLx=2*Pi/aLx; bLy=2*Pi/aLy; bLz=2*Pi/aLz
   Hx=aLx/NLx;   Hy=aLy/NLy;   Hz=aLz/NLz
@@ -816,17 +817,19 @@ Subroutine Read_data
     write(*,*) 'Nmemory_MB,alpha_MB =',Nmemory_MB,alpha_MB
     write(*,*) 'NFSset_start,NFSset_every =',NFSset_start,NFSset_every
     write(*,*) 'Nscf=',Nscf
-    write(*,*) 'ext_field =',ext_field
-    write(*,*) 'Longi_Trans =',Longi_Trans
-    write(*,*) 'MD_option =', MD_option
-    write(*,*) 'AD_RHO =', AD_RHO
+!    write(*,*) 'ext_field =',ext_field
+    write(*,*) 'trans_longi =',trans_longi
+    write(*,*) 'use_ehrenfest_md =', use_ehrenfest_md
+    write(*,*) 'projection_option =', projection_option
     write(*,*) 'Nt,dt=',Nt,dt
   endif
   call comm_sync_all
 
-  if(ext_field /= 'LF' .and. ext_field /= 'LR' ) call err_finalize('incorrect option for ext_field')
-  if(Longi_Trans /= 'Lo' .and. Longi_Trans /= 'Tr' ) call err_finalize('incorrect option for Longi_Trans')
-  if(AD_RHO /= 'TD' .and. AD_RHO /= 'GS' .and. AD_RHO /= 'No' ) call err_finalize('incorrect option for Longi_Trans')
+!  if(ext_field /= 'LF' .and. ext_field /= 'LR' ) call err_finalize('incorrect option for ext_field')
+  if(trans_longi /= 'lo' .and. trans_longi /= 'tr' ) call err_finalize('incorrect option for Longi_Trans')
+  if(projection_option /= 'td' .and. projection_option /= 'gs' &
+    & .and. projection_option /= 'no' ) &
+    & call err_finalize('incorrect option for projection_option')
 
   call comm_sync_all
 

@@ -104,7 +104,7 @@ subroutine main
 !  call Total_Energy(Rion_update,calc_mode_gs)
   call Total_Energy_omp(Rion_update,calc_mode_gs) ! debug
   call Ion_Force_omp(Rion_update,calc_mode_gs)
-  if (MD_option /= 'Y') Rion_update = rion_update_off
+  if (use_ehrenfest_md /= 'y') Rion_update = rion_update_off
   Eall_GS(0)=Eall
 
   if(comm_is_root(1)) then
@@ -312,7 +312,7 @@ subroutine main
 !reentrance
 2 if (entrance_option == 'reentrance') then
     position_option='asis'
-    if (MD_option /= 'Y') Rion_update = rion_update_off
+    if (use_ehrenfest_md /= 'y') Rion_update = rion_update_off
   else
     position_option='rewind'
     entrance_iter=-1
@@ -381,7 +381,7 @@ subroutine main
       call timer_end(LOG_OTHER)
 
       javt(iter,:)=jav(:)
-      if (MD_option == 'Y') then
+      if (use_ehrenfest_md == 'y') then
 !$acc update self(zu)
         call Ion_Force_omp(Rion_update,calc_mode_rt,ixy_m)
         if (mod(iter, Nstep_write) == 0) then
@@ -403,7 +403,7 @@ subroutine main
 
       call timer_begin(LOG_K_SHIFT_WF)
 !Adiabatic evolution
-      if (AD_RHO /= 'No' .and. mod(iter,100) == 0) then
+      if (projection_option /= 'no' .and. mod(iter,100) == 0) then
         call k_shift_wf(Rion_update,2,zu_m(:,:,:,ixy_m))
         if(comm_is_root(2))then ! sato
           excited_electron_l(ix_m,iy_m)=sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
@@ -489,7 +489,7 @@ subroutine main
     end if
     call timer_end(LOG_OTHER)
 
-    if (AD_RHO /= 'No' .and. mod(iter,100) == 0 ) then 
+    if (projection_option /= 'no' .and. mod(iter,100) == 0 ) then 
       call timer_begin(LOG_ALLREDUCE)
       call comm_summation(excited_electron_l,excited_electron,NX_m*NY_m,proc_group(1))
       call timer_end(LOG_ALLREDUCE)
@@ -526,7 +526,7 @@ subroutine main
       if (comm_is_root(1) .and. iter/100*100 == iter) then
         write(*,*) 'Total time =',(Time_now-Time_start)
       end if
-      if ((Time_now - Time_start)>Time_shutdown) then 
+      if ((Time_now - Time_start)>Time_shutdown .and. Time_shutdown >= 0d0) then 
         reentrance_switch=1
       end if
     end if
@@ -730,7 +730,7 @@ Subroutine Read_data
     file_dns=trim(directory)//trim(SYSname)//'_dns.out'
     file_ovlp=trim(directory)//trim(SYSname)//'_ovlp.out'
     file_nex=trim(directory)//trim(SYSname)//'_nex.out'
-    write(*,*) 'aL,ax,ay,az=',aL,ax,ay,az
+    write(*,*) 'al(1),al(2),al(3)=',al(1),al(2),al(3)
     write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym
     write(*,*) 'Nd,NLx,NLy,NLz,NKx,NKy,NKz=',Nd,NLx,NLy,NLz,NKx,NKy,NKz
     write(*,*) 'FDTDdim=',FDTDdim
@@ -824,7 +824,8 @@ Subroutine Read_data
 
   call comm_sync_all
 
-  aLx=ax*aL;    aLy=ay*aL;    aLz=az*aL
+!  aLx=ax*aL;    aLy=ay*aL;    aLz=az*aL
+  aLx=aL(1);    aLy=aL(2);    aLz=aL(3)
   aLxyz=aLx*aLy*aLz
   bLx=2*Pi/aLx; bLy=2*Pi/aLy; bLz=2*Pi/aLz
   Hx=aLx/NLx;   Hy=aLy/NLy;   Hz=aLz/NLz
@@ -983,14 +984,16 @@ Subroutine Read_data
     write(*,*) 'Nscf=',Nscf
 !    write(*,*) 'ext_field =',ext_field
 !    write(*,*) 'Longi_Trans =',Longi_Trans
-    write(*,*) 'MD_option =', MD_option
-    write(*,*) 'AD_RHO =', AD_RHO
+    write(*,*) 'use_ehrenfest_md =', use_ehrenfest_md
+    write(*,*) 'projection_option =', projection_option
     write(*,*) 'Nt,dt=',Nt,dt
   endif
   call comm_sync_all
 !  if(ext_field /= 'LF' .and. ext_field /= 'LR' ) call err_finalize('incorrect option for ext_field')
 !  if(Longi_Trans /= 'Lo' .and. Longi_Trans /= 'Tr' ) call err_finalize('incorrect option for Longi_Trans')
-  if(AD_RHO /= 'TD' .and. AD_RHO /= 'GS' .and. AD_RHO /= 'No' ) call err_finalize('incorrect option for Longi_Trans')
+  if(projection_option /= 'td' .and. projection_option /= 'gs' .and. &
+    & projection_option /= 'no' ) &
+    & call err_finalize('incorrect option for projection_option')
 
   call comm_sync_all
 
