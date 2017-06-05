@@ -20,13 +20,13 @@ subroutine conv_core_exc_cor
   implicit none
   integer :: ix,iy,iz
   character(20) :: xc_tmp
-  integer :: ispin
-  real(8) :: cval
+  integer :: jspin
+  real(8) :: cval_t
   real(8) :: tot_exc
 
   xc_tmp='pz'
-  ispin=0
-  cval=0.d0
+  jspin=0
+  cval_t=0.d0
 
   do iz=1,ng_num(3)
   do iy=1,ng_num(2)
@@ -36,7 +36,7 @@ subroutine conv_core_exc_cor
   end do
   end do
 
-  call core_exc_cor(xc_tmp, ispin, cval, ng_num(1), ng_num(2), ng_num(3), Hvol,  &
+  call core_exc_cor(xc_tmp, jspin, cval_t, ng_num(1), ng_num(2), ng_num(3), Hvol,  &
                     rho_tmp, exc_dummy2, exc_dummy, exc_dummy3, exc_dummy3, &
                     exc_dummy, exc_dummy, vxc_tmp, exc_dummy2, exc_dummy2, tot_exc)
 

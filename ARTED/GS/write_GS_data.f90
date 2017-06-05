@@ -25,7 +25,7 @@ Subroutine write_GS_data
     write(403,*) '#---------------------------------------------------------'
     write(403,*) '#grid information-----------------------------------------'
     write(403,*) '#aL =',aL
-    write(403,*) '#ax,ay,az =',ax,ay,az
+    write(403,*) '#al(1),al(2),al(3) =',al(1),al(2),al(3)
     write(403,*) '#aLx,aLy,aLz =',aLx,aLy,aLz
     write(403,*) '#bLx,bLy,bLz =',bLx,bLy,bLz
     write(403,*) '#Nd =',Nd

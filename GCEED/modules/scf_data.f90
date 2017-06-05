@@ -112,7 +112,7 @@ integer :: ierr,nproc,myrank
 
 integer,allocatable :: ob_sta_all_kgrid(:),ob_end_all_kgrid(:),iobnum_all_kgrid(:)
 
-integer :: nproc_ob, nproc_Mxin(3),nproc_Mxin_mul
+integer :: nproc_Mxin(3),nproc_Mxin_mul
 integer :: nproc_ob_spin(2)
 integer :: nproc_Mxin_s(3), nproc_Mxin_mul_s
 integer :: nproc_Mxin_s_dm(3), nproc_Mxin_mul_s_dm
@@ -127,7 +127,6 @@ integer :: Miter       ! Total number of Iteration for SCF calculation
 integer :: Miter_rt    ! Total number of Iteration for RT calculation
 
 real(8) :: mixrate     ! Mixing rate for updating charge density
-integer :: Nmemory_MB  ! number of iteration to stock for Broyden's method
 
 integer :: minroutine  ! Type of routine for minimization
 
@@ -178,7 +177,6 @@ real(8) :: Harray(3,maxntmg)  ! Grid spacing
 real(8) :: rLsize(3,maxntmg)    ! size of the box
 integer :: ithresholdVh(maxntmg)  ! threshold value for Vh iteration
 
-integer :: MEO
 integer :: maxMps
 integer :: lmax_MEO
 
@@ -266,14 +264,10 @@ real(8),allocatable :: vecQs2(:,:,:)
 integer :: iflag_psicube
 
 integer :: num_pole
-integer :: num_pole_xyz(3)
 
-integer :: Ncg
 
 integer :: itotNtime
 
-integer :: num_datafiles_IN
-integer :: num_datafiles_OUT
 integer :: num_datafiles_OUT2
 
 integer :: iflag_hartree
@@ -351,12 +345,11 @@ integer :: img
 
 integer :: itt
 integer :: ikind_eext   !0:No external field, 1: dipoleApprox
-integer :: N_hamil
 
 character(3)  :: dir
 character(2)  :: dir2 
 
-real(8) :: dt,Fst,Fst2(2)
+real(8) :: Fst,Fst2(2)
 real(8) :: romega, romega2(2)
 real(8) :: pulse_T, pulse_T2(2) 
 real(8) :: rlaser_I, rlaser_I2(2) 
@@ -454,7 +447,6 @@ real(8) :: rad_diele
 real(8) :: fcN(0:12)
 real(8) :: fbN(0:12)
 
-integer,parameter :: NEwald=4
 
 integer,allocatable :: oblist(:)
 
