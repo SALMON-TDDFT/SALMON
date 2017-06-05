@@ -98,7 +98,6 @@ case default
 end select
 
 call MPI_Bcast(Nenergy,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(dE,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr); dE = dE*uenergy_to_au
 call MPI_Bcast(N_hamil,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(icalcforce,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_md,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
