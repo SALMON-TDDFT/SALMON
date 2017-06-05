@@ -37,7 +37,7 @@ Subroutine Fourier_tr
       E_tot_w(:)=E_tot_w(:)+E_tot(iter,:)*exp(zI*hw*tt)*smoothing_t(tt)
     enddo
     jav_w(:)=jav_w(:)*dt; E_ext_w(:)=E_ext_w(:)*dt; E_tot_w(:)=E_tot_w(:)*dt
-    if (AE_shape == 'impulse') then
+    if (ae_shape1 == 'impulse') then
       if (Trans_Longi == 'lo')  then 
         zeps(:)=1.d0/(1.d0-E_tot_w(:)/dAc)
       else if (Trans_Longi == 'tr') then
@@ -47,11 +47,11 @@ Subroutine Fourier_tr
     end if
       
     if (comm_is_root()) then
-      if (AE_shape == 'impulse' .and. trans_Longi == 'lo') then
+      if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
         write(7,'(1x,f13.7,6f22.14)') hw&
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(imag(zeps(ixyz)),ixyz=1,3)
-      else if (AE_shape == 'impulse' .and. Trans_Longi == 'tr') then
+      else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
         write(7,'(1x,f13.7,12f22.14)') hw&
              &,(real(zsigma_w(ixyz)),ixyz=1,3)&
              &,(imag(zsigma_w(ixyz)),ixyz=1,3)&

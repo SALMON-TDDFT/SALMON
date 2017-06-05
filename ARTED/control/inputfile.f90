@@ -90,24 +90,25 @@ contains
 
 !    namelist/incident/ &
 !            & Longi_Trans, & ! This variable is replaced by trans_longi
-     dAc = e_impulse
-     AE_shape = trim(ae_shape1)
-     IWcm2_1 = rlaser_int1
-     tpulsefs_1 = pulse_tw1*au_time_fs
-     omegaev_1 = omega1*au_energy_ev
-     phi_CEP_1 = phi_cep1
-     Epdir_1 = epdir_re1
-     IWcm2_2 = rlaser_int2
-     tpulsefs_2 = pulse_tw2*au_time_fs
-     omegaev_2 = omega2*au_energy_ev
-     phi_CEP_2 = phi_cep1
-     Epdir_2 = epdir_re1
-     T1_T2fs = t1_t2*au_time_fs
-
+!     dAc = e_impulse
+!     AE_shape = trim(ae_shape1)
+!     IWcm2_1 = rlaser_int1
+!     tpulsefs_1 = pulse_tw1*au_time_fs
+!     omegaev_1 = omega1*au_energy_ev
+!     phi_CEP_1 = phi_cep1
+!     Epdir_1 = epdir_re1
+!     IWcm2_2 = rlaser_int2
+!     tpulsefs_2 = pulse_tw2*au_time_fs
+!     omegaev_2 = omega2*au_energy_ev
+!     phi_CEP_2 = phi_cep1
+!     Epdir_2 = epdir_re1
+!     T1_T2fs = t1_t2*au_time_fs
+!
 !    namelist/propagation/ &
 !            & propagator
-
+     dAc = e_impulse
 !    namelist/response/ &
+
      Nomega = nenergy
      domega = de
 
