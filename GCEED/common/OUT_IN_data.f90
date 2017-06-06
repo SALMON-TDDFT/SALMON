@@ -77,7 +77,7 @@ if(myrank.eq.0)then
     write(97) Kion(:MI)
     write(97) Rion(:,:MI)
     write(97) iZatom(:MKI)
-    write(97) ipsfileform(:MKI)
+    write(97) pseudo_file(:MKI) !ipsfileform(:MKI)
     write(97) Zps(:MKI),Rps(:MKI)
     write(97) AtomName(:MI) 
     write(97) iAtomicNumber(:MI) 
@@ -601,9 +601,9 @@ if(iflag_ps.eq.1)then
     read(96) Rion(:,:MI_read)
     read(96) iZatom(:MKI)
     if(version_num_box(1)>=34)then
-      read(96) ipsfileform(:MKI)
+      read(96) pseudo_file(:MKI) !ipsfileform(:MKI)
     else
-      ipsfileform(:MKI)=1
+      stop "This version is already invalid."
     end if
     read(96) 
     read(96) AtomName(:MI_read)
@@ -613,7 +613,7 @@ if(iflag_ps.eq.1)then
   call MPI_Bcast(Kion(1),MI_read,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(Rion(1,1),MI_read*3,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(iZatom,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-  call MPI_Bcast(ipsfileform,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(pseudo_file,256*MKI,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(AtomName(1),8*MI_read,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(iAtomicNumber(1),MI_read,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 

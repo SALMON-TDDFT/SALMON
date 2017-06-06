@@ -190,7 +190,6 @@ contains
       & Lmax_ps, &
       & Lloc_ps, &
       & iZatom, &
-      & ps_format, &
       & psmask_option, &
       & alpha_mask, &
       & gamma_mask, &
@@ -351,7 +350,6 @@ contains
     Lmax_ps       = -1
     Lloc_ps       = -1
     iZatom        = -1
-    ps_format     = 'KY'
     psmask_option = 'n'
     alpha_mask    = 0.8d0
     gamma_mask    = 1.8d0
@@ -536,7 +534,6 @@ contains
     call mpi_bcast(Lmax_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(Lloc_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(iZatom,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ps_format,16*maxMKI,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(psmask_option,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(alpha_mask,1,mpi_real8,0,mpi_comm_world,ierr)
     call mpi_bcast(gamma_mask,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -751,11 +748,10 @@ contains
       print '("#namelist: ",A,", status=",I1)', 'pseudo', inml_pseudo
 
       do i = 1,nelem
-        print '("#",4X,A,I2,A,"=",A)', 'pseudo_file(',i,')', pseudo_file(i)
+        print '("#",4X,A,I2,A,"=",A)', 'pseudo_file(',i,')', trim(pseudo_file(i))
         print '("#",4X,A,I2,A,"=",I4)', 'Lmax_ps(',i,')', Lmax_ps(i)
         print '("#",4X,A,I2,A"=",I4)', 'Lloc_ps(',i,')', Lloc_ps(i)
         print '("#",4X,A,I2,A"=",I4)', 'iZatom(',i,')', iZatom(i)
-        print '("#",4X,A,I2,A"=",A)', 'ps_format(',i,')' ,ps_format(i)
       end do
       print '("#",4X,A,"=",A)', 'psmask_option', psmask_option
       print '("#",4X,A,"=",ES12.5)', 'alpha_mask', alpha_mask
