@@ -197,6 +197,16 @@ Default is <code>'none'</code>.
 <dd>Number of valence electrons.
 </dd>
 
+<dt>temperature; <code>Real(8)</code></dt>
+<dd>Temperature of electrons.
+Unit of the energy can be chosen <code>&units/unit_energy</code>.
+</dd>
+
+
+<dt>nelem; <code>Integer</code></dt>
+<dd>Number of elements that will be used in calculations.
+</dd>
+
 <dt>natom; <code>Integer</code></dt>
 <dd>Number of atoms in a calculation cell.
 </dd>
@@ -717,3 +727,21 @@ Default is <code>0.5</code>.
 </dd>
 
 </dl>
+
+## &atomic_positions
+In &atomic_positions, positions of atoms can be written in reduced coordinates
+as follows: <br>
+` 'Si'	0.00	0.00	0.00	1 ` <br>
+`	'Si'	0.25	0.25	0.25	1 ` <br>
+` ... ` <br>
+Here, the information of atoms is ordered in row. For example, the first row gives
+the information of the first atom. The number of rows must be equal to 
+`&system/nelem`.
+The first coloum can be any caracters and does not affect calculations.
+The second, third and fourth columns are reduced coordinates for
+the first, second and third directions, respectively. 
+The fifth column is a serial number of the spieces, which is used in 
+`&pseudo`.
+
+
+
