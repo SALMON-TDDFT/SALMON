@@ -194,21 +194,18 @@ contains
     use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
     use Global_Variables, only: NI, Rion, Kion
     implicit none
-    integer :: i, index, Kion_tmp
+    integer :: i, Kion_tmp
     real(8) :: Rion_tmp(3)
+    character(32) :: char_atom
     
     allocate(Rion(3,NI), Kion(NI))
     
     if (comm_is_root()) then
       open(fh_atomic_positions, file='.atomic_positions.tmp', status='old')
       do i=1, NI
-        read(fh_atomic_positions, *) index, Rion_tmp, Kion_tmp
-        if (i == index) then
-          Rion(:,i) = Rion_tmp
-          Kion(i) = Kion_tmp
-        else
-          call err_finalize('atomic_positions is not ordered')
-        end if
+        read(fh_atomic_positions, *) char_atom, Rion_tmp, Kion_tmp
+        Rion(:,i) = Rion_tmp
+        Kion(i) = Kion_tmp
       end do
       close(fh_atomic_positions)
     end if
