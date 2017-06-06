@@ -76,8 +76,8 @@ contains
 
 
   subroutine read_stdin(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: ierr
 
@@ -138,8 +138,8 @@ contains
   end subroutine read_stdin
 
   subroutine read_input_common(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: ierr
 
@@ -694,8 +694,8 @@ contains
   end subroutine initialize_inputoutput_units
 
   subroutine dump_input_common(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: i
 

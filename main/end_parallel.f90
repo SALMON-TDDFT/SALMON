@@ -1,7 +1,7 @@
 subroutine end_parallel
+  use mpi
 
   implicit none
-  include 'mpif.h'
   integer :: ierr
 
   call mpi_finalize(ierr)
