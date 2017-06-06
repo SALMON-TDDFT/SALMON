@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine input_pseudopotential_YS
   use salmon_global,only : ipsfileform,n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
     &,n_ABINITFHI_psformat,n_FHI_psformat,ps_format
@@ -400,7 +400,7 @@ Subroutine input_pseudopotential_YS
       return
     End Subroutine Making_PS_without_masking
 End Subroutine input_pseudopotential_YS
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
   use salmon_global,only :ps_format
   use Global_Variables,only :Pi,Hx,Hy,Hz,rad,Rps,NRps,Mlps,Lref,alpha_mask,gamma_mask,eta_mask
@@ -509,7 +509,7 @@ Subroutine PS_masking(Nrmax0,Lmax0,uvpp,duvpp,Mr,ik,atom_symbol)
 
   return
 End Subroutine PS_masking
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Make_mask_function(eta_mask,mask,dmask,ik)
 !Subroutine Make_mask_function
 !Name of variables are taken from ***
@@ -609,7 +609,7 @@ Subroutine Make_mask_function(eta_mask,mask,dmask,ik)
 
   return
 End Subroutine Make_mask_function
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 real(8) Function xjl(x,l)
   implicit none
 !argument
@@ -657,7 +657,7 @@ real(8) Function xjl(x,l)
 
   return
 End Function xjl
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 real(8) Function dxjl(x,l)
   implicit none
 !argument
@@ -705,7 +705,7 @@ real(8) Function dxjl(x,l)
 
   return
 End Function dxjl
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
   use salmon_global,only : Lmax_ps
   use Global_Variables,only : a_B, Ry,Nrmax,Lmax,Mlps,Zps,rad
@@ -750,7 +750,7 @@ Subroutine Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
 
   return
 End Subroutine Read_PS_KY
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
   use salmon_global,only : Lmax_ps
 !See http://www.abinit.org/downloads/psp-links/psp-links/lda_tm
@@ -810,7 +810,7 @@ Subroutine Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
 
   return
 End Subroutine Read_PS_ABINIT
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,rhor_nlcc,flag_nlcc_element,ik,ps_file)
 !This is for  FHI pseudopotential listed in abinit web page and not for original FHI98PP.
 !See http://www.abinit.org/downloads/psp-links/lda_fhi
@@ -902,7 +902,7 @@ Subroutine Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,rhor_nlcc,flag_nlcc_ele
 
   return
 End Subroutine Read_PS_ABINITFHI
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Read_PS_FHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
 !This is for original FHI98PP and not for FHI pseudopotential listed in abinit web page
 !See http://th.fhi-berlin.mpg.de/th/fhi98md/fhi98PP/
@@ -973,9 +973,9 @@ Subroutine Read_PS_FHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
 
   return
 End Subroutine Read_PS_FHI
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 !    Subroutine Read_PS_ATOM !.psf format created by ATOM for SIESTA
 !      implicit none
 !      return
 !    End Subroutine
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
