@@ -22,6 +22,7 @@ module salmon_global
   integer :: MI,MKI
    !shinohara
   integer :: ipsfileform(maxMKI)   ! file format for pseudo potential
+  character(16)  :: ps_format(maxMKI)
 ! List of pseudopotential file formats
   integer,parameter :: n_Yabana_Bertsch_psformat = 1 !.rps
   integer,parameter :: n_ABINIT_psformat = 2 ! .pspnc
@@ -72,11 +73,10 @@ module salmon_global
   character(256) :: file_atom
 
 !! &pseudo
-  character(256) :: pseudodir
+  character(256) :: pseudo_file(maxMKI)
   integer        :: Lmax_ps(maxMKI)
   integer        :: Lloc_ps(maxMKI)
   integer        :: iZatom(maxMKI)
-  character(16)  :: ps_format(maxMKI)
   character(1)   :: psmask_option
   real(8)        :: alpha_mask
   real(8)        :: gamma_mask

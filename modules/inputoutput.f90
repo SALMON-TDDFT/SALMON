@@ -186,7 +186,7 @@ contains
       & file_atom
 
     namelist/pseudo/ &
-      & pseudodir, &
+      & pseudo_file, &
       & Lmax_ps, &
       & Lloc_ps, &
       & iZatom, &
@@ -347,7 +347,7 @@ contains
     natom              = 0
     file_atom          = 'none'
 !! == default for &pseudo
-    pseudodir     = './'
+    pseudo_file     = 'none'
     Lmax_ps       = -1
     Lloc_ps       = -1
     iZatom        = -1
@@ -532,7 +532,7 @@ contains
     call mpi_bcast(natom,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(file_atom,256,mpi_character,0,mpi_comm_world,ierr)
 !! == bcast for &pseudo
-    call mpi_bcast(pseudodir,256,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(pseudo_file,maxMKI*256,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(Lmax_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(Lloc_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(iZatom,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
@@ -749,12 +749,13 @@ contains
       print '("#",4X,A,"=",A)', 'file_atom', file_atom
 
       print '("#namelist: ",A,", status=",I1)', 'pseudo', inml_pseudo
-      print '("#",4X,A,"=",A)', 'pseudodir', pseudodir
+
       do i = 1,nelem
-        print '("#",4X,A,"=",I2,2x,I4)', 'Lmax_ps(i)',i, Lmax_ps(i)
-        print '("#",4X,A,"=",I2,2x,I4)', 'Lloc_ps(i)',i, Lloc_ps(i)
-        print '("#",4X,A,"=",I2,2x,I4)', 'iZatom(i)',i, iZatom(i)
-        print '("#",4X,A,"=",I2,2x,A)', 'ps_format(i)', i,ps_format(i)
+        print '("#",4X,A,I2,A,"=",A)', 'pseudo_file(',i,')', pseudo_file(i)
+        print '("#",4X,A,I2,A,"=",I4)', 'Lmax_ps(',i,')', Lmax_ps(i)
+        print '("#",4X,A,I2,A"=",I4)', 'Lloc_ps(',i,')', Lloc_ps(i)
+        print '("#",4X,A,I2,A"=",I4)', 'iZatom(',i,')', iZatom(i)
+        print '("#",4X,A,I2,A"=",A)', 'ps_format(',i,')' ,ps_format(i)
       end do
       print '("#",4X,A,"=",A)', 'psmask_option', psmask_option
       print '("#",4X,A,"=",ES12.5)', 'alpha_mask', alpha_mask

@@ -15,6 +15,7 @@
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
 Subroutine input_pseudopotential_YS
+  use salmon_global,only : pseudo_file
   use salmon_global,only : ipsfileform,n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
     &,n_ABINITFHI_psformat,n_FHI_psformat,ps_format
   use Global_Variables,only : Pi,Zatom,Mass,NE,directory,ps_format,PSmask_option&
@@ -32,8 +33,9 @@ Subroutine input_pseudopotential_YS
   real(8) :: dvpp(0:Nrmax0,0:Lmax0),dupp(0:Nrmax0,0:Lmax0) !zero in radial index for taking derivative
   real(8) :: rhor_nlcc(0:Nrmax0,0:2)   !zero in radial index for taking derivative
   character(2) :: atom_symbol
-  character(50) :: ps_file
+  character(256) :: ps_file
   character(10) :: ps_postfix
+  integer :: ips_type,nlen_psf
   logical,allocatable :: flag_nlcc_element(:)
 
 ! Nonlinear core correction
@@ -44,16 +46,33 @@ Subroutine input_pseudopotential_YS
   if (comm_is_root()) then
 
     do ik=1,NE
-
-! --- Making prefix ---
-      select case (ipsfileform(ik))
-      case(n_Yabana_Bertsch_psformat)   ; ps_postfix = '_rps.dat'
-      case(n_ABINIT_psformat)           ; ps_postfix = '.pspnc'
-      case(n_ABINITFHI_psformat)        ; ps_postfix = '.fhi'
-      case(n_FHI_psformat)              ; ps_postfix = '.cpi'
-!    case('ATOM')      ; ps_postfix = '.psf' !Not implemented yet
-      case default ; stop 'Unprepared ps_format is required input_pseudopotential_YS'
-      end select
+       
+      ps_file = trim(pseudo_file(ik))
+      nlen_psf = len_trim(ps_file)
+      if(ps_file(nlen_psf+1-8:nlen_psf) == '_rps.dat')then
+        ips_type = n_Yabana_Bertsch_psformat
+        ps_format(ik) = 'KY'
+      else if(ps_file(nlen_psf+1-6:nlen_psf) == '.pspnc')then
+        ips_type = n_ABINIT_psformat
+        ps_format(ik) = 'ABINIT'
+      else if(ps_file(nlen_psf+1-4:nlen_psf) == '.fhi')then
+        ips_type = n_ABINITFHI_psformat
+        ps_format(ik) = 'ABINITFHI'
+      else if(ps_file(nlen_psf+1-4:nlen_psf) == '.cpi')then
+        ips_type = n_FHI_psformat
+        ps_format(ik) = 'FHI'
+      else
+        stop 'Unprepared ps_format is required input_pseudopotential_YS'
+      end if
+!! --- Making prefix ---
+!      select case (ipsfileform(ik))
+!      case(n_Yabana_Bertsch_psformat)   ; ps_postfix = '_rps.dat'
+!      case(n_ABINIT_psformat)           ; ps_postfix = '.pspnc'
+!      case(n_ABINITFHI_psformat)        ; ps_postfix = '.fhi'
+!      case(n_FHI_psformat)              ; ps_postfix = '.cpi'
+!!    case('ATOM')      ; ps_postfix = '.psf' !Not implemented yet
+!      case default ; stop 'Unprepared ps_format is required input_pseudopotential_YS'
+!      end select
 
 ! --- input pseudopotential and wave function ---
       select case (Zatom(ik))
@@ -143,7 +162,7 @@ Subroutine input_pseudopotential_YS
       case default ; stop 'Unprepared atomic data is called input_pseudopotential_YS'
       end select
 
-      ps_file=trim(directory)//trim(atom_symbol)//trim(ps_postfix)
+!      ps_file=trim(directory)//trim(atom_symbol)//trim(ps_postfix)
 
       write(*,*) '===================pseudopotential data==================='
       write(*,*) 'ik ,atom_symbol=',ik, atom_symbol
@@ -715,7 +734,7 @@ Subroutine Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
   integer,intent(out) :: Mr
   real(8),intent(out) :: rRC(0:Lmax0)
   real(8),intent(out) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)
-  character(50),intent(in) :: ps_file
+  character(256),intent(in) :: ps_file
 !local variable
   integer :: l,i,irPC
   real(8) :: step,rPC,r,rhopp(0:Nrmax0),rZps
@@ -761,7 +780,7 @@ Subroutine Read_PS_ABINIT(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
   integer,intent(out) :: Mr
   real(8),intent(out) :: rRC(0:Lmax0)
   real(8),intent(out) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)
-  character(50),intent(in) :: ps_file
+  character(256),intent(in) :: ps_file
 !local variable
   integer :: i
   real(8) :: rZps
@@ -822,7 +841,7 @@ Subroutine Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,rhor_nlcc,flag_nlcc_ele
   integer,intent(out) :: Mr
   real(8),intent(out) :: rRC(0:Lmax0)
   real(8),intent(out) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)
-  character(50),intent(in) :: ps_file
+  character(256),intent(in) :: ps_file
   real(8),intent(out) :: rhor_nlcc(0:Nrmax0,0:2)
   logical,intent(inout) :: flag_nlcc_element(NE)
 !local variable
@@ -914,7 +933,7 @@ Subroutine Read_PS_FHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
   integer,intent(out) :: Mr
   real(8),intent(out) :: rRC(0:Lmax0)
   real(8),intent(out) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)
-  character(50),intent(in) :: ps_file
+  character(256),intent(in) :: ps_file
 !local variable
   integer :: i,j
   real(8) :: step,rZps,dummy
