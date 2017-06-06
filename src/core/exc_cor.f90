@@ -33,6 +33,10 @@ subroutine core_exc_cor(xc, ispin, cval, nx, ny, nz, dv, rho, rho_s, tau, rj, gr
   case("tpss")
     call core_exc_cor_tpss()
   end select
+
+  ! FIXME: vxc_s is unused, it suppressed warning.
+#define UNUSED_VARIABLE(x) if (.false.) vxc_s = vxc_s
+  UNUSED_VARIABLE(vxc_s)
   
   return
   
