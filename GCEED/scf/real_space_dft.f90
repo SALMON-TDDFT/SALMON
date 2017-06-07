@@ -523,15 +523,19 @@ end do Structure_Optimization_Iteration
 
 !---------------------------------------- Output
 
-if(iflag_writepsi==1) then
+if(out_psi=='y') then
   call writepsi
 end if
 
-if(iflag_dos==1) then
+if(out_dns=='y') then
+  call writedns
+end if
+
+if(out_dos=='y') then
   call calc_dos
 end if
 
-if(iflag_pdos==1) then
+if(out_pdos=='y') then
   call calc_pdos
 end if
 
@@ -539,11 +543,11 @@ if(OC==2)then
   call prep_ini(file_ini)
 end if
 
-if(iflag_ELF==1)then
+if(out_elf=='y')then
   allocate(elf(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),      &
                lg_sta(3):lg_end(3)))
-  iSCFRT=1
   call calcELF
+  call writeelf
   deallocate(elf)
 end if
 
@@ -551,7 +555,6 @@ end if
 ! subroutines in scf_data.f90
 if ( OC==1.or.OC==2.or.OC==3 ) then
   call OUT_data(file_OUT) !
-  call outRho(fileRho)
 end if
 elp3(105)=MPI_Wtime()
 

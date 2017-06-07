@@ -277,10 +277,13 @@ contains
       & out_dos, &
       & out_pdos, &
       & out_dns, &
+      & out_elf, &
       & out_dns_rt, &
       & out_dns_rt_step, &
       & out_elf_rt, &
       & out_elf_rt_step, &
+      & out_estatic_rt, &
+      & out_estatic_rt_step, &
       & format3d
 
     namelist/hartree/ &
@@ -420,18 +423,21 @@ contains
     nxvacl_m   = 0
     nxvacr_m   = 0
 !! == default for &analysis
-    projection_option = 'no'
-    nenergy           = 1000
-    de                = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
-    out_psi           = 'n'
-    out_dos           = 'n'
-    out_pdos          = 'n'
-    out_dns           = 'n'
-    out_dns_rt        = 'n'
-    out_dns_rt_step   = 50
-    out_elf_rt        = 'n'
-    out_elf_rt_step   = 50
-    format3d          = 'avs'
+    projection_option   = 'no'
+    nenergy             = 1000
+    de                  = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
+    out_psi             = 'n'
+    out_dos             = 'n'
+    out_pdos            = 'n'
+    out_dns             = 'n'
+    out_elf             = 'n'
+    out_dns_rt          = 'n'
+    out_dns_rt_step     = 50
+    out_elf_rt          = 'n'
+    out_elf_rt_step     = 50
+    out_estatic_rt      = 'n'
+    out_estatic_rt_step = 50
+    format3d            = 'cube'
 !! == default for &hartree
     meo          = 3
     num_pole_xyz = 0
@@ -625,10 +631,13 @@ contains
     call mpi_bcast(out_dos,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_pdos,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_dns,1,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(out_elf,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_dns_rt,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_dns_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(out_elf_rt,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_elf_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(out_estatic_rt,1,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(out_estatic_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(format3d,16,mpi_character,0,mpi_comm_world,ierr)
 !! == bcast for &hartree
     call mpi_bcast(meo,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -850,10 +859,13 @@ contains
       print '("#",4X,A,"=",A)', 'out_dos', out_dos
       print '("#",4X,A,"=",A)', 'out_pdos', out_pdos
       print '("#",4X,A,"=",A)', 'out_dns', out_dns
+      print '("#",4X,A,"=",A)', 'out_elf', out_elf
       print '("#",4X,A,"=",A)', 'out_dns_rt', out_dns_rt
       print '("#",4X,A,"=",I1)', 'out_dns_rt_step', out_dns_rt_step
       print '("#",4X,A,"=",A)', 'out_elf_rt', out_elf_rt
       print '("#",4X,A,"=",I1)', 'out_elf_rt_step', out_elf_rt_step
+      print '("#",4X,A,"=",A)', 'out_estatic_rt', out_estatic_rt
+      print '("#",4X,A,"=",I1)', 'out_estatic_rt_step', out_estatic_rt_step
       print '("#",4X,A,"=",A)', 'format3d', format3d
 
       print '("#namelist: ",A,", status=",I1)', 'hartree', inml_hartree
