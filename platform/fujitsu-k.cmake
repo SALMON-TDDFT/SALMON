@@ -9,7 +9,7 @@ set(ScaLAPACK_FLAGS             "-SCALAPACK -SSL2BLAMP")
 set(ADDITIONAL_MACRO            "")
 set(ADDITIONAL_OPTIMIZE_FLAGS   "")
 
-set(Fortran_FLAGS_General       "-Cpp -Kocl,nooptmsg")
+set(Fortran_FLAGS_General       "-Cpp -Kocl,nooptmsg -v03s")
 set(C_FLAGS_General             "-Kocl,nooptmsg")
 
 set(CMAKE_Fortran_COMPILER      "mpifrtpx")
