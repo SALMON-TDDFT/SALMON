@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine calc_pdos
+use inputoutput
 use scf_data
 use allocate_psl_sub
 use new_world_sub
@@ -71,7 +72,7 @@ do iob=1,iobmax
         do iene=-300,300
           rbox_pdos3(iene,L,iatom)=rbox_pdos3(iene,L,iatom)  &
             +abs(rbox_pdos2(lm,iatom))**2*  &
-             exp(-(dble(iene)/10d0/2.d0/Ry-esp(iob_allob,1))**2/(2.d0*sigma_gd**2))/sqrt(2.d0*Pi*sigma_gd**2)
+             exp(-(dble(iene)/10d0/au_energy_ev-esp(iob_allob,1))**2/(2.d0*sigma_gd**2))/sqrt(2.d0*Pi*sigma_gd**2)
         end do
       end do
     end do
@@ -83,23 +84,27 @@ if(myrank==0)then
   do iatom=1,MI
     ikoa=Kion(iatom)
     write(fileNumber, '(i8)') iatom
-    OutFile = trim("pdos.data.")//adjustl(fileNumber)
+    OutFile = "pdos"//trim(adjustl(fileNumber))//".data"
     open(101,file=OutFile)
     if(Mlps(ikoa)==0)then
       do iene=-300,300
-        write(101,'(f10.5,f14.8)') dble(iene)/10.d0,(pdos(iene,L,iatom),L=0,Mlps(ikoa))
+        write(101,'(f10.5,f14.8)') dble(iene)/10.d0/au_energy_ev*uenergy_from_au,   &
+                                   (pdos(iene,L,iatom)*au_energy_ev/uenergy_from_au,L=0,Mlps(ikoa))
       end do
     else if(Mlps(ikoa)==1)then
       do iene=-300,300
-        write(101,'(f10.5,2f14.8)') dble(iene)/10.d0,(pdos(iene,L,iatom),L=0,Mlps(ikoa))
+        write(101,'(f10.5,2f14.8)') dble(iene)/10.d0/au_energy_ev*uenergy_from_au,   &
+                                    (pdos(iene,L,iatom)*au_energy_ev/uenergy_from_au,L=0,Mlps(ikoa))
       end do
     else if(Mlps(ikoa)==2)then
       do iene=-300,300
-        write(101,'(f10.5,3f14.8)') dble(iene)/10.d0,(pdos(iene,L,iatom),L=0,Mlps(ikoa))
+        write(101,'(f10.5,3f14.8)') dble(iene)/10.d0/au_energy_ev*uenergy_from_au,   &
+                                    (pdos(iene,L,iatom)*au_energy_ev/uenergy_from_au,L=0,Mlps(ikoa))
       end do
     else if(Mlps(ikoa)==3)then
       do iene=-300,300
-        write(101,'(f10.5,4f14.8)') dble(iene)/10.d0,(pdos(iene,L,iatom),L=0,Mlps(ikoa))
+        write(101,'(f10.5,4f14.8)') dble(iene)/10.d0/au_energy_ev*uenergy_from_au,   &
+                                    (pdos(iene,L,iatom)*au_energy_ev/uenergy_from_au,L=0,Mlps(ikoa))
       end do
     end if
     close(101)

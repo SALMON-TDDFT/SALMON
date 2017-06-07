@@ -1,7 +1,7 @@
 subroutine setup_parallel(nprocs,myrank)
+  use mpi
 
   implicit none
-  include 'mpif.h'
   integer,intent(out) :: nprocs,myrank
   integer :: ierr
 

@@ -16,7 +16,7 @@
 !This file is "Occupation_Redistribution.f90"
 !This file contain a subroutine.
 !Subroutine Occupation_Redistribution
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Occupation_Redistribution
   use Global_Variables
   use communication, only: comm_is_root

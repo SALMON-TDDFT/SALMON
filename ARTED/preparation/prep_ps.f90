@@ -16,7 +16,7 @@
 !This file is "prep_ps.f90"
 !This file conatain one soubroutine.
 !SUBROUTINE prep_ps_periodic(property)
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine prep_ps_periodic(property)
   use Global_Variables
   use communication
@@ -310,7 +310,7 @@ Subroutine prep_ps_periodic(property)
 
   return
 End Subroutine prep_ps_periodic
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine spline(Np,xn,yn,an,bn,cn,dn)
   integer,intent(in) :: Np
   real(8),intent(in) :: xn(0:Np-1),yn(0:Np-1)

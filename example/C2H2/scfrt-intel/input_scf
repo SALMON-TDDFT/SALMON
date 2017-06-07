@@ -27,8 +27,8 @@
 &pseudo
   iZatom(1)=6
   iZatom(2)=1
-  ps_format(1)='KY'
-  ps_format(2)='KY'
+  pseudo_file(1)='C_rps.dat'
+  pseudo_file(2)='H_rps.dat'
   Lmax_ps(1)=1
   Lmax_ps(2)=0
   Lloc_ps(1)=1

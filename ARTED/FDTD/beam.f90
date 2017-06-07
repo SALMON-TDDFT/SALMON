@@ -15,7 +15,8 @@
 !
 
 !===============================================================
-real(8) function bessel_j1(x)
+! NOTE: bessel_j1 is Fortran 2008 standard intrinsic procedure
+real(8) function fbessel_j1(x)
   implicit none
   real(8), intent(in) :: x
   integer, parameter :: order = 30
@@ -28,9 +29,9 @@ real(8) function bessel_j1(x)
     c = -0.25d0 * x * x / (m * (m + 1)) * c
     s = s + c
   end do
-  bessel_j1 = s
+  fbessel_j1 = s
   return
-end function bessel_j1
+end function fbessel_j1
 !===============================================================
 real(8) function sin2cos(t, tw, omega, cep)
   use Global_Variables, only: pi
@@ -60,7 +61,7 @@ subroutine incident_bessel_beam()
   real(8) :: lx, ly, x, y, kx, ky, k, vx
   real(8) :: f(3), j, tau
   
-  real(8) bessel_j1, sin2cos
+  real(8) fbessel_j1, sin2cos
   
   ! First pulse
   if(rlaser_int1 < 0d0)then
@@ -89,7 +90,7 @@ subroutine incident_bessel_beam()
   Ac_new_m = 0.0
   do iy_m = NYvacB_m, NYvacT_m
      y = HY_m * iy_m
-     j = bessel_j1(ky * y)
+     j = fbessel_j1(ky * y)
      f = j * f0_1 / 0.58186d0 * Epdir_re1
      do ix_m = NXvacL_m-1, 0
        x = ix_m * HX_m

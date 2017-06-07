@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 module inputoutput
   use salmon_global
   implicit none
@@ -76,8 +76,8 @@ contains
 
 
   subroutine read_stdin(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: ierr
 
@@ -138,8 +138,8 @@ contains
   end subroutine read_stdin
 
   subroutine read_input_common(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: ierr
 
@@ -186,11 +186,10 @@ contains
       & file_atom
 
     namelist/pseudo/ &
-      & pseudodir, &
+      & pseudo_file, &
       & Lmax_ps, &
       & Lloc_ps, &
       & iZatom, &
-      & ps_format, &
       & psmask_option, &
       & alpha_mask, &
       & gamma_mask, &
@@ -278,10 +277,13 @@ contains
       & out_dos, &
       & out_pdos, &
       & out_dns, &
+      & out_elf, &
       & out_dns_rt, &
       & out_dns_rt_step, &
       & out_elf_rt, &
       & out_elf_rt_step, &
+      & out_estatic_rt, &
+      & out_estatic_rt_step, &
       & format3d
 
     namelist/hartree/ &
@@ -347,11 +349,10 @@ contains
     natom              = 0
     file_atom          = 'none'
 !! == default for &pseudo
-    pseudodir     = './'
+    pseudo_file     = 'none'
     Lmax_ps       = -1
     Lloc_ps       = -1
     iZatom        = -1
-    ps_format     = 'KY'
     psmask_option = 'n'
     alpha_mask    = 0.8d0
     gamma_mask    = 1.8d0
@@ -386,7 +387,7 @@ contains
     convergence   = 'rho'
     threshold     = 1d-6
 !! == default for &emfield
-    trans_longi    = 'Tr'
+    trans_longi    = 'tr'
     ae_shape1      = ''
     amplitude1     = 0d0
     rlaser_int1    = -1d0
@@ -407,7 +408,7 @@ contains
     quadrupole     = 'n'
     quadrupole_pot = ''
 !! == default for &linear_response
-    e_impulse = 5d-5*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
+    e_impulse = 1d-2*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'
@@ -422,18 +423,21 @@ contains
     nxvacl_m   = 0
     nxvacr_m   = 0
 !! == default for &analysis
-    projection_option = 'no'
-    nenergy           = 1000
-    de                = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
-    out_psi           = 'n'
-    out_dos           = 'n'
-    out_pdos          = 'n'
-    out_dns           = 'n'
-    out_dns_rt        = 'n'
-    out_dns_rt_step   = 50
-    out_elf_rt        = 'n'
-    out_elf_rt_step   = 50
-    format3d          = 'avs'
+    projection_option   = 'no'
+    nenergy             = 1000
+    de                  = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
+    out_psi             = 'n'
+    out_dos             = 'n'
+    out_pdos            = 'n'
+    out_dns             = 'n'
+    out_elf             = 'n'
+    out_dns_rt          = 'n'
+    out_dns_rt_step     = 50
+    out_elf_rt          = 'n'
+    out_elf_rt_step     = 50
+    out_estatic_rt      = 'n'
+    out_estatic_rt_step = 50
+    format3d            = 'cube'
 !! == default for &hartree
     meo          = 3
     num_pole_xyz = 0
@@ -532,11 +536,10 @@ contains
     call mpi_bcast(natom,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(file_atom,256,mpi_character,0,mpi_comm_world,ierr)
 !! == bcast for &pseudo
-    call mpi_bcast(pseudodir,256,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(pseudo_file,maxMKI*256,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(Lmax_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(Lloc_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(iZatom,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ps_format,16*maxMKI,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(psmask_option,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(alpha_mask,1,mpi_real8,0,mpi_comm_world,ierr)
     call mpi_bcast(gamma_mask,1,mpi_real8,0,mpi_comm_world,ierr)
@@ -628,10 +631,13 @@ contains
     call mpi_bcast(out_dos,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_pdos,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_dns,1,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(out_elf,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_dns_rt,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_dns_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(out_elf_rt,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(out_elf_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
+    call mpi_bcast(out_estatic_rt,1,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(out_estatic_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
     call mpi_bcast(format3d,16,mpi_character,0,mpi_comm_world,ierr)
 !! == bcast for &hartree
     call mpi_bcast(meo,1,mpi_integer,0,mpi_comm_world,ierr)
@@ -694,8 +700,8 @@ contains
   end subroutine initialize_inputoutput_units
 
   subroutine dump_input_common(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: i
 
@@ -749,12 +755,12 @@ contains
       print '("#",4X,A,"=",A)', 'file_atom', file_atom
 
       print '("#namelist: ",A,", status=",I1)', 'pseudo', inml_pseudo
-      print '("#",4X,A,"=",A)', 'pseudodir', pseudodir
+
       do i = 1,nelem
-        print '("#",4X,A,"=",I2,2x,I4)', 'Lmax_ps(i)',i, Lmax_ps(i)
-        print '("#",4X,A,"=",I2,2x,I4)', 'Lloc_ps(i)',i, Lloc_ps(i)
-        print '("#",4X,A,"=",I2,2x,I4)', 'iZatom(i)',i, iZatom(i)
-        print '("#",4X,A,"=",I2,2x,A)', 'ps_format(i)', i,ps_format(i)
+        print '("#",4X,A,I2,A,"=",A)', 'pseudo_file(',i,')', trim(pseudo_file(i))
+        print '("#",4X,A,I2,A,"=",I4)', 'Lmax_ps(',i,')', Lmax_ps(i)
+        print '("#",4X,A,I2,A"=",I4)', 'Lloc_ps(',i,')', Lloc_ps(i)
+        print '("#",4X,A,I2,A"=",I4)', 'iZatom(',i,')', iZatom(i)
       end do
       print '("#",4X,A,"=",A)', 'psmask_option', psmask_option
       print '("#",4X,A,"=",ES12.5)', 'alpha_mask', alpha_mask
@@ -853,10 +859,13 @@ contains
       print '("#",4X,A,"=",A)', 'out_dos', out_dos
       print '("#",4X,A,"=",A)', 'out_pdos', out_pdos
       print '("#",4X,A,"=",A)', 'out_dns', out_dns
+      print '("#",4X,A,"=",A)', 'out_elf', out_elf
       print '("#",4X,A,"=",A)', 'out_dns_rt', out_dns_rt
       print '("#",4X,A,"=",I1)', 'out_dns_rt_step', out_dns_rt_step
       print '("#",4X,A,"=",A)', 'out_elf_rt', out_elf_rt
       print '("#",4X,A,"=",I1)', 'out_elf_rt_step', out_elf_rt_step
+      print '("#",4X,A,"=",A)', 'out_estatic_rt', out_estatic_rt
+      print '("#",4X,A,"=",I1)', 'out_estatic_rt_step', out_estatic_rt_step
       print '("#",4X,A,"=",A)', 'format3d', format3d
 
       print '("#namelist: ",A,", status=",I1)', 'hartree', inml_hartree
