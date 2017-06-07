@@ -152,16 +152,6 @@ contains
        do i=1, NE
           Zatom(i) = iZatom(i)
           Lref(i) = Lloc_ps(i)
-
-          select case(ps_format(i))
-          case('default')
-          case('KY')        ; ipsfileform(i)=n_Yabana_Bertsch_psformat
-          case('ABINIT')    ; ipsfileform(i)=n_ABINIT_psformat
-          case('FHI')       ; ipsfileform(i)=n_FHI_psformat
-          case('ABINITFHI') ; ipsfileform(i)=n_ABINITFHI_psformat
-          case default
-             call err_finalize('Invalid ps_format')
-          end select
        end do
     end if
 
