@@ -651,6 +651,12 @@ If <code>'y'</code>, density is output.
 Default is <code>'n'</code>.
 </dd>
 
+<dt>out_elf; <code>Character</code></dt>
+<dd>
+If <code>'y'</code>, electron localization function is output.
+Default is <code>'n'</code>.
+</dd>
+
 <dt>out_dns_rt/out_dns_rt_step; <code>Character/Integer</code></dt>
 <dd>
 If <code>'y'</code>, density during real-time time-propagation is output
@@ -660,9 +666,17 @@ Default is <code>'n'</code>.
 
 <dt>out_elf_rt/out_elf_rt_step; <code>Character/Integer</code></dt>
 <dd>
-If <code>'y'</code>, electron-localization function 
+If <code>'y'</code>, electron localization function 
 during real-time time-propagation is output
 every <code>out_elf_rt_step</code> time steps.
+Default is <code>'n'</code>.
+</dd>
+
+<dt>out_estatic_rt/out_estatic_rt_step; <code>Character/Integer</code></dt>
+<dd>
+If <code>'y'</code>, static electric field
+during real-time time-propagation is output
+every <code>out_estatic_rt_step</code> time steps.
 Default is <code>'n'</code>.
 </dd>
 
@@ -671,7 +685,7 @@ Default is <code>'n'</code>.
 Format for three dimensional data.
 <code>'avs'</code>, <code>'cube'</code>, and <code>'vtk'</code>
 can be chosen.
-Default is <code>'avs'</code>.
+Default is <code>'cube'</code>.
 </dd>
 
 </dl>

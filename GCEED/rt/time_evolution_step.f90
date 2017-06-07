@@ -18,6 +18,7 @@
 
 SUBROUTINE time_evolution_step(shtpsi)
 !$ use omp_lib
+use inputoutput
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -400,41 +401,23 @@ end if
       end do
     end do
   end if
-  
-! calculate Estatic
-  if(iflag_Estatic==1)then
-    call calcEstatic
-  end if
 
-! write DFT data
-! WriteDensity writes rho(xyz) if he recieves "idensity", elseif he
-! recieves "idiffDensity", he writes rho-rho0(xyz) to, forexample, diff30
-  if (iwdenstep /= 0) then
-     if (mod(itt,iwdenstep).eq.0)then
-       iSCFRT=2      
-!       call calcELF 
-       write(fileNumber, '(i8)') itt
-       rtOutFile = trim(fileTmp)//adjustl(fileNumber)
-       rtDiffOutFile = trim(fileTmp2)//adjustl(fileNumber)
-       call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                    denplane,idensum,posplane,idensity)
-       call WriteDensity(rtDiffOutFile,iwdenoption,iwdenstep,      &
-                    denplane,idensum,posplane,idiffDensity)
-       if(iflag_Estatic==1)then
-         fileTmp3="Exsta"
-         rtOutFile = trim(fileTmp3)//adjustl(fileNumber)
-         call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                    denplane,idensum,posplane,10)
-         fileTmp3="Eysta"
-         rtOutFile = trim(fileTmp3)//adjustl(fileNumber)
-         call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                  denplane,idensum,posplane,11)
-         fileTmp3="Ezsta"
-         rtOutFile = trim(fileTmp3)//adjustl(fileNumber)
-         call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                  denplane,idensum,posplane,12)
-       end if
-     endif
+  if(out_dns_rt=='y')then
+    if(mod(itt,out_dns_rt_step)==0)then
+      call writedns
+    end if
+  end if
+  if(out_elf_rt=='y')then
+    if(mod(itt,out_elf_rt_step)==0)then
+      call calcELF
+      call writeelf
+    end if
+  end if
+  if(out_estatic_rt=='y')then
+    if(mod(itt,out_estatic_rt_step)==0)then
+      call calcEstatic
+      call writeestatic
+    end if
   end if
 
   elp3(521)=MPI_Wtime()

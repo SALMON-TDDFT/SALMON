@@ -164,10 +164,13 @@ module salmon_global
   character(1)   :: out_dos
   character(1)   :: out_pdos
   character(1)   :: out_dns
+  character(1)   :: out_elf
   character(1)   :: out_dns_rt
   integer        :: out_dns_rt_step
   character(1)   :: out_elf_rt
   integer        :: out_elf_rt_step
+  character(1)   :: out_estatic_rt
+  integer        :: out_estatic_rt_step
   character(16)  :: format3d
 
 !! &hartree
