@@ -389,7 +389,7 @@ contains
     convergence   = 'rho'
     threshold     = 1d-6
 !! == default for &emfield
-    trans_longi     = 'Tr'
+    trans_longi     = 'tr'
     ae_shape1       = ''
     amplitude1      = 0d0
     rlaser_int1     = -1d0
