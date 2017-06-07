@@ -251,7 +251,10 @@ contains
       & phi_cep2, &
       & t1_t2, &
       & quadrupole, &
-      & quadrupole_pot
+      & quadrupole_pot, &
+      & alocal_laser , &
+      & rlaserbound_sta , &
+      & rlaserbound_end
 
     namelist/linear_response/ &
       & e_impulse
@@ -386,26 +389,33 @@ contains
     convergence   = 'rho'
     threshold     = 1d-6
 !! == default for &emfield
-    trans_longi    = 'Tr'
-    ae_shape1      = ''
-    amplitude1     = 0d0
-    rlaser_int1    = -1d0
-    pulse_tw1      = 0d0
-    omega1         = 0d0
-    epdir_re1      = (/1d0,0d0,0d0/)
-    epdir_im1      = 0d0
-    phi_cep1       = 0d0
-    ae_shape2      = ''
-    amplitude2     = 0d0
-    rlaser_int2    = -1d0
-    pulse_tw2      = 0d0
-    omega2         = 0d0
-    epdir_re2      = (/1d0,0d0,0d0/)
-    epdir_im2      = 0d0
-    phi_cep2       = 0d0
-    t1_t2          = 0d0
-    quadrupole     = 'n'
-    quadrupole_pot = ''
+    trans_longi     = 'Tr'
+    ae_shape1       = ''
+    amplitude1      = 0d0
+    rlaser_int1     = -1d0
+    pulse_tw1       = 0d0
+    omega1          = 0d0
+    epdir_re1       = (/1d0,0d0,0d0/)
+    epdir_im1       = 0d0
+    phi_cep1        = 0d0
+    ae_shape2       = ''
+    amplitude2      = 0d0
+    rlaser_int2     = -1d0
+    pulse_tw2       = 0d0
+    omega2          = 0d0
+    epdir_re2       = (/1d0,0d0,0d0/)
+    epdir_im2       = 0d0
+    phi_cep2        = 0d0
+    t1_t2           = 0d0
+    quadrupole      = 'n'
+    quadrupole_pot  = ''
+    alocal_laser    = 'n'
+    rlaserbound_sta(1) = -1.d7/au_length_aa*ulength_from_au
+    rlaserbound_sta(2) = -1.d7/au_length_aa*ulength_from_au
+    rlaserbound_sta(3) = -1.d7/au_length_aa*ulength_from_au
+    rlaserbound_end(1) = 1.d7/au_length_aa*ulength_from_au
+    rlaserbound_end(2) = 1.d7/au_length_aa*ulength_from_au
+    rlaserbound_end(3) = 1.d7/au_length_aa*ulength_from_au
 !! == default for &linear_response
     e_impulse = 5d-5*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
 !! == default for &multiscale
@@ -600,6 +610,9 @@ contains
     t1_t2 = t1_t2 * utime_to_au
     call mpi_bcast(quadrupole,1,mpi_character,0,mpi_comm_world,ierr)
     call mpi_bcast(quadrupole_pot,8,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(alocal_laser,1,mpi_character,0,mpi_comm_world,ierr)
+    call mpi_bcast(rlaserbound_sta,3,mpi_real8,0,mpi_comm_world,ierr)
+    call mpi_bcast(rlaserbound_end,3,mpi_real8,0,mpi_comm_world,ierr)
 !! == bcast for &linear_response
     call mpi_bcast(e_impulse,1,mpi_real8,0,mpi_comm_world,ierr)
     e_impulse = e_impulse *uenergy_to_au/ulength_to_au*utime_to_au

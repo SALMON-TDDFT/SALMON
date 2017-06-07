@@ -19,7 +19,7 @@ subroutine read_input_gceed(procid,cfunction2)
   include 'mpif.h'
   character(30),intent(out) :: cfunction2
   integer :: procid
-  integer :: ierr
+!  integer :: ierr
   namelist / group_function2 / cfunction2
 
 !  if(procid==0)then

@@ -138,6 +138,9 @@ module salmon_global
   real(8)        :: t1_t2
   character(1)   :: quadrupole
   character(8)   :: quadrupole_pot
+  character(1)   :: alocal_laser
+  real(8)        :: rlaserbound_sta(3)
+  real(8)        :: rlaserbound_end(3)
 
 !! &linear_response
   real(8)        :: e_impulse
