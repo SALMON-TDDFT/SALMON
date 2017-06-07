@@ -310,7 +310,7 @@ iflag_ps=1
 MI=natom
 MKI=nelem
 !iZatom(:)=0
-ipsfileform(:)=1
+!ipsfileform(:)=1
 !ps_format = 'default'
 file_atoms_coo=trim(file_atom)
 !Lmax_ps(:)=-1
@@ -323,20 +323,20 @@ if(myrank==0)then
   Lref(:) = Lloc_ps(:)
 
 !ps format conversion
-  do iatom = 1,MKI
-    select case(ps_format(iatom))
-    case('default')
-    case('KY')        ; ipsfileform(iatom)=n_Yabana_Bertsch_psformat
-    case('ABINIT')    ; ipsfileform(iatom)=n_ABINIT_psformat
-    case('FHI')       ; ipsfileform(iatom)=n_FHI_psformat
-    case('ABINITFHI') !; ipsfileform(iatom)=n_ABINITFHI_psformat
-      write(*,"(A)") "Invalid ps_format. ABINITFHI format is not supported for isolated systems."
-    stop
-    case default
-      write(*,"(A)") "Invalid ps_format."
-    stop
-    end select
-  end do
+!  do iatom = 1,MKI
+!    select case(ps_format(iatom))
+!    case('default')
+!    case('KY')        ; ipsfileform(iatom)=n_Yabana_Bertsch_psformat
+!    case('ABINIT')    ; ipsfileform(iatom)=n_ABINIT_psformat
+!    case('FHI')       ; ipsfileform(iatom)=n_FHI_psformat
+!    case('ABINITFHI') !; ipsfileform(iatom)=n_ABINITFHI_psformat
+!      write(*,"(A)") "Invalid ps_format. ABINITFHI format is not supported for isolated systems."
+!    stop
+!    case default
+!      write(*,"(A)") "Invalid ps_format."
+!    stop
+!    end select
+!  end do
 end if
 
 
@@ -346,8 +346,8 @@ if(myrank==0) write(*,*) "MI =",MI
 
 call MPI_Bcast(iZatom,MKI,MPI_INTEGER,      &
           0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(ipsfileform,MKI,MPI_INTEGER,      &
-          0,MPI_COMM_WORLD,ierr)
+!call MPI_Bcast(ipsfileform,MKI,MPI_INTEGER,      &
+!          0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(Mlps,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(Lref,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 

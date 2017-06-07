@@ -20,7 +20,7 @@
 
 &pseudo
   iZatom(1)=14
-  ps_format(1)='KY'
+  pseudo_file(1) = './data/Si_rps.dat'
   Lloc_ps(1)=2
 /
 

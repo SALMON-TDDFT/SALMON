@@ -45,7 +45,9 @@ contains
 subroutine read_pslfile
 implicit none
 integer :: ak
-character(50) :: ps_file(MKI)
+character(256) :: ps_file(MKI)
+character(256) :: ps_file_tmp
+integer :: ips_type,nlen_psf
 
 allocate( Mlps0(MKI) )
 allocate( Mr(MKI) )
@@ -60,6 +62,24 @@ rmin_step=1.d8
 rmaxRps=0
 
 do ak=1,MKI
+
+  ps_file_tmp = trim(pseudo_file(ak))
+  nlen_psf = len_trim(ps_file_tmp)
+
+  if(ps_file_tmp(nlen_psf+1-8:nlen_psf) == '_rps.dat')then
+     ips_type = n_Yabana_Bertsch_psformat
+     ps_format(ak) = 'KY'
+  else if(ps_file_tmp(nlen_psf+1-6:nlen_psf) == '.pspnc')then
+     ips_type = n_ABINIT_psformat
+     ps_format(ak) = 'ABINIT'
+  else if(ps_file_tmp(nlen_psf+1-4:nlen_psf) == '.cpi')then
+     ips_type = n_FHI_psformat
+     ps_format(ak) = 'FHI'
+  else
+     stop 'Unprepared ps_format is required input_pseudopotential_YS'
+  end if
+
+  ipsfileform(ak) = ips_type
 
   if(ipsfileform(ak)==3)then
     Mlps0(ak)=Mlps(ak)
@@ -114,15 +134,15 @@ do ak=1,MKI
   select case( ipsfileform(ak) )
     case(1)  
       select case( iZatom(ak) )
-        case default ; ps_file(ak)=trim(Atomname(ak))//'_rps.dat'
-        case(10,18,36,47,79) ; ps_file(ak)=trim(Atomname(ak))//'_crps.dat'
+        case default ; ps_file(ak)=trim(ps_file_tmp) !trim(Atomname(ak))//'_rps.dat'
+        case(10,18,36,47,79) ; ps_file(ak)= trim(ps_file_tmp)!trim(Atomname(ak))//'_crps.dat'
       end select
       call read_Mr_YB(ak,ps_file)
     case(2)
-      ps_file(ak)=trim(Atomname(ak))//'.pspnc'
+      ps_file(ak)=trim(ps_file_tmp) !trim(Atomname(ak))//'.pspnc'
       call read_Mr_ABINIT(ak,ps_file)
     case(3)
-      ps_file(ak)=trim(Atomname(ak))//'.cpi'
+      ps_file(ak)=trim(ps_file_tmp) !trim(Atomname(ak))//'.cpi'
       call read_Mr_fhi(ak,ps_file)
   end select
 end do
@@ -158,7 +178,7 @@ end subroutine read_pslfile
 subroutine read_Mr_YB(ak,ps_file)
 implicit none
 integer :: ak
-character(50) :: ps_file(MKI)
+character(256) :: ps_file(MKI)
 
 open(4,file=ps_file(ak),status='old')
 read(4,*) Mr(ak)
@@ -170,7 +190,7 @@ end subroutine read_Mr_YB
 subroutine read_Mr_ABINIT(ak,ps_file)
 implicit none
 integer :: ak
-character(50) :: ps_file(MKI)
+character(256) :: ps_file(MKI)
 real(8) :: zatom, zion, pspdat,pspcod,pspxc,lmaxabinit,lloc,mmax,r2well
 character(1) :: dummy_text
 
@@ -189,7 +209,7 @@ subroutine read_Mr_fhi(ak,ps_file)
 implicit none
 integer :: ak
 integer :: i
-character(50) :: ps_file(MKI)
+character(256) :: ps_file(MKI)
 character(1) :: dummy_text
 
 open(4,file=ps_file(ak),status='old')
@@ -206,7 +226,7 @@ end subroutine read_Mr_fhi
 subroutine read_psl_YB(ak,ps_file)
 implicit none
 integer :: ak
-character(50) :: ps_file(MKI)
+character(256) :: ps_file(MKI)
 integer :: L
 integer :: i
 real(8) :: r
@@ -261,7 +281,7 @@ subroutine read_psl_ABINIT(ak,ps_file)
 !See http://www.abinit.org/downloads/psp-links/psp-links/lda_tm
   implicit none
   integer,intent(in) :: ak
-  character(50),intent(in) :: ps_file(MKI)
+  character(256),intent(in) :: ps_file(MKI)
   integer :: i
   real(8) :: rZps
   integer :: ll
@@ -320,7 +340,7 @@ subroutine read_psl_ABINIT_PBE(ak,ps_file)
 !See http://www.abinit.org/downloads/psp-links/psp-links/gga-phi
 implicit none
 integer,intent(in) :: ak
-character(50),intent(in) :: ps_file(MKI)
+character(256),intent(in) :: ps_file(MKI)
 integer :: i,ibox
 real(8) :: rZps
 integer :: ll
@@ -368,7 +388,7 @@ End Subroutine read_psl_ABINIT_PBE
 subroutine read_psl_fhi(ak,ps_file)
 implicit none
 integer,intent(in) :: ak
-character(50),intent(in) :: ps_file(MKI)
+character(256),intent(in) :: ps_file(MKI)
 integer :: i,ibox
 integer :: ll
 character(1) :: dummy_text
@@ -409,7 +429,7 @@ End Subroutine read_psl_fhi
 Subroutine setRps_ABINIT_PBE(ak,ps_file)
 implicit none
 integer,intent(in) :: ak
-character(50),intent(in) :: ps_file(MKI)
+character(256),intent(in) :: ps_file(MKI)
 real(8) :: rcore(0:4,1:120)
 integer :: ll
 
@@ -716,7 +736,7 @@ End Subroutine set_Zps
 Subroutine setRps_fhi(ak,ps_file)
 implicit none
 integer,intent(in) :: ak
-character(50),intent(in) :: ps_file(MKI)
+character(256),intent(in) :: ps_file(MKI)
 real(8) :: rcore(0:4,1:120)
 integer :: ll
 

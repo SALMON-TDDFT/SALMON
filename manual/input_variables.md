@@ -210,8 +210,8 @@ Default is <code>'none'</code>.
 ## &pseudo
 <dl>
 
-<dt>pseudodir; <code>Character</code></dt>
-<dd>Directry name for pseudopotential files.
+<dt>pseudo_file(:); <code>Character</code></dt>
+<dd>Name of pseudopotential files.
 </dd>
 
 <dt>Lmax_ps(:); <code>Integer</code></dt>
@@ -226,14 +226,6 @@ Default is <code>'none'</code>.
 <dd>Atomic number.
 </dd>
 
-<dt>ps_format(:); <code>Character</code></dt>
-<dd>Formats for pseudopotentials. 
-Yabana-Bertsch format (_rps.dat) <code>KY</code>, 
-ABINIT format (.pspnc) <code>ABINIT</code>, 
-FHI format (.cpi) <code>FHI</code>, and
-ABINITFHI format (.fhi) <code>ABINITFHI</code> can be chosen.
-Default is <code>KY</code>.
-</dd>
 
 <dt>psmask_option(:); <code>Character</code></dt>
 <dd>Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
