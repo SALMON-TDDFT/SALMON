@@ -564,7 +564,7 @@ Unit of length can be chosen by <code>&units/unit_length</code>.
 <dd>
 Momentum of impulsive perturbation.
 This valiable has the dimention of momentum, energy*time/length.
-Defalt value is <code>5d-5</code> a.u.
+Defalt value is <code>1d-2</code> a.u.
 </dd>
 </dl>
 

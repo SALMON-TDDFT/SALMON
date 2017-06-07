@@ -417,7 +417,7 @@ contains
     rlaserbound_end(2) = 1.d7/au_length_aa*ulength_from_au
     rlaserbound_end(3) = 1.d7/au_length_aa*ulength_from_au
 !! == default for &linear_response
-    e_impulse = 5d-5*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
+    e_impulse = 1d-2*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'
