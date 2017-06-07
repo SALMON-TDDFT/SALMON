@@ -74,7 +74,7 @@ SUBROUTINE calcVbox
   else
     if(quadrupole=='y')then
       if(myrank==0)then
-        write(191,*) dt*itt*0.0241889d0, amplitude1*         &
+        write(191,*) dt*itt*0.0241889d0, amplitude1         &
                         *cos(omega1*dble(itt)*dt+phi_cep1*2d0*pi)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 
       end if
       if(quadrupole_pot=='sum')then
