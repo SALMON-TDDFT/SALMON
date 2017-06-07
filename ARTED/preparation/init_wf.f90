@@ -51,7 +51,7 @@ Subroutine quickrnd(iseed,rnd)
   real(8) :: rnd
 
   iseed=mod(iseed*ia+ic,im)
-  rnd=dfloat(iseed)/dfloat(im)
+  rnd=dble(iseed)/dble(im)
 
   return
 End Subroutine quickrnd
