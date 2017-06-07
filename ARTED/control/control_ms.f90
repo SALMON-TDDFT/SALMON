@@ -1043,11 +1043,6 @@ Subroutine Read_data
 
   call comm_sync_all
 
-  if(AE_shape1 /= 'Asin2cos' .and. AE_shape1 /= 'Esin2sin' &
-    &.and. AE_shape1 /= 'input' .and. AE_shape1 /= 'Asin2_cw' ) call err_finalize('incorrect option for AE_shape1')
-  if(AE_shape2 /= 'Asin2cos' .and. AE_shape2 /= 'Esin2sin' &
-    &.and. AE_shape2 /= 'input' .and. AE_shape2 /= 'Asin2_cw' ) call err_finalize('incorrect option for AE_shape2')
-
 
   allocate(Rps(NE),NRps(NE))
   allocate(Rion_eq(3,NI),dRion(3,NI,-1:Nt+1))

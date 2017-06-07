@@ -55,7 +55,7 @@ Subroutine init_Ac
     do iter=0,Nt+1
       tt=iter*dt - 0.5d0*pulse_tw1
       if (abs(tt)<0.5d0*pulse_tw1) then
-        Ac_ext(iter,:)=-f0_1/omega1*(cos(0.5d0*pi*tt/pulse_tw1))**2 &
+        Ac_ext(iter,:)=-f0_1/omega1*(cos(pi*tt/pulse_tw1))**2 &
           *aimag( (epdir_re1(:) + zI*epdir_im1(:)) &
           *exp(zI*(omega1*tt+phi_CEP1*2d0*pi))  &
           )
@@ -124,7 +124,7 @@ Subroutine init_Ac
       tt=iter*dt - 0.5d0*pulse_tw2 - T1_T2
       if (abs(tt)<0.5d0*pulse_tw2) then
         Ac_ext(iter,:)=Ac_ext(iter,:) &
-          -f0_2/omega2*(cos(0.5d0*pi*tt/pulse_tw2))**2 &
+          -f0_2/omega2*(cos(pi*tt/pulse_tw2))**2 &
           *aimag( (epdir_re2(:) + zI*epdir_im2(:)) &
           *exp(zI*(omega2*tt+phi_CEP2*2d0*pi))  &
           )
