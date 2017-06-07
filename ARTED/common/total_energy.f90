@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine Total_Energy_omp(Rion_update,GS_RT,ixy_m)
   use Global_Variables, only: zu_t,zu_m,zu_GS,NB,NBoccmax,calc_mode_gs,calc_mode_rt
   use communication

@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 module inputoutput
   use salmon_global
   implicit none
@@ -76,8 +76,8 @@ contains
 
 
   subroutine read_stdin(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: ierr
 
@@ -138,8 +138,8 @@ contains
   end subroutine read_stdin
 
   subroutine read_input_common(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: ierr
 
@@ -691,8 +691,8 @@ contains
   end subroutine initialize_inputoutput_units
 
   subroutine dump_input_common(myrank)
+    use mpi
     implicit none
-    include 'mpif.h'
     integer,intent(in) :: myrank
     integer :: i
 
