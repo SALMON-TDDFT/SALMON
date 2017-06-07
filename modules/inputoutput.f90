@@ -840,6 +840,13 @@ contains
       print '("#",4X,A,"=",ES12.5)', 't1_t2', t1_t2
       print '("#",4X,A,"=",A)', 'quadrupole', quadrupole
       print '("#",4X,A,"=",A)', 'quadrupole_pot', quadrupole_pot
+      print '("#",4X,A,"=",A)', 'alocal_laser', alocal_laser
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(1)', rlaserbound_sta(1)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(2)', rlaserbound_sta(2)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(3)', rlaserbound_sta(3)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(1)', rlaserbound_end(1)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(2)', rlaserbound_end(2)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(3)', rlaserbound_end(3)
 
       print '("#namelist: ",A,", status=",I1)', 'linear_response', inml_linear_response
       print '("#",4X,A,"=",ES12.5)', 'e_impulse', e_impulse
