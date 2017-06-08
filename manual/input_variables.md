@@ -474,6 +474,10 @@ Shape of the first/second pulse.
 </li>
 
 <li>
+<code>'Esin2sin'</code>:
+</li>
+
+<li>
 <code>'Asin2cos'</code>:
 </li>
 
@@ -521,6 +525,7 @@ Imaginary part of polarization vector the first/second pulse.
 <dt>phi_cep1/phi_cep2; <code>Real(8)</code></dt>
 <dd>
 Carrier emvelope phase of the first/second pulse.
+Default is <code>0d0/0d0</code>.
 </dd>
 
 <dt>t1_t2; <code>Real(8)</code></dt>

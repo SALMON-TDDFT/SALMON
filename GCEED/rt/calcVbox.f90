@@ -24,6 +24,8 @@ SUBROUTINE calcVbox
   implicit none
   integer :: ix,iy,iz,jj
   integer :: ix_sta_Vbox(3),ix_end_Vbox(3)
+  integer :: ipulse
+  real(8) :: env_trigon_1,env_trigon_2
 
   elp3(511)=MPI_Wtime()
 
@@ -75,9 +77,11 @@ SUBROUTINE calcVbox
     if(quadrupole=='y')then
       if(myrank==0)then
         write(191,*) dt*itt*0.0241889d0, amplitude1         &
-                        *cos(omega1*dble(itt)*dt+phi_cep1*2d0*pi)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 
+                        *cos(omega1*(dble(itt)*dt-0.5d0*pulse_tw1)+phi_cep1*2d0*pi)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 
       end if
       if(quadrupole_pot=='sum')then
+        ipulse=1
+        call calc_env_trigon(ipulse,env_trigon_1)
       !$OMP parallel do collapse(2) private(ix,iy,iz)
         do iz=ix_sta_Vbox(3),ix_end_Vbox(3)
         do iy=ix_sta_Vbox(2),ix_end_Vbox(2)
@@ -88,12 +92,13 @@ SUBROUTINE calcVbox
                                      epdir_re1(3)*(gridcoo(iz,3)-rlaser_center(3))+   &
                                      epdir_re2(1)*(gridcoo(ix,1)-rlaser_center(1))+   &
                                      epdir_re2(2)*(gridcoo(iy,2)-rlaser_center(2))+   &
-                                     epdir_re2(3)*(gridcoo(iz,3)-rlaser_center(3)))   &
-                        *cos(omega1*dble(itt)*dt+phi_cep1*2d0*pi)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 
+                                     epdir_re2(3)*(gridcoo(iz,3)-rlaser_center(3)))*env_trigon_1
         end do
         end do
         end do
       else if(quadrupole_pot=='product')then
+        ipulse=1
+        call calc_env_trigon(ipulse,env_trigon_1)
       !$OMP parallel do collapse(2) private(ix,iy,iz)
         do iz=ix_sta_Vbox(3),ix_end_Vbox(3)
         do iy=ix_sta_Vbox(2),ix_end_Vbox(2)
@@ -104,15 +109,15 @@ SUBROUTINE calcVbox
                                      epdir_re1(3)*(gridcoo(iz,3)-rlaser_center(3)))   &
                                    *(epdir_re2(1)*(gridcoo(ix,1)-rlaser_center(1))+   &
                                      epdir_re2(2)*(gridcoo(iy,2)-rlaser_center(2))+   &
-                                     epdir_re2(3)*(gridcoo(iz,3)-rlaser_center(3)))   &
-                        *cos(omega1*dble(itt)*dt+phi_cep1*2d0*pi)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 
+                                     epdir_re2(3)*(gridcoo(iz,3)-rlaser_center(3)))*env_trigon_1
         end do
         end do
         end do
       end if
-      
     else
       if(dt*dble(itt) <= pulse_tw1)then
+        ipulse=1
+        call calc_env_trigon(ipulse,env_trigon_1)
       !$OMP parallel do collapse(2) private(ix,iy,iz)
         do iz=ix_sta_Vbox(3),ix_end_Vbox(3)
         do iy=ix_sta_Vbox(2),ix_end_Vbox(2)
@@ -120,30 +125,28 @@ SUBROUTINE calcVbox
           Vbox(ix,iy,iz)=Vbox(ix,iy,iz)+  &
                          amplitude1*(epdir_re1(1)*(gridcoo(ix,1)-rlaser_center(1))+   &
                                      epdir_re1(2)*(gridcoo(iy,2)-rlaser_center(2))+   &
-                                     epdir_re1(3)*(gridcoo(iz,3)-rlaser_center(3)))   &
-                        *cos(omega1*dble(itt)*dt+phi_cep1*2d0*pi)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 &
+                                     epdir_re1(3)*(gridcoo(iz,3)-rlaser_center(3)))*env_trigon_1  &
                         +amplitude1*(epdir_im1(1)*(gridcoo(ix,1)-rlaser_center(1))+   &
                                      epdir_im1(2)*(gridcoo(iy,2)-rlaser_center(2))+   &
-                                     epdir_im1(3)*(gridcoo(iz,3)-rlaser_center(3)))   &
-                        *cos(omega1*dble(itt)*dt+phi_cep1*2d0*pi-pi/2.d0)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 
+                                     epdir_im1(3)*(gridcoo(iz,3)-rlaser_center(3)))*env_trigon_1
         end do
         end do
         end do
       end if
       if(dt*dble(itt)-t1_t2 >= 1.d-12 .and. dt*dble(itt)-t1_t2 <= pulse_tw2)then
-        !!$OMP parallel do collapse(2) private(ix,iy,iz)
+        ipulse=2
+        call calc_env_trigon(ipulse,env_trigon_2)
+        !$OMP parallel do collapse(2) private(ix,iy,iz)
         do iz=ix_sta_Vbox(3),ix_end_Vbox(3)
         do iy=ix_sta_Vbox(2),ix_end_Vbox(2)
         do ix=ix_sta_Vbox(1),ix_end_Vbox(1)
           Vbox(ix,iy,iz)=Vbox(ix,iy,iz)   &
                         +amplitude2*(epdir_re2(1)*(gridcoo(ix,1)-rlaser_center(1))+   &
                                      epdir_re2(2)*(gridcoo(iy,2)-rlaser_center(2))+   &
-                                     epdir_re2(3)*(gridcoo(iz,3)-rlaser_center(3)))   &
-                        *cos(omega2*dble(itt)*dt-t1_t2+phi_cep2*2d0*pi)*sin((Pi*dble(itt)*dt-t1_t2)/pulse_tw2)**2 &
+                                     epdir_re2(3)*(gridcoo(iz,3)-rlaser_center(3)))*env_trigon_2  &
                         +amplitude2*(epdir_im2(1)*(gridcoo(ix,1)-rlaser_center(1))+   &
                                      epdir_im2(2)*(gridcoo(iy,2)-rlaser_center(2))+   &
-                                     epdir_im2(3)*(gridcoo(iz,3)-rlaser_center(3)))   &
-                        *cos(omega2*dble(itt)*dt-t1_t2+phi_cep2*2d0*pi-pi/2.d0)*sin((Pi*dble(itt)*dt-t1_t2)/pulse_tw2)**2 
+                                     epdir_im2(3)*(gridcoo(iz,3)-rlaser_center(3)))*env_trigon_2
         end do
         end do
         end do
