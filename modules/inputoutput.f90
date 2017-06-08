@@ -387,7 +387,7 @@ contains
     threshold     = 1d-6
 !! == default for &emfield
     trans_longi    = 'tr'
-    ae_shape1      = ''
+    ae_shape1      = 'none'
     amplitude1     = 0d0
     rlaser_int1    = -1d0
     pulse_tw1      = 0d0
@@ -395,7 +395,7 @@ contains
     epdir_re1      = (/1d0,0d0,0d0/)
     epdir_im1      = 0d0
     phi_cep1       = 0d0
-    ae_shape2      = ''
+    ae_shape2      = 'none'
     amplitude2     = 0d0
     rlaser_int2    = -1d0
     pulse_tw2      = 0d0

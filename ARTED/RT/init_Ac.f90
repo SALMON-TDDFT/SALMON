@@ -168,7 +168,7 @@ Subroutine init_Ac
     !There is no probe
   case('none')
   case default
-    call Err_finalize("Invalid pulse_shape_1 parameter!")
+    call Err_finalize("Invalid pulse_shape_2 parameter!")
   end select
   Ac_ind=0.d0
 
