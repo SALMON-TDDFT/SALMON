@@ -196,107 +196,75 @@ subroutine init_Ac_ms
 
   select case(FDTDdim)
   case('1D')
-     if(AE_shape1 == 'Esin2sin') then
-     do iy_m=1,NY_m
-        y=iy_m*HY_m
-        do ix_m=NXvacL_m,0
-           x=(ix_m-1)*HX_m
-           if(x > -Xstart-pulse_tw1*c_light .and. x < -Xstart) then
-              Ac_m(3,ix_m,iy_m)=Epdir_Re1(3)*(-f0_1/(2*omega1)*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light) &
-                   &+f0_1/(4*(omega1+wpulse_1))*cos((omega1+wpulse_1)*(x+Xstart+pulse_tw1*c_light)/c_light) &
-                   &+f0_1/(4*(omega1-wpulse_1))*cos((omega1-wpulse_1)*(x+Xstart+pulse_tw1*c_light)/c_light))
+!Pump
+     select case(ae_shape1)
+     case('Asin2cos')
+        do iy_m=1,NY_m
+           y=iy_m*HY_m
+           do ix_m=NXvacL_m,0
+              x=(ix_m-1)*HX_m
 
+              if(x > -Xstart-pulse_tw1*c_light .and. x < -Xstart) then
+                 Ac_m(3,ix_m,iy_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+                      &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
+                 
+                 Ac_m(2,ix_m,iy_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+                      &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
+                 
+              endif
+
+
+              x=x-dt*c_light
+              if(x > -Xstart-pulse_tw1*c_light+dt*c_light .and. x < -Xstart+dt*c_light) then
+                 Ac_new_m(3,ix_m,iy_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+                      &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
+                 
+                 Ac_new_m(2,ix_m,iy_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+                      &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
+                 
+              endif
               
-              g(3,ix_m,iy_m)=-Epdir_Re1(3)*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-                   &*sin(omega1*(x+Xstart+pulse_tw1*c_light)/c_light)
+           end do
+        end do
+     case('none')
+     case default
+        call Err_finalize("Invalid pulse_shape_1 parameter!")
+     end select
+!Probe         
+     select case(ae_shape2)
+     case('Asin2cos')
+        do iy_m=1,NY_m
+           y=iy_m*HY_m
+           do ix_m=NXvacL_m,0
+              x=(ix_m-1)*HX_m
 
-              Ac_m(2,ix_m,iy_m)=Epdir_Re1(2)*(-f0_1/(2*omega1)*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light) &
-                   &+f0_1/(4*(omega1+wpulse_1))*cos((omega1+wpulse_1)*(x+Xstart+pulse_tw1*c_light)/c_light) &
-                   &+f0_1/(4*(omega1-wpulse_1))*cos((omega1-wpulse_1)*(x+Xstart+pulse_tw1*c_light)/c_light)) 
-              
-              g(2,ix_m,iy_m)=-Epdir_Re1(2)*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-                   &*sin(omega1*(x+Xstart+pulse_tw1*c_light)/c_light)
-           endif
- 
-          if(x > -Xstart-(pulse_tw1+T1_T2)*c_light .and. x < -Xstart-(pulse_tw1+T1_T2-pulse_tw2)*c_light) then
-      Ac_m(3,ix_m,iy_m)=Ac_m(3,ix_m,iy_m)+Epdir_Re2(3)*(-f0_2/(2*omega2)*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light) &
-                   &+f0_2/(4*(omega2+wpulse_2))*cos((omega2+wpulse_2)*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light) &
-                   &+f0_2/(4*(omega2-wpulse_2))*cos((omega2-wpulse_2)*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light))
-
-              
-              g(3,ix_m,iy_m)=g(3,ix_m,iy_m)-Epdir_Re2(3)*f0_2*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
-                   &*sin(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light)
-
-       Ac_m(2,ix_m,iy_m)=Ac_m(2,ix_m,iy_m)+Epdir_Re2(2)*(-f0_2/(2*omega2)*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light) &
-                   &+f0_2/(4*(omega2+wpulse_2))*cos((omega2+wpulse_2)*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light) &
-                   &+f0_2/(4*(omega2-wpulse_2))*cos((omega2-wpulse_2)*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light)) 
-
-             
-              g(2,ix_m,iy_m)=g(2,ix_m,iy_m)-Epdir_Re2(2)*f0_2*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
-                   &*sin(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light)
-           endif
-        enddo
-     enddo
-
-     do iy_m=1,NY_m
-       do ix_m=NXvacL_m+1,NXvacR_m-1
-         Ac_new_m(2,ix_m,iy_m)=Ac_m(2,ix_m,iy_m)+dt*g(2,ix_m,iy_m)+0.5d0*(c_light*dt/HX_m)**2 &
-           *(Ac_m(2,ix_m+1,iy_m)-2*Ac_m(2,ix_m,iy_m)+Ac_m(2,ix_m-1,iy_m))+0.5d0*(c_light*dt/HY_m)**2 &
-           *(Ac_m(2,ix_m,iy_m+1)-2*Ac_m(2,ix_m,iy_m)+Ac_m(2,ix_m,iy_m-1))-4*pi*dt*dt*j_m(2,ix_m,iy_m) 
-         
-         Ac_new_m(3,ix_m,iy_m)=Ac_m(3,ix_m,iy_m)+dt*g(3,ix_m,iy_m)+0.5d0*(c_light*dt/HX_m)**2 &
-           *(Ac_m(3,ix_m+1,iy_m)-2*Ac_m(3,ix_m,iy_m)+Ac_m(3,ix_m-1,iy_m))+0.5d0*(c_light*dt/HY_m)**2 &
-           *(Ac_m(3,ix_m,iy_m+1)-2*Ac_m(3,ix_m,iy_m)+Ac_m(3,ix_m,iy_m-1))-4*pi*dt*dt*j_m(3,ix_m,iy_m) 
-       end do
-     enddo
-     
-   else if(AE_shape1 == 'Asin2cos') then
-     do iy_m=1,NY_m
-       y=iy_m*HY_m
-       do ix_m=NXvacL_m,0
-         x=(ix_m-1)*HX_m
-         if(x > -Xstart-pulse_tw1*c_light .and. x < -Xstart) then
-           Ac_m(3,ix_m,iy_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-             &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
-           
-           Ac_m(2,ix_m,iy_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-             &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
-           
-         endif
-         
-         if(x > -Xstart-(pulse_tw1+T1_T2)*c_light .and. x < -Xstart-(pulse_tw1+T1_T2-pulse_tw2)*c_light ) then
-           
-           Ac_m(3,ix_m,iy_m)=Ac_m(3,ix_m,iy_m)-Epdir_Re2(3)/omega2*f0_2 &
-             *sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
-             &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
+              if(x > -Xstart-(pulse_tw1+T1_T2)*c_light .and. x < -Xstart-(pulse_tw1+T1_T2-pulse_tw2)*c_light ) then
+                 Ac_m(3,ix_m,iy_m)=Ac_m(3,ix_m,iy_m)-Epdir_Re2(3)/omega2*f0_2 &
+                      *sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
+                      &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
           
-           Ac_m(2,ix_m,iy_m)=Ac_m(2,ix_m,iy_m)-Epdir_Re2(2)/omega2*f0_2 &
-             &*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
-             &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
-         endif
+                 Ac_m(2,ix_m,iy_m)=Ac_m(2,ix_m,iy_m)-Epdir_Re2(2)/omega2*f0_2 &
+                      &*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
+                      &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
+              endif
          
-         x=x-dt*c_light
-         if(x > -Xstart-pulse_tw1*c_light+dt*c_light .and. x < -Xstart+dt*c_light) then
-           Ac_new_m(3,ix_m,iy_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-             &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
+
+              x=x-dt*c_light         
+              if(x > -Xstart-(pulse_tw1+T1_T2)*c_light+dt*c_light .and. x < -Xstart-(pulse_tw1+T1_T2-pulse_tw2)*c_light+dt*c_light ) then
+                 Ac_new_m(3,ix_m,iy_m)=Ac_new_m(3,ix_m,iy_m)&
+                      &-Epdir_Re2(3)/omega2*f0_2*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
+                      &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
            
-           Ac_new_m(2,ix_m,iy_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-             &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
-              
-         endif
-         
-         if(x > -Xstart-(pulse_tw1+T1_T2)*c_light+dt*c_light .and. x < -Xstart-(pulse_tw1+T1_T2-pulse_tw2)*c_light+dt*c_light ) then
-    Ac_new_m(3,ix_m,iy_m)=Ac_new_m(3,ix_m,iy_m)&
-             &-Epdir_Re2(3)/omega2*f0_2*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
-             &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
-           
-    Ac_new_m(2,ix_m,iy_m)=Ac_new_m(2,ix_m,iy_m)&
-             &-Epdir_Re2(2)/omega2*f0_2*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
-             &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
-         endif
-       enddo
-     enddo
-   end if
+                 Ac_new_m(2,ix_m,iy_m)=Ac_new_m(2,ix_m,iy_m)&
+                      &-Epdir_Re2(2)/omega2*f0_2*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
+                      &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
+              endif
+           enddo
+        enddo
+     case('none')
+     case default
+        call Err_finalize("Invalid pulse_shape_1 parameter!")
+     end select
 
  case('2D')
 
