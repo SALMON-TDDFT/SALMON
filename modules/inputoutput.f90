@@ -79,7 +79,6 @@ contains
     use mpi
     implicit none
     integer,intent(in) :: myrank
-    integer :: ierr
 
     integer :: cur = fh_namelist
     integer :: ret = 0
@@ -703,43 +702,49 @@ contains
     use mpi
     implicit none
     integer,intent(in) :: myrank
-    integer :: i
+    integer :: i,ierr_nml,ierr
+    ierr_nml = 0
 
     if (myrank == 0) then
 
-      print '("#namelist: ",A,", status=",I1)', 'calculation', inml_calculation
+      if(inml_calculation >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'calculation', inml_calculation
       print '("#",4X,A,"=",A)', 'calc_mode', calc_mode
       print '("#",4X,A,"=",A)', 'use_ehrenfest_md', use_ehrenfest_md
       print '("#",4X,A,"=",A)', 'use_ms_maxwell', use_ms_maxwell
       print '("#",4X,A,"=",A)', 'use_force', use_force
       print '("#",4X,A,"=",A)', 'use_geometry_opt', use_geometry_opt
 
-      print '("#namelist: ",A,", status=",I1)', 'control', inml_control
+      if(inml_control >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'control', inml_control
       print '("#",4X,A,"=",A)', 'restart_option', restart_option
-      print '("#",4X,A,"=",I1)', 'backup_frequency', backup_frequency
+      print '("#",4X,A,"=",I5)', 'backup_frequency', backup_frequency
       print '("#",4X,A,"=",ES12.5)', 'time_shutdown', time_shutdown
       print '("#",4X,A,"=",A)', 'sysname', sysname
       print '("#",4X,A,"=",A)', 'directory', directory
 
-      print '("#namelist: ",A,", status=",I1)', 'units', inml_units
+      if(inml_units >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'units', inml_units
       print '("#",4X,A,"=",A)', 'unit_time', unit_time
       print '("#",4X,A,"=",A)', 'unit_length', unit_length
       print '("#",4X,A,"=",A)', 'unit_energy', unit_energy
       print '("#",4X,A,"=",A)', 'unit_charge', unit_charge
 
-      print '("#namelist: ",A,", status=",I1)', 'parallel', inml_parallel
+      if(inml_parallel >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'parallel', inml_parallel
       print '("#",4X,A,"=",A)', 'domain_parallel', domain_parallel
-      print '("#",4X,A,"=",I1)', 'nproc_ob', nproc_ob
-      print '("#",4X,A,"=",I1)', 'nproc_domain(1)', nproc_domain(1)
-      print '("#",4X,A,"=",I1)', 'nproc_domain(2)', nproc_domain(2)
-      print '("#",4X,A,"=",I1)', 'nproc_domain(3)', nproc_domain(3)
-      print '("#",4X,A,"=",I1)', 'nproc_domain_s(1)', nproc_domain_s(1)
-      print '("#",4X,A,"=",I1)', 'nproc_domain_s(2)', nproc_domain_s(2)
-      print '("#",4X,A,"=",I1)', 'nproc_domain_s(3)', nproc_domain_s(3)
-      print '("#",4X,A,"=",I1)', 'num_datafiles_in', num_datafiles_in
-      print '("#",4X,A,"=",I1)', 'num_datafiles_out', num_datafiles_out
+      print '("#",4X,A,"=",I5)', 'nproc_ob', nproc_ob
+      print '("#",4X,A,"=",I5)', 'nproc_domain(1)', nproc_domain(1)
+      print '("#",4X,A,"=",I5)', 'nproc_domain(2)', nproc_domain(2)
+      print '("#",4X,A,"=",I5)', 'nproc_domain(3)', nproc_domain(3)
+      print '("#",4X,A,"=",I5)', 'nproc_domain_s(1)', nproc_domain_s(1)
+      print '("#",4X,A,"=",I5)', 'nproc_domain_s(2)', nproc_domain_s(2)
+      print '("#",4X,A,"=",I5)', 'nproc_domain_s(3)', nproc_domain_s(3)
+      print '("#",4X,A,"=",I5)', 'num_datafiles_in', num_datafiles_in
+      print '("#",4X,A,"=",I5)', 'num_datafiles_out', num_datafiles_out
 
-      print '("#namelist: ",A,", status=",I1)', 'system', inml_system
+      if(inml_system >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'system', inml_system
       print '("#",4X,A,"=",I1)', 'iperiodic', iperiodic
       print '("#",4X,A,"=",I1)', 'ispin', ispin
       print '("#",4X,A,"=",ES12.5)', 'al(1)', al(1)
@@ -747,14 +752,15 @@ contains
       print '("#",4X,A,"=",ES12.5)', 'al(3)', al(3)
       print '("#",4X,A,"=",I1)', 'isym', isym
       print '("#",4X,A,"=",A)', 'crystal_structure', crystal_structure
-      print '("#",4X,A,"=",I1)', 'nstate', nstate
-      print '("#",4X,A,"=",I1)', 'nelec', nelec
+      print '("#",4X,A,"=",I4)', 'nstate', nstate
+      print '("#",4X,A,"=",I4)', 'nelec', nelec
       print '("#",4X,A,"=",ES12.5)', 'temperature', temperature
-      print '("#",4X,A,"=",I1)', 'nelem', nelem
-      print '("#",4X,A,"=",I1)', 'natom', natom
+      print '("#",4X,A,"=",I4)', 'nelem', nelem
+      print '("#",4X,A,"=",I4)', 'natom', natom
       print '("#",4X,A,"=",A)', 'file_atom', file_atom
 
-      print '("#namelist: ",A,", status=",I1)', 'pseudo', inml_pseudo
+      if(inml_pseudo >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'pseudo', inml_pseudo
 
       do i = 1,nelem
         print '("#",4X,A,I2,A,"=",A)', 'pseudo_file(',i,')', trim(pseudo_file(i))
@@ -767,44 +773,50 @@ contains
       print '("#",4X,A,"=",ES12.5)', 'gamma_mask', gamma_mask
       print '("#",4X,A,"=",ES12.5)', 'eta_mask', eta_mask
 
-      print '("#namelist: ",A,", status=",I1)', 'functional', inml_functional
+      if(inml_functional >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'functional', inml_functional
       print '("#",4X,A,"=",A)', 'xc', xc
       print '("#",4X,A,"=",ES12.5)', 'cval', cval
 
-      print '("#namelist: ",A,", status=",I1)', 'rgrid', inml_rgrid
+      if(inml_rgrid >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'rgrid', inml_rgrid
       print '("#",4X,A,"=",ES12.5)', 'dl(1)', dl(1)
       print '("#",4X,A,"=",ES12.5)', 'dl(2)', dl(2)
       print '("#",4X,A,"=",ES12.5)', 'dl(3)', dl(3)
-      print '("#",4X,A,"=",I1)', 'num_rgrid(1)', num_rgrid(1)
-      print '("#",4X,A,"=",I1)', 'num_rgrid(2)', num_rgrid(2)
-      print '("#",4X,A,"=",I1)', 'num_rgrid(3)', num_rgrid(3)
+      print '("#",4X,A,"=",I4)', 'num_rgrid(1)', num_rgrid(1)
+      print '("#",4X,A,"=",I4)', 'num_rgrid(2)', num_rgrid(2)
+      print '("#",4X,A,"=",I4)', 'num_rgrid(3)', num_rgrid(3)
 
+      if(inml_kgrid >0)ierr_nml = ierr_nml +1
       print '("#namelist: ",A,", status=",I1)', 'kgrid', inml_kgrid
-      print '("#",4X,A,"=",I1)', 'num_kgrid(1)', num_kgrid(1)
-      print '("#",4X,A,"=",I1)', 'num_kgrid(2)', num_kgrid(2)
-      print '("#",4X,A,"=",I1)', 'num_kgrid(3)', num_kgrid(3)
+      print '("#",4X,A,"=",I4)', 'num_kgrid(1)', num_kgrid(1)
+      print '("#",4X,A,"=",I4)', 'num_kgrid(2)', num_kgrid(2)
+      print '("#",4X,A,"=",I4)', 'num_kgrid(3)', num_kgrid(3)
       print '("#",4X,A,"=",A)', 'file_kw', file_kw
 
-      print '("#namelist: ",A,", status=",I1)', 'tgrid', inml_tgrid
-      print '("#",4X,A,"=",I1)', 'nt', nt
+      if(inml_tgrid >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'tgrid', inml_tgrid
+      print '("#",4X,A,"=",I6)', 'nt', nt
       print '("#",4X,A,"=",ES12.5)', 'dt', dt
 
-      print '("#namelist: ",A,", status=",I1)', 'scf', inml_scf
-      print '("#",4X,A,"=",I1)', 'ncg', ncg
-      print '("#",4X,A,"=",I1)', 'nmemory_mb', nmemory_mb
+      if(inml_scf >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'scf', inml_scf
+      print '("#",4X,A,"=",I3)', 'ncg', ncg
+      print '("#",4X,A,"=",I3)', 'nmemory_mb', nmemory_mb
       print '("#",4X,A,"=",ES12.5)', 'alpha_mb', alpha_mb
       print '("#",4X,A,"=",A)', 'fsset_option', fsset_option
-      print '("#",4X,A,"=",I1)', 'nfsset_start', nfsset_start
-      print '("#",4X,A,"=",I1)', 'nfsset_every', nfsset_every
-      print '("#",4X,A,"=",I1)', 'nscf', nscf
-      print '("#",4X,A,"=",I1)', 'ngeometry_opt', ngeometry_opt
+      print '("#",4X,A,"=",I3)', 'nfsset_start', nfsset_start
+      print '("#",4X,A,"=",I3)', 'nfsset_every', nfsset_every
+      print '("#",4X,A,"=",I3)', 'nscf', nscf
+      print '("#",4X,A,"=",I3)', 'ngeometry_opt', ngeometry_opt
       print '("#",4X,A,"=",A)', 'subspace_diagonalization', subspace_diagonalization
       print '("#",4X,A,"=",A)', 'cmixing', cmixing
       print '("#",4X,A,"=",ES12.5)', 'rmixrate', rmixrate
       print '("#",4X,A,"=",A)', 'convergence', convergence
       print '("#",4X,A,"=",ES12.5)', 'threshold', threshold
 
-      print '("#namelist: ",A,", status=",I1)', 'emfield', inml_emfield
+      if(inml_emfield >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'emfield', inml_emfield
       print '("#",4X,A,"=",A)', 'trans_longi', trans_longi
       print '("#",4X,A,"=",A)', 'ae_shape1', ae_shape1
       print '("#",4X,A,"=",ES12.5)', 'amplitude1', amplitude1
@@ -834,26 +846,28 @@ contains
       print '("#",4X,A,"=",A)', 'quadrupole', quadrupole
       print '("#",4X,A,"=",A)', 'quadrupole_pot', quadrupole_pot
 
-      print '("#namelist: ",A,", status=",I1)', 'linear_response', inml_linear_response
+      if(inml_linear_response >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'linear_response', inml_linear_response
       print '("#",4X,A,"=",ES12.5)', 'e_impulse', e_impulse
 
-      print '("#namelist: ",A,", status=",I1)', 'multiscale', inml_multiscale
+      print '("#namelist: ",A,", status=",I3)', 'multiscale', inml_multiscale
       print '("#",4X,A,"=",A)', 'fdtddim', fdtddim
       print '("#",4X,A,"=",A)', 'twod_shape', twod_shape
-      print '("#",4X,A,"=",I1)', 'nx_m', nx_m
-      print '("#",4X,A,"=",I1)', 'ny_m', ny_m
-      print '("#",4X,A,"=",I1)', 'nz_m', nz_m
+      print '("#",4X,A,"=",I4)', 'nx_m', nx_m
+      print '("#",4X,A,"=",I4)', 'ny_m', ny_m
+      print '("#",4X,A,"=",I4)', 'nz_m', nz_m
       print '("#",4X,A,"=",ES12.5)', 'hx_m', hx_m
       print '("#",4X,A,"=",ES12.5)', 'hy_m', hy_m
       print '("#",4X,A,"=",ES12.5)', 'hz_m', hz_m
-      print '("#",4X,A,"=",I1)', 'nksplit', nksplit
-      print '("#",4X,A,"=",I1)', 'nxysplit', nxysplit
-      print '("#",4X,A,"=",I1)', 'nxvacl_m', nxvacl_m
-      print '("#",4X,A,"=",I1)', 'nxvacr_m', nxvacr_m
+      print '("#",4X,A,"=",I4)', 'nksplit', nksplit
+      print '("#",4X,A,"=",I4)', 'nxysplit', nxysplit
+      print '("#",4X,A,"=",I4)', 'nxvacl_m', nxvacl_m
+      print '("#",4X,A,"=",I4)', 'nxvacr_m', nxvacr_m
 
-      print '("#namelist: ",A,", status=",I1)', 'analysis', inml_analysis
+      if(inml_analysis >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'analysis', inml_analysis
       print '("#",4X,A,"=",A)', 'projection_option', projection_option
-      print '("#",4X,A,"=",I1)', 'nenergy', nenergy
+      print '("#",4X,A,"=",I6)', 'nenergy', nenergy
       print '("#",4X,A,"=",ES12.5)', 'de', de
       print '("#",4X,A,"=",A)', 'out_psi', out_psi
       print '("#",4X,A,"=",A)', 'out_dos', out_dos
@@ -861,24 +875,34 @@ contains
       print '("#",4X,A,"=",A)', 'out_dns', out_dns
       print '("#",4X,A,"=",A)', 'out_elf', out_elf
       print '("#",4X,A,"=",A)', 'out_dns_rt', out_dns_rt
-      print '("#",4X,A,"=",I1)', 'out_dns_rt_step', out_dns_rt_step
+      print '("#",4X,A,"=",I6)', 'out_dns_rt_step', out_dns_rt_step
       print '("#",4X,A,"=",A)', 'out_elf_rt', out_elf_rt
-      print '("#",4X,A,"=",I1)', 'out_elf_rt_step', out_elf_rt_step
+      print '("#",4X,A,"=",I6)', 'out_elf_rt_step', out_elf_rt_step
       print '("#",4X,A,"=",A)', 'out_estatic_rt', out_estatic_rt
-      print '("#",4X,A,"=",I1)', 'out_estatic_rt_step', out_estatic_rt_step
+      print '("#",4X,A,"=",I6)', 'out_estatic_rt_step', out_estatic_rt_step
       print '("#",4X,A,"=",A)', 'format3d', format3d
 
-      print '("#namelist: ",A,", status=",I1)', 'hartree', inml_hartree
-      print '("#",4X,A,"=",I1)', 'meo', meo
-      print '("#",4X,A,"=",I1)', 'num_pole_xyz(1)', num_pole_xyz(1)
-      print '("#",4X,A,"=",I1)', 'num_pole_xyz(2)', num_pole_xyz(2)
-      print '("#",4X,A,"=",I1)', 'num_pole_xyz(3)', num_pole_xyz(3)
+      if(inml_hartree >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'hartree', inml_hartree
+      print '("#",4X,A,"=",I4)', 'meo', meo
+      print '("#",4X,A,"=",I4)', 'num_pole_xyz(1)', num_pole_xyz(1)
+      print '("#",4X,A,"=",I4)', 'num_pole_xyz(2)', num_pole_xyz(2)
+      print '("#",4X,A,"=",I4)', 'num_pole_xyz(3)', num_pole_xyz(3)
 
-      print '("#namelist: ",A,", status=",I1)', 'ewald', inml_ewald
-      print '("#",4X,A,"=",I1)', 'newald', newald
+      if(inml_ewald >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'ewald', inml_ewald
+      print '("#",4X,A,"=",I3)', 'newald', newald
       print '("#",4X,A,"=",ES12.5)', 'aewald', aewald
 
     end if
+
+    call mpi_bcast(ierr_nml,1,mpi_integer,0,mpi_comm_world,ierr)
+    if(ierr_nml > 0)then
+       if(myrank == 0)write(*,"(I4,2x,A)")ierr_nml,'error(s) in input.'
+       call end_parallel
+       stop
+    end if
+
 
   end subroutine dump_input_common
     

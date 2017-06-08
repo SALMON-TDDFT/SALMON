@@ -16,7 +16,7 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine input_pseudopotential_YS
   use salmon_global,only : pseudo_file
-  use salmon_global,only : ipsfileform,n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
+  use salmon_global,only : n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
     &,n_ABINITFHI_psformat,n_FHI_psformat,ps_format
   use Global_Variables,only : Pi,Zatom,Mass,NE,directory,ps_format,PSmask_option&
        &,Nrmax,Lmax,Mlps,Lref,Zps,NRloc,NRps,inorm&
@@ -169,7 +169,7 @@ Subroutine input_pseudopotential_YS
       write(*,*) 'ps_format =',ps_format(ik)
       write(*,*) 'ps_file =',ps_file
 
-      select case (ipsfileform(ik))
+      select case (ips_type)
       case(n_Yabana_Bertsch_psformat)
         call Read_PS_KY(Lmax0,Nrmax0,Mr,rRC,upp,vpp,ik,ps_file)
       case(n_ABINIT_psformat)
