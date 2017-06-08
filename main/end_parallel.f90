@@ -1,9 +1,6 @@
 subroutine end_parallel
-  use mpi
-
+  use salmon_communication
   implicit none
-  integer :: ierr
 
-  call mpi_finalize(ierr)
-
+  call comm_finalize
 end subroutine end_parallel

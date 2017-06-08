@@ -1,12 +1,9 @@
 subroutine setup_parallel(nprocs,myrank)
-  use mpi
-
+subroutine setup_parallel
+  use salmon_parallel
+  use salmon_communication
   implicit none
-  integer,intent(out) :: nprocs,myrank
-  integer :: ierr
 
-  call mpi_init(ierr)
-  call mpi_comm_size(mpi_comm_world,nprocs,ierr)
-  call mPI_comm_rank(mpi_comm_world,myrank,ierr)
-
+  call comm_init
+  call comm_get_globalinfo(nproc_group_global, nproc_id_global, nproc_size_global)
 end subroutine setup_parallel
