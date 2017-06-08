@@ -590,12 +590,12 @@ Subroutine Read_data
     if (need_backup) write(*,*) '  frequency (# of iter) :',backup_frequency
 
     write(*,*) 'entrance_iter=',entrance_iter
-    write(*,*) SYSname
-    write(*,*) directory
+    write(*,*) 'SYSname=',trim(SYSname)
+    write(*,*) 'directory=',trim(directory)
     write(*,*) 'functional=',functional
     if(functional == 'TBmBJ') write(*,*) 'cvalue=',cval
     write(*,*) 'propagator=',propagator
-    write(*,*) 'ps_format =',ps_format(1:NE) !shinohara
+    write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
     write(*,*) 'PSmask_option =',PSmask_option !shinohara
     write(*,*) 'alpha_mask, gamma_mask, eta_mask =',alpha_mask, gamma_mask, eta_mask !shinohara
     file_GS=trim(directory)//trim(SYSname)//'_GS.out'
