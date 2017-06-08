@@ -18,18 +18,31 @@ module salmon_communication
 
   integer, public, parameter :: ROOT_PROCID = 0
 
+  ! call once
   public :: comm_init
   public :: comm_finalize
-  public :: comm_is_root
+
+  ! p2p communication
+  !public :: comm_send
+  !public :: comm_recv
+  !public :: comm_exchange
+
+  ! collective communication
   public :: comm_sync_all
   public :: comm_summation
   public :: comm_bcast
+  !public :: comm_allgatherv
   public :: comm_get_min
   public :: comm_get_max
 
+  ! group (communicator)
   public :: comm_get_globalinfo
   public :: comm_get_groupinfo
   public :: comm_create_group
+
+  ! utils
+  public :: comm_is_root
+
 
   type, public :: comm_maxloc_type
     real(8) :: val

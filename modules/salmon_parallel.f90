@@ -22,9 +22,27 @@ module salmon_parallel
   integer, public :: nproc_id_global
   integer, public :: nproc_size_global
 
-  !
+  ! call once
+  public :: setup_parallel
+  public :: end_parallel
+
+  ! util
+  public :: get_thread_id
 
 contains
+  subroutine setup_parallel
+    use salmon_communication
+    implicit none
+    call comm_init
+    call comm_get_globalinfo(nproc_group_global, nproc_id_global, nproc_size_global)
+  end subroutine
+
+  subroutine end_parallel
+    use salmon_communication
+    implicit none
+    call comm_finalize
+  end subroutine
+
   function get_thread_id() result(nid)
 #ifdef _OPENMP
     use omp_lib

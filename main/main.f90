@@ -5,9 +5,9 @@ program main
   implicit none
 
   call setup_parallel
-  call read_stdin(nproc_id_global)
-  call read_input_common(nproc_id_global)
-  call dump_input_common(nproc_id_global)
+  call read_stdin
+  call read_input_common
+  call dump_input_common
 ! read_stdin, read_input_common and dump_input_common will be wrapped by 
 ! a single routine routine after implimentation for MPI wrapper
 
