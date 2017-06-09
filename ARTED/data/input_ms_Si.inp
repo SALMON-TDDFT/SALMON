@@ -20,7 +20,7 @@
 
 &pseudo
   iZatom(1)=14
-  pseudo_file(1) = './data/Si_rps.dat'
+  pseudo_file(1) = './Si_rps.dat'
   Lloc_ps(1)=2
 /
 
@@ -52,7 +52,7 @@
 
 
 &emfield
-  ae_shape1 = 'Asin2cos'
+  ae_shape1 = 'Acos2'
   rlaser_int1 = 1d12
   pulse_tw1 = 441.195136248d0
   omega1 = 0.05696145187d0

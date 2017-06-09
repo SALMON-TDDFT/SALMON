@@ -146,10 +146,10 @@ subroutine init_Ac_ms
   real(8) Xstart
   real(8) wpulse_1
   real(8) wpulse_2
+  integer :: npower
 ! 2D parameter  
   real(8) angle,kabs,kx,ky
   real(8) length_y
-
   
   call comm_sync_all
   if(comm_is_root())write(*,*)'ok8-1-1'
@@ -198,6 +198,47 @@ subroutine init_Ac_ms
   case('1D')
 !Pump
      select case(ae_shape1)
+     case('Acos2','Acos3','Acos4','Acos6','Acos8')
+       select case(ae_shape1)
+       case('Acos2'); npower = 2
+       case('Acos3'); npower = 3
+       case('Acos4'); npower = 4
+       case('Acos6'); npower = 6
+       case('Acos8'); npower = 8
+       case default
+         stop 'Error in init_Ac.f90'
+       end select
+
+        do iy_m=1,NY_m
+           y=iy_m*HY_m
+           do ix_m=NXvacL_m,0
+              x=(ix_m-1)*HX_m + Xstart + 0.5d0*pulse_tw1*c_light
+
+              if(abs(x) < 0.5d0*pulse_tw1*c_light) then
+                 Ac_m(3,ix_m,iy_m)=f0_1/omega1*cos(pi*x/(pulse_tw1*c_light))**npower &
+                      *aimag( (epdir_re1(3) + zI*epdir_im1(3)) &
+                      *exp(zI*(omega1*x/c_light+phi_CEP1*2d0*pi)))
+                 
+                 Ac_m(2,ix_m,iy_m)=f0_1/omega1*cos(pi*x/(pulse_tw1*c_light))**npower &
+                      *aimag( (epdir_re1(2) + zI*epdir_im1(2)) &
+                      *exp(zI*(omega1*x/c_light+phi_CEP1*2d0*pi)))
+              endif
+
+
+              x=x-dt*c_light
+
+              if(abs(x) < 0.5d0*pulse_tw1*c_light) then
+                 Ac_new_m(3,ix_m,iy_m)=f0_1/omega1*cos(pi*x/(pulse_tw1*c_light))**npower &
+                      *aimag( (epdir_re1(3) + zI*epdir_im1(3)) &
+                      *exp(zI*(omega1*x/c_light+phi_CEP1*2d0*pi)))
+                 
+                 Ac_new_m(2,ix_m,iy_m)=f0_1/omega1*cos(pi*x/(pulse_tw1*c_light))**npower &
+                      *aimag( (epdir_re1(2) + zI*epdir_im1(2)) &
+                      *exp(zI*(omega1*x/c_light+phi_CEP1*2d0*pi)))
+              endif
+
+           end do
+        end do
      case('Asin2cos')
         do iy_m=1,NY_m
            y=iy_m*HY_m
@@ -232,6 +273,48 @@ subroutine init_Ac_ms
      end select
 !Probe         
      select case(ae_shape2)
+     case('Acos2','Acos3','Acos4','Acos6','Acos8')
+       select case(ae_shape2)
+       case('Acos2'); npower = 2
+       case('Acos3'); npower = 3
+       case('Acos4'); npower = 4
+       case('Acos6'); npower = 6
+       case('Acos8'); npower = 8
+       case default
+         stop 'Error in init_Ac.f90'
+       end select
+
+        do iy_m=1,NY_m
+           y=iy_m*HY_m
+           do ix_m=NXvacL_m,0
+              x=(ix_m-1)*HX_m + Xstart + (0.5d0*pulse_tw1 + T1_T2)*c_light
+
+              if(abs(x) < 0.5d0*pulse_tw2*c_light) then
+                 Ac_m(3,ix_m,iy_m)=Ac_m(3,ix_m,iy_m) &
+                      +f0_2/omega2*cos(pi*x/(pulse_tw2*c_light))**npower &
+                      *aimag( (epdir_re2(3) + zI*epdir_im2(3)) &
+                      *exp(zI*(omega2*x/c_light+phi_CEP2*2d0*pi)))
+                 Ac_m(2,ix_m,iy_m)=Ac_m(2,ix_m,iy_m) &
+                      +f0_2/omega2*cos(pi*x/(pulse_tw2*c_light))**npower &
+                      *aimag( (epdir_re2(2) + zI*epdir_im2(2)) &
+                      *exp(zI*(omega2*x/c_light+phi_CEP2*2d0*pi)))                 
+              endif
+
+              x=x-dt*c_light
+
+              if(abs(x) < 0.5d0*pulse_tw2*c_light) then
+                 Ac_new_m(3,ix_m,iy_m)=Ac_new_m(3,ix_m,iy_m) &
+                      +f0_2/omega2*cos(pi*x/(pulse_tw2*c_light))**npower &
+                      *aimag( (epdir_re2(3) + zI*epdir_im2(3)) &
+                      *exp(zI*(omega2*x/c_light+phi_CEP2*2d0*pi)))
+                 Ac_new_m(2,ix_m,iy_m)=Ac_new_m(2,ix_m,iy_m) &
+                      +f0_2/omega2*cos(pi*x/(pulse_tw2*c_light))**npower &
+                      *aimag( (epdir_re2(2) + zI*epdir_im2(2)) &
+                      *exp(zI*(omega2*x/c_light+phi_CEP2*2d0*pi)))                 
+              endif
+
+           end do
+        end do
      case('Asin2cos')
         do iy_m=1,NY_m
            y=iy_m*HY_m
@@ -250,7 +333,8 @@ subroutine init_Ac_ms
          
 
               x=x-dt*c_light         
-              if(x > -Xstart-(pulse_tw1+T1_T2)*c_light+dt*c_light .and. x < -Xstart-(pulse_tw1+T1_T2-pulse_tw2)*c_light+dt*c_light ) then
+              if(x > -Xstart-(pulse_tw1+T1_T2)*c_light+dt*c_light &
+                   .and. x < -Xstart-(pulse_tw1+T1_T2-pulse_tw2)*c_light+dt*c_light ) then
                  Ac_new_m(3,ix_m,iy_m)=Ac_new_m(3,ix_m,iy_m)&
                       &-Epdir_Re2(3)/omega2*f0_2*sin(pi*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/(pulse_tw2*c_light))**2 &
                       &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
