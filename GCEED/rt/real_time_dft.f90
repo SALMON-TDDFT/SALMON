@@ -27,17 +27,6 @@ use allocate_psl_sub
 implicit none
 
 integer       :: Ntime
-character(100) :: file_RT
-character(100) :: file_alpha
-character(100) :: file_RT_q
-character(100) :: file_alpha_q
-character(100) :: file_RT_e
-character(100) :: file_RT_dip2
-character(100) :: file_alpha_dip2
-character(100) :: file_RT_dip2_q
-character(100) :: file_alpha_dip2_q
-character(100) :: file_RT_dip2_e
-character(100) :: file_external
 
 real(8)       :: debye2au   ! [D]  -> [a.u.] 
 integer       :: iii
@@ -54,8 +43,6 @@ use allocate_sendrecv_groupob_sub
 implicit none
 
 INTEGER :: IC_rt, OC_rt
-character(LEN=100) :: file_IN
-character(LEN=100) :: file_OUT_rt, file_IN_rt
 real(8),allocatable :: alpha_R(:,:),alpha_I(:,:) 
 real(8),allocatable :: alphaq_R(:,:,:),alphaq_I(:,:,:) 
 real(8),allocatable :: alpha2_R(:,:,:),alpha2_I(:,:,:) 
@@ -63,7 +50,6 @@ real(8),allocatable :: alpha2q_R(:,:,:,:),alpha2q_I(:,:,:,:)
 real(8),allocatable :: Dp_box(:,:),alpha_R_box(:,:),alpha_I_box(:,:) 
 real(8),allocatable :: Qp_box(:,:,:),alpha_Rq_box(:,:,:),alpha_Iq_box(:,:,:) 
 real(8),allocatable :: Sf(:),Sf2(:,:),Sq2(:,:,:)
-real(8) :: plz !polarizability
 integer :: jj
 integer :: iene,nntime,ix,iy,iz
 character(100):: timeFile
@@ -95,9 +81,9 @@ inumcpu_check=0
 call setbN
 call setcN
 
-call read_input_rt(IC_rt,OC_rt,Ntime,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
-    & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
-    & file_IN_rt,file_OUT_rt)
+call read_input_rt(IC_rt,OC_rt,Ntime)
+
+call set_filename
 
 if(myrank.eq.0)then
   write(*,*)
@@ -185,7 +171,7 @@ end if
 elp3(402)=MPI_Wtime()
 
 ! Read SCF data
-call IN_data(file_IN)
+call IN_data
 
 if(myrank==0)then
   if(icalcforce==1.and.iflag_md==1)then
@@ -289,7 +275,7 @@ if(IC_rt==0) then
   itotNtime=Ntime
   Miter_rt=0
 else if(IC_rt==1) then
-  call IN_data_rt(file_IN_rt,IC_rt,Ntime)
+  call IN_data_rt(IC_rt,Ntime)
 end if
 
 elp3(405)=MPI_Wtime()
@@ -330,7 +316,7 @@ call Time_Evolution(IC_rt)
 
 elp3(409)=MPI_Wtime()
 
-if(OC_rt==1) call OUT_data_rt(file_OUT_rt)
+if(OC_rt==1) call OUT_data_rt
 elp3(410)=MPI_Wtime()
 
 
@@ -361,7 +347,7 @@ if(quadrupole=='y')then
 end if
 if(myrank.eq.0)then
   open(1,file=file_RT)
-  write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A?]" 
+  write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A]" 
    do nntime=0,itotNtime
       write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
       write(1,'(3e16.8)',advance="yes") (Dp(iii,nntime)*a_B, iii=1,3)
@@ -370,7 +356,7 @@ if(myrank.eq.0)then
 
   if(quadrupole=='y')then
     open(1,file=file_RT_q)
-    write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[a.u.]" 
+    write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
     do nntime=0,itotNtime
        write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
        write(1,'(6e16.8)',advance="yes") (Qp(iii,iii,nntime)*a_B**2, iii=1,3), &
@@ -391,7 +377,7 @@ if(myrank.eq.0)then
 
   if(iflag_dip2==1)then
     open(1,file=file_RT_dip2)
-    write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A?]" 
+    write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A]" 
       do nntime=0,itotNtime
         write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
         do jj=1,num_dip2-1
@@ -403,7 +389,7 @@ if(myrank.eq.0)then
 
     if(quadrupole=='y')then
       open(1,file=file_RT_dip2_q)
-      write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A?]" 
+      write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
         do nntime=0,itotNtime
           write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
           do jj=1,num_dip2-1
@@ -432,60 +418,96 @@ if(myrank.eq.0)then
 
 ! Alpha
   open(1,file=file_alpha)
-  plz=0.d0
-  write(1,*) "# energy[eV], Re[alpha](x,y,z), Im[alpha](x,y,z), S(x,y,z)" 
-   do iene=0,Nenergy
+  if(ae_shape1=='impulse')then
+    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], S(x,y,z)[1/eV]" 
+    do iene=0,Nenergy
       Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
       write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
       write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)**3, iii=1,3)
       write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)**3, iii=1,3)
       write(1,'(3e16.8)',advance="yes") (Sf(iii)/2d0/Ry, iii=1,3)
-      if(iene.ge.1) plz=plz+Sf(3)/(dble(iene)*dE)**2*dE
-   end do
-   write(*,'("===== polarizability in z direction =====")')
-   write(*,*) "in a.u.:", plz
-   write(*,*) "in A^3 :", plz*a_B**3
-   write(*,'("=========================================")')
+    end do
+  else
+    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A*fs], Im[alpha](x,y,z)[A*fs], I(x,y,z)[A**2*fs**2]"
+    do iene=0,Nenergy
+      write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+      write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+      write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+      write(1,'(3e16.8)',advance="yes") ((alpha_R(iii,iene)**2+alpha_I(iii,iene)**2)   &
+                                             *(a_B)**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+    end do
+  end if 
   close(1)
 
   if(quadrupole=='y')then
     open(1,file=file_alpha_q)
-    write(1,*) "# energy[eV], Re[alpha](xx,yy,zz,xy,yz,zx), Im[alpha](xx,yy,zz,xy,yz,zx)" 
+    write(1,*) "# energy[eV], Re[alpha](xx,yy,zz,xy,yz,zx)[A*fs], Im[alpha](xx,yy,zz,xy,yz,zx)[A*fs]" 
      do iene=0,Nenergy
-       Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-       write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene), iii=1,3),alphaq_R(1,2,iene),alphaq_R(2,3,iene),alphaq_R(3,1,iene)
-       write(1,'(6e16.8)',advance="yes") (alphaq_I(iii,iii,iene), iii=1,3),alphaq_I(1,2,iene),alphaq_I(2,3,iene),alphaq_I(3,1,iene)
+       write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                         alphaq_R(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                         alphaq_R(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                         alphaq_R(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
+       write(1,'(6e16.8)',advance="yes") (alphaq_I(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                          alphaq_I(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
+                                          alphaq_I(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
+                                          alphaq_I(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
      end do
     close(1)
   end if
 
   if(iflag_dip2==1)then
     open(1,file=file_alpha_dip2)
-    write(1,*) "# energy[eV], Re[alpha1](x,y,z), Im[alpha1](x,y,z), S1(x,y,z), Re[alpha2](x,y,z), ..."
-    do jj=1,num_dip2
-      Dp_box(:,:)=Dp2(:,:,jj)
-      call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
-      alpha2_R(:,:,jj)=alpha_R_box(:,:)
-      alpha2_I(:,:,jj)=alpha_I_box(:,:)
-    end do
-    do iene=0,Nenergy
-      Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
-      write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-      do jj=1,num_dip2-1
-        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="no") (Sf2(iii,jj)/2d0/Ry, iii=1,3)
+    if(ae_shape1=='impulse')then
+      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], S1(x,y,z)[1/eV],",  &
+                 " Re[alpha2](x,y,z)[A**3], ..."
+      do jj=1,num_dip2
+        Dp_box(:,:)=Dp2(:,:,jj)
+        call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
+        alpha2_R(:,:,jj)=alpha_R_box(:,:)
+        alpha2_I(:,:,jj)=alpha_I_box(:,:)
       end do
-      write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-      write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-      write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
-    end do
+      do iene=0,Nenergy
+        Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
+        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+        do jj=1,num_dip2-1
+          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="no") (Sf2(iii,jj)/2d0/Ry, iii=1,3)
+        end do
+        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
+      end do
+    else
+      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A*fs], Im[alpha1](x,y,z)[A*fs], I1(x,y,z)[A**2*fs**2], ", &
+                 " Re[alpha2](x,y,z)[A*fs], ..."
+      do jj=1,num_dip2
+        Dp_box(:,:)=Dp2(:,:,jj)
+        call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
+        alpha2_R(:,:,jj)=alpha_R_box(:,:)
+        alpha2_I(:,:,jj)=alpha_I_box(:,:)
+      end do
+      do iene=0,Nenergy
+        Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
+        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+        do jj=1,num_dip2-1
+          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+          write(1,'(3e16.8)',advance="no") ((alpha2_R(iii,iene,jj)**2+alpha2_I(iii,iene,jj)**2)  &
+                                            *a_B**2**(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+        end do
+        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="yes") ((alpha2_R(iii,iene,num_dip2)**2+alpha2_I(iii,iene,num_dip2)**2)  &
+                                            *a_B**2**(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+      end do
+    end if
     close(1)
 
     if(quadrupole=='y')then
       open(1,file=file_alpha_dip2_q)
-      write(1,*) "# energy[eV], Im[alpha1](x,y,z), Im[alpha2](x,y,z), ..."
+      write(1,*) "# energy[eV], Im[alpha1](x,y,z)[A*fs], Im[alpha2](x,y,z)[A*fs], ..."
       do jj=1,num_dip2
         Qp_box(:,:,:)=Qp2(:,:,:,jj)
         do iii=1,3
@@ -497,11 +519,15 @@ if(myrank.eq.0)then
       do iene=0,Nenergy
         write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
         do jj=1,num_dip2-1
-          write(1,'(6e16.8)',advance="no") (alpha2q_I(iii,iii,iene,jj), iii=1,3),  &
-                                            alpha2q_I(1,2,iene,jj),alpha2q_I(2,3,iene,jj),alpha2q_I(3,1,iene,jj)
+          write(1,'(6e16.8)',advance="no") (alpha2q_R(iii,iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3),  &
+                                            alpha2q_R(1,2,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                            alpha2q_R(2,3,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                            alpha2q_R(3,1,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv)
         end do
-        write(1,'(6e16.8)',advance="yes") (alpha2q_I(iii,iii,iene,num_dip2), iii=1,3), &
-            & alpha2q_I(1,2,iene,num_dip2),alpha2q_I(2,3,iene,num_dip2),alpha2q_I(3,1,iene,num_dip2)
+        write(1,'(6e16.8)',advance="yes") (alpha2q_I(iii,iii,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                           alpha2q_I(1,2,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                           alpha2q_I(2,3,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                           alpha2q_I(3,1,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv)
       end do
       close(1)
     end if
@@ -656,7 +682,6 @@ cumnum=0.d0
 idensity=0
 idiffDensity=1
 ielf=2
-fileELF ="ELF"
 fileLaser= "laser.out"
 
 allocate (R1(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 

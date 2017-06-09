@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine read_input_scf(file_IN,file_OUT,LDA_Info,file_ini,iDiterYBCG,file_atoms_coo)
+subroutine read_input_scf(iDiterYBCG,file_atoms_coo)
 use salmon_global
 use inputoutput
 use scf_data
@@ -23,7 +23,6 @@ implicit none
 integer :: ii,iatom
 integer :: ibox2
 integer :: icheck1,icheck2
-character(100) :: file_OUT,file_IN,LDA_Info,file_ini
 character(100) :: file_atoms_coo
 integer :: iDiterYBCG
 integer :: inml_group_fundamental, &
@@ -40,9 +39,7 @@ namelist / group_fundamental / imesh_oddeven,iDiterYBCG,   &
 namelist / group_parallel/ isequential,imesh_s_all
 
 namelist / group_hartree / Hconv, lmax_MEO
-namelist / group_file / IC,OC,file_IN,file_OUT,LDA_Info
-!namelist / group_atom / MI,MKI,iZatom,ipsfileform,file_atoms_coo, Lmax_ps, Lloc_ps, ps_format
-!namelist / group_scf_analysis / iflag_writepsi, iflag_ELF, iflag_dos, iflag_pdos
+namelist / group_file / IC,OC
 namelist / group_others / iparaway_ob,iscf_order,iswitch_orbital_mesh,iflag_psicube,  &
                           lambda1_diis, lambda2_diis, file_ini
 
@@ -289,9 +286,6 @@ Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3
 !===== namelist for group_file =====
 IC=0
 OC=1
-file_IN='file_IN'
-file_OUT='file_OUT'
-LDA_Info='LDA_Info'
 if(myrank==0)then
   read(fh_namelist,NML=group_file, iostat=inml_group_file ) 
   rewind(fh_namelist)
@@ -302,8 +296,6 @@ if(myrank==0)then
 end if
 call MPI_Bcast(IC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(OC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_IN,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_OUT,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
 
 !===== namelist for group_atom =====
 iflag_ps=1

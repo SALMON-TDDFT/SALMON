@@ -13,9 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine read_input_rt(IC_rt,OC_rt,Ntime,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
-    & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
-    & file_IN_rt,file_OUT_rt)
+subroutine read_input_rt(IC_rt,OC_rt,Ntime)
 use inputoutput
 use scf_data
 use new_world_sub
@@ -24,19 +22,6 @@ implicit none
 integer :: ii
 integer :: IC_rt,OC_rt
 integer :: Ntime
-character(LEN=100) :: file_IN
-character(LEN=100) :: file_OUT_rt, file_IN_rt
-character(100) :: file_RT
-character(100) :: file_alpha
-character(100) :: file_RT_q
-character(100) :: file_alpha_q
-character(100) :: file_RT_e
-character(100) :: file_RT_dip2
-character(100) :: file_alpha_dip2
-character(100) :: file_RT_dip2_q
-character(100) :: file_alpha_dip2_q
-character(100) :: file_RT_dip2_e
-character(100) :: file_external
 integer :: inml_group_fundamental, &
          & inml_group_parallel, &
          & inml_group_hartree, &
@@ -48,9 +33,7 @@ namelist / group_fundamental / idisnum, iwrite_projection, &
                                itwproj, iwrite_projnum, itcalc_ene
 namelist / group_parallel /  isequential, imesh_s_all, iflag_comm_rho
 namelist / group_hartree / Hconv, lmax_MEO
-namelist / group_file / IC,IC_rt,OC_rt,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,  &
-                        file_RT_e,file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q, &
-    & file_RT_dip2_e,file_IN_rt,file_OUT_rt,fileTmp, fileTmp2, file_Projection
+namelist / group_file / IC,IC_rt,OC_rt
 namelist / group_others / iparaway_ob,num_projection,iwrite_projection_ob,iwrite_projection_k,  &
                           filename_pot, &
     & iwrite_external,iflag_dip2,iflag_intelectron,num_dip2, dip2boundary, dip2center,& 
@@ -199,23 +182,6 @@ num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
 IC=1
 IC_rt=0
 OC_rt=0
-file_IN='file_IN'
-file_RT='file_RT'
-file_alpha='file_alpha'
-file_RT_q='file_RT_q'
-file_alpha_q='file_alpha_q'
-file_RT_e='file_RT_e'
-file_RT_dip2='dip2.data'
-file_alpha_dip2='sf2.data'
-file_RT_dip2_q='qp2.data'
-file_alpha_dip2_q='sfq2.data'
-file_RT_dip2_q='ie2.data'
-file_external='ext.data'
-file_IN_rt='file_IN_rt'
-file_OUT_rt='file_OUT_rt'
-file_Projection='projection.data'
-fileTmp='progress'
-fileTmp2='diff'
 if(myrank==0)then
   read(fh_namelist,NML=group_file, iostat=inml_group_file)
   rewind(fh_namelist)
@@ -223,12 +189,6 @@ end if
 call MPI_Bcast(IC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(IC_rt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(OC_rt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_IN,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_IN_rt,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_OUT_rt,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_Projection,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(fileTmp,20,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(fileTmp2,20,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
 
 if(IC==3.and.num_datafiles_IN/=nproc)then
   if(myrank==0)then

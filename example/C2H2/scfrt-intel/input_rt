@@ -8,6 +8,10 @@ unit_time='fs'
   calc_mode='RT'
 /
 
+&control
+  sysname = 'C2H2'
+/
+
 &parallel
   domain_parallel = 'y'
   nproc_ob = 1
@@ -32,10 +36,5 @@ unit_time='fs'
  num_pole_xyz = 2,2,2 
 /
 
-&group_file
-  file_IN='C2H2.data'
-  file_RT='C2H2-RT.data'
-  file_alpha='C2H2-ALP.data'
-/
 &group_others
 /

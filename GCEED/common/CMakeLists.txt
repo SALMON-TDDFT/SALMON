@@ -36,6 +36,7 @@ set(SOURCES
     sendrecv_copy.f90
     setbN.f90
     setcN.f90
+    set_filename.f90
     set_gridcoo.f90
     set_ispin.f90
     set_isstaend.f90
