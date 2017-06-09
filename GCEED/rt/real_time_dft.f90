@@ -27,17 +27,6 @@ use allocate_psl_sub
 implicit none
 
 integer       :: Ntime
-character(100) :: file_RT
-character(100) :: file_alpha
-character(100) :: file_RT_q
-character(100) :: file_alpha_q
-character(100) :: file_RT_e
-character(100) :: file_RT_dip2
-character(100) :: file_alpha_dip2
-character(100) :: file_RT_dip2_q
-character(100) :: file_alpha_dip2_q
-character(100) :: file_RT_dip2_e
-character(100) :: file_external
 
 real(8)       :: debye2au   ! [D]  -> [a.u.] 
 integer       :: iii
@@ -54,8 +43,6 @@ use allocate_sendrecv_groupob_sub
 implicit none
 
 INTEGER :: IC_rt, OC_rt
-character(LEN=100) :: file_IN
-character(LEN=100) :: file_OUT_rt, file_IN_rt
 real(8),allocatable :: alpha_R(:,:),alpha_I(:,:) 
 real(8),allocatable :: alphaq_R(:,:,:),alphaq_I(:,:,:) 
 real(8),allocatable :: alpha2_R(:,:,:),alpha2_I(:,:,:) 
@@ -63,7 +50,6 @@ real(8),allocatable :: alpha2q_R(:,:,:,:),alpha2q_I(:,:,:,:)
 real(8),allocatable :: Dp_box(:,:),alpha_R_box(:,:),alpha_I_box(:,:) 
 real(8),allocatable :: Qp_box(:,:,:),alpha_Rq_box(:,:,:),alpha_Iq_box(:,:,:) 
 real(8),allocatable :: Sf(:),Sf2(:,:),Sq2(:,:,:)
-real(8) :: plz !polarizability
 integer :: jj
 integer :: iene,nntime,ix,iy,iz
 character(100):: timeFile
@@ -74,6 +60,8 @@ integer :: nprocs,nprocid
 
 nproc=nprocs
 myrank=nprocid
+
+call check_cep
 
 elp3(:)=0.d0
 elp5(:)=0.d0
@@ -93,18 +81,15 @@ inumcpu_check=0
 call setbN
 call setcN
 
-call read_input_rt(IC_rt,OC_rt,Ntime,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
-    & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
-    & file_IN_rt,file_OUT_rt)
+call read_input_rt(IC_rt,OC_rt,Ntime)
+
+call set_filename
 
 if(myrank.eq.0)then
   write(*,*)
   write(*,*) "Total time step      =",Ntime
   write(*,*) "Time step[fs]        =",dt*au_time_fs
   write(*,*) "Field strength[?]    =",Fst
-  if(ikind_eext <= 1)then
-    write(*,*) "      direction      =  ",dir
-  end if
   write(*,*) "Energy range         =",Nenergy
   write(*,*) "Energy resolution[eV]=",dE*au_energy_ev
   write(*,*) "ikind_eext is           ", ikind_eext
@@ -166,19 +151,17 @@ dt=dt !*fs2eVinv*2.d0*Ry!a.u. ! 1[fs] = 1.51925 [1/eV]  !2.d0*Ry*1.51925d0
 if(idensum==0) posplane=posplane/a_B 
 
 select case (ikind_eext)
-  case(1,6:8,11,15)
-    romega=romega !/2.d0/Ry 
-    pulse_T=pulse_T !*fs2eVinv*2.d0*Ry 
-    Fst=sqrt(rlaser_I)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
-    tau=tau !*fs2eVinv*2.d0*Ry 
-    lasbound_sta(1:3)=lasbound_sta(1:3) !/a_B
-    lasbound_end(1:3)=lasbound_end(1:3) !/a_B
-  case(4,12)
-    romega2=romega2 !/2.d0/Ry 
-    pulse_T2=pulse_T2 !*fs2eVinv*2.d0*Ry 
-    Fst2=sqrt(rlaser_I2)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
-    tau2=tau2 !*fs2eVinv*2.d0*Ry 
-    delay  = delay !*fs2eVinv*2.d0*Ry 
+  case(1)
+    if(rlaser_int1>=1.d-12)then
+      amplitude1=sqrt(rlaser_int1)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
+    end if
+    if(rlaser_int2>=1.d-12)then
+      amplitude2=sqrt(rlaser_int2)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
+    else
+      if(abs(amplitude2)<=1.d-12)then
+        amplitude2=0.d0
+      end if
+    end if
 end select
 
 if(iflag_fourier_omega==1)then
@@ -188,7 +171,7 @@ end if
 elp3(402)=MPI_Wtime()
 
 ! Read SCF data
-call IN_data(file_IN)
+call IN_data
 
 if(myrank==0)then
   if(icalcforce==1.and.iflag_md==1)then
@@ -292,7 +275,7 @@ if(IC_rt==0) then
   itotNtime=Ntime
   Miter_rt=0
 else if(IC_rt==1) then
-  call IN_data_rt(file_IN_rt,IC_rt,Ntime)
+  call IN_data_rt(IC_rt,Ntime)
 end if
 
 elp3(405)=MPI_Wtime()
@@ -333,7 +316,7 @@ call Time_Evolution(IC_rt)
 
 elp3(409)=MPI_Wtime()
 
-if(OC_rt==1) call OUT_data_rt(file_OUT_rt)
+if(OC_rt==1) call OUT_data_rt
 elp3(410)=MPI_Wtime()
 
 
@@ -357,23 +340,23 @@ if(iwrite_external==1)then
 end if
 
 call Fourier3D(Dp,alpha_R,alpha_I) 
-if(iflag_quadrupole==1)then
+if(quadrupole=='y')then
   do iii=1,3
     call Fourier3D(Qp(iii,:,:),alphaq_R(iii,:,:),alphaq_I(iii,:,:)) 
   end do
 end if
 if(myrank.eq.0)then
   open(1,file=file_RT)
-  write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A?]" 
+  write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A]" 
    do nntime=0,itotNtime
       write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
       write(1,'(3e16.8)',advance="yes") (Dp(iii,nntime)*a_B, iii=1,3)
    end do
   close(1)
 
-  if(iflag_quadrupole==1)then
+  if(quadrupole=='y')then
     open(1,file=file_RT_q)
-    write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[a.u.]" 
+    write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
     do nntime=0,itotNtime
        write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
        write(1,'(6e16.8)',advance="yes") (Qp(iii,iii,nntime)*a_B**2, iii=1,3), &
@@ -394,7 +377,7 @@ if(myrank.eq.0)then
 
   if(iflag_dip2==1)then
     open(1,file=file_RT_dip2)
-    write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A?]" 
+    write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A]" 
       do nntime=0,itotNtime
         write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
         do jj=1,num_dip2-1
@@ -404,9 +387,9 @@ if(myrank.eq.0)then
       end do
     close(1)
 
-    if(iflag_quadrupole==1)then
+    if(quadrupole=='y')then
       open(1,file=file_RT_dip2_q)
-      write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A?]" 
+      write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
         do nntime=0,itotNtime
           write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
           do jj=1,num_dip2-1
@@ -435,60 +418,96 @@ if(myrank.eq.0)then
 
 ! Alpha
   open(1,file=file_alpha)
-  plz=0.d0
-  write(1,*) "# energy[eV], Re[alpha](x,y,z), Im[alpha](x,y,z), S(x,y,z)" 
-   do iene=0,Nenergy
+  if(ae_shape1=='impulse')then
+    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], S(x,y,z)[1/eV]" 
+    do iene=0,Nenergy
       Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
       write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
       write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)**3, iii=1,3)
       write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)**3, iii=1,3)
       write(1,'(3e16.8)',advance="yes") (Sf(iii)/2d0/Ry, iii=1,3)
-      if(iene.ge.1) plz=plz+Sf(3)/(dble(iene)*dE)**2*dE
-   end do
-   write(*,'("===== polarizability in z direction =====")')
-   write(*,*) "in a.u.:", plz
-   write(*,*) "in A^3 :", plz*a_B**3
-   write(*,'("=========================================")')
+    end do
+  else
+    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A*fs], Im[alpha](x,y,z)[A*fs], I(x,y,z)[A**2*fs**2]"
+    do iene=0,Nenergy
+      write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+      write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+      write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+      write(1,'(3e16.8)',advance="yes") ((alpha_R(iii,iene)**2+alpha_I(iii,iene)**2)   &
+                                             *(a_B)**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+    end do
+  end if 
   close(1)
 
-  if(iflag_quadrupole==1)then
+  if(quadrupole=='y')then
     open(1,file=file_alpha_q)
-    write(1,*) "# energy[eV], Re[alpha](xx,yy,zz,xy,yz,zx), Im[alpha](xx,yy,zz,xy,yz,zx)" 
+    write(1,*) "# energy[eV], Re[alpha](xx,yy,zz,xy,yz,zx)[A*fs], Im[alpha](xx,yy,zz,xy,yz,zx)[A*fs]" 
      do iene=0,Nenergy
-       Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-       write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene), iii=1,3),alphaq_R(1,2,iene),alphaq_R(2,3,iene),alphaq_R(3,1,iene)
-       write(1,'(6e16.8)',advance="yes") (alphaq_I(iii,iii,iene), iii=1,3),alphaq_I(1,2,iene),alphaq_I(2,3,iene),alphaq_I(3,1,iene)
+       write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                         alphaq_R(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                         alphaq_R(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                         alphaq_R(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
+       write(1,'(6e16.8)',advance="yes") (alphaq_I(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                          alphaq_I(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
+                                          alphaq_I(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
+                                          alphaq_I(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
      end do
     close(1)
   end if
 
   if(iflag_dip2==1)then
     open(1,file=file_alpha_dip2)
-    write(1,*) "# energy[eV], Re[alpha1](x,y,z), Im[alpha1](x,y,z), S1(x,y,z), Re[alpha2](x,y,z), ..."
-    do jj=1,num_dip2
-      Dp_box(:,:)=Dp2(:,:,jj)
-      call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
-      alpha2_R(:,:,jj)=alpha_R_box(:,:)
-      alpha2_I(:,:,jj)=alpha_I_box(:,:)
-    end do
-    do iene=0,Nenergy
-      Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
-      write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-      do jj=1,num_dip2-1
-        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="no") (Sf2(iii,jj)/2d0/Ry, iii=1,3)
+    if(ae_shape1=='impulse')then
+      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], S1(x,y,z)[1/eV],",  &
+                 " Re[alpha2](x,y,z)[A**3], ..."
+      do jj=1,num_dip2
+        Dp_box(:,:)=Dp2(:,:,jj)
+        call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
+        alpha2_R(:,:,jj)=alpha_R_box(:,:)
+        alpha2_I(:,:,jj)=alpha_I_box(:,:)
       end do
-      write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-      write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-      write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
-    end do
+      do iene=0,Nenergy
+        Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
+        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+        do jj=1,num_dip2-1
+          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="no") (Sf2(iii,jj)/2d0/Ry, iii=1,3)
+        end do
+        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
+      end do
+    else
+      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A*fs], Im[alpha1](x,y,z)[A*fs], I1(x,y,z)[A**2*fs**2], ", &
+                 " Re[alpha2](x,y,z)[A*fs], ..."
+      do jj=1,num_dip2
+        Dp_box(:,:)=Dp2(:,:,jj)
+        call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
+        alpha2_R(:,:,jj)=alpha_R_box(:,:)
+        alpha2_I(:,:,jj)=alpha_I_box(:,:)
+      end do
+      do iene=0,Nenergy
+        Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
+        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+        do jj=1,num_dip2-1
+          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+          write(1,'(3e16.8)',advance="no") ((alpha2_R(iii,iene,jj)**2+alpha2_I(iii,iene,jj)**2)  &
+                                            *a_B**2**(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+        end do
+        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="yes") ((alpha2_R(iii,iene,num_dip2)**2+alpha2_I(iii,iene,num_dip2)**2)  &
+                                            *a_B**2**(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+      end do
+    end if
     close(1)
 
-    if(iflag_quadrupole==1)then
+    if(quadrupole=='y')then
       open(1,file=file_alpha_dip2_q)
-      write(1,*) "# energy[eV], Im[alpha1](x,y,z), Im[alpha2](x,y,z), ..."
+      write(1,*) "# energy[eV], Im[alpha1](x,y,z)[A*fs], Im[alpha2](x,y,z)[A*fs], ..."
       do jj=1,num_dip2
         Qp_box(:,:,:)=Qp2(:,:,:,jj)
         do iii=1,3
@@ -500,11 +519,15 @@ if(myrank.eq.0)then
       do iene=0,Nenergy
         write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
         do jj=1,num_dip2-1
-          write(1,'(6e16.8)',advance="no") (alpha2q_I(iii,iii,iene,jj), iii=1,3),  &
-                                            alpha2q_I(1,2,iene,jj),alpha2q_I(2,3,iene,jj),alpha2q_I(3,1,iene,jj)
+          write(1,'(6e16.8)',advance="no") (alpha2q_R(iii,iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3),  &
+                                            alpha2q_R(1,2,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                            alpha2q_R(2,3,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                            alpha2q_R(3,1,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv)
         end do
-        write(1,'(6e16.8)',advance="yes") (alpha2q_I(iii,iii,iene,num_dip2), iii=1,3), &
-            & alpha2q_I(1,2,iene,num_dip2),alpha2q_I(2,3,iene,num_dip2),alpha2q_I(3,1,iene,num_dip2)
+        write(1,'(6e16.8)',advance="yes") (alpha2q_I(iii,iii,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                           alpha2q_I(1,2,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                           alpha2q_I(2,3,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                           alpha2q_I(3,1,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv)
       end do
       close(1)
     end if
@@ -623,7 +646,7 @@ implicit none
 
 complex(8),parameter :: zi=(0.d0,1.d0)
 integer :: ii,iob,i1,i2,i3,ix,iy,iz,jj,mm
-real(8),allocatable :: R1(:,:,:),R2(:,:,:,:)
+real(8),allocatable :: R1(:,:,:)
 character(10):: fileLaser
 integer:: idensity, idiffDensity, ielf
 integer :: IC_rt
@@ -659,22 +682,13 @@ cumnum=0.d0
 idensity=0
 idiffDensity=1
 ielf=2
-fileELF ="ELF"
 fileLaser= "laser.out"
 
 allocate (R1(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
                               lg_sta(3):lg_end(3))) 
 if(ikind_eext.ne.0)then
-  allocate( Veff(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
-                              lg_sta(3):lg_end(3))) 
-  allocate( Vbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
-                              lg_sta(3):lg_end(3)))
-endif
-if(ikind_eext == 4)then
-  allocate( R2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
-                              lg_sta(3):lg_end(3),2)) 
-  allocate( Veff2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
-                              lg_sta(3):lg_end(3),2)) 
+  allocate( Vbox(lg_sta(1)-Nd:lg_end(1)+Nd,lg_sta(2)-Nd:lg_end(2)+Nd, & 
+                                           lg_sta(3)-Nd:lg_end(3)+Nd))
 endif
 
 allocate( elf(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
@@ -769,85 +783,87 @@ allocate(zc(N_hamil))
 
 ! External Field Direction
 select case (ikind_eext)
-  case(0:5,7,15)
-    lascenter(1:3)=0.d0
-  case(6,8)
-    lascenter(1:3)=(lasbound_sta(1:3)+lasbound_end(1:3))/2.d0
+  case(1)
+    if(alocal_laser=='y')then
+      rlaser_center(1:3)=(rlaserbound_sta(1:3)+rlaserbound_end(1:3))/2.d0
+      if(imesh_oddeven==1)then
+        ilasbound_sta(1:3)=nint(rlaserbound_sta(1:3)/Hgs(:))
+        ilasbound_end(1:3)=nint(rlaserbound_end(1:3)/Hgs(:))
+      else if(imesh_oddeven==2)then
+        ilasbound_sta(1:3)=nint(rlaserbound_sta(1:3)/Hgs(:)+0.5d0)
+        ilasbound_end(1:3)=nint(rlaserbound_end(1:3)/Hgs(:)+0.5d0)
+      end if
+    else
+      rlaser_center(1:3)=0.d0
+    end if
 end select 
 
 if(imesh_oddeven==1)then
   do i1=lg_sta(1),lg_end(1)
-    vecR(1,i1,:,:)=dble(i1)-lascenter(1)/Hgs(1)
+    vecR(1,i1,:,:)=dble(i1)-rlaser_center(1)/Hgs(1)
   end do
   do i2=lg_sta(2),lg_end(2)
-    vecR(2,:,i2,:)=dble(i2)-lascenter(2)/Hgs(2)
+    vecR(2,:,i2,:)=dble(i2)-rlaser_center(2)/Hgs(2)
   end do
   do i3=lg_sta(3),lg_end(3)
-    vecR(3,:,:,i3)=dble(i3)-lascenter(3)/Hgs(3)
+    vecR(3,:,:,i3)=dble(i3)-rlaser_center(3)/Hgs(3)
   end do
 else if(imesh_oddeven==2)then
   do i1=lg_sta(1),lg_end(1)
-    vecR(1,i1,:,:)=dble(i1)-0.5d0-lascenter(1)/Hgs(1)
+    vecR(1,i1,:,:)=dble(i1)-0.5d0-rlaser_center(1)/Hgs(1)
   end do
   do i2=lg_sta(2),lg_end(2)
-    vecR(2,:,i2,:)=dble(i2)-0.5d0-lascenter(2)/Hgs(2)
+    vecR(2,:,i2,:)=dble(i2)-0.5d0-rlaser_center(2)/Hgs(2)
   end do
   do i3=lg_sta(3),lg_end(3)
-    vecR(3,:,:,i3)=dble(i3)-0.5d0-lascenter(3)/Hgs(3)
+    vecR(3,:,:,i3)=dble(i3)-0.5d0-rlaser_center(3)/Hgs(3)
   end do
 end if
 
 
-select case (ikind_eext)
-  case(0:3,6:8)
-    select case(dir)
-      case('x') 
-        R1(:,:,:) = vecR(1,:,:,:)*Hgs(1)
-      case('y') 
-        R1(:,:,:) = vecR(2,:,:,:)*Hgs(2)
-      case('z') 
-        R1(:,:,:) = vecR(3,:,:,:)*Hgs(3)
-      case('xx') 
-        R1(:,:,:) = vecR(1,:,:,:)*Hgs(1)*vecR(1,:,:,:)*Hgs(1)
-      case('yy') 
-        R1(:,:,:) = vecR(2,:,:,:)*Hgs(2)*vecR(2,:,:,:)*Hgs(2)
-      case('zz') 
-        R1(:,:,:) = vecR(3,:,:,:)*Hgs(3)*vecR(3,:,:,:)*Hgs(3)
-      case('xy','yx') 
-        R1(:,:,:) = vecR(1,:,:,:)*Hgs(1)*vecR(2,:,:,:)*Hgs(2)
-      case('yz','zy') 
-        R1(:,:,:) = vecR(2,:,:,:)*Hgs(2)*vecR(3,:,:,:)*Hgs(3)
-      case('zx','xz') 
-        R1(:,:,:) = vecR(3,:,:,:)*Hgs(3)*vecR(1,:,:,:)*Hgs(1)
-      case('x+y','y+x') 
-        R1(:,:,:) = vecR(1,:,:,:)*Hgs(1)+vecR(2,:,:,:)*Hgs(2)
-      case('y+z','z+y') 
-        R1(:,:,:) = vecR(2,:,:,:)*Hgs(2)+vecR(3,:,:,:)*Hgs(3)
-      case('z+x','x+z') 
-        R1(:,:,:) = vecR(3,:,:,:)*Hgs(3)+vecR(1,:,:,:)*Hgs(1)
-    end select
-  case(4,12)
-    select case(dir2)
-      case('x+')
-        R2(:,:,:,1) = vecR(2,:,:,:)*Hgs(2)
-        R2(:,:,:,2) = vecR(3,:,:,:)*Hgs(3)
-      case('x-')
-        R2(:,:,:,1) = vecR(3,:,:,:)*Hgs(3)
-        R2(:,:,:,2) = vecR(2,:,:,:)*Hgs(2)
-      case('y+')
-        R2(:,:,:,1) = vecR(3,:,:,:)*Hgs(3)
-        R2(:,:,:,2) = vecR(1,:,:,:)*Hgs(1)
-      case('y-')
-        R2(:,:,:,1) = vecR(1,:,:,:)*Hgs(1)
-        R2(:,:,:,2) = vecR(3,:,:,:)*Hgs(3)
-      case('z+')
-        R2(:,:,:,1) = vecR(1,:,:,:)*Hgs(1)
-        R2(:,:,:,2) = vecR(2,:,:,:)*Hgs(2)
-      case('z-')
-        R2(:,:,:,1) = vecR(2,:,:,:)*Hgs(2)
-        R2(:,:,:,2) = vecR(1,:,:,:)*Hgs(1)
-    end select
-end select
+if(quadrupole=='y')then
+  if(quadrupole_pot=='sum')then
+    !$OMP parallel do collapse(2)
+    do iz=lg_sta(3),lg_end(3)
+    do iy=lg_sta(2),lg_end(2)
+    do ix=lg_sta(1),lg_end(1)
+       R1(ix,iy,iz)=(epdir_re1(1)*gridcoo(ix,1)+   &
+                     epdir_re1(2)*gridcoo(iy,2)+   &
+                     epdir_re1(3)*gridcoo(iz,3)+   &
+                     epdir_re2(1)*gridcoo(ix,1)+   &
+                     epdir_re2(2)*gridcoo(iy,2)+   &
+                     epdir_re2(3)*gridcoo(iz,3))
+    end do 
+    end do 
+    end do 
+  else if(quadrupole_pot=='product')then
+    !$OMP parallel do collapse(2)
+    do iz=lg_sta(3),lg_end(3)
+    do iy=lg_sta(2),lg_end(2)
+    do ix=lg_sta(1),lg_end(1)
+       R1(ix,iy,iz)=(epdir_re1(1)*gridcoo(ix,1)+   &
+                     epdir_re1(2)*gridcoo(iy,2)+   &
+                     epdir_re1(3)*gridcoo(iz,3))   &
+                   *(epdir_re2(1)*gridcoo(ix,1)+   &
+                     epdir_re2(2)*gridcoo(iy,2)+   &
+                     epdir_re2(3)*gridcoo(iz,3))
+    end do 
+    end do 
+    end do 
+  end if
+else
+  !$OMP parallel do collapse(2)
+  do iz=lg_sta(3),lg_end(3)
+  do iy=lg_sta(2),lg_end(2)
+  do ix=lg_sta(1),lg_end(1)
+     R1(ix,iy,iz)=(epdir_re1(1)*gridcoo(ix,1)+   &
+                   epdir_re1(2)*gridcoo(iy,2)+   &
+                   epdir_re1(3)*gridcoo(iz,3))
+  end do 
+  end do 
+  end do
+end if
+
 
 if(iflag_dip2==1) then
   allocate(rbox_array_dip2(4,num_dip2),rbox_array2_dip2(4,num_dip2))
@@ -896,7 +912,7 @@ if(IC_rt==0)then
            newworld_comm_h,ierr)
   vecDs(1:3)=rbox_array2(1:3)*Hgs(1:3)*Hvol
 
-  if(iflag_quadrupole==1)then
+  if(quadrupole=='y')then
     do i1=1,3
       rbox1q=0.d0
  !$OMP parallel do reduction( + : rbox1q ) private(absr2)
@@ -966,7 +982,7 @@ if(IC_rt==0)then
       vecDs2(1:3,ii)=rbox_array2_dip2(1:3,ii)*Hgs(1:3)*Hvol
     end do
 
-    if(iflag_quadrupole==1)then
+    if(quadrupole=='y')then
       do jj=1,num_dip2
         vecR_tmp(:,:,:,:)=vecR(:,:,:,:)
         vecR_tmp(1,:,:,:)=vecR_tmp(1,:,:,:)-dip2center(jj)
@@ -1025,46 +1041,12 @@ if(myrank==0)then
   write(*,'(a30)', advance="no") "Static dipole moment(xyz) ="
   write(*,'(3e15.8)') (vecDs(i1)*a_B, i1=1,3)
   write(*,*)
-  if(iflag_quadrupole==1)then
+  if(quadrupole=='y')then
     write(*,'(a30)', advance="no") "Static quadrupole moment ="
     write(*,'(6e15.8)') (vecQs(i1,i1), i1=1,3),vecQs(1,2),vecQs(2,3),vecQs(3,1)
     write(*,*)
   end if
 endif
-
-! Static dipole moment
-
-select case (ikind_eext)
-  case(1,7)
-    Veff(:,:,:)=R1(:,:,:)*Fst
-  case(4)
-    Veff2(:,:,:,1)=R2(:,:,:,1)*Fst2(1)  
-    Veff2(:,:,:,2)=R2(:,:,:,2)*Fst2(2)  
-  case(6,8)
-    Veff(:,:,:)=0.d0
-    if(imesh_oddeven==1)then
-      ilasbound_sta(1:3)=nint(lasbound_sta(1:3)/Hgs(:))
-      ilasbound_end(1:3)=nint(lasbound_end(1:3)/Hgs(:))
-    else if(imesh_oddeven==2)then
-      ilasbound_sta(1:3)=nint(lasbound_sta(1:3)/Hgs(:)+0.5d0)
-      ilasbound_end(1:3)=nint(lasbound_end(1:3)/Hgs(:)+0.5d0)
-    end if
-    do jj=1,3
-      if(ilasbound_sta(jj)<lg_sta(jj))then
-        ilasbound_sta(jj)=lg_sta(jj)
-      end if
-      if(ilasbound_end(jj)>lg_end(jj))then
-        ilasbound_end(jj)=lg_end(jj)
-      end if
-    end do
-    do iz=ilasbound_sta(3),ilasbound_end(3)
-    do iy=ilasbound_sta(2),ilasbound_end(2)
-    do ix=ilasbound_sta(1),ilasbound_end(1)
-      Veff(ix,iy,iz)=R1(ix,iy,iz)*Fst  
-    end do
-    end do
-    end do
-end select
 
 ! Initial wave function
 if(IC_rt==0)then
@@ -1076,13 +1058,6 @@ if(iobnum.ge.1)then
            mg_sta(3):mg_end(3),iob,1)  &
         = exp(zi*Fst*R1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
            mg_sta(3):mg_end(3)))   &
-           *  zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-                   mg_sta(3):mg_end(3),iob,1) 
-      case(3)
-        zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  & 
-           mg_sta(3):mg_end(3),iob,1)  &
-        = exp(zi*Veff(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-           mg_sta(3):mg_end(3)))  &
            *  zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
                    mg_sta(3):mg_end(3),iob,1) 
     end select 
@@ -1286,7 +1261,7 @@ close(030) ! laser
 deallocate (R1)
 deallocate (Vlocal)
 if(ikind_eext.ne.0)then
-  deallocate (Veff, Vbox)
+  deallocate (Vbox)
 endif
 END SUBROUTINE Time_Evolution
 

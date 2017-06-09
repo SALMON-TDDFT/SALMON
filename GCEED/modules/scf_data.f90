@@ -136,7 +136,6 @@ real(8) :: lambda1_diis, lambda2_diis
 integer :: iwrite_external
 integer :: iflag_writepsi
 integer :: iflag_dip2
-integer :: iflag_quadrupole
 integer :: iflag_intelectron
 integer :: num_dip2
 real(8),allocatable :: rto(:)
@@ -221,8 +220,7 @@ complex(8),allocatable :: zpsi_in(:,:,:,:,:),zpsi_out(:,:,:,:,:)
 complex(8),allocatable :: zpsi_t0(:,:,:,:,:)
 integer :: iSCFRT
 
-real(8),allocatable :: Veff(:,:,:),Veff2(:,:,:,:),Vbox(:,:,:)
-real(8),allocatable :: Veff3(:,:,:),Veff4(:,:,:),Veff5(:,:,:,:)
+real(8),allocatable :: Vbox(:,:,:)
 
 real(8),allocatable :: Ex_fast(:,:,:),Ec_fast(:,:,:)
 
@@ -365,6 +363,8 @@ real(8)       :: posplane  ! position of the plane
                            ! (only for idensum = 0)
 integer       :: numfile_movie
 
+character(1) :: circular
+
 real(8) :: fourier_omega(200)
 integer :: num_fourier_omega
 integer :: iflag_fourier_omega
@@ -375,11 +375,7 @@ character(100):: rtOutFile
 character(100):: rtDiffOutFile
 character(100):: rtELFOutFile
 character(100):: file_Projection
-character(40):: fileTmp
-character(40):: fileTmp2
-character(20):: fileTmp3
 character(20):: fileNumber
-character(20):: fileELF
 
 integer,allocatable :: Jxyz2nd(:,:,:)
 real(8),allocatable :: uV2nd(:,:,:)
@@ -406,9 +402,8 @@ complex(8), allocatable :: zpsi_n(:,:,:,:,:)
 
 complex(8), allocatable :: Ex_static(:,:,:),Ey_static(:,:,:),Ez_static(:,:,:)
 
-real(8) :: lasbound_sta(3),lasbound_end(3)
 integer :: ilasbound_sta(3),ilasbound_end(3)
-real(8) :: lascenter(3)
+real(8) :: rlaser_center(3)
 
 integer :: isequential
 
@@ -483,6 +478,25 @@ integer :: iflag_dos
 integer :: iflag_pdos
 
 integer :: iflag_ELF
+
+!filename
+character(100) :: file_OUT
+character(100) :: file_IN
+character(100) :: LDA_Info
+character(100) :: file_RT
+character(100) :: file_alpha
+character(100) :: file_RT_q
+character(100) :: file_alpha_q
+character(100) :: file_RT_e
+character(100) :: file_RT_dip2
+character(100) :: file_alpha_dip2
+character(100) :: file_RT_dip2_q
+character(100) :: file_alpha_dip2_q
+character(100) :: file_RT_dip2_e
+character(100) :: file_external
+character(100) :: file_ini
+character(100) :: file_OUT_rt
+character(100) :: file_IN_rt
 
 CONTAINS
 

@@ -13,11 +13,10 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine prep_ini(file_ini)
+subroutine prep_ini
 use scf_data
 implicit none
 integer :: imol,jj
-character(LEN=100) :: file_ini
 real(8),parameter :: epsilon=1.d-10
 
 if(myrank==0)then

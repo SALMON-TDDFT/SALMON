@@ -16,6 +16,7 @@ set(SOURCES
     calc_pmax.f90
     calcuV.f90
     calcVpsl.f90
+    check_cep.f90
     check_corrkob.f90
     check_numcpu.f90
     conv_core_exc_cor.f90
@@ -35,6 +36,7 @@ set(SOURCES
     sendrecv_copy.f90
     setbN.f90
     setcN.f90
+    set_filename.f90
     set_gridcoo.f90
     set_ispin.f90
     set_isstaend.f90

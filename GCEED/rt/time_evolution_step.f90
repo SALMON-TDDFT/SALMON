@@ -54,7 +54,7 @@ select case(ikind_eext)
     ihpsieff=1
 end select
 
-call calcVbox
+if(ikind_eext==1) call calcVbox
 
 elp3(512)=MPI_Wtime()
 elp3(532)=elp3(532)+elp3(512)-elp3(511)
@@ -206,7 +206,7 @@ end if
 
 !------------QUADRUPOLE-start------------
 
-    if(iflag_quadrupole==1)then
+    if(quadrupole=='y')then
       rho_diff(:,:,:) = rho(:,:,:)-rho0(:,:,:)
       do jj=1,num_dip2
         vecR_tmp(:,:,:,:)=vecR(:,:,:,:)
@@ -306,7 +306,7 @@ end if
   end if
 
 
-  if(ikind_eext==4.or.ikind_eext==14)then
+  if(circular=='y')then
     allocate(cmatbox1(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
     allocate(cmatbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
     

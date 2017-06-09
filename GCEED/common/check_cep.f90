@@ -13,22 +13,24 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine read_input_gceed(procid,cfunction2)
+subroutine check_cep
   use inputoutput
-  use mpi
   implicit none
-  character(30),intent(out) :: cfunction2
-  integer :: procid
-!  integer :: ierr
-  namelist / group_function2 / cfunction2
+  integer :: round_phi
+  real(8) :: udp_phi  ! udp: under dicimal point
 
-!  if(procid==0)then
-!    open(fh_namelist, file='.namelist.tmp', status='old')
-!    read(fh_namelist,nml=group_function2)
-!    close(fh_namelist)
-!  end if
-!  call mpi_bcast(cfunction2,30,mpi_character,0,mpi_comm_world,ierr)
+  round_phi=int((phi_cep1-0.25d0)*2.d0)
+  udp_phi=(phi_cep1-0.25d0)*2.d0-round_phi  
+  if(ae_shape1=="esin2cos".and.abs(udp_phi)>=1.d-12)then
+    stop "phi_cep1 must be equal to 0.25+0.5*i when esin2cos is specified for ae_shape1."
+  end if
+  
+  round_phi=int((phi_cep2-0.25d0)*2.d0)
+  udp_phi=(phi_cep2-0.25d0)*2.d0-round_phi
+  if(ae_shape2=="esin2cos".and.abs(udp_phi)>=1.d-12)then
+    stop "phi_cep2 must be equal to 0.25+0.5*i when esin2cos is specified for ae_shape2."
+  end if
 
-  cfunction2 = trim(calc_mode)
+  return
 
-end subroutine read_input_gceed
+end subroutine check_cep

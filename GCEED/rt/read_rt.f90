@@ -13,16 +13,15 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-SUBROUTINE OUT_data_rt(file_OUT_rt)
+SUBROUTINE OUT_data_rt
 use scf_data
 use writebox_rt_sub
 use allocate_mat_sub
 implicit none
 integer       :: i1,i2,i3,jj,iob,is,it2,kk
 integer       :: ix,iy,iz
-character(100) :: file_OUT_rt
-character(100) :: file_OUT_rt_data
 integer :: ibox
+character(100) :: file_OUT_rt_data
 integer :: ii,j1,j2,j3
 integer :: myrank_datafiles
 integer :: ista_Mxin_datafile(3)
@@ -267,7 +266,7 @@ end if
 END SUBROUTINE OUT_data_rt
 
 !---------------------------------------------------------------------------
-SUBROUTINE IN_data_rt(file_IN_rt,IC_rt,Ntime)
+SUBROUTINE IN_data_rt(IC_rt,Ntime)
 use scf_data
 use new_world_sub
 use readbox_rt_sub
@@ -277,7 +276,6 @@ integer       :: i1,i2,i3,jj,iob,is,it2,kk
 integer       :: ix,iy,iz
 integer       :: IC_rt
 integer       :: Ntime
-character(100) :: file_IN_rt
 character(100) :: file_IN_rt_data
 integer :: ibox
 integer :: ii,j1,j2,j3

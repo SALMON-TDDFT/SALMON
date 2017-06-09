@@ -1,6 +1,7 @@
 set(SOURCES
     add_polynomial.f90
     aft_fourier.f90
+    calc_env_trigon.f90
     calcEstatic.f90
     calcVbox.f90
     dip.f90

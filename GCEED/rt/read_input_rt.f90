@@ -13,9 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine read_input_rt(IC_rt,OC_rt,Ntime,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
-    & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
-    & file_IN_rt,file_OUT_rt)
+subroutine read_input_rt(IC_rt,OC_rt,Ntime)
 use inputoutput
 use scf_data
 use new_world_sub
@@ -24,24 +22,10 @@ implicit none
 integer :: ii
 integer :: IC_rt,OC_rt
 integer :: Ntime
-character(LEN=100) :: file_IN
-character(LEN=100) :: file_OUT_rt, file_IN_rt
-character(100) :: file_RT
-character(100) :: file_alpha
-character(100) :: file_RT_q
-character(100) :: file_alpha_q
-character(100) :: file_RT_e
-character(100) :: file_RT_dip2
-character(100) :: file_alpha_dip2
-character(100) :: file_RT_dip2_q
-character(100) :: file_alpha_dip2_q
-character(100) :: file_RT_dip2_e
-character(100) :: file_external
 integer :: inml_group_fundamental, &
          & inml_group_parallel, &
          & inml_group_hartree, &
          & inml_group_file, &
-         & inml_group_extfield, &
          & inml_group_others
 
 
@@ -49,15 +33,10 @@ namelist / group_fundamental / idisnum, iwrite_projection, &
                                itwproj, iwrite_projnum, itcalc_ene
 namelist / group_parallel /  isequential, imesh_s_all, iflag_comm_rho
 namelist / group_hartree / Hconv, lmax_MEO
-namelist / group_file / IC,IC_rt,OC_rt,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,  &
-                        file_RT_e,file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q, &
-    & file_RT_dip2_e,file_IN_rt,file_OUT_rt,fileTmp, fileTmp2, file_Projection
-namelist / group_extfield / dir, dir2,tau, &
-                            romega2, pulse_T2, rlaser_I2, tau2, delay, rcycle 
-!namelist / group_propagation / dt, Ntime
+namelist / group_file / IC,IC_rt,OC_rt
 namelist / group_others / iparaway_ob,num_projection,iwrite_projection_ob,iwrite_projection_k,  &
-                          filename_pot,lasbound_sta,lasbound_end, &
-    & iwrite_external,iflag_dip2,iflag_quadrupole,iflag_intelectron,num_dip2, dip2boundary, dip2center,& 
+                          filename_pot, &
+    & iwrite_external,iflag_dip2,iflag_intelectron,num_dip2, dip2boundary, dip2center,& 
     & iflag_fourier_omega, num_fourier_omega, fourier_omega, itotNtime2, &
     & iwdenoption,iwdenstep, numfile_movie, iflag_Estatic
 
@@ -203,23 +182,6 @@ num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
 IC=1
 IC_rt=0
 OC_rt=0
-file_IN='file_IN'
-file_RT='file_RT'
-file_alpha='file_alpha'
-file_RT_q='file_RT_q'
-file_alpha_q='file_alpha_q'
-file_RT_e='file_RT_e'
-file_RT_dip2='dip2.data'
-file_alpha_dip2='sf2.data'
-file_RT_dip2_q='qp2.data'
-file_alpha_dip2_q='sfq2.data'
-file_RT_dip2_q='ie2.data'
-file_external='ext.data'
-file_IN_rt='file_IN_rt'
-file_OUT_rt='file_OUT_rt'
-file_Projection='projection.data'
-fileTmp='progress'
-fileTmp2='diff'
 if(myrank==0)then
   read(fh_namelist,NML=group_file, iostat=inml_group_file)
   rewind(fh_namelist)
@@ -227,12 +189,6 @@ end if
 call MPI_Bcast(IC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(IC_rt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(OC_rt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_IN,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_IN_rt,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_OUT_rt,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_Projection,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(fileTmp,20,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(fileTmp2,20,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
 
 if(IC==3.and.num_datafiles_IN/=nproc)then
   if(myrank==0)then
@@ -253,102 +209,16 @@ romega = omega1
 pulse_T = pulse_tw1
 rlaser_I = rlaser_int1
 
-dir='w'
-dir2='w+'
-
-tau=0.d0
-romega2(1:2)=0.d0
-pulse_T2(1:2)=0.d0
-rlaser_I2(1:2)=0.d0
-tau2(1:2)=0.d0
-delay=0.d0
-rcycle=0.d0
-if(myrank==0)then
-  read(fh_namelist,NML=group_extfield, iostat=inml_group_extfield)
-  rewind(fh_namelist)
-  if(ikind_eext==-1)then
-    write(*,*) "please set ikind_eext."
-    stop
-  end if
-  if(ikind_eext==0)then
-    if(dir=='w')then
-      write(*,*) "please set dir."
-      stop
-    end if
-  end if
-  if(ikind_eext==1)then
-    if(romega<=1.d-12)then
-      write(*,*) "please set romega."
-      stop
-    end if
-    if(pulse_T<=1.d-12)then
-      write(*,*) "please set pulse_T."
-      stop
-    end if
-    if(rlaser_I<=1.d-12)then
-      write(*,*) "please set rlaser_I."
-      stop
-    end if
-    if(tau<=1.d-12)then
-      write(*,*) "please set tau."
-      stop
-    end if
-    if(dir=='w')then
-      write(*,*) "please set dir."
-      stop
-    end if
-  end if
-  if(ikind_eext==4)then
-    if(romega2(1)<=1.d-12.or.romega2(2)<=1.d-12)then
-      write(*,*) "please set romega2."
-      stop
-    end if
-    if(pulse_T2(1)<=1.d-12.or.pulse_T2(2)<=1.d-12)then
-      write(*,*) "please set pulse_T2."
-      stop
-    end if
-    if(rlaser_I2(1)<=1.d-12.or.rlaser_I2(2)<=1.d-12)then
-      write(*,*) "please set rlaser_I2."
-      stop
-    end if
-    if(tau2(1)<=1.d-12.or.tau2(2)<=1.d-12)then
-      write(*,*) "please set tau2."
-      stop
-    end if
-    if(dir2=='w+')then
-      write(*,*) "please set dir2."
-      stop
-    end if
-  end if
+if(epdir_im1(1)**2+epdir_im1(2)**2+epdir_im1(3)**2+ &
+   epdir_im2(1)**2+epdir_im2(2)**2+epdir_im2(3)**2>=1.d-12)then
+  circular='y'
+else
+  circular='n'
 end if
-call MPI_Bcast(ikind_eext,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(Fst,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(dir,3,MPI_Character,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(dir2,2,MPI_Character,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(romega,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-romega = romega*uenergy_to_au
-call MPI_Bcast(pulse_T,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-pulse_T=pulse_T*utime_to_au
-call MPI_Bcast(rlaser_I,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(tau,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-tau=tau*utime_to_au
-call MPI_Bcast(romega2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-romega2 = romega2*uenergy_to_au
-call MPI_Bcast(pulse_T2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-pulse_T2=pulse_T2*utime_to_au
-call MPI_Bcast(rlaser_I2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(tau2,2,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-tau=tau*utime_to_au
-
-call MPI_Bcast(delay,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-delay=delay*utime_to_au
-call MPI_Bcast(rcycle,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
 !===== namelist for group_others =====
 
 iparaway_ob=2
-lasbound_sta(:)=-1.d7/au_length_aa*ulength_from_au
-lasbound_end(:)=1.d7/au_length_aa*ulength_from_au
 num_projection=1
 do ii=1,200
   iwrite_projection_ob(ii)=ii
@@ -357,7 +227,6 @@ end do
 filename_pot='pot'
 iwrite_external=0
 iflag_dip2=0
-iflag_quadrupole=0
 iflag_intelectron=0
 num_dip2=1
 dip2boundary(:)=0.d0
@@ -379,13 +248,8 @@ call MPI_Bcast(num_projection,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iwrite_projection_ob,200,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iwrite_projection_k,200,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(filename_pot,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(lasbound_sta,3,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-lasbound_sta = lasbound_sta *ulength_to_au
-call MPI_Bcast(lasbound_end,3,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-lasbound_end = lasbound_end *ulength_to_au
 call MPI_Bcast(iwrite_external,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_dip2,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_quadrupole,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_intelectron,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(num_dip2,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(dip2boundary,100,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)

@@ -8,6 +8,10 @@ unit_time='fs'
   calc_mode='RT'
 /
 
+&control
+  sysname = 'C2H2'
+/
+
 &parallel
   domain_parallel = 'y'
   nproc_ob = 1
@@ -16,28 +20,21 @@ unit_time='fs'
 /
 
 &tgrid
-  dt=1.31644d-3
+  dt=1.25d-3
   Nt=100
 /
 
 &emfield
   ae_shape1 = 'impulse'
+  epdir_re1 = 0.d0,0.d0,1.d0
+  epdir_re2 = 0.d0,0.d0,0.d0
 /
 &linear_response
-  e_impulse = 0.00604721081d0
 /
 &hartree
  meo = 3
  num_pole_xyz = 2,2,2 
 /
 
-&group_file
-  file_IN='C2H2.data'
-  file_RT='C2H2-RT.data'
-  file_alpha='C2H2-ALP.data'
-/
-&group_extfield
-  dir='z'
-/
 &group_others
 /
