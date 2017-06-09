@@ -27,17 +27,6 @@ use allocate_psl_sub
 implicit none
 
 integer       :: Ntime
-character(100) :: file_RT
-character(100) :: file_alpha
-character(100) :: file_RT_q
-character(100) :: file_alpha_q
-character(100) :: file_RT_e
-character(100) :: file_RT_dip2
-character(100) :: file_alpha_dip2
-character(100) :: file_RT_dip2_q
-character(100) :: file_alpha_dip2_q
-character(100) :: file_RT_dip2_e
-character(100) :: file_external
 
 real(8)       :: debye2au   ! [D]  -> [a.u.] 
 integer       :: iii
@@ -54,8 +43,6 @@ use allocate_sendrecv_groupob_sub
 implicit none
 
 INTEGER :: IC_rt, OC_rt
-character(LEN=100) :: file_IN
-character(LEN=100) :: file_OUT_rt, file_IN_rt
 real(8),allocatable :: alpha_R(:,:),alpha_I(:,:) 
 real(8),allocatable :: alphaq_R(:,:,:),alphaq_I(:,:,:) 
 real(8),allocatable :: alpha2_R(:,:,:),alpha2_I(:,:,:) 
@@ -93,9 +80,9 @@ inumcpu_check=0
 call setbN
 call setcN
 
-call read_input_rt(IC_rt,OC_rt,Ntime,file_IN,file_RT,file_alpha,file_RT_q,file_alpha_q,file_RT_e, &
-    & file_RT_dip2,file_alpha_dip2,file_RT_dip2_q,file_alpha_dip2_q,file_RT_dip2_e,file_external, &
-    & file_IN_rt,file_OUT_rt)
+call read_input_rt(IC_rt,OC_rt,Ntime)
+
+call set_filename
 
 if(myrank.eq.0)then
   write(*,*)
@@ -188,7 +175,7 @@ end if
 elp3(402)=MPI_Wtime()
 
 ! Read SCF data
-call IN_data(file_IN)
+call IN_data
 
 if(myrank==0)then
   if(icalcforce==1.and.iflag_md==1)then
@@ -292,7 +279,7 @@ if(IC_rt==0) then
   itotNtime=Ntime
   Miter_rt=0
 else if(IC_rt==1) then
-  call IN_data_rt(file_IN_rt,IC_rt,Ntime)
+  call IN_data_rt(IC_rt,Ntime)
 end if
 
 elp3(405)=MPI_Wtime()
@@ -333,7 +320,7 @@ call Time_Evolution(IC_rt)
 
 elp3(409)=MPI_Wtime()
 
-if(OC_rt==1) call OUT_data_rt(file_OUT_rt)
+if(OC_rt==1) call OUT_data_rt
 elp3(410)=MPI_Wtime()
 
 
@@ -659,7 +646,6 @@ cumnum=0.d0
 idensity=0
 idiffDensity=1
 ielf=2
-fileELF ="ELF"
 fileLaser= "laser.out"
 
 allocate (R1(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 

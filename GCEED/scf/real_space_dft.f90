@@ -48,14 +48,10 @@ integer :: ix,iy,iz,ik,ikoa
 integer :: is
 integer :: iter,iatom,iob,p1,p2,p5,ii,jj,iflag
 real(8) :: sum0,sum1
-character(100) :: file_OUT,file_IN,LDA_Info,file_ini
 character(100) :: file_atoms_coo
-character(100)::fileRho
 real(8) :: rNebox1,rNebox2
 
 integer :: nprocs,nprocid
-
-fileRho = "density.cube"
 
 nproc=nprocs
 myrank=nprocid
@@ -74,7 +70,9 @@ inumcpu_check=0
 call setbN
 call setcN
 
-call read_input_scf(file_IN,file_OUT,LDA_Info,file_ini,iDiterYBCG,file_atoms_coo)
+call read_input_scf(iDiterYBCG,file_atoms_coo)
+
+call set_filename
 
 if(ilsda==0)then
   call calc_iobnum(itotMST,nproc_ob,newrank_comm_grid,iobnum,nproc_ob,iparaway_ob)
@@ -194,7 +192,7 @@ if(istopt==1)then
 !------------------------------ Continue the previous calculation
 
   case(1,3)
-    call IN_data(file_IN)
+    call IN_data
 
     call allocate_mat
     call allocate_sendrecv_groupob
@@ -540,7 +538,7 @@ if(out_pdos=='y') then
 end if
 
 if(OC==2)then
-  call prep_ini(file_ini)
+  call prep_ini
 end if
 
 if(out_elf=='y')then
@@ -554,7 +552,7 @@ end if
 ! LDA data
 ! subroutines in scf_data.f90
 if ( OC==1.or.OC==2.or.OC==3 ) then
-  call OUT_data(file_OUT) !
+  call OUT_data
 end if
 elp3(105)=MPI_Wtime()
 

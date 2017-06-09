@@ -375,11 +375,7 @@ character(100):: rtOutFile
 character(100):: rtDiffOutFile
 character(100):: rtELFOutFile
 character(100):: file_Projection
-character(40):: fileTmp
-character(40):: fileTmp2
-character(20):: fileTmp3
 character(20):: fileNumber
-character(20):: fileELF
 
 integer,allocatable :: Jxyz2nd(:,:,:)
 real(8),allocatable :: uV2nd(:,:,:)
@@ -483,6 +479,25 @@ integer :: iflag_dos
 integer :: iflag_pdos
 
 integer :: iflag_ELF
+
+!filename
+character(100) :: file_OUT
+character(100) :: file_IN
+character(100) :: LDA_Info
+character(100) :: file_RT
+character(100) :: file_alpha
+character(100) :: file_RT_q
+character(100) :: file_alpha_q
+character(100) :: file_RT_e
+character(100) :: file_RT_dip2
+character(100) :: file_alpha_dip2
+character(100) :: file_RT_dip2_q
+character(100) :: file_alpha_dip2_q
+character(100) :: file_RT_dip2_e
+character(100) :: file_external
+character(100) :: file_ini
+character(100) :: file_OUT_rt
+character(100) :: file_IN_rt
 
 CONTAINS
 
