@@ -16,7 +16,7 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Fourier_tr
   use Global_Variables
-  use salmon_parallel, only: nproc_id_maxwell
+  use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root
   implicit none
   integer :: ihw,ixyz,iter
@@ -24,7 +24,7 @@ Subroutine Fourier_tr
   complex(8) :: jav_w(3),E_ext_w(3),E_tot_w(3)
   complex(8) :: zsigma_w(3),zeps(3)
 
-  if (comm_is_root(nproc_id_maxwell)) then
+  if (comm_is_root(nproc_id_global)) then
     open(7,file=file_epse)
   endif
 
@@ -70,7 +70,7 @@ Subroutine Fourier_tr
     endif
   enddo
  
-  if (comm_is_root(nproc_id_maxwell)) then
+  if (comm_is_root(nproc_id_global)) then
     close(7)
   endif
 

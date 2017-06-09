@@ -359,7 +359,7 @@ contains
     arch = .FALSE.
 #endif
 
-    call comm_logical_and(arch, ret, nproc_group_maxwell)
+    call comm_logical_and(arch, ret, nproc_group_global)
 
     if(ret) then
       is_symmetric_mode = 1

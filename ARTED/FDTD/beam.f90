@@ -124,7 +124,7 @@ subroutine read_initial_ac_from_file()
   integer :: nx1_m, nx2_m, ny1_m, ny2_m
   
   write(file_ac_init, "(A,A,'_Ac_init.dat')") trim(directory), trim(SYSname)
-  if (comm_is_root(nproc_id_maxwell)) then
+  if (comm_is_root(nproc_id_global)) then
     Ac_m = 0.0
     Ac_new_m = 0.0
     open(944, file=trim(file_ac_init))
@@ -137,7 +137,7 @@ subroutine read_initial_ac_from_file()
     end do
     close(944)
   end if
-  call comm_bcast(Ac_m, nproc_group_maxwell)
-  call comm_bcast(Ac_new_m, nproc_group_maxwell)
+  call comm_bcast(Ac_m, nproc_group_global)
+  call comm_bcast(Ac_new_m, nproc_group_global)
   return
 end subroutine 

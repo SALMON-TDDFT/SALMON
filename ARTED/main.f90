@@ -19,11 +19,11 @@
 
 Subroutine err_finalize(err_message)
   use Global_Variables
-  use salmon_parallel, only: nproc_id_maxwell, end_parallel
+  use salmon_parallel, only: nproc_id_global, end_parallel
   use salmon_communication, only: comm_is_root
   implicit none
   character(*),intent(in) :: err_message
-  if (comm_is_root(nproc_id_maxwell)) then
+  if (comm_is_root(nproc_id_global)) then
     write(*,*) err_message
   endif
   call end_parallel
@@ -45,11 +45,11 @@ subroutine arted
   
   implicit none
 
-  nproc_group_maxwell = nproc_group_global
+!  nproc_group_maxwell = nproc_group_global
   nproc_group_tdks    = nproc_group_global
-  nproc_id_maxwell    = nproc_id_global
+!  nproc_id_maxwell    = nproc_id_global
   nproc_id_tdks       = nproc_id_global
-  nproc_size_maxwell  = nproc_size_global
+!  nproc_size_maxwell  = nproc_size_global
   nproc_size_tdks     = nproc_size_global
 
   call read_arted()

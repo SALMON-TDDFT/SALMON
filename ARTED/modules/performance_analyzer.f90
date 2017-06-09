@@ -64,18 +64,18 @@ contains
     call summation_threads(lgflops)
     pgflops = lgflops
 
-    tin%rank = nproc_id_maxwell
+    tin%rank = nproc_id_global
     tin%val  = lgflops(4)
-    call comm_get_max(tin, tout, nproc_group_maxwell)
-    call comm_bcast(pgflops, nproc_group_maxwell, tout%rank)
+    call comm_get_max(tin, tout, nproc_group_global)
+    call comm_bcast(pgflops, nproc_group_global, tout%rank)
 
     if (calc_mode == calc_mode_ms) then
        call comm_summation(lgflops, sgflops, 4, nproc_group_tdks)
     end if
 
-    call comm_summation(lgflops, tgflops, 4, nproc_group_maxwell)
+    call comm_summation(lgflops, tgflops, 4, nproc_group_global)
 
-    if(comm_is_root(nproc_id_maxwell)) then
+    if(comm_is_root(nproc_id_global)) then
       write (iounit,'(A)') 'Performance [GFLOPS]'
       write (iounit,'(A,4(A15))') 'Type           ', 'Hamiltonian', 'Stencil', 'Pseudo-Pt', 'Update'
       write (iounit,f)            'Processor      ', lgflops(4), lgflops(1), lgflops(2), lgflops(3)
@@ -113,13 +113,13 @@ contains
     src(11) = timer_get(LOG_ALLREDUCE)
     src(12) = timer_get(LOG_DYNAMICS)
 
-    call comm_get_min(src,rmin,LOG_SIZE,nproc_group_maxwell)
-    call comm_get_max(src,rmax,LOG_SIZE,nproc_group_maxwell)
+    call comm_get_min(src,rmin,LOG_SIZE,nproc_group_global)
+    call comm_get_max(src,rmax,LOG_SIZE,nproc_group_global)
 
     diff(:) = rmax(:) - rmin(:)
     rel(:)  = rmax(:) / rmin(:)
 
-    if (comm_is_root(nproc_id_maxwell)) then
+    if (comm_is_root(nproc_id_global)) then
       write (iounit,'(A)') 'Load balance check [sec]'
       write (iounit,'(A,4(A12))') 'Function    ','min','max','diff','rel'
       write (iounit,f)            'dt_evolve   ',rmin( 1),rmax( 1),diff( 1),rel( 1)
@@ -147,11 +147,11 @@ contains
 
     integer,parameter :: iounit = 999
 
-    if(comm_is_root(nproc_id_maxwell)) open(iounit, file=gen_logfilename(filename))
+    if(comm_is_root(nproc_id_global)) open(iounit, file=gen_logfilename(filename))
     call write_hamiltonian(iounit)
-    if(comm_is_root(nproc_id_maxwell)) write (iounit,'(A)') '==='
+    if(comm_is_root(nproc_id_global)) write (iounit,'(A)') '==='
     call write_loadbalance(iounit)
-    if(comm_is_root(nproc_id_maxwell)) close(iounit)
+    if(comm_is_root(nproc_id_global)) close(iounit)
 
     call comm_sync_all
   end subroutine

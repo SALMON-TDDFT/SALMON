@@ -16,12 +16,12 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine write_GS_data
   use Global_Variables
-  use salmon_parallel, only: nproc_id_maxwell
+  use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root
   implicit none
   integer ik,ib,ia,iter,j
 
-  if (comm_is_root(nproc_id_maxwell)) then
+  if (comm_is_root(nproc_id_global)) then
     open(403,file=file_GS)
     write(403,*) '#---------------------------------------------------------'
     write(403,*) '#grid information-----------------------------------------'
