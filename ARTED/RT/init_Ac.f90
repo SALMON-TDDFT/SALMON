@@ -18,7 +18,7 @@ Subroutine init_Ac
   use Global_Variables
   use communication
   implicit none
-  integer :: iter
+  integer :: iter, npower
   real(8) :: tt
 
   javt = 0d0
@@ -30,6 +30,11 @@ Subroutine init_Ac
     f0_1 = amplitude1
   else
     f0_1=5.338d-9*sqrt(rlaser_int1)      ! electric field in a.u.
+  end if
+  if(rlaser_int2 < 0d0)then
+    f0_2 = amplitude2
+  else
+    f0_2=5.338d-9*sqrt(rlaser_int2)      ! electric field in a.u.
   end if
 
 
@@ -48,14 +53,24 @@ Subroutine init_Ac
 
   select case(AE_shape1)
   case('impulse')
-    Ac_ext(:,1)=epdir_re1(1)*dAc
-    Ac_ext(:,2)=epdir_re1(2)*dAc
-    Ac_ext(:,3)=epdir_re1(3)*dAc
-  case('Acos2')
+    Ac_ext(:,1)=epdir_re1(1)*e_impulse
+    Ac_ext(:,2)=epdir_re1(2)*e_impulse
+    Ac_ext(:,3)=epdir_re1(3)*e_impulse
+  case('Acos2','Acos3','Acos4','Acos6','Acos8')
+    select case(ae_shape1)
+    case('Acos2'); npower = 2
+    case('Acos3'); npower = 3
+    case('Acos4'); npower = 4
+    case('Acos6'); npower = 6
+    case('Acos8'); npower = 8
+    case default
+      stop 'Error in init_Ac.f90'
+    end select
+
     do iter=0,Nt+1
       tt=iter*dt - 0.5d0*pulse_tw1
       if (abs(tt)<0.5d0*pulse_tw1) then
-        Ac_ext(iter,:)=-f0_1/omega1*(cos(pi*tt/pulse_tw1))**2 &
+        Ac_ext(iter,:)=-f0_1/omega1*(cos(pi*tt/pulse_tw1))**npower &
           *aimag( (epdir_re1(:) + zI*epdir_im1(:)) &
           *exp(zI*(omega1*tt+phi_CEP1*2d0*pi))  &
           )
@@ -119,12 +134,31 @@ Subroutine init_Ac
 
 ! Probe
   select case(ae_shape2)
-  case('cos2')
+  case('impulse')
+    do iter=0,Nt+1
+      tt=iter*dt
+      if(tt > T1_T2)then
+        Ac_ext(iter,1)=Ac_ext(iter,1) + epdir_re2(1)*e_impulse
+        Ac_ext(iter,2)=Ac_ext(iter,2) + epdir_re2(2)*e_impulse
+        Ac_ext(iter,3)=Ac_ext(iter,3) + epdir_re2(3)*e_impulse
+      end if
+    end do
+  case('Acos2','Acos3','Acos4','Acos6','Acos8')
+    select case(ae_shape2)
+    case('Acos2'); npower = 2
+    case('Acos3'); npower = 3
+    case('Acos4'); npower = 4
+    case('Acos6'); npower = 6
+    case('Acos8'); npower = 8
+    case default
+      stop 'Error in init_Ac.f90'
+    end select
+
     do iter=0,Nt+1
       tt=iter*dt - 0.5d0*pulse_tw2 - T1_T2
       if (abs(tt)<0.5d0*pulse_tw2) then
         Ac_ext(iter,:)=Ac_ext(iter,:) &
-          -f0_2/omega2*(cos(pi*tt/pulse_tw2))**2 &
+          -f0_2/omega2*(cos(pi*tt/pulse_tw2))**npower &
           *aimag( (epdir_re2(:) + zI*epdir_im2(:)) &
           *exp(zI*(omega2*tt+phi_CEP2*2d0*pi))  &
           )
