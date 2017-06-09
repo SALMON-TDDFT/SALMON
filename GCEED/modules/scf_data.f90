@@ -136,7 +136,6 @@ real(8) :: lambda1_diis, lambda2_diis
 integer :: iwrite_external
 integer :: iflag_writepsi
 integer :: iflag_dip2
-integer :: iflag_quadrupole
 integer :: iflag_intelectron
 integer :: num_dip2
 real(8),allocatable :: rto(:)
@@ -221,8 +220,7 @@ complex(8),allocatable :: zpsi_in(:,:,:,:,:),zpsi_out(:,:,:,:,:)
 complex(8),allocatable :: zpsi_t0(:,:,:,:,:)
 integer :: iSCFRT
 
-real(8),allocatable :: Veff(:,:,:),Veff2(:,:,:,:),Vbox(:,:,:)
-real(8),allocatable :: Veff3(:,:,:),Veff4(:,:,:),Veff5(:,:,:,:)
+real(8),allocatable :: Vbox(:,:,:)
 
 real(8),allocatable :: Ex_fast(:,:,:),Ec_fast(:,:,:)
 
@@ -365,6 +363,8 @@ real(8)       :: posplane  ! position of the plane
                            ! (only for idensum = 0)
 integer       :: numfile_movie
 
+character(1) :: circular
+
 real(8) :: fourier_omega(200)
 integer :: num_fourier_omega
 integer :: iflag_fourier_omega
@@ -402,9 +402,8 @@ complex(8), allocatable :: zpsi_n(:,:,:,:,:)
 
 complex(8), allocatable :: Ex_static(:,:,:),Ey_static(:,:,:),Ez_static(:,:,:)
 
-real(8) :: lasbound_sta(3),lasbound_end(3)
 integer :: ilasbound_sta(3),ilasbound_end(3)
-real(8) :: lascenter(3)
+real(8) :: rlaser_center(3)
 
 integer :: isequential
 

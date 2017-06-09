@@ -26,17 +26,15 @@ unit_time='fs'
 
 &emfield
   ae_shape1 = 'impulse'
+  epdir_re1 = 0.d0,0.d0,1.d0
+  epdir_re2 = 0.d0,0.d0,0.d0
 /
 &linear_response
-  e_impulse = 0.00604721081d0
 /
 &hartree
  meo = 3
  num_pole_xyz = 2,2,2 
 /
 
-&group_extfield
-  dir='z'
-/
 &group_others
 /

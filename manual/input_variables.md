@@ -476,6 +476,10 @@ Shape of the first/second pulse.
 </li>
 
 <li>
+<code>'Esin2sin'</code>:
+</li>
+
+<li>
 <code>'Asin2cos'</code>:
 </li>
 
@@ -523,6 +527,7 @@ Imaginary part of polarization vector the first/second pulse.
 <dt>phi_cep1/phi_cep2; <code>Real(8)</code></dt>
 <dd>
 Carrier emvelope phase of the first/second pulse.
+Default is <code>0d0/0d0</code>.
 </dd>
 
 <dt>t1_t2; <code>Real(8)</code></dt>
@@ -543,6 +548,19 @@ Default is <code>'n'</code>.
 Form of a quadrupole potential.
 </dd>
 
+<dt>alocal_laser; <code>Character</code></dt>
+<dd>
+The pulse is applied to a specific domain.
+Default is <code>'n'</code>.
+</dd>
+
+<dt>rlaserbound_sta(3)/rlaserbound_end(3); <code>Real(8)</code></dt>
+<dd>
+The edge of the domain where the pulse is applied.
+These parameters are effective only when <code>alocal_laser</code> is <code>'y'</code>.
+Default is <code>-1d7/1d7</code> in atomic unit.
+Unit of length can be chosen by <code>&units/unit_length</code>.
+</dd>
 
 </dl>
 

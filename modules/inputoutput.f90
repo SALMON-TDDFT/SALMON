@@ -248,7 +248,10 @@ contains
       & phi_cep2, &
       & t1_t2, &
       & quadrupole, &
-      & quadrupole_pot
+      & quadrupole_pot, &
+      & alocal_laser , &
+      & rlaserbound_sta , &
+      & rlaserbound_end
 
     namelist/linear_response/ &
       & e_impulse
@@ -385,26 +388,33 @@ contains
     convergence   = 'rho'
     threshold     = 1d-6
 !! == default for &emfield
-    trans_longi    = 'tr'
-    ae_shape1      = ''
-    amplitude1     = 0d0
-    rlaser_int1    = -1d0
-    pulse_tw1      = 0d0
-    omega1         = 0d0
-    epdir_re1      = (/1d0,0d0,0d0/)
-    epdir_im1      = 0d0
-    phi_cep1       = 0d0
-    ae_shape2      = ''
-    amplitude2     = 0d0
-    rlaser_int2    = -1d0
-    pulse_tw2      = 0d0
-    omega2         = 0d0
-    epdir_re2      = (/1d0,0d0,0d0/)
-    epdir_im2      = 0d0
-    phi_cep2       = 0d0
-    t1_t2          = 0d0
-    quadrupole     = 'n'
-    quadrupole_pot = ''
+    trans_longi     = 'tr'
+    ae_shape1       = ''
+    amplitude1      = 0d0
+    rlaser_int1     = -1d0
+    pulse_tw1       = 0d0
+    omega1          = 0d0
+    epdir_re1       = (/1d0,0d0,0d0/)
+    epdir_im1       = 0d0
+    phi_cep1        = 0d0
+    ae_shape2       = ''
+    amplitude2      = 0d0
+    rlaser_int2     = -1d0
+    pulse_tw2       = 0d0
+    omega2          = 0d0
+    epdir_re2       = (/1d0,0d0,0d0/)
+    epdir_im2       = 0d0
+    phi_cep2        = 0d0
+    t1_t2           = 0d0
+    quadrupole      = 'n'
+    quadrupole_pot  = ''
+    alocal_laser    = 'n'
+    rlaserbound_sta(1) = -1.d7/au_length_aa*ulength_from_au
+    rlaserbound_sta(2) = -1.d7/au_length_aa*ulength_from_au
+    rlaserbound_sta(3) = -1.d7/au_length_aa*ulength_from_au
+    rlaserbound_end(1) = 1.d7/au_length_aa*ulength_from_au
+    rlaserbound_end(2) = 1.d7/au_length_aa*ulength_from_au
+    rlaserbound_end(3) = 1.d7/au_length_aa*ulength_from_au
 !! == default for &linear_response
     e_impulse = 1d-2*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
 !! == default for &multiscale
@@ -601,6 +611,9 @@ contains
     t1_t2 = t1_t2 * utime_to_au
     call comm_bcast(quadrupole    ,nproc_group_global)
     call comm_bcast(quadrupole_pot,nproc_group_global)
+    call comm_bcast(alocal_laser  ,nproc_group_global)
+    call comm_bcast(rlaserbound_sta,nproc_group_global)
+    call comm_bcast(rlaserbound_end,nproc_group_global)
 !! == bcast for &linear_response
     call comm_bcast(e_impulse,nproc_group_global)
     e_impulse = e_impulse *uenergy_to_au/ulength_to_au*utime_to_au
@@ -844,6 +857,13 @@ contains
       print '("#",4X,A,"=",ES12.5)', 't1_t2', t1_t2
       print '("#",4X,A,"=",A)', 'quadrupole', quadrupole
       print '("#",4X,A,"=",A)', 'quadrupole_pot', quadrupole_pot
+      print '("#",4X,A,"=",A)', 'alocal_laser', alocal_laser
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(1)', rlaserbound_sta(1)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(2)', rlaserbound_sta(2)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(3)', rlaserbound_sta(3)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(1)', rlaserbound_end(1)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(2)', rlaserbound_end(2)
+      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(3)', rlaserbound_end(3)
 
       if(inml_linear_response >0)ierr_nml = ierr_nml +1
       print '("#namelist: ",A,", status=",I3)', 'linear_response', inml_linear_response
