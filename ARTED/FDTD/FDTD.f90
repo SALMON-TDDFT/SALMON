@@ -17,13 +17,13 @@
 !===============================================================
 subroutine write_result(index)
   use Global_Variables
-  use communication, only: procid, nprocs
+  use salmon_parallel, only: nproc_id_maxwell, nproc_size_maxwell
   implicit none
   integer, intent(in) :: index
   integer :: iter,ix_m,iy_m
   ! export results of each calculation step
   ! (written by M.Uemoto on 2016-11-22)
-  iter = Nstep_write * (nprocs(1) * index + procid(1))
+  iter = Nstep_write * (nproc_size_maxwell * index + nproc_id_maxwell)
   write(file_ac, "(A,A,'_Ac_',I6.6,'.out')") trim(process_directory), trim(SYSname), iter
   open(902, file=file_ac)
   select case(FDTDdim)
@@ -46,12 +46,12 @@ end subroutine write_result
 !===============================================================
 subroutine write_result_all()
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_id_maxwell, nproc_size_maxwell
   implicit none
   integer :: index, n
   
   do index = 0, Ndata_out_per_proc
-    n = nprocs(1) * index + procid(1)
+    n = nproc_size_maxwell * index + nproc_id_maxwell
     if (n <= Ndata_out) then
       call write_result(index)
     end if
@@ -117,7 +117,7 @@ end subroutine write_excited_electron
 !===============================================================
 subroutine init_Ac_ms_2dc()
   use Global_variables
-  use communication
+  use salmon_communication, only: comm_sync_all
   implicit none
   ! initialization for 2D cylinder mode
   ! (written by M.Uemoto on 2016-11-22)
@@ -139,7 +139,8 @@ end subroutine init_Ac_ms_2dc
 !===============================================================
 subroutine init_Ac_ms
   use Global_variables
-  use communication
+  use salmon_parallel, only: nproc_id_maxwell
+  use salmon_communication, only: comm_sync_all, comm_is_root
   implicit none
   real(8) x,y
   integer ix_m,iy_m
@@ -152,7 +153,7 @@ subroutine init_Ac_ms
   real(8) length_y
   
   call comm_sync_all
-  if(comm_is_root())write(*,*)'ok8-1-1'
+  if(comm_is_root(nproc_id_maxwell))write(*,*)'ok8-1-1'
 
 !  BC_my='isolated'
 !  BC_my='periodic'
@@ -384,7 +385,7 @@ subroutine init_Ac_ms
 
 
   
-  if(comm_is_root()) write(*,*)'ok fdtd 02'
+  if(comm_is_root(nproc_id_maxwell)) write(*,*)'ok fdtd 02'
   call comm_sync_all
 
   select case(TwoD_shape)

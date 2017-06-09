@@ -37,7 +37,8 @@ subroutine Ion_Force_omp(Rion_update,GS_RT,ixy_m)
 contains
   subroutine impl(Rion_update,zutmp,zu_NB)
     use Global_Variables
-    use communication
+    use salmon_parallel, only: nproc_group_tdks
+    use salmon_communication, only: comm_summation
     use timer
     implicit none
     logical,intent(in)       :: Rion_update
@@ -144,7 +145,7 @@ contains
     call timer_end(LOG_ION_FORCE)
 
     call timer_begin(LOG_ALLREDUCE)
-    call comm_summation(ftmp_l,fnl,3*NI,proc_group(2))
+    call comm_summation(ftmp_l,fnl,3*NI,nproc_group_tdks)
     force=Floc+Fnl+Fion
     call timer_end(LOG_ALLREDUCE)
   end subroutine

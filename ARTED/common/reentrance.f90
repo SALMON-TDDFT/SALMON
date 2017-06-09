@@ -19,7 +19,8 @@ subroutine prep_backup_values(is_backup)
   use opt_variables,   only: opt_vars_initialize_p1, opt_vars_initialize_p2
   use backup_routines, only: backup_value
   use misc_routines,   only: get_wtime
-  use communication
+  use salmon_parallel
+  use salmon_communication, only: comm_bcast, comm_sync_all, comm_create_group, comm_get_groupinfo,  comm_is_root
   implicit none
   logical, intent(in) :: is_backup
 
@@ -33,7 +34,7 @@ subroutine prep_backup_values(is_backup)
 
   if (is_backup) then
     ! backup
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_maxwell)) then
       ! create entry input file.
       write(reent_filename,'(A,A,I6.6,A)') trim(SYSname),'_re_',iter_now,'.dat'
       write(dump_filename,'(A,A,A,I6.6)') 'dump_',trim(SYSname),'_',iter_now
@@ -54,11 +55,11 @@ subroutine prep_backup_values(is_backup)
       write(iounit,"(A)") '/'
       close(iounit)
     end if
-    call comm_bcast(dump_filename, proc_group(1))
-    open(iounit, status='replace', form='unformatted', file=gen_filename(dump_filename, procid(1)))
+    call comm_bcast(dump_filename, nproc_group_maxwell)
+    open(iounit, status='replace', form='unformatted', file=gen_filename(dump_filename, nproc_id_maxwell))
   else
     ! restore
-    if(comm_is_root()) then
+    if(comm_is_root(nproc_id_maxwell)) then
       open(iounit, file='.reenetrance.tmp', status='old')
       read(iounit, *)directory
       read(iounit, *)dump_filename
@@ -66,12 +67,12 @@ subroutine prep_backup_values(is_backup)
       close(iounit)
 
     end if
-    call comm_bcast(directory, proc_group(1))
-    call comm_bcast(dump_filename, proc_group(1))
-    if(calc_mode == calc_mode_ms) call comm_bcast(gNt, proc_group(1))
+    call comm_bcast(directory, nproc_group_maxwell)
+    call comm_bcast(dump_filename, nproc_group_maxwell)
+    if(calc_mode == calc_mode_ms) call comm_bcast(gNt, nproc_group_maxwell)
 
-    write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',procid(1),'/'
-    open(iounit, status='old', form='unformatted', file=gen_filename(dump_filename, procid(1)))
+    write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',nproc_id_maxwell,'/'
+    open(iounit, status='old', form='unformatted', file=gen_filename(dump_filename, nproc_id_maxwell))
   end if
 
 !============= backup values ==============
@@ -415,19 +416,21 @@ subroutine prep_backup_values(is_backup)
 
 ! initialize
   if (.not. is_backup) then
-    call comm_set_level2_group(macRANK, kRANK)
+    nproc_group_tdks = comm_create_group(nproc_group_maxwell, macRANK, kRANK)
+    call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
+
     call opt_vars_initialize_p1
     call opt_vars_initialize_p2
 
     if(calc_mode == calc_mode_ms)then
   ! continuous execution (is available only multi-scale mode)
       if (gNt /= Nt) then
-        if (comm_is_root()) then
+        if (comm_is_root(nproc_id_maxwell)) then
           print '(A,I7,A,I7)', '*** [Nt is updated] start continuous execution:',Nt,' to ',gNt
         end if
         Nt                 = gNt
         Ndata_out          = Nt / Nstep_write
-        Ndata_out_per_proc = Ndata_out / nprocs(1)
+        Ndata_out_per_proc = Ndata_out / nproc_size_maxwell
         call resize_arrays
       end if
     end if
@@ -435,7 +438,7 @@ subroutine prep_backup_values(is_backup)
 
   call comm_sync_all; end_time = get_wtime()
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     if (is_backup) then
       write(*,*) 'Backup time =',end_time-beg_time,' sec'
     else

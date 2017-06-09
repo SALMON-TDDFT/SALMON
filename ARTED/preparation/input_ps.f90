@@ -22,7 +22,8 @@ Subroutine input_pseudopotential_YS
        &,Nrmax,Lmax,Mlps,Lref,Zps,NRloc,NRps,inorm&
        &,rad,Rps,vloctbl,udVtbl,radnl,Rloc,anorm,dvloctbl,dudVtbl &
        &,rho_nlcc_tbl,tau_nlcc_tbl,rho_nlcc,tau_nlcc,flag_nlcc,NL
-  use communication
+  use salmon_parallel, only: nproc_group_maxwell, nproc_id_maxwell
+  use salmon_communication, only: comm_bcast, comm_is_root
   implicit none
   integer,parameter :: Lmax0=4,Nrmax0=50000
   real(8),parameter :: Eps0=1d-10
@@ -43,7 +44,7 @@ Subroutine input_pseudopotential_YS
   allocate(rho_nlcc(NL),tau_nlcc(NL))
   allocate(flag_nlcc_element(NE)); flag_nlcc_element(:) = .false. ;flag_nlcc = .false.
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
 
     do ik=1,NE
        
@@ -244,25 +245,25 @@ Subroutine input_pseudopotential_YS
     enddo
   endif
 
-  call comm_bcast(Zps,proc_group(1))
-  call comm_bcast(Mlps,proc_group(1))
-  call comm_bcast(Rps,proc_group(1))
-  call comm_bcast(NRps,proc_group(1))
-  call comm_bcast(NRloc,proc_group(1))
-  call comm_bcast(Rloc,proc_group(1))
-  call comm_bcast(anorm,proc_group(1))
-  call comm_bcast(inorm,proc_group(1))
-  call comm_bcast(rad,proc_group(1))
-  call comm_bcast(radnl,proc_group(1))
-  call comm_bcast(vloctbl,proc_group(1))
-  call comm_bcast(dvloctbl,proc_group(1))
-  call comm_bcast(udVtbl,proc_group(1))
-  call comm_bcast(dudVtbl,proc_group(1))
-  call comm_bcast(Mass,proc_group(1))
-  call comm_bcast(rho_nlcc_tbl,proc_group(1))
-  call comm_bcast(tau_nlcc_tbl,proc_group(1))
-  call comm_bcast(flag_nlcc,proc_group(1))
-  if(comm_is_root()) write(*,*)"flag_nlcc = ",flag_nlcc
+  call comm_bcast(Zps,nproc_group_maxwell)
+  call comm_bcast(Mlps,nproc_group_maxwell)
+  call comm_bcast(Rps,nproc_group_maxwell)
+  call comm_bcast(NRps,nproc_group_maxwell)
+  call comm_bcast(NRloc,nproc_group_maxwell)
+  call comm_bcast(Rloc,nproc_group_maxwell)
+  call comm_bcast(anorm,nproc_group_maxwell)
+  call comm_bcast(inorm,nproc_group_maxwell)
+  call comm_bcast(rad,nproc_group_maxwell)
+  call comm_bcast(radnl,nproc_group_maxwell)
+  call comm_bcast(vloctbl,nproc_group_maxwell)
+  call comm_bcast(dvloctbl,nproc_group_maxwell)
+  call comm_bcast(udVtbl,nproc_group_maxwell)
+  call comm_bcast(dudVtbl,nproc_group_maxwell)
+  call comm_bcast(Mass,nproc_group_maxwell)
+  call comm_bcast(rho_nlcc_tbl,nproc_group_maxwell)
+  call comm_bcast(tau_nlcc_tbl,nproc_group_maxwell)
+  call comm_bcast(flag_nlcc,nproc_group_maxwell)
+  if(comm_is_root(nproc_id_maxwell)) write(*,*)"flag_nlcc = ",flag_nlcc
   return
   contains
 !====

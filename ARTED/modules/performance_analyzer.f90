@@ -49,7 +49,8 @@ contains
 
   subroutine write_hamiltonian(iounit)
     use global_variables
-    use communication
+    use salmon_parallel
+    use salmon_communication
     use timer
     implicit none
     integer,intent(in) :: iounit
@@ -63,18 +64,18 @@ contains
     call summation_threads(lgflops)
     pgflops = lgflops
 
-    tin%rank = procid(1)
+    tin%rank = nproc_id_maxwell
     tin%val  = lgflops(4)
-    call comm_get_max(tin, tout, proc_group(1))
-    call comm_bcast(pgflops, proc_group(1), tout%rank)
+    call comm_get_max(tin, tout, nproc_group_maxwell)
+    call comm_bcast(pgflops, nproc_group_maxwell, tout%rank)
 
     if (calc_mode == calc_mode_ms) then
-       call comm_summation(lgflops, sgflops, 4, proc_group(2))
+       call comm_summation(lgflops, sgflops, 4, nproc_group_tdks)
     end if
 
-    call comm_summation(lgflops, tgflops, 4, proc_group(1))
+    call comm_summation(lgflops, tgflops, 4, nproc_group_maxwell)
 
-    if(comm_is_root()) then
+    if(comm_is_root(nproc_id_maxwell)) then
       write (iounit,'(A)') 'Performance [GFLOPS]'
       write (iounit,'(A,4(A15))') 'Type           ', 'Hamiltonian', 'Stencil', 'Pseudo-Pt', 'Update'
       write (iounit,f)            'Processor      ', lgflops(4), lgflops(1), lgflops(2), lgflops(3)
@@ -88,7 +89,8 @@ contains
 
   subroutine write_loadbalance(iounit)
     use global_variables
-    use communication
+    use salmon_parallel
+    use salmon_communication
     use timer
     implicit none
     integer,intent(in) :: iounit
@@ -111,13 +113,13 @@ contains
     src(11) = timer_get(LOG_ALLREDUCE)
     src(12) = timer_get(LOG_DYNAMICS)
 
-    call comm_get_min(src,rmin,LOG_SIZE,proc_group(1))
-    call comm_get_max(src,rmax,LOG_SIZE,proc_group(1))
+    call comm_get_min(src,rmin,LOG_SIZE,nproc_group_maxwell)
+    call comm_get_max(src,rmax,LOG_SIZE,nproc_group_maxwell)
 
     diff(:) = rmax(:) - rmin(:)
     rel(:)  = rmax(:) / rmin(:)
 
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_maxwell)) then
       write (iounit,'(A)') 'Load balance check [sec]'
       write (iounit,'(A,4(A12))') 'Function    ','min','max','diff','rel'
       write (iounit,f)            'dt_evolve   ',rmin( 1),rmax( 1),diff( 1),rel( 1)
@@ -137,18 +139,19 @@ contains
 
   subroutine write_performance(filename)
     use global_variables
-    use communication
+    use salmon_parallel
+    use salmon_communication
     use misc_routines, only: gen_logfilename
     implicit none
     character(*),intent(in) :: filename
 
     integer,parameter :: iounit = 999
 
-    if(comm_is_root()) open(iounit, file=gen_logfilename(filename))
+    if(comm_is_root(nproc_id_maxwell)) open(iounit, file=gen_logfilename(filename))
     call write_hamiltonian(iounit)
-    if(comm_is_root()) write (iounit,'(A)') '==='
+    if(comm_is_root(nproc_id_maxwell)) write (iounit,'(A)') '==='
     call write_loadbalance(iounit)
-    if(comm_is_root()) close(iounit)
+    if(comm_is_root(nproc_id_maxwell)) close(iounit)
 
     call comm_sync_all
   end subroutine

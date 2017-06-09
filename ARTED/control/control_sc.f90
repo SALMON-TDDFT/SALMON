@@ -25,7 +25,8 @@ subroutine main
   use opt_variables
   use environment
   use performance_analyzer
-  use communication
+  use salmon_parallel, only: nproc_group_maxwell, nproc_id_maxwell
+  use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
   use misc_routines, only: get_wtime
   use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
   implicit none
@@ -38,7 +39,7 @@ subroutine main
 
   call load_environments
 
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
     write(*,'(A)') "Welcome to SALMON-TDDFT singlecell mode"
     write(*,'(A)') "(Preliminary Developers Version)"
     write(*,'(2A)') "based on ARTED ver. = ",ARTED_ver
@@ -48,18 +49,18 @@ subroutine main
   NUMBER_THREADS=1
 !$  NUMBER_THREADS=omp_get_max_threads()
 !$  if(iter*0 == 0) then
-!$    if(comm_is_root())write(*,*)'parallel = Hybrid'
+!$    if(comm_is_root(nproc_id_maxwell))write(*,*)'parallel = Hybrid'
 !$  else
-  if(comm_is_root())write(*,*)'parallel = Flat MPI'
+  if(comm_is_root(nproc_id_maxwell))write(*,*)'parallel = Flat MPI'
 !$  end if
 
-  if(comm_is_root())write(*,*)'NUMBER_THREADS = ',NUMBER_THREADS
+  if(comm_is_root(nproc_id_maxwell))write(*,*)'NUMBER_THREADS = ',NUMBER_THREADS
 
   call timer_begin(LOG_ALL)
 
   call timer_begin(LOG_STATIC)
   Time_start=get_wtime() !reentrance
-  call comm_bcast(Time_start,proc_group(1))
+  call comm_bcast(Time_start,nproc_group_maxwell)
 
   Rion_update = rion_update_on
 
@@ -103,7 +104,7 @@ subroutine main
   if (use_ehrenfest_md /= 'y') Rion_update = rion_update_off
   Eall_GS(0)=Eall
 
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'This is the end of preparation for ground state calculation'
     call timer_show_current_hour('elapse time=',LOG_ALL)
     write(*,*) '-----------------------------------------------------------'
@@ -112,7 +113,7 @@ subroutine main
   call reset_gs_timer
   call timer_begin(LOG_GROUND_STATE)
   do iter=1,Nscf
-    if (comm_is_root())  write(*,*) 'iter = ',iter
+    if (comm_is_root(nproc_id_maxwell))  write(*,*) 'iter = ',iter
     if( kbTev < 0d0 )then ! sato
       if (FSset_option == 'Y') then
         if (iter/NFSset_every*NFSset_every == iter .and. iter >= NFSset_start) then
@@ -125,7 +126,7 @@ subroutine main
           if (minval(esp_cb_min(:))-maxval(esp_vb_max(:))<0.d0) then
             call Occupation_Redistribution
           else
-            if (comm_is_root()) then
+            if (comm_is_root(nproc_id_maxwell)) then
               write(*,*) '======================================='
               write(*,*) 'occupation redistribution is not needed'
               write(*,*) '======================================='
@@ -135,7 +136,7 @@ subroutine main
       end if
     else if( iter /= 1 )then ! sato
       call Fermi_Dirac_distribution
-      if((comm_is_root()).and.(iter == Nscf))then
+      if((comm_is_root(nproc_id_maxwell)).and.(iter == Nscf))then
         open(126,file='occ.out')
         do ik=1,NK
           do ib=1,NB
@@ -171,7 +172,7 @@ subroutine main
     esp_var_max(iter)=maxval(esp_var(:,:))
     dns_diff(iter)=sqrt(sum((rho_out(:,iter)-rho_in(:,iter))**2))*Hxyz
 
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_maxwell)) then
       write(*,*) 'Total Energy = ',Eall_GS(iter),Eall_GS(iter)-Eall_GS(iter-1)
       write(*,'(a28,3e15.6)') 'jav(1),jav(2),jav(3)= ',jav(1),jav(2),jav(3)
       write(*,'(4(i3,f12.6,2x))') (ib,esp(ib,1),ib=1,NB)
@@ -189,7 +190,7 @@ subroutine main
   end do
   call timer_end(LOG_GROUND_STATE)
 
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
     call timer_show_hour('Ground State time  :', LOG_GROUND_STATE)
     call timer_show_min ('CG time            :', LOG_CG)
     call timer_show_min ('Gram Schmidt time  :', LOG_GRAM_SCHMIDT)
@@ -205,7 +206,7 @@ subroutine main
     call timer_show_min ('Total_Energy time  :', LOG_TOTAL_ENERGY)
     call timer_show_min ('Ion_Force time     :', LOG_ION_FORCE)
   end if
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'This is the end of GS calculation'
     call timer_show_current_hour('elapse time=',LOG_ALL)
     write(*,*) '-----------------------------------------------------------'
@@ -227,16 +228,16 @@ subroutine main
   Vloc_GS(:)=Vloc(:)
   call Total_Energy_omp(Rion_update,calc_mode_gs)
   Eall0=Eall
-  if(comm_is_root()) write(*,*) 'Eall =',Eall
+  if(comm_is_root(nproc_id_maxwell)) write(*,*) 'Eall =',Eall
 
   call timer_end(LOG_STATIC)
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     write(*,*) '-----------------------------------------------'
     call timer_show_min('static time=',LOG_STATIC)
     write(*,*) '-----------------------------------------------'
   end if
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     write(*,*) '-----------------------------------------------'
     write(*,*) '----some information for Band map--------------'
     do ik=1,NK 
@@ -267,7 +268,7 @@ subroutine main
   call opt_vars_init_t4ppt()
 #endif
 
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'This is the end of preparation for Real time calculation'
     call timer_show_current_hour('elapse time=',LOG_ALL)
     write(*,*) '-----------------------------------------------------------'
@@ -297,7 +298,7 @@ subroutine main
     call reset_rt_timer
   end if
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     open(7,file=file_epst,position = position_option)
     open(8,file=file_dns,position = position_option)
     open(9,file=file_force_dR,position = position_option)
@@ -405,7 +406,7 @@ subroutine main
     endif
     Eall=Eall+Tion
 !write section
-    if (iter/10*10 == iter.and.comm_is_root()) then
+    if (iter/10*10 == iter.and.comm_is_root(nproc_id_maxwell)) then
       write(*,'(1x,f10.4,8f12.6,f22.14)') iter*dt,&
            &E_ext(iter,1),E_tot(iter,1),&
            &E_ext(iter,2),E_tot(iter,2),&
@@ -419,7 +420,7 @@ subroutine main
       write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI),((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
     endif
 !Dynamical Density
-    if (iter/100*100 == iter.and.comm_is_root()) then
+    if (iter/100*100 == iter.and.comm_is_root(nproc_id_maxwell)) then
       write(8,'(1x,i10)') iter
       do i=1,NL
         write(8,'(1x,2e16.6E3)') rho(i),(rho(i)-rho_gs(i))
@@ -447,7 +448,7 @@ subroutine main
 
 
 !j_Ac writing
-    if(comm_is_root())then
+    if(comm_is_root(nproc_id_maxwell))then
       if (iter/1000*1000 == iter .or. iter == Nt) then
         open(407,file=file_j_ac)
         do i=0,Nt
@@ -462,7 +463,7 @@ subroutine main
 !Adiabatic evolution
     if (projection_option /= 'no' .and. iter/100*100 == iter) then
       call k_shift_wf(Rion_update,5,zu_t)
-      if (comm_is_root()) then
+      if (comm_is_root(nproc_id_maxwell)) then
         do ia=1,NI
           write(*,'(1x,i7,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
         end do
@@ -478,7 +479,7 @@ subroutine main
 
 
 !Timer
-    if (iter/1000*1000 == iter.and.comm_is_root()) then
+    if (iter/1000*1000 == iter.and.comm_is_root(nproc_id_maxwell)) then
       call timer_show_current_hour('dynamics time      :', LOG_DYNAMICS)
       call timer_show_min         ('dt_evolve time     :', LOG_DT_EVOLVE)
       call timer_show_min         ('Hartree time       :', LOG_HARTREE)
@@ -487,13 +488,13 @@ subroutine main
 !Timer for shutdown
     if (iter/10*10 == iter) then
       Time_now=get_wtime()
-      call comm_bcast(Time_now,proc_group(1))
-      if (comm_is_root() .and. iter/100*100 == iter) then
+      call comm_bcast(Time_now,nproc_group_maxwell)
+      if (comm_is_root(nproc_id_maxwell) .and. iter/100*100 == iter) then
         write(*,*) 'Total time =',(Time_now-Time_start)
       end if
       if ((Time_now - Time_start)>Time_shutdown .and. Time_shutdown >= 0d0) then 
         call comm_sync_all
-        write(*,*) procid(1),'iter =',iter
+        write(*,*) nproc_id_maxwell,'iter =',iter
         iter_now=iter
 !$acc update self(zu)
         call timer_end(LOG_DYNAMICS)
@@ -521,7 +522,7 @@ subroutine main
   call papi_end
 #endif
 
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
 #ifdef ARTED_USE_PAPI
     call papi_result(timer_get(LOG_DYNAMICS))
 #endif
@@ -543,7 +544,7 @@ subroutine main
   end if
   call write_performance(trim(directory)//'sc_performance')
 
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
     close(7)
     close(8)
     close(9)
@@ -553,7 +554,7 @@ subroutine main
     end if
   endif
 
-  if(comm_is_root()) then
+  if(comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'This is the end of RT calculation'
     call timer_show_current_hour('elapse time=',LOG_ALL)
     write(*,*) '-----------------------------------------------------------'
@@ -569,12 +570,12 @@ subroutine main
 
   call comm_sync_all
 
-  if (comm_is_root()) write(*,*) 'This is the end of all calculation'
+  if (comm_is_root(nproc_id_maxwell)) write(*,*) 'This is the end of all calculation'
   Time_now=get_wtime()
   call timer_end(LOG_ALL)
-  if (comm_is_root()) call timer_show_hour('Total time =',LOG_ALL)
+  if (comm_is_root(nproc_id_maxwell)) call timer_show_hour('Total time =',LOG_ALL)
 
-1 if(comm_is_root()) write(*,*)  'This calculation is shutdown successfully!'
+1 if(comm_is_root(nproc_id_maxwell)) write(*,*)  'This calculation is shutdown successfully!'
 
 contains
   subroutine reset_gs_timer
@@ -600,14 +601,15 @@ Subroutine Read_data
   use Global_Variables
   use opt_variables, only: symmetric_load_balancing, is_symmetric_mode
   use environment
-  use communication
+  use salmon_parallel, only: nproc_group_maxwell, nproc_size_maxwell, nproc_id_maxwell
+  use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
   use misc_routines
   implicit none
   integer :: ia,i,j
 
-  if (comm_is_root()) then
-    write(*,*) 'nprocs(1)=',nprocs(1)
-    write(*,*) 'procid(1)=0:  ',procid(1)
+  if (comm_is_root(nproc_id_maxwell)) then
+    write(*,*) 'nproc_size_maxwell=',nproc_size_maxwell
+    write(*,*) 'nproc_id_maxwell=0:  ',nproc_id_maxwell
     write(*,*) 'entrance_option=',entrance_option
     write(*,*) 'Time_shutdown=',Time_shutdown,'sec'
   end if
@@ -620,7 +622,7 @@ Subroutine Read_data
     call err_finalize('entrance_option /= new or reentrance')
   end if
 
-  if(comm_is_root())then
+  if(comm_is_root(nproc_id_maxwell))then
 
     need_backup = (backup_frequency > 0)
     write(*,*) 'need backup?',need_backup
@@ -654,24 +656,24 @@ Subroutine Read_data
   end if
 
 #ifdef ARTED_USE_FORTRAN2008
-  write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',procid(1),'/'
+  write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',nproc_id_maxwell,'/'
   call create_directory(process_directory)
 #else
   process_directory = trim(directory)
 #endif
 
-  call comm_bcast(need_backup,proc_group(1))
-  call comm_bcast(file_GS,proc_group(1))
-  call comm_bcast(file_RT,proc_group(1))
-  call comm_bcast(file_epst,proc_group(1))
-  call comm_bcast(file_epse,proc_group(1))
-  call comm_bcast(file_force_dR,proc_group(1))
-  call comm_bcast(file_j_ac,proc_group(1))
-  call comm_bcast(file_DoS,proc_group(1))
-  call comm_bcast(file_band,proc_group(1))
-  call comm_bcast(file_dns,proc_group(1))
-  call comm_bcast(file_ovlp,proc_group(1))
-  call comm_bcast(file_nex,proc_group(1))
+  call comm_bcast(need_backup,nproc_group_maxwell)
+  call comm_bcast(file_GS,nproc_group_maxwell)
+  call comm_bcast(file_RT,nproc_group_maxwell)
+  call comm_bcast(file_epst,nproc_group_maxwell)
+  call comm_bcast(file_epse,nproc_group_maxwell)
+  call comm_bcast(file_force_dR,nproc_group_maxwell)
+  call comm_bcast(file_j_ac,nproc_group_maxwell)
+  call comm_bcast(file_DoS,nproc_group_maxwell)
+  call comm_bcast(file_band,nproc_group_maxwell)
+  call comm_bcast(file_dns,nproc_group_maxwell)
+  call comm_bcast(file_ovlp,nproc_group_maxwell)
+  call comm_bcast(file_nex,nproc_group_maxwell)
 
 !sym ---
   select case(crystal_structure)
@@ -743,7 +745,7 @@ Subroutine Read_data
     end select
   else
     ! Use non-uniform k-points
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_maxwell)) then
       write(*,*) "Use non-uniform k-points distribution"
       write(*,*) "file_kw=", file_kw
       open(410, file=file_kw, status="old")
@@ -751,44 +753,44 @@ Subroutine Read_data
       close(410)
       write(*,*) "NK=", NK, "NKxyz=", NKxyz      
     endif
-    call comm_bcast(NK,proc_group(1))
-    call comm_bcast(NKxyz,proc_group(1))
+    call comm_bcast(NK,nproc_group_maxwell)
+    call comm_bcast(NKxyz,nproc_group_maxwell)
   endif
 
-  NK_ave=NK/nprocs(1); NK_remainder=NK-NK_ave*nprocs(1)
-  NG_ave=NG/nprocs(1); NG_remainder=NG-NG_ave*nprocs(1)
+  NK_ave=NK/nproc_size_maxwell; NK_remainder=NK-NK_ave*nproc_size_maxwell
+  NG_ave=NG/nproc_size_maxwell; NG_remainder=NG-NG_ave*nproc_size_maxwell
 
   if(is_symmetric_mode() == 1 .and. ENABLE_LOAD_BALANCER == 1) then
-    call symmetric_load_balancing(NK,NK_ave,NK_s,NK_e,NK_remainder,procid(1),nprocs(1))
+    call symmetric_load_balancing(NK,NK_ave,NK_s,NK_e,NK_remainder,nproc_id_maxwell,nproc_size_maxwell)
   else
-    if (NK/nprocs(1)*nprocs(1) == NK) then
-      NK_s=NK_ave*procid(1)+1
-      NK_e=NK_ave*(procid(1)+1)
+    if (NK/nproc_size_maxwell*nproc_size_maxwell == NK) then
+      NK_s=NK_ave*nproc_id_maxwell+1
+      NK_e=NK_ave*(nproc_id_maxwell+1)
     else
-      if (procid(1) < (nprocs(1)-1) - NK_remainder + 1) then
-        NK_s=NK_ave*procid(1)+1
-        NK_e=NK_ave*(procid(1)+1)
+      if (nproc_id_maxwell < (nproc_size_maxwell-1) - NK_remainder + 1) then
+        NK_s=NK_ave*nproc_id_maxwell+1
+        NK_e=NK_ave*(nproc_id_maxwell+1)
       else
-        NK_s=NK-(NK_ave+1)*((nprocs(1)-1)-procid(1))-NK_ave
-        NK_e=NK-(NK_ave+1)*((nprocs(1)-1)-procid(1))
+        NK_s=NK-(NK_ave+1)*((nproc_size_maxwell-1)-nproc_id_maxwell)-NK_ave
+        NK_e=NK-(NK_ave+1)*((nproc_size_maxwell-1)-nproc_id_maxwell)
       end if
     end if
-    if(procid(1) == nprocs(1)-1 .and. NK_e /= NK) call err_finalize('prep. NK_e error')
+    if(nproc_id_maxwell == nproc_size_maxwell-1 .and. NK_e /= NK) call err_finalize('prep. NK_e error')
   end if
 
-  if (NG/nprocs(1)*nprocs(1) == NG) then
-    NG_s=NG_ave*procid(1)+1
-    NG_e=NG_ave*(procid(1)+1)
+  if (NG/nproc_size_maxwell*nproc_size_maxwell == NG) then
+    NG_s=NG_ave*nproc_id_maxwell+1
+    NG_e=NG_ave*(nproc_id_maxwell+1)
   else
-    if (procid(1) < (nprocs(1)-1) - NG_remainder + 1) then
-      NG_s=NG_ave*procid(1)+1
-      NG_e=NG_ave*(procid(1)+1)
+    if (nproc_id_maxwell < (nproc_size_maxwell-1) - NG_remainder + 1) then
+      NG_s=NG_ave*nproc_id_maxwell+1
+      NG_e=NG_ave*(nproc_id_maxwell+1)
     else
-      NG_s=NG-(NG_ave+1)*((nprocs(1)-1)-procid(1))-NG_ave
-      NG_e=NG-(NG_ave+1)*((nprocs(1)-1)-procid(1))
+      NG_s=NG-(NG_ave+1)*((nproc_size_maxwell-1)-nproc_id_maxwell)-NG_ave
+      NG_e=NG-(NG_ave+1)*((nproc_size_maxwell-1)-nproc_id_maxwell)
     end if
   end if
-  if(procid(1) == nprocs(1)-1 .and. NG_e /= NG) call err_finalize('prep. NG_e error')
+  if(nproc_id_maxwell == nproc_size_maxwell-1 .and. NG_e /= NG) call err_finalize('prep. NG_e error')
 
   allocate(lap(-Nd:Nd),nab(-Nd:Nd))
   allocate(lapx(-Nd:Nd),lapy(-Nd:Nd),lapz(-Nd:Nd))
@@ -825,7 +827,7 @@ Subroutine Read_data
   allocate(itable_sym(Sym,NL)) ! sym
   allocate(rho_l(NL),rho_tmp1(NL),rho_tmp2(NL)) !sym
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'NB,Nelec=',NB,Nelec
   endif
   if( kbTev < 0d0 )then ! sato
@@ -834,7 +836,7 @@ Subroutine Read_data
     NBoccmax=NB
   end if
 
-  call comm_bcast(NBoccmax,proc_group(1))
+  call comm_bcast(NBoccmax,nproc_group_maxwell)
   call comm_sync_all
   NKB=(NK_e-NK_s+1)*NBoccmax ! sato
 
@@ -848,7 +850,7 @@ Subroutine Read_data
   NBocc(:)=NBoccmax
   allocate(esp_vb_min(NK),esp_vb_max(NK)) !redistribution
   allocate(esp_cb_min(NK),esp_cb_max(NK)) !redistribution
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'FSset_option =',FSset_option
     write(*,*) 'Ncg=',Ncg
     write(*,*) 'Nmemory_MB,alpha_MB =',Nmemory_MB,alpha_MB
@@ -874,7 +876,6 @@ Subroutine Read_data
   allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
   allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
 
-
   call comm_sync_all
 
 
@@ -889,7 +890,7 @@ Subroutine Read_data
   allocate(udVtbl(Nrmax,0:Lmax,NE),dudVtbl(Nrmax,0:Lmax,NE))
   allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'Zatom=',(Zatom(j),j=1,NE)
     write(*,*) 'Lref=',(Lref(j),j=1,NE)
     write(*,*) 'i,Kion(ia)','(Rion(j,a),j=1,3)'

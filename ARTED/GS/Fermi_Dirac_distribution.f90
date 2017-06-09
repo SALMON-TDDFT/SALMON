@@ -15,7 +15,8 @@
 !
 Subroutine Fermi_Dirac_distribution
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_group_tdks, nproc_id_maxwell
+  use salmon_communication, only: comm_summation, comm_is_root
   use misc_routines, only: get_wtime
   implicit none
   real(8) :: chemical_potential
@@ -31,10 +32,10 @@ Subroutine Fermi_Dirac_distribution
   allocate(occ_l(NB,NK),esp_l(NB,NK),esp_temp(NB,NK))
   occ_l=0d0 ; esp_l=0d0
   esp_l(:,NK_s:NK_e)=esp(:,NK_s:NK_e)
-  call comm_summation(esp_l,esp_temp,NB*NK,proc_group(2))
+  call comm_summation(esp_l,esp_temp,NB*NK,nproc_group_tdks)
   chem_max=maxval(esp_temp)
   chem_min=minval(esp_temp)
-  if(comm_is_root())then
+  if(comm_is_root(nproc_id_maxwell))then
     write(*,*)'max esp =',chem_max
     write(*,*)'min esp =',chem_min
   end if
@@ -49,7 +50,7 @@ Subroutine Fermi_Dirac_distribution
     end do
 
     st=sum(occ_l(:,NK_s:NK_e))
-    call comm_summation(st,s,proc_group(2))
+    call comm_summation(st,s,nproc_group_tdks)
     elec_num=s
 
     if(abs(elec_num-dble(Nelec)) <= 1d-6)exit
@@ -64,12 +65,12 @@ Subroutine Fermi_Dirac_distribution
 
   end do
 
-  call comm_summation(occ_l,occ,NB*NK,proc_group(2))
+  call comm_summation(occ_l,occ,NB*NK,nproc_group_tdks)
   st=sum(occ_l(Nelec/2+1:NB,NK_s:NK_e))
-  call comm_summation(st,s,proc_group(2))
+  call comm_summation(st,s,nproc_group_tdks)
 
   timer2=get_wtime()
-  if(comm_is_root())then
+  if(comm_is_root(nproc_id_maxwell))then
     write(*,*)'Fermi-Dirac dist. time=',timer2-timer1,'sec'
     write(*,*)'chemical potential =',chemical_potential
     write(*,*)'elec_num =',elec_num

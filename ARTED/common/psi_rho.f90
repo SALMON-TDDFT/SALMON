@@ -48,7 +48,8 @@ subroutine psi_rho_impl(zutmp,zu_NB)
   use global_variables
   use timer
   use opt_variables
-  use communication
+  use salmon_parallel, only: nproc_group_tdks
+  use salmon_communication, only: comm_summation
 #ifdef ARTED_USE_NVTX
   use nvtx
 #endif
@@ -84,7 +85,7 @@ subroutine psi_rho_impl(zutmp,zu_NB)
   call timer_end(LOG_PSI_RHO)
 
   call timer_begin(LOG_ALLREDUCE)
-  call comm_summation(rho_l,rho,NL,proc_group(2))
+  call comm_summation(rho_l,rho,NL,nproc_group_tdks)
   call timer_end(LOG_ALLREDUCE)
 
 

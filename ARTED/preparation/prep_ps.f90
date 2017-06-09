@@ -19,7 +19,8 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine prep_ps_periodic(property)
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_id_maxwell, nproc_group_tdks
+  use salmon_communication, only: comm_summation, comm_is_root
   implicit none
   character(11) :: property
   integer :: ik,n,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
@@ -107,10 +108,10 @@ Subroutine prep_ps_periodic(property)
   enddo
 !$omp end parallel
 
-  call comm_summation(Vpsl_l,Vpsl,NL,proc_group(2))
+  call comm_summation(Vpsl_l,Vpsl,NL,nproc_group_tdks)
 
 ! nonlocal potential
-  if (comm_is_root() .and. property=='initial') then
+  if (comm_is_root(nproc_id_maxwell) .and. property=='initial') then
     write(*,*) ''
     write(*,*) '============nonlocal grid data=============='
   endif
@@ -133,7 +134,7 @@ Subroutine prep_ps_periodic(property)
     enddo
     enddo
     Mps(a)=j
-    if (comm_is_root() .and. property == 'initial') then
+    if (comm_is_root(nproc_id_maxwell) .and. property == 'initial') then
       write(*,*) 'a =',a,'Mps(a) =',Mps(a)
     endif
   end do
@@ -270,7 +271,7 @@ Subroutine prep_ps_periodic(property)
   rho_nlcc = 0d0
   tau_nlcc = 0d0
   if(flag_nlcc)then
-    if(comm_is_root())write(*,"(A)")"Preparation: Non-linear core correction"
+    if(comm_is_root(nproc_id_maxwell))write(*,"(A)")"Preparation: Non-linear core correction"
     do a=1,NI
       ik=Kion(a)
       rc = 15d0 ! maximum

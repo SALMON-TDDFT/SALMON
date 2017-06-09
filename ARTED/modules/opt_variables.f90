@@ -347,7 +347,8 @@ contains
 
   function is_symmetric_mode()
     use global_variables
-    use communication
+    use salmon_parallel
+    use salmon_communication
     implicit none
     integer :: is_symmetric_mode
     logical :: arch, ret
@@ -358,7 +359,7 @@ contains
     arch = .FALSE.
 #endif
 
-    call comm_logical_and(arch, ret, proc_group(1))
+    call comm_logical_and(arch, ret, nproc_group_maxwell)
 
     if(ret) then
       is_symmetric_mode = 1

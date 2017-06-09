@@ -16,7 +16,8 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine Total_Energy_omp(Rion_update,GS_RT,ixy_m)
   use Global_Variables, only: zu_t,zu_m,zu_GS,NB,NBoccmax,calc_mode_gs,calc_mode_rt
-  use communication
+  use salmon_parallel, only: nproc_group_tdks
+  use salmon_communication, only: comm_summation
   implicit none
   integer,intent(in) :: GS_RT
   logical,intent(in) :: Rion_update
@@ -179,7 +180,7 @@ contains
     call timer_begin(LOG_ALLREDUCE)
     !summarize
     if (Rion_update) then
-      call comm_summation(Eion_l,Eion_tmp2,proc_group(2))
+      call comm_summation(Eion_l,Eion_tmp2,nproc_group_tdks)
       Eion=Eion_tmp1+Eion_tmp2
     end if
 
@@ -188,7 +189,7 @@ contains
     sum_tmp(3) = Enl_l
     sum_tmp(4) = Eloc_l1
     sum_tmp(5) = Eloc_l2
-    call comm_summation(sum_tmp,sum_result,5,proc_group(2))
+    call comm_summation(sum_tmp,sum_result,5,nproc_group_tdks)
     Ekin = sum_result(1)
     Eh   = sum_result(2)
     Enl  = sum_result(3)

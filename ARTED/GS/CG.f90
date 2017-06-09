@@ -19,7 +19,8 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine CG_omp(iter_cg_max)
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_group_tdks
+  use salmon_communication, only: comm_summation
   use timer
   use hpsi, only: hpsi_omp_KB_GS
   implicit none
@@ -114,7 +115,7 @@ Subroutine CG_omp(iter_cg_max)
 !$omp end parallel
 
   call timer_begin(LOG_ALLREDUCE)
-  call comm_summation(esp_var_l,esp_var,NB*NK,proc_group(2))
+  call comm_summation(esp_var_l,esp_var,NB*NK,nproc_group_tdks)
   call timer_end(LOG_ALLREDUCE)
 
   call timer_end(LOG_CG)

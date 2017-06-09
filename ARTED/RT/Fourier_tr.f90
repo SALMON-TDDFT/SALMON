@@ -16,14 +16,15 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Fourier_tr
   use Global_Variables
-  use communication, only: comm_is_root
+  use salmon_parallel, only: nproc_id_maxwell
+  use salmon_communication, only: comm_is_root
   implicit none
   integer :: ihw,ixyz,iter
   real(8) :: hw,tt
   complex(8) :: jav_w(3),E_ext_w(3),E_tot_w(3)
   complex(8) :: zsigma_w(3),zeps(3)
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     open(7,file=file_epse)
   endif
 
@@ -46,7 +47,7 @@ Subroutine Fourier_tr
       end if
     end if
       
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_maxwell)) then
       if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
         write(7,'(1x,f13.7,6f22.14)') hw&
              &,(real(zeps(ixyz)),ixyz=1,3)&
@@ -69,7 +70,7 @@ Subroutine Fourier_tr
     endif
   enddo
  
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     close(7)
   endif
 

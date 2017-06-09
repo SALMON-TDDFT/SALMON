@@ -19,7 +19,8 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_group_tdks, nproc_id_maxwell
+  use salmon_communication, only: comm_summation, comm_is_root
   implicit none
   integer,intent(in) :: iter_GS_max
   logical,intent(in) :: atomic_position_update_switch
@@ -37,7 +38,7 @@ Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
     call Gram_Schmidt
     call Total_Energy_omp(atomic_position_update_switch,calc_mode_gs)
     call Ion_Force_omp(atomic_position_update_switch,calc_mode_gs)
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_maxwell)) then
       write(*,'(1x,a15,i3,f20.14,f15.8)')'iter_GS, Eall =',iter_GS,Eall-Eall0,force(3,1)
     end if
   end do
@@ -51,7 +52,7 @@ Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
       enddo
     enddo
   enddo
-  call comm_summation(ovlp_occ_l,ovlp_occ,NK*NB,proc_group(2))
+  call comm_summation(ovlp_occ_l,ovlp_occ,NK*NB,nproc_group_tdks)
 
   if(projection_option == 'gs')then
     Vloc(:)=Vloc_t(:)
@@ -64,7 +65,8 @@ End Subroutine k_shift_wf
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max,zu)
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_group_tdks, nproc_id_maxwell
+  use salmon_communication, only: comm_summation, comm_is_root
   implicit none
   integer,intent(in) :: iter_GS_max
   logical,intent(in) :: atomic_position_update_switch
@@ -83,14 +85,14 @@ Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max,zu)
     call Gram_Schmidt
     call Total_Energy_omp(atomic_position_update_switch,calc_mode_gs)
     call Ion_Force_omp(atomic_position_update_switch,calc_mode_gs)
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_maxwell)) then
       write(*,'(1x,a15,i3,f20.14,f15.8)')'iter_GS, Eall =',iter_GS,Eall-Eall0,force(3,1)
     end if
   end do
 
   esp=0d0
   call diag_omp
-  call comm_summation(esp,esp_all,NK*NB,proc_group(2))
+  call comm_summation(esp,esp_all,NK*NB,nproc_group_tdks)
 
   ovlp_occ_l=0.d0
 !$omp parallel do private(ik,ib1,ib2)
@@ -101,11 +103,11 @@ Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max,zu)
       enddo
     enddo
   enddo
-  call comm_summation(ovlp_occ_l,ovlp_occ,NK*NB,proc_group(2))
+  call comm_summation(ovlp_occ_l,ovlp_occ,NK*NB,nproc_group_tdks)
 
   
   file_nex=trim(directory)//trim(SYSname)//'_last_band_map.out'
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     open(409,file=file_nex,position = position_option) 
     do ik=1,NK
       write(409,'(1x,i5,1000e26.16E3)')ik,(esp_all(ib,ik),ovlp_occ(ib,ik)*NKxyz,ib=1,NB)

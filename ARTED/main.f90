@@ -19,13 +19,14 @@
 
 Subroutine err_finalize(err_message)
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_id_maxwell, end_parallel
+  use salmon_communication, only: comm_is_root
   implicit none
   character(*),intent(in) :: err_message
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     write(*,*) err_message
   endif
-  call comm_finalize
+  call end_parallel
 
   stop
 End Subroutine Err_finalize

@@ -920,7 +920,8 @@ End Subroutine PZMxc
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_group_tdks
+  use salmon_communication, only: comm_summation
   implicit none
   integer,intent(in)    :: GS_RT
   real(8),intent(inout) :: rho_s(NL),tau_s(NL),j_s(NL,3),grho_s(NL,3),lrho_s(NL)
@@ -1035,8 +1036,8 @@ Subroutine rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
     end do
   end do
 
-  call comm_summation(tau_s_l,tau_s,NL,proc_group(2))
-  call comm_summation(j_s_l,j_s,NL*3,proc_group(2))
+  call comm_summation(tau_s_l,tau_s,NL,nproc_group_tdks)
+  call comm_summation(j_s_l,j_s,NL*3,nproc_group_tdks)
 
   if(flag_nlcc)tau_s = tau_s + 0.5d0*tau_nlcc
 

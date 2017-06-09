@@ -16,7 +16,8 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine init_Ac
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_group_maxwell, nproc_id_maxwell
+  use salmon_communication, only: comm_bcast, comm_is_root
   implicit none
   integer :: iter, npower
   real(8) :: tt

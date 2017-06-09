@@ -19,7 +19,8 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine init
   use Global_Variables
-  use communication, only: comm_is_root
+  use salmon_parallel, only: nproc_id_maxwell
+  use salmon_communication, only: comm_is_root
   implicit none
   integer :: i,n,ix,iy,iz,nx,ny,nz,ib,ik
   integer :: ixt,iyt,izt
@@ -93,7 +94,7 @@ Subroutine init
   enddo
   if (NBoccmax < NB) occ(NBoccmax+1:NB,:)=0.d0
   Ne_tot=sum(occ)
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     write(*,*) 'Ne_tot',Ne_tot
   endif
 
@@ -333,13 +334,14 @@ end subroutine
 
 subroutine init_non_uniform_k_grid()
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_id_maxwell, nproc_group_maxwell
+  use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
   implicit none
   integer :: i,j,ik
   integer :: nk_dummy, nkxyz_dummy
   real(8) :: temp(4)
 
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_maxwell)) then
     ! Read coordinates from file_kw
     open(410, file=file_kw, status="old")
     read(410, *) nk_dummy, nkxyz_dummy
@@ -352,8 +354,8 @@ subroutine init_non_uniform_k_grid()
     enddo
     close(410)
   endif
-  call comm_bcast(kAc,proc_group(1))
-  call comm_bcast(wk,proc_group(1))
+  call comm_bcast(kAc,nproc_group_maxwell)
+  call comm_bcast(wk,nproc_group_maxwell)
   if (abs(sum(wk) - NKxyz) > NKxyz*0.01) then
     call err_finalize('NKxyz must be an integer which equals to the summention of WK')
   endif

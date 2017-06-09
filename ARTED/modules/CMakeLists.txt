@@ -10,7 +10,6 @@ set(SOURCES
     env_variables_internal.c
     papi_wrap.c
     nvtx.f90
-    communication.f90
     misc_routines.f90
     backup_routines.f90
     )
