@@ -15,7 +15,7 @@
 !
 !=======================================================================
 
-SUBROUTINE OUT_data(file_OUT)
+SUBROUTINE OUT_data
 use scf_data
 use new_world_sub
 use read_pslfile_sub
@@ -26,7 +26,6 @@ integer :: is,iob,jj
 integer :: ix,iy,iz
 real(8),allocatable :: matbox(:,:,:),matbox2(:,:,:)
 complex(8),allocatable :: cmatbox(:,:,:),cmatbox2(:,:,:)
-character(100) :: file_OUT
 character(100) :: file_OUT_data
 character(100) :: file_OUT_data_ini
 integer :: ibox
@@ -390,7 +389,7 @@ END SUBROUTINE OUT_data
 
 !=======================================================================
 
-SUBROUTINE IN_data(file_IN)
+SUBROUTINE IN_data
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -404,7 +403,6 @@ real(8),allocatable :: matbox3(:,:,:)
 real(8),allocatable :: esp0(:,:),rocc0(:,:)
 complex(8),allocatable :: cmatbox(:,:,:)
 complex(8),allocatable :: cmatbox2(:,:,:)
-character(100) :: file_IN
 character(100) :: file_IN_data
 character(8) :: cha_version_num(2)
 integer :: version_num_box(2)
