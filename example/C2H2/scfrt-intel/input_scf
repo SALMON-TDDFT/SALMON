@@ -8,6 +8,10 @@
   calc_mode = 'GS'
 /
 
+&control
+  sysname = 'C2H2'
+/
+
 &parallel
   domain_parallel = 'y'
   nproc_ob = 1
@@ -58,14 +62,4 @@
   MST(1)=5
   ifMST(1)=5
 /
-
-&group_file
-  file_OUT='C2H2.data'
-  LDA_Info='C2H2.info'
-/
-
-
-
-
-
 
