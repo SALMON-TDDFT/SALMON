@@ -1059,41 +1059,19 @@ end do
 end do
 end do
 
-! calculate Estatic
-if(iflag_Estatic==1)then
-  call calcEstatic
-end if
-
-! write DFT data
-! WriteDensity writes rho(xyz) if it recieves "idensity", elseif it
-! recieves "idiffDensity", it writes rho-rho0(xyz) to, for example, diff30
-  if (iwdenstep /= 0) then
-    do itt=0,0
-      iSCFRT=2     
-!    call calcELF
-      write(fileNumber, '(i8)') 0
-      rtOutFile = trim(fileTmp)//adjustl(fileNumber)
-      rtDiffOutFile = trim(fileTmp2)//adjustl(fileNumber)
-      call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                 denplane,idensum,posplane,idensity)
-      call WriteDensity(rtDiffOutFile,iwdenoption,iwdenstep,      &
-                 denplane,idensum,posplane,idiffDensity)
-      if(iflag_Estatic==1)then
-        fileTmp3="Exsta"
-        rtOutFile = trim(fileTmp3)//adjustl(fileNumber)
-        call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                   denplane,idensum,posplane,10)
-        fileTmp3="Eysta"
-        rtOutFile = trim(fileTmp3)//adjustl(fileNumber)
-        call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                 denplane,idensum,posplane,11)
-        fileTmp3="Ezsta"
-        rtOutFile = trim(fileTmp3)//adjustl(fileNumber)
-        call WriteDensity(rtOutFile,iwdenoption,iwdenstep,      &
-                 denplane,idensum,posplane,12)
-      end if
-    end do
-  end if
+  do itt=0,0
+    if(out_dns_rt=='y')then
+      call writedns
+    end if
+    if(out_elf_rt=='y')then
+      call calcELF
+      call writeelf
+    end if
+    if(out_estatic_rt=='y')then
+      call calcEstatic
+      call writeestatic
+    end if
+  end do
 
 allocate (shtpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd,   &
                  1:iobnum,1))

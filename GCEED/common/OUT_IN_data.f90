@@ -77,7 +77,7 @@ if(myrank.eq.0)then
     write(97) Kion(:MI)
     write(97) Rion(:,:MI)
     write(97) iZatom(:MKI)
-    write(97) ipsfileform(:MKI)
+    write(97) pseudo_file(:MKI) !ipsfileform(:MKI)
     write(97) Zps(:MKI),Rps(:MKI)
     write(97) AtomName(:MI) 
     write(97) iAtomicNumber(:MI) 
@@ -601,9 +601,9 @@ if(iflag_ps.eq.1)then
     read(96) Rion(:,:MI_read)
     read(96) iZatom(:MKI)
     if(version_num_box(1)>=34)then
-      read(96) ipsfileform(:MKI)
+      read(96) pseudo_file(:MKI) !ipsfileform(:MKI)
     else
-      ipsfileform(:MKI)=1
+      stop "This version is already invalid."
     end if
     read(96) 
     read(96) AtomName(:MI_read)
@@ -613,7 +613,7 @@ if(iflag_ps.eq.1)then
   call MPI_Bcast(Kion(1),MI_read,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(Rion(1,1),MI_read*3,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(iZatom,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-  call MPI_Bcast(ipsfileform,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call MPI_Bcast(pseudo_file,256*MKI,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(AtomName(1),8*MI_read,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_Bcast(iAtomicNumber(1),MI_read,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
@@ -1220,53 +1220,4 @@ deallocate(matbox,matbox2,matbox3)
 deallocate(cmatbox,cmatbox2)
 
 END SUBROUTINE IN_data
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-SUBROUTINE outRho(file_OUT2)
-use scf_data
-use new_world_sub
-implicit none
-integer :: i1,i2,i3
-real(8) :: box
-real(8),allocatable :: matbox(:,:,:),matbox2(:,:,:)
-character(30),intent(in) :: file_OUT2
-
-allocate( matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), lg_sta(3):lg_end(3)) )
-allocate( matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), lg_sta(3):lg_end(3)) )
-
-matbox=0.d0
-matbox(ng_sta(1):ng_end(1),   &
-       ng_sta(2):ng_end(2),   &
-       ng_sta(3):ng_end(3))   &
-  = rho(ng_sta(1):ng_end(1),   &
-        ng_sta(2):ng_end(2),   &
-        ng_sta(3):ng_end(3))
-
-call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
-
-if(myrank.eq.0)then
-  open(102,file=file_OUT2)
-  call output_dx_header_psi(102)
-  do i1=lg_sta(1),lg_end(1)
-    do i2=lg_sta(2),lg_end(2)
-      do i3=lg_sta(3),lg_end(3)
-        box=matbox2(i1,i2,i3) 
-        if(mod(i3+1-lg_sta(3),6)==0)then
-          write(102,'(e13.5)', advance="yes") box
-        else
-          write(102,'(e13.5)', advance="no") box
-        endif
-      end do
-      write(102,*)
-    end do
-  end do
-  close(102)
-end if
-
-deallocate(matbox,matbox2)
-END SUBROUTINE outRho
-!---------------------------------------------------------------------------
 

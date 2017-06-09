@@ -15,8 +15,8 @@
 !
 subroutine read_input_gceed(procid,cfunction2)
   use inputoutput
+  use mpi
   implicit none
-  include 'mpif.h'
   character(30),intent(out) :: cfunction2
   integer :: procid
 !  integer :: ierr

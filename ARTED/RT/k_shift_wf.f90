@@ -16,7 +16,7 @@
 !This file is "k_shift_wf.f90"
 !This file contain a subroutine.
 !Subroutine k_shift_wf(iter,iter_GS_max)
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
   use Global_Variables
   use communication
@@ -61,7 +61,7 @@ Subroutine k_shift_wf(atomic_position_update_switch,iter_GS_max,zu)
 
   return
 End Subroutine k_shift_wf
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine k_shift_wf_last(atomic_position_update_switch,iter_GS_max,zu)
   use Global_Variables
   use communication

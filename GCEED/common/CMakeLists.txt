@@ -40,6 +40,11 @@ set(SOURCES
     set_ispin.f90
     set_isstaend.f90
     storevpp.f90
+    writeavs.f90
+    writecube.f90
+    writedns.f90
+    writeelf.f90
+    writeestatic.f90
     writepsi.f90
     xc.f90
     ylm.f90

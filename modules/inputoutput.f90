@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 module inputoutput
   use salmon_global
   implicit none
@@ -75,11 +75,10 @@ module inputoutput
 contains
 
 
-  subroutine read_stdin(myrank)
+  subroutine read_stdin
+    use salmon_parallel, only: nproc_id_global
+    use salmon_communication, only: comm_is_root
     implicit none
-    include 'mpif.h'
-    integer,intent(in) :: myrank
-    integer :: ierr
 
     integer :: cur = fh_namelist
     integer :: ret = 0
@@ -87,7 +86,7 @@ contains
 
 
     
-    if (myrank == 0) then
+    if (comm_is_root(nproc_id_global)) then
       open(fh_namelist, file='.namelist.tmp', status='replace')
 !      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
       open(fh_atomic_positions, file='.atomic_positions.tmp', status='replace')
@@ -137,11 +136,10 @@ contains
     return
   end subroutine read_stdin
 
-  subroutine read_input_common(myrank)
+  subroutine read_input_common
+    use salmon_parallel
+    use salmon_communication
     implicit none
-    include 'mpif.h'
-    integer,intent(in) :: myrank
-    integer :: ierr
 
     namelist/calculation/ &
       & calc_mode, &
@@ -186,11 +184,10 @@ contains
       & file_atom
 
     namelist/pseudo/ &
-      & pseudodir, &
+      & pseudo_file, &
       & Lmax_ps, &
       & Lloc_ps, &
       & iZatom, &
-      & ps_format, &
       & psmask_option, &
       & alpha_mask, &
       & gamma_mask, &
@@ -281,10 +278,13 @@ contains
       & out_dos, &
       & out_pdos, &
       & out_dns, &
+      & out_elf, &
       & out_dns_rt, &
       & out_dns_rt_step, &
       & out_elf_rt, &
       & out_elf_rt_step, &
+      & out_estatic_rt, &
+      & out_estatic_rt_step, &
       & format3d
 
     namelist/hartree/ &
@@ -303,17 +303,17 @@ contains
     unit_charge='au'
 !! =======================
 
-    if (myrank == 0)then
+    if (comm_is_root(nproc_id_global)) then
       open(fh_namelist, file='.namelist.tmp', status='old')
       read(fh_namelist, nml=units, iostat=inml_units)
       rewind(fh_namelist)
       close(fh_namelist)
     end if
 
-    call mpi_bcast(unit_time,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(unit_length,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(unit_energy,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(unit_charge,16,mpi_character,0,mpi_comm_world,ierr)
+    call comm_bcast(unit_time,  nproc_group_global)
+    call comm_bcast(unit_length,nproc_group_global)
+    call comm_bcast(unit_energy,nproc_group_global)
+    call comm_bcast(unit_charge,nproc_group_global)
 
     call initialize_inputoutput_units
 
@@ -350,11 +350,10 @@ contains
     natom              = 0
     file_atom          = 'none'
 !! == default for &pseudo
-    pseudodir     = './'
+    pseudo_file     = 'none'
     Lmax_ps       = -1
     Lloc_ps       = -1
     iZatom        = -1
-    ps_format     = 'KY'
     psmask_option = 'n'
     alpha_mask    = 0.8d0
     gamma_mask    = 1.8d0
@@ -432,18 +431,21 @@ contains
     nxvacl_m   = 0
     nxvacr_m   = 0
 !! == default for &analysis
-    projection_option = 'no'
-    nenergy           = 1000
-    de                = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
-    out_psi           = 'n'
-    out_dos           = 'n'
-    out_pdos          = 'n'
-    out_dns           = 'n'
-    out_dns_rt        = 'n'
-    out_dns_rt_step   = 50
-    out_elf_rt        = 'n'
-    out_elf_rt_step   = 50
-    format3d          = 'avs'
+    projection_option   = 'no'
+    nenergy             = 1000
+    de                  = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
+    out_psi             = 'n'
+    out_dos             = 'n'
+    out_pdos            = 'n'
+    out_dns             = 'n'
+    out_elf             = 'n'
+    out_dns_rt          = 'n'
+    out_dns_rt_step     = 50
+    out_elf_rt          = 'n'
+    out_elf_rt_step     = 50
+    out_estatic_rt      = 'n'
+    out_estatic_rt_step = 50
+    format3d            = 'cube'
 !! == default for &hartree
     meo          = 3
     num_pole_xyz = 0
@@ -451,7 +453,7 @@ contains
     newald = 4
     aewald = 0.5d0
 
-    if (myrank == 0)then
+    if (comm_is_root(nproc_id_global)) then
       open(fh_namelist, file='.namelist.tmp', status='old')
 
       read(fh_namelist, nml=calculation, iostat=inml_calculation)
@@ -510,148 +512,150 @@ contains
 
 ! Broad cast
 !! == bcast for &calculation
-    call mpi_bcast(calc_mode,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(use_ehrenfest_md,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(use_ms_maxwell,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(use_force,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(use_geometry_opt,1,mpi_character,0,mpi_comm_world,ierr)
+    call comm_bcast(calc_mode       ,nproc_group_global)
+    call comm_bcast(use_ehrenfest_md,nproc_group_global)
+    call comm_bcast(use_ms_maxwell  ,nproc_group_global)
+    call comm_bcast(use_force       ,nproc_group_global)
+    call comm_bcast(use_geometry_opt,nproc_group_global)
 !! == bcast for &control
-    call mpi_bcast(restart_option,8,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(backup_frequency,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(time_shutdown,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(sysname,256,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(directory,256,mpi_character,0,mpi_comm_world,ierr)
+    call comm_bcast(restart_option  ,nproc_group_global)
+    call comm_bcast(backup_frequency,nproc_group_global)
+    call comm_bcast(time_shutdown   ,nproc_group_global)
+    call comm_bcast(sysname         ,nproc_group_global)
+    call comm_bcast(directory       ,nproc_group_global)
 !! == bcast for &parallel
-    call mpi_bcast(domain_parallel,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(nproc_ob,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nproc_domain,3,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nproc_domain_s,3,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(num_datafiles_in,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(num_datafiles_out,1,mpi_integer,0,mpi_comm_world,ierr)
+    call comm_bcast(domain_parallel  ,nproc_group_global)
+    call comm_bcast(nproc_ob         ,nproc_group_global)
+    call comm_bcast(nproc_domain     ,nproc_group_global)
+    call comm_bcast(nproc_domain_s   ,nproc_group_global)
+    call comm_bcast(num_datafiles_in ,nproc_group_global)
+    call comm_bcast(num_datafiles_out,nproc_group_global)
 !! == bcast for &system
-    call mpi_bcast(iperiodic,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ispin,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(al,3,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(iperiodic,nproc_group_global)
+    call comm_bcast(ispin    ,nproc_group_global)
+    call comm_bcast(al       ,nproc_group_global)
     al = al * ulength_to_au
-    call mpi_bcast(isym,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(crystal_structure,32,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(nstate,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nelec,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(temperature,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(nelem,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(natom,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(file_atom,256,mpi_character,0,mpi_comm_world,ierr)
+    call comm_bcast(isym             ,nproc_group_global)
+    call comm_bcast(crystal_structure,nproc_group_global)
+    call comm_bcast(nstate           ,nproc_group_global)
+    call comm_bcast(nelec            ,nproc_group_global)
+    call comm_bcast(temperature      ,nproc_group_global)
+    call comm_bcast(nelem            ,nproc_group_global)
+    call comm_bcast(natom            ,nproc_group_global)
+    call comm_bcast(file_atom        ,nproc_group_global)
 !! == bcast for &pseudo
-    call mpi_bcast(pseudodir,256,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(Lmax_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(Lloc_ps,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(iZatom,maxMKI,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ps_format,16*maxMKI,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(psmask_option,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(alpha_mask,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(gamma_mask,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(eta_mask,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(pseudo_file  ,nproc_group_global)
+    call comm_bcast(Lmax_ps      ,nproc_group_global)
+    call comm_bcast(Lloc_ps      ,nproc_group_global)
+    call comm_bcast(iZatom       ,nproc_group_global)
+    call comm_bcast(psmask_option,nproc_group_global)
+    call comm_bcast(alpha_mask   ,nproc_group_global)
+    call comm_bcast(gamma_mask   ,nproc_group_global)
+    call comm_bcast(eta_mask     ,nproc_group_global)
 !! == bcast for &functional
-    call mpi_bcast(xc,32,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(cval,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(xc  ,nproc_group_global)
+    call comm_bcast(cval,nproc_group_global)
 !! == bcast for &rgrid
-    call mpi_bcast(dl,3,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(dl,nproc_group_global)
     dl = dl * ulength_to_au
-    call mpi_bcast(num_rgrid,3,mpi_integer,0,mpi_comm_world,ierr)
+    call comm_bcast(num_rgrid,nproc_group_global)
 !! == bcast for &kgrid
-    call mpi_bcast(num_kgrid,3,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(file_kw,256,mpi_character,0,mpi_comm_world,ierr)
+    call comm_bcast(num_kgrid,nproc_group_global)
+    call comm_bcast(file_kw  ,nproc_group_global)
 !! == bcast for &kgrid
-    call mpi_bcast(nt,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(dt,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(nt,nproc_group_global)
+    call comm_bcast(dt,nproc_group_global)
     dt = dt * utime_to_au
 !! == bcast for &propagation
-    call mpi_bcast(n_hamil,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(propagator,16,mpi_character,0,mpi_comm_world,ierr)
+    call comm_bcast(n_hamil   ,nproc_group_global)
+    call comm_bcast(propagator,nproc_group_global)
 !! == bcast for &scf
-    call mpi_bcast(ncg,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nmemory_mb,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(alpha_mb,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(fsset_option,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(nfsset_start,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nfsset_every,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nscf,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ngeometry_opt,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(subspace_diagonalization,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(cmixing,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(rmixrate,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(convergence,3,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(threshold,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(ncg                     ,nproc_group_global)
+    call comm_bcast(nmemory_mb              ,nproc_group_global)
+    call comm_bcast(alpha_mb                ,nproc_group_global)
+    call comm_bcast(fsset_option            ,nproc_group_global)
+    call comm_bcast(nfsset_start            ,nproc_group_global)
+    call comm_bcast(nfsset_every            ,nproc_group_global)
+    call comm_bcast(nscf                    ,nproc_group_global)
+    call comm_bcast(ngeometry_opt           ,nproc_group_global)
+    call comm_bcast(subspace_diagonalization,nproc_group_global)
+    call comm_bcast(cmixing                 ,nproc_group_global)
+    call comm_bcast(rmixrate                ,nproc_group_global)
+    call comm_bcast(convergence             ,nproc_group_global)
+    call comm_bcast(threshold               ,nproc_group_global)
 !! == bcast for &emfield
-    call mpi_bcast(trans_longi,2,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(ae_shape1,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(amplitude1,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(trans_longi,nproc_group_global)
+    call comm_bcast(ae_shape1  ,nproc_group_global)
+    call comm_bcast(amplitude1 ,nproc_group_global)
     amplitude1 = amplitude1*(uenergy_to_au/ulength_to_au/ucharge_to_au)
-    call mpi_bcast(rlaser_int1,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(pulse_tw1,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(rlaser_int1,nproc_group_global)
+    call comm_bcast(pulse_tw1  ,nproc_group_global)
     pulse_tw1 = pulse_tw1 * utime_to_au
-    call mpi_bcast(omega1,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(omega1,nproc_group_global)
     omega1 = omega1 * uenergy_to_au
-    call mpi_bcast(epdir_re1,3,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(epdir_im1,3,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(phi_cep1,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(ae_shape2,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(amplitude2,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(epdir_re1 ,nproc_group_global)
+    call comm_bcast(epdir_im1 ,nproc_group_global)
+    call comm_bcast(phi_cep1  ,nproc_group_global)
+    call comm_bcast(ae_shape2 ,nproc_group_global)
+    call comm_bcast(amplitude2,nproc_group_global)
     amplitude2 = amplitude2*(uenergy_to_au/ulength_to_au/ucharge_to_au)
-    call mpi_bcast(rlaser_int2,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(pulse_tw2,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(rlaser_int2,nproc_group_global)
+    call comm_bcast(pulse_tw2  ,nproc_group_global)
     pulse_tw2 = pulse_tw2 * utime_to_au
-    call mpi_bcast(omega2,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(omega2,nproc_group_global)
     omega2 = omega2 * uenergy_to_au
-    call mpi_bcast(epdir_re2,3,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(epdir_im2,3,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(phi_cep2,1,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(t1_t2,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(epdir_re2,nproc_group_global)
+    call comm_bcast(epdir_im2,nproc_group_global)
+    call comm_bcast(phi_cep2 ,nproc_group_global)
+    call comm_bcast(t1_t2    ,nproc_group_global)
     t1_t2 = t1_t2 * utime_to_au
-    call mpi_bcast(quadrupole,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(quadrupole_pot,8,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(alocal_laser,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(rlaserbound_sta,3,mpi_real8,0,mpi_comm_world,ierr)
-    call mpi_bcast(rlaserbound_end,3,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(quadrupole    ,nproc_group_global)
+    call comm_bcast(quadrupole_pot,nproc_group_global)
+    call comm_bcast(alocal_laser  ,nproc_group_global)
+    call comm_bcast(rlaserbound_sta,nproc_group_global)
+    call comm_bcast(rlaserbound_end,nproc_group_global)
 !! == bcast for &linear_response
-    call mpi_bcast(e_impulse,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(e_impulse,nproc_group_global)
     e_impulse = e_impulse *uenergy_to_au/ulength_to_au*utime_to_au
 !! == bcast for &multiscale
-    call mpi_bcast(fdtddim,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(twod_shape,16,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(nx_m,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(ny_m,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nz_m,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(hx_m,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(fdtddim   ,nproc_group_global)
+    call comm_bcast(twod_shape,nproc_group_global)
+    call comm_bcast(nx_m      ,nproc_group_global)
+    call comm_bcast(ny_m      ,nproc_group_global)
+    call comm_bcast(nz_m      ,nproc_group_global)
+    call comm_bcast(hx_m      ,nproc_group_global)
     hx_m = hx_m * ulength_to_au
-    call mpi_bcast(hy_m,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(hy_m,nproc_group_global)
     hy_m = hy_m * ulength_to_au
-    call mpi_bcast(hz_m,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(hz_m,nproc_group_global)
     hz_m = hz_m * ulength_to_au
-    call mpi_bcast(nksplit,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nxysplit,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nxvacl_m,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(nxvacr_m,1,mpi_integer,0,mpi_comm_world,ierr)
+    call comm_bcast(nksplit ,nproc_group_global)
+    call comm_bcast(nxysplit,nproc_group_global)
+    call comm_bcast(nxvacl_m,nproc_group_global)
+    call comm_bcast(nxvacr_m,nproc_group_global)
 !! == bcast for &analysis
-    call mpi_bcast(projection_option,2,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(nenergy,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(de,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(projection_option,nproc_group_global)
+    call comm_bcast(nenergy          ,nproc_group_global)
+    call comm_bcast(de               ,nproc_group_global)
     de = de * uenergy_to_au
-    call mpi_bcast(out_psi,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(out_dos,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(out_pdos,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(out_dns,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(out_dns_rt,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(out_dns_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(out_elf_rt,1,mpi_character,0,mpi_comm_world,ierr)
-    call mpi_bcast(out_elf_rt_step,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(format3d,16,mpi_character,0,mpi_comm_world,ierr)
+    call comm_bcast(out_psi            ,nproc_group_global)
+    call comm_bcast(out_dos            ,nproc_group_global)
+    call comm_bcast(out_pdos           ,nproc_group_global)
+    call comm_bcast(out_dns            ,nproc_group_global)
+    call comm_bcast(out_elf            ,nproc_group_global)
+    call comm_bcast(out_dns_rt         ,nproc_group_global)
+    call comm_bcast(out_dns_rt_step    ,nproc_group_global)
+    call comm_bcast(out_elf_rt         ,nproc_group_global)
+    call comm_bcast(out_elf_rt_step    ,nproc_group_global)
+    call comm_bcast(out_estatic_rt     ,nproc_group_global)
+    call comm_bcast(out_estatic_rt_step,nproc_group_global)
+    call comm_bcast(format3d           ,nproc_group_global)
 !! == bcast for &hartree
-    call mpi_bcast(meo,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(num_pole_xyz,3,mpi_integer,0,mpi_comm_world,ierr)
+    call comm_bcast(meo         ,nproc_group_global)
+    call comm_bcast(num_pole_xyz,nproc_group_global)
 !! == bcast for &ewald
-    call mpi_bcast(newald,1,mpi_integer,0,mpi_comm_world,ierr)
-    call mpi_bcast(aewald,1,mpi_real8,0,mpi_comm_world,ierr)
+    call comm_bcast(newald,nproc_group_global)
+    call comm_bcast(aewald,nproc_group_global)
 
   end subroutine read_input_common
 
@@ -706,47 +710,53 @@ contains
 
   end subroutine initialize_inputoutput_units
 
-  subroutine dump_input_common(myrank)
+  subroutine dump_input_common
+    use salmon_parallel
+    use salmon_communication
     implicit none
-    include 'mpif.h'
-    integer,intent(in) :: myrank
-    integer :: i
+    integer :: i,ierr_nml
+    ierr_nml = 0
 
-    if (myrank == 0) then
+    if (comm_is_root(nproc_id_global)) then
 
-      print '("#namelist: ",A,", status=",I1)', 'calculation', inml_calculation
+      if(inml_calculation >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'calculation', inml_calculation
       print '("#",4X,A,"=",A)', 'calc_mode', calc_mode
       print '("#",4X,A,"=",A)', 'use_ehrenfest_md', use_ehrenfest_md
       print '("#",4X,A,"=",A)', 'use_ms_maxwell', use_ms_maxwell
       print '("#",4X,A,"=",A)', 'use_force', use_force
       print '("#",4X,A,"=",A)', 'use_geometry_opt', use_geometry_opt
 
-      print '("#namelist: ",A,", status=",I1)', 'control', inml_control
+      if(inml_control >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'control', inml_control
       print '("#",4X,A,"=",A)', 'restart_option', restart_option
-      print '("#",4X,A,"=",I1)', 'backup_frequency', backup_frequency
+      print '("#",4X,A,"=",I5)', 'backup_frequency', backup_frequency
       print '("#",4X,A,"=",ES12.5)', 'time_shutdown', time_shutdown
       print '("#",4X,A,"=",A)', 'sysname', sysname
       print '("#",4X,A,"=",A)', 'directory', directory
 
-      print '("#namelist: ",A,", status=",I1)', 'units', inml_units
+      if(inml_units >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'units', inml_units
       print '("#",4X,A,"=",A)', 'unit_time', unit_time
       print '("#",4X,A,"=",A)', 'unit_length', unit_length
       print '("#",4X,A,"=",A)', 'unit_energy', unit_energy
       print '("#",4X,A,"=",A)', 'unit_charge', unit_charge
 
-      print '("#namelist: ",A,", status=",I1)', 'parallel', inml_parallel
+      if(inml_parallel >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'parallel', inml_parallel
       print '("#",4X,A,"=",A)', 'domain_parallel', domain_parallel
-      print '("#",4X,A,"=",I1)', 'nproc_ob', nproc_ob
-      print '("#",4X,A,"=",I1)', 'nproc_domain(1)', nproc_domain(1)
-      print '("#",4X,A,"=",I1)', 'nproc_domain(2)', nproc_domain(2)
-      print '("#",4X,A,"=",I1)', 'nproc_domain(3)', nproc_domain(3)
-      print '("#",4X,A,"=",I1)', 'nproc_domain_s(1)', nproc_domain_s(1)
-      print '("#",4X,A,"=",I1)', 'nproc_domain_s(2)', nproc_domain_s(2)
-      print '("#",4X,A,"=",I1)', 'nproc_domain_s(3)', nproc_domain_s(3)
-      print '("#",4X,A,"=",I1)', 'num_datafiles_in', num_datafiles_in
-      print '("#",4X,A,"=",I1)', 'num_datafiles_out', num_datafiles_out
+      print '("#",4X,A,"=",I5)', 'nproc_ob', nproc_ob
+      print '("#",4X,A,"=",I5)', 'nproc_domain(1)', nproc_domain(1)
+      print '("#",4X,A,"=",I5)', 'nproc_domain(2)', nproc_domain(2)
+      print '("#",4X,A,"=",I5)', 'nproc_domain(3)', nproc_domain(3)
+      print '("#",4X,A,"=",I5)', 'nproc_domain_s(1)', nproc_domain_s(1)
+      print '("#",4X,A,"=",I5)', 'nproc_domain_s(2)', nproc_domain_s(2)
+      print '("#",4X,A,"=",I5)', 'nproc_domain_s(3)', nproc_domain_s(3)
+      print '("#",4X,A,"=",I5)', 'num_datafiles_in', num_datafiles_in
+      print '("#",4X,A,"=",I5)', 'num_datafiles_out', num_datafiles_out
 
-      print '("#namelist: ",A,", status=",I1)', 'system', inml_system
+      if(inml_system >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'system', inml_system
       print '("#",4X,A,"=",I1)', 'iperiodic', iperiodic
       print '("#",4X,A,"=",I1)', 'ispin', ispin
       print '("#",4X,A,"=",ES12.5)', 'al(1)', al(1)
@@ -754,64 +764,71 @@ contains
       print '("#",4X,A,"=",ES12.5)', 'al(3)', al(3)
       print '("#",4X,A,"=",I1)', 'isym', isym
       print '("#",4X,A,"=",A)', 'crystal_structure', crystal_structure
-      print '("#",4X,A,"=",I1)', 'nstate', nstate
-      print '("#",4X,A,"=",I1)', 'nelec', nelec
+      print '("#",4X,A,"=",I4)', 'nstate', nstate
+      print '("#",4X,A,"=",I4)', 'nelec', nelec
       print '("#",4X,A,"=",ES12.5)', 'temperature', temperature
-      print '("#",4X,A,"=",I1)', 'nelem', nelem
-      print '("#",4X,A,"=",I1)', 'natom', natom
+      print '("#",4X,A,"=",I4)', 'nelem', nelem
+      print '("#",4X,A,"=",I4)', 'natom', natom
       print '("#",4X,A,"=",A)', 'file_atom', file_atom
 
-      print '("#namelist: ",A,", status=",I1)', 'pseudo', inml_pseudo
-      print '("#",4X,A,"=",A)', 'pseudodir', pseudodir
+      if(inml_pseudo >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'pseudo', inml_pseudo
+
       do i = 1,nelem
-        print '("#",4X,A,"=",I2,2x,I4)', 'Lmax_ps(i)',i, Lmax_ps(i)
-        print '("#",4X,A,"=",I2,2x,I4)', 'Lloc_ps(i)',i, Lloc_ps(i)
-        print '("#",4X,A,"=",I2,2x,I4)', 'iZatom(i)',i, iZatom(i)
-        print '("#",4X,A,"=",I2,2x,A)', 'ps_format(i)', i,ps_format(i)
+        print '("#",4X,A,I2,A,"=",A)', 'pseudo_file(',i,')', trim(pseudo_file(i))
+        print '("#",4X,A,I2,A,"=",I4)', 'Lmax_ps(',i,')', Lmax_ps(i)
+        print '("#",4X,A,I2,A"=",I4)', 'Lloc_ps(',i,')', Lloc_ps(i)
+        print '("#",4X,A,I2,A"=",I4)', 'iZatom(',i,')', iZatom(i)
       end do
       print '("#",4X,A,"=",A)', 'psmask_option', psmask_option
       print '("#",4X,A,"=",ES12.5)', 'alpha_mask', alpha_mask
       print '("#",4X,A,"=",ES12.5)', 'gamma_mask', gamma_mask
       print '("#",4X,A,"=",ES12.5)', 'eta_mask', eta_mask
 
-      print '("#namelist: ",A,", status=",I1)', 'functional', inml_functional
+      if(inml_functional >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'functional', inml_functional
       print '("#",4X,A,"=",A)', 'xc', xc
       print '("#",4X,A,"=",ES12.5)', 'cval', cval
 
-      print '("#namelist: ",A,", status=",I1)', 'rgrid', inml_rgrid
+      if(inml_rgrid >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'rgrid', inml_rgrid
       print '("#",4X,A,"=",ES12.5)', 'dl(1)', dl(1)
       print '("#",4X,A,"=",ES12.5)', 'dl(2)', dl(2)
       print '("#",4X,A,"=",ES12.5)', 'dl(3)', dl(3)
-      print '("#",4X,A,"=",I1)', 'num_rgrid(1)', num_rgrid(1)
-      print '("#",4X,A,"=",I1)', 'num_rgrid(2)', num_rgrid(2)
-      print '("#",4X,A,"=",I1)', 'num_rgrid(3)', num_rgrid(3)
+      print '("#",4X,A,"=",I4)', 'num_rgrid(1)', num_rgrid(1)
+      print '("#",4X,A,"=",I4)', 'num_rgrid(2)', num_rgrid(2)
+      print '("#",4X,A,"=",I4)', 'num_rgrid(3)', num_rgrid(3)
 
+      if(inml_kgrid >0)ierr_nml = ierr_nml +1
       print '("#namelist: ",A,", status=",I1)', 'kgrid', inml_kgrid
-      print '("#",4X,A,"=",I1)', 'num_kgrid(1)', num_kgrid(1)
-      print '("#",4X,A,"=",I1)', 'num_kgrid(2)', num_kgrid(2)
-      print '("#",4X,A,"=",I1)', 'num_kgrid(3)', num_kgrid(3)
+      print '("#",4X,A,"=",I4)', 'num_kgrid(1)', num_kgrid(1)
+      print '("#",4X,A,"=",I4)', 'num_kgrid(2)', num_kgrid(2)
+      print '("#",4X,A,"=",I4)', 'num_kgrid(3)', num_kgrid(3)
       print '("#",4X,A,"=",A)', 'file_kw', file_kw
 
-      print '("#namelist: ",A,", status=",I1)', 'tgrid', inml_tgrid
-      print '("#",4X,A,"=",I1)', 'nt', nt
+      if(inml_tgrid >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'tgrid', inml_tgrid
+      print '("#",4X,A,"=",I6)', 'nt', nt
       print '("#",4X,A,"=",ES12.5)', 'dt', dt
 
-      print '("#namelist: ",A,", status=",I1)', 'scf', inml_scf
-      print '("#",4X,A,"=",I1)', 'ncg', ncg
-      print '("#",4X,A,"=",I1)', 'nmemory_mb', nmemory_mb
+      if(inml_scf >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'scf', inml_scf
+      print '("#",4X,A,"=",I3)', 'ncg', ncg
+      print '("#",4X,A,"=",I3)', 'nmemory_mb', nmemory_mb
       print '("#",4X,A,"=",ES12.5)', 'alpha_mb', alpha_mb
       print '("#",4X,A,"=",A)', 'fsset_option', fsset_option
-      print '("#",4X,A,"=",I1)', 'nfsset_start', nfsset_start
-      print '("#",4X,A,"=",I1)', 'nfsset_every', nfsset_every
-      print '("#",4X,A,"=",I1)', 'nscf', nscf
-      print '("#",4X,A,"=",I1)', 'ngeometry_opt', ngeometry_opt
+      print '("#",4X,A,"=",I3)', 'nfsset_start', nfsset_start
+      print '("#",4X,A,"=",I3)', 'nfsset_every', nfsset_every
+      print '("#",4X,A,"=",I3)', 'nscf', nscf
+      print '("#",4X,A,"=",I3)', 'ngeometry_opt', ngeometry_opt
       print '("#",4X,A,"=",A)', 'subspace_diagonalization', subspace_diagonalization
       print '("#",4X,A,"=",A)', 'cmixing', cmixing
       print '("#",4X,A,"=",ES12.5)', 'rmixrate', rmixrate
       print '("#",4X,A,"=",A)', 'convergence', convergence
       print '("#",4X,A,"=",ES12.5)', 'threshold', threshold
 
-      print '("#namelist: ",A,", status=",I1)', 'emfield', inml_emfield
+      if(inml_emfield >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'emfield', inml_emfield
       print '("#",4X,A,"=",A)', 'trans_longi', trans_longi
       print '("#",4X,A,"=",A)', 'ae_shape1', ae_shape1
       print '("#",4X,A,"=",ES12.5)', 'amplitude1', amplitude1
@@ -848,48 +865,63 @@ contains
       print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(2)', rlaserbound_end(2)
       print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(3)', rlaserbound_end(3)
 
-      print '("#namelist: ",A,", status=",I1)', 'linear_response', inml_linear_response
+      if(inml_linear_response >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'linear_response', inml_linear_response
       print '("#",4X,A,"=",ES12.5)', 'e_impulse', e_impulse
 
-      print '("#namelist: ",A,", status=",I1)', 'multiscale', inml_multiscale
+      print '("#namelist: ",A,", status=",I3)', 'multiscale', inml_multiscale
       print '("#",4X,A,"=",A)', 'fdtddim', fdtddim
       print '("#",4X,A,"=",A)', 'twod_shape', twod_shape
-      print '("#",4X,A,"=",I1)', 'nx_m', nx_m
-      print '("#",4X,A,"=",I1)', 'ny_m', ny_m
-      print '("#",4X,A,"=",I1)', 'nz_m', nz_m
+      print '("#",4X,A,"=",I4)', 'nx_m', nx_m
+      print '("#",4X,A,"=",I4)', 'ny_m', ny_m
+      print '("#",4X,A,"=",I4)', 'nz_m', nz_m
       print '("#",4X,A,"=",ES12.5)', 'hx_m', hx_m
       print '("#",4X,A,"=",ES12.5)', 'hy_m', hy_m
       print '("#",4X,A,"=",ES12.5)', 'hz_m', hz_m
-      print '("#",4X,A,"=",I1)', 'nksplit', nksplit
-      print '("#",4X,A,"=",I1)', 'nxysplit', nxysplit
-      print '("#",4X,A,"=",I1)', 'nxvacl_m', nxvacl_m
-      print '("#",4X,A,"=",I1)', 'nxvacr_m', nxvacr_m
+      print '("#",4X,A,"=",I4)', 'nksplit', nksplit
+      print '("#",4X,A,"=",I4)', 'nxysplit', nxysplit
+      print '("#",4X,A,"=",I4)', 'nxvacl_m', nxvacl_m
+      print '("#",4X,A,"=",I4)', 'nxvacr_m', nxvacr_m
 
-      print '("#namelist: ",A,", status=",I1)', 'analysis', inml_analysis
+      if(inml_analysis >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'analysis', inml_analysis
       print '("#",4X,A,"=",A)', 'projection_option', projection_option
-      print '("#",4X,A,"=",I1)', 'nenergy', nenergy
+      print '("#",4X,A,"=",I6)', 'nenergy', nenergy
       print '("#",4X,A,"=",ES12.5)', 'de', de
       print '("#",4X,A,"=",A)', 'out_psi', out_psi
       print '("#",4X,A,"=",A)', 'out_dos', out_dos
       print '("#",4X,A,"=",A)', 'out_pdos', out_pdos
       print '("#",4X,A,"=",A)', 'out_dns', out_dns
+      print '("#",4X,A,"=",A)', 'out_elf', out_elf
       print '("#",4X,A,"=",A)', 'out_dns_rt', out_dns_rt
-      print '("#",4X,A,"=",I1)', 'out_dns_rt_step', out_dns_rt_step
+      print '("#",4X,A,"=",I6)', 'out_dns_rt_step', out_dns_rt_step
       print '("#",4X,A,"=",A)', 'out_elf_rt', out_elf_rt
-      print '("#",4X,A,"=",I1)', 'out_elf_rt_step', out_elf_rt_step
+      print '("#",4X,A,"=",I6)', 'out_elf_rt_step', out_elf_rt_step
+      print '("#",4X,A,"=",A)', 'out_estatic_rt', out_estatic_rt
+      print '("#",4X,A,"=",I6)', 'out_estatic_rt_step', out_estatic_rt_step
       print '("#",4X,A,"=",A)', 'format3d', format3d
 
-      print '("#namelist: ",A,", status=",I1)', 'hartree', inml_hartree
-      print '("#",4X,A,"=",I1)', 'meo', meo
-      print '("#",4X,A,"=",I1)', 'num_pole_xyz(1)', num_pole_xyz(1)
-      print '("#",4X,A,"=",I1)', 'num_pole_xyz(2)', num_pole_xyz(2)
-      print '("#",4X,A,"=",I1)', 'num_pole_xyz(3)', num_pole_xyz(3)
+      if(inml_hartree >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'hartree', inml_hartree
+      print '("#",4X,A,"=",I4)', 'meo', meo
+      print '("#",4X,A,"=",I4)', 'num_pole_xyz(1)', num_pole_xyz(1)
+      print '("#",4X,A,"=",I4)', 'num_pole_xyz(2)', num_pole_xyz(2)
+      print '("#",4X,A,"=",I4)', 'num_pole_xyz(3)', num_pole_xyz(3)
 
-      print '("#namelist: ",A,", status=",I1)', 'ewald', inml_ewald
-      print '("#",4X,A,"=",I1)', 'newald', newald
+      if(inml_ewald >0)ierr_nml = ierr_nml +1
+      print '("#namelist: ",A,", status=",I3)', 'ewald', inml_ewald
+      print '("#",4X,A,"=",I3)', 'newald', newald
       print '("#",4X,A,"=",ES12.5)', 'aewald', aewald
 
     end if
+
+    call comm_bcast(ierr_nml,nproc_group_global)
+    if(ierr_nml > 0)then
+       if (comm_is_root(nproc_id_global)) write(*,"(I4,2x,A)")ierr_nml,'error(s) in input.'
+       call end_parallel
+       stop
+    end if
+
 
   end subroutine dump_input_common
     

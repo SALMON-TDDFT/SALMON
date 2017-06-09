@@ -197,6 +197,16 @@ Default is <code>'none'</code>.
 <dd>Number of valence electrons.
 </dd>
 
+<dt>temperature; <code>Real(8)</code></dt>
+<dd>Temperature of electrons.
+Unit of the energy can be chosen <code>&units/unit_energy</code>.
+</dd>
+
+
+<dt>nelem; <code>Integer</code></dt>
+<dd>Number of elements that will be used in calculations.
+</dd>
+
 <dt>natom; <code>Integer</code></dt>
 <dd>Number of atoms in a calculation cell.
 </dd>
@@ -210,8 +220,8 @@ Default is <code>'none'</code>.
 ## &pseudo
 <dl>
 
-<dt>pseudodir; <code>Character</code></dt>
-<dd>Directry name for pseudopotential files.
+<dt>pseudo_file(:); <code>Character</code></dt>
+<dd>Name of pseudopotential files.
 </dd>
 
 <dt>Lmax_ps(:); <code>Integer</code></dt>
@@ -226,14 +236,6 @@ Default is <code>'none'</code>.
 <dd>Atomic number.
 </dd>
 
-<dt>ps_format(:); <code>Character</code></dt>
-<dd>Formats for pseudopotentials. 
-Yabana-Bertsch format (_rps.dat) <code>KY</code>, 
-ABINIT format (.pspnc) <code>ABINIT</code>, 
-FHI format (.cpi) <code>FHI</code>, and
-ABINITFHI format (.fhi) <code>ABINITFHI</code> can be chosen.
-Default is <code>KY</code>.
-</dd>
 
 <dt>psmask_option(:); <code>Character</code></dt>
 <dd>Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
@@ -677,6 +679,12 @@ If <code>'y'</code>, density is output.
 Default is <code>'n'</code>.
 </dd>
 
+<dt>out_elf; <code>Character</code></dt>
+<dd>
+If <code>'y'</code>, electron localization function is output.
+Default is <code>'n'</code>.
+</dd>
+
 <dt>out_dns_rt/out_dns_rt_step; <code>Character/Integer</code></dt>
 <dd>
 If <code>'y'</code>, density during real-time time-propagation is output
@@ -686,9 +694,17 @@ Default is <code>'n'</code>.
 
 <dt>out_elf_rt/out_elf_rt_step; <code>Character/Integer</code></dt>
 <dd>
-If <code>'y'</code>, electron-localization function 
+If <code>'y'</code>, electron localization function 
 during real-time time-propagation is output
 every <code>out_elf_rt_step</code> time steps.
+Default is <code>'n'</code>.
+</dd>
+
+<dt>out_estatic_rt/out_estatic_rt_step; <code>Character/Integer</code></dt>
+<dd>
+If <code>'y'</code>, static electric field
+during real-time time-propagation is output
+every <code>out_estatic_rt_step</code> time steps.
 Default is <code>'n'</code>.
 </dd>
 
@@ -697,7 +713,7 @@ Default is <code>'n'</code>.
 Format for three dimensional data.
 <code>'avs'</code>, <code>'cube'</code>, and <code>'vtk'</code>
 can be chosen.
-Default is <code>'avs'</code>.
+Default is <code>'cube'</code>.
 </dd>
 
 </dl>
@@ -735,3 +751,21 @@ Default is <code>0.5</code>.
 </dd>
 
 </dl>
+
+## &atomic_positions
+In &atomic_positions, positions of atoms can be written in reduced coordinates
+as follows: <br>
+` 'Si'	0.00	0.00	0.00	1 ` <br>
+`	'Si'	0.25	0.25	0.25	1 ` <br>
+` ... ` <br>
+Here, the information of atoms is ordered in row. For example, the first row gives
+the information of the first atom. The number of rows must be equal to 
+`&system/nelem`.
+The first coloum can be any caracters and does not affect calculations.
+The second, third and fourth columns are reduced coordinates for
+the first, second and third directions, respectively. 
+The fifth column is a serial number of the spieces, which is used in 
+`&pseudo`.
+
+
+

@@ -15,7 +15,7 @@
 !
 !This file is "control_ms.f90"
 !This file contains ms-mode program
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 module control_ms
   implicit none
 contains
@@ -672,7 +672,7 @@ contains
     end do
   end subroutine
 end subroutine main
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Read_data
   use salmon_global
   use Global_Variables
@@ -709,14 +709,14 @@ Subroutine Read_data
     if (need_backup) write(*,*) '  frequency (# of iter) :',backup_frequency
 
     write(*,*) 'entrance_iter=',entrance_iter
-    write(*,*) SYSname
-    write(*,*) directory
+    write(*,*) 'SYSname=',trim(SYSname)
+    write(*,*) 'directory=',trim(directory)
 !yabana
     write(*,*) 'functional=',functional
     if(functional == 'TBmBJ') write(*,*) 'cvalue=',cval
 !yabana
     write(*,*) 'propagator=',propagator
-    write(*,*) 'ps_format =',ps_format(1:NE) !shinohara
+    write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
     write(*,*) 'PSmask_option =',PSmask_option !shinohara
     write(*,*) 'alpha_mask, gamma_mask, eta_mask =',alpha_mask, gamma_mask, eta_mask !shinohara
     file_GS=trim(directory)//trim(SYSname)//'_GS.out'
@@ -1088,5 +1088,5 @@ Subroutine Read_data
 
   return
 End Subroutine Read_data
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 end module control_ms

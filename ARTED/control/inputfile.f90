@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 module inputfile
   use inputoutput
   implicit none
@@ -152,16 +152,6 @@ contains
        do i=1, NE
           Zatom(i) = iZatom(i)
           Lref(i) = Lloc_ps(i)
-
-          select case(ps_format(i))
-          case('default')
-          case('KY')        ; ipsfileform(i)=n_Yabana_Bertsch_psformat
-          case('ABINIT')    ; ipsfileform(i)=n_ABINIT_psformat
-          case('FHI')       ; ipsfileform(i)=n_FHI_psformat
-          case('ABINITFHI') ; ipsfileform(i)=n_ABINITFHI_psformat
-          case default
-             call err_finalize('Invalid ps_format')
-          end select
        end do
     end if
 
@@ -194,21 +184,18 @@ contains
     use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
     use Global_Variables, only: NI, Rion, Kion
     implicit none
-    integer :: i, index, Kion_tmp
+    integer :: i, Kion_tmp
     real(8) :: Rion_tmp(3)
+    character(32) :: char_atom
     
     allocate(Rion(3,NI), Kion(NI))
     
     if (comm_is_root()) then
       open(fh_atomic_positions, file='.atomic_positions.tmp', status='old')
       do i=1, NI
-        read(fh_atomic_positions, *) index, Rion_tmp, Kion_tmp
-        if (i == index) then
-          Rion(:,i) = Rion_tmp
-          Kion(i) = Kion_tmp
-        else
-          call err_finalize('atomic_positions is not ordered')
-        end if
+        read(fh_atomic_positions, *) char_atom, Rion_tmp, Kion_tmp
+        Rion(:,i) = Rion_tmp
+        Kion(i) = Kion_tmp
       end do
       close(fh_atomic_positions)
     end if

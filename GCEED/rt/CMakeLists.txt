@@ -15,7 +15,6 @@ set(SOURCES
     taylor.f90
     time_evolution_step.f90
     total_energy_groupob.f90
-    WriteDensity.f90
     xc_fast.f90
     )
 

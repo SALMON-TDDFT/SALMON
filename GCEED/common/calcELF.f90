@@ -18,6 +18,7 @@ subroutine calcELF
 use scf_data
 use gradient_sub
 use new_world_sub
+use allocate_mat_sub
 implicit none
 
 integer :: iob,ix,iy,iz
@@ -37,9 +38,12 @@ real(8) :: mrcurden(mg_sta(1):mg_end(1),   &
 real(8) :: gradpsi(3,mg_sta(1):mg_end(1),   &
                      mg_sta(2):mg_end(2),   &
                      mg_sta(3):mg_end(3))
+complex(8) :: tzpsi(mg_sta(1):mg_end(1),   &
+                    mg_sta(2):mg_end(2),   &
+                    mg_sta(3):mg_end(3))
 complex(8) :: gradzpsi(3,mg_sta(1):mg_end(1),   &
-                         mg_sta(2):mg_end(2),   &
-                         mg_sta(3):mg_end(3))
+                       mg_sta(2):mg_end(2),   &
+                       mg_sta(3):mg_end(3))
 real(8) :: gradrho(3,mg_sta(1):mg_end(1),   &
                      mg_sta(2):mg_end(2),   &
                      mg_sta(3):mg_end(3))
@@ -55,8 +59,6 @@ real(8) :: elfcuni(mg_sta(1):mg_end(1),   &
 real(8) :: rho_half(mg_sta(1):mg_end(1),   &
                     mg_sta(2):mg_end(2),   &
                     mg_sta(3):mg_end(3))
-real(8), allocatable :: matbox(:,:,:)
-real(8), allocatable :: matbox2(:,:,:)
 
 !call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 elp3(801)=MPI_Wtime()
@@ -116,8 +118,38 @@ if(iSCFRT==1)then
 else if(iSCFRT==2)then
 
   do iob=1,iobnum
-
-    call calc_gradient(zpsi(:,:,:,iob,1),gradzpsi(:,:,:,:))
+    if(itt==0)then
+      !$OMP parallel do collapse(2)
+      do iz=mg_sta(3),mg_end(3)
+      do iy=mg_sta(2),mg_end(2)
+      do ix=mg_sta(1),mg_end(1)
+        tzpsi(ix,iy,iz)=zpsi_in(ix,iy,iz,iob,1)
+      end do
+      end do
+      end do
+    else
+      if(mod(itt,2)==1)then
+      !$OMP parallel do collapse(2)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          tzpsi(ix,iy,iz)=zpsi_out(ix,iy,iz,iob,1)
+        end do
+        end do
+        end do
+      else
+      !$OMP parallel do collapse(2)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          tzpsi(ix,iy,iz)=zpsi_in(ix,iy,iz,iob,1)
+        end do
+        end do
+        end do
+      end if
+    end if
+    
+    call calc_gradient(tzpsi,gradzpsi)
 
     elp3(807)=MPI_Wtime()
 
@@ -131,12 +163,12 @@ else if(iSCFRT==2)then
                          +abs(gradzpsi(3,ix,iy,iz))**2
 
       mrcurden(ix,iy,iz)=mrcurden(ix,iy,iz)      &
-           +( abs(conjg(zpsi(ix,iy,iz,iob,1))*gradzpsi(1,ix,iy,iz)      &
-                -zpsi(ix,iy,iz,iob,1)*conjg(gradzpsi(1,ix,iy,iz)))**2      &
-             +abs(conjg(zpsi(ix,iy,iz,iob,1))*gradzpsi(2,ix,iy,iz)      &
-                -zpsi(ix,iy,iz,iob,1)*conjg(gradzpsi(2,ix,iy,iz)))**2      &
-             +abs(conjg(zpsi(ix,iy,iz,iob,1))*gradzpsi(3,ix,iy,iz)      &
-                -zpsi(ix,iy,iz,iob,1)*conjg(gradzpsi(3,ix,iy,iz)))**2 )/4.d0
+           +( abs(conjg(tzpsi(ix,iy,iz))*gradzpsi(1,ix,iy,iz)      &
+                -tzpsi(ix,iy,iz)*conjg(gradzpsi(1,ix,iy,iz)))**2      &
+             +abs(conjg(tzpsi(ix,iy,iz))*gradzpsi(2,ix,iy,iz)      &
+                -tzpsi(ix,iy,iz)*conjg(gradzpsi(2,ix,iy,iz)))**2      &
+             +abs(conjg(tzpsi(ix,iy,iz))*gradzpsi(3,ix,iy,iz)      &
+                -tzpsi(ix,iy,iz)*conjg(gradzpsi(3,ix,iy,iz)))**2 )/4.d0
 
     end do
     end do
@@ -199,44 +231,27 @@ end do
 elp3(817)=MPI_Wtime()
 elp3(847)=elp3(847)+elp3(817)-elp3(816)
 
-if(iSCFRT==1) then
-  if(myrank==0)then
-    open(101,file='ELF.cube')
-    call output_dx_header_psi(101)
-  end if
+!$OMP parallel do collapse(2)
+do iz=lg_sta(3),lg_end(3)
+do iy=lg_sta(2),lg_end(2)
+do ix=lg_sta(1),lg_end(1)
+  matbox_l(ix,iy,iz)=0.d0
+end do
+end do
+end do
 
-  allocate( matbox(lg_sta(1):lg_end(1),  &
-                   lg_sta(2):lg_end(2),  &
-                   lg_sta(3):lg_end(3)) )
-  allocate( matbox2(lg_sta(1):lg_end(1),  &
-                    lg_sta(2):lg_end(2),  &
-                    lg_sta(3):lg_end(3)) )
-  matbox=0.d0
-  matbox(ng_sta(1):ng_end(1),   &
-         ng_sta(2):ng_end(2),   &
-         ng_sta(3):ng_end(3))   &
-    = elf(ng_sta(1):ng_end(1),   &
-          ng_sta(2):ng_end(2),   &
-          ng_sta(3):ng_end(3))
-  call MPI_Allreduce(matbox,matbox2, &
-                     lg_num(1)*lg_num(2)*lg_num(3), &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+!$OMP parallel do collapse(2)
+do iz=ng_sta(3),ng_end(3)
+do iy=ng_sta(2),ng_end(2)
+do ix=ng_sta(1),ng_end(1)
+  matbox_l(ix,iy,iz)=elf(ix,iy,iz)
+end do
+end do
+end do
 
-  do ix=lg_sta(1),lg_end(1)
-  do iy=lg_sta(2),lg_end(2)
-  do iz=lg_sta(3),lg_end(3)
-    if(mod(iz+1-lg_sta(3),6)==0)then
-      write(101,'(e13.5)', advance="yes") matbox2(ix,iy,iz)
-    else
-      write(101,'(e13.5)', advance="no") matbox2(ix,iy,iz)
-    endif 
-  end do 
-  write(101,*) 
-  end do 
-  end do 
-  if(myrank==0) close(101) 
-  deallocate(matbox,matbox2)
-end if 
-   
+call MPI_Allreduce(matbox_l,elf, &
+                   lg_num(1)*lg_num(2)*lg_num(3), &
+                   MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+
 end subroutine calcELF
 

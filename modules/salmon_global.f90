@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 module salmon_global
   implicit none
 
@@ -22,6 +22,7 @@ module salmon_global
   integer :: MI,MKI
    !shinohara
   integer :: ipsfileform(maxMKI)   ! file format for pseudo potential
+  character(16)  :: ps_format(maxMKI)
 ! List of pseudopotential file formats
   integer,parameter :: n_Yabana_Bertsch_psformat = 1 !.rps
   integer,parameter :: n_ABINIT_psformat = 2 ! .pspnc
@@ -72,11 +73,10 @@ module salmon_global
   character(256) :: file_atom
 
 !! &pseudo
-  character(256) :: pseudodir
+  character(256) :: pseudo_file(maxMKI)
   integer        :: Lmax_ps(maxMKI)
   integer        :: Lloc_ps(maxMKI)
   integer        :: iZatom(maxMKI)
-  character(16)  :: ps_format(maxMKI)
   character(1)   :: psmask_option
   real(8)        :: alpha_mask
   real(8)        :: gamma_mask
@@ -167,10 +167,13 @@ module salmon_global
   character(1)   :: out_dos
   character(1)   :: out_pdos
   character(1)   :: out_dns
+  character(1)   :: out_elf
   character(1)   :: out_dns_rt
   integer        :: out_dns_rt_step
   character(1)   :: out_elf_rt
   integer        :: out_elf_rt_step
+  character(1)   :: out_estatic_rt
+  integer        :: out_estatic_rt_step
   character(16)  :: format3d
 
 !! &hartree

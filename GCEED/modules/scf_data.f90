@@ -15,8 +15,8 @@
 !
 MODULE scf_data
 use salmon_global
+use mpi
 implicit none
-include 'mpif.h'
 !-------------------- Parameters
 integer, parameter :: maxntmg=10
 
