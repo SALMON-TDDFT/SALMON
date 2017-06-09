@@ -149,8 +149,6 @@ add_subdirectory(${SALMON_MODULE_LIB})
 
 add_executable(${TARGET_NAME}
                main/main.f90
-               main/setup_parallel.f90
-               main/end_parallel.f90
                )
 
 add_dependencies(${TARGET_NAME} ${SALMON_LINK_LIBRARIES})
