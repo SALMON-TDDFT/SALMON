@@ -16,6 +16,7 @@ set(SOURCES
     calc_pmax.f90
     calcuV.f90
     calcVpsl.f90
+    check_cep.f90
     check_corrkob.f90
     check_numcpu.f90
     conv_core_exc_cor.f90

@@ -75,6 +75,8 @@ integer :: nprocs,nprocid
 nproc=nprocs
 myrank=nprocid
 
+call check_cep
+
 elp3(:)=0.d0
 elp5(:)=0.d0
 elp3(401)=MPI_Wtime()
@@ -166,7 +168,13 @@ select case (ikind_eext)
   case(1)
     if(rlaser_int1>=1.d-12)then
       amplitude1=sqrt(rlaser_int1)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
+    end if
+    if(rlaser_int2>=1.d-12)then
       amplitude2=sqrt(rlaser_int2)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
+    else
+      if(abs(amplitude2)<=1.d-12)then
+        amplitude2=0.d0
+      end if
     end if
 end select
 

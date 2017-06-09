@@ -47,13 +47,8 @@ subroutine calc_env_trigon(ipulse,tenv_trigon)
     theta2=dble(itt)*dt-t1_t2-0.5d0*pulse_tw2+phi_cep2*2d0*pi
   end if
 
-  if(tae_shape=='esin2sin')then
-    tenv_trigon=sin(alpha1*theta1)**2*sin(alpha2*theta2)
-!  else if(tae_shape=='esin2cos')then
-!    tenv_trigon=sin(alpha1*theta1)**2*cos(alpha2*theta2)
-!  else if(tae_shape=='asin2sin')then
-!    tenv_trigon=-(alpha1*sin(2.d0*alpha1*theta1)*sin(alpha2*theta2)   &
-!                 +alpha2*sin(alpha1*theta1)**2*cos(alpha2*theta2))
+  if(tae_shape=='esin2cos')then
+    tenv_trigon=sin(alpha1*theta1)**2*cos(alpha2*theta2)
   else if(tae_shape=='asin2cos')then
     tenv_trigon=-(alpha1*sin(2.d0*alpha1*theta1)*cos(alpha2*theta2)   &
                  -alpha2*sin(alpha1*theta1)**2*sin(alpha2*theta2))
