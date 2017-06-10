@@ -30,7 +30,7 @@ subroutine write_density_cube(fh, write_difference)
   write(fh, '(I2,3(1X,F5.2))') NLz, 0.00, 0.00, aLz
   
   do i=1, NI
-    write(fh, '(I2,4(1X,F5.2))') Zatom(Kion(i)), 0.00, Rion(1,i)*aLx, Rion(2,i)*aLy, Rion(3,i)*aLz 
+    write(fh, '(I2,4(1X,F5.2))') Zatom(Kion(i)), 0.00, Rion(1,i), Rion(2,i), Rion(3,i) 
   end do
   
   ! Gaussian .cube file (x-slowest index, z-fastest index)
