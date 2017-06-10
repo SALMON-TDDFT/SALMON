@@ -211,11 +211,59 @@ Unit of the energy can be chosen <code>&units/unit_energy</code>.
 <dd>Number of atoms in a calculation cell.
 </dd>
 
-<dt>file_atom; <code>Character</code></dt>
-<dd>File name of atomic positions.
+<dt>file_atom_red_coor; <code>Character</code></dt>
+<dd>File name of atomic positions. In this file, 
+the atomic coordinates can be written in reduced coordinates.
+This option is incompatible with 
+<code>&system/file_atom_coor</code>,
+<code>&atomic_coor</code>, and 
+<code>&atomic_red_coor</code>.
 </dd>
 
+<dt>file_atom_coor; <code>Character</code></dt>
+<dd>File name of atomic positions. In this file, 
+the atomic coordinates can be written in Cartesian cooridnates.
+The unit of the length can be chosen by 
+<code>&units/unit_length</code>.
+This option is incompatible with 
+<code>&system/file_atom_red_coor</code>,
+<code>&atomic_coor</code>, and 
+<code>&atomic_red_coor</code>.
+</dd>
+
+
 </dl>
+
+## &atomic_red_coor
+In &atomic_red_coor, positions of atoms can be written in reduced coordinates
+as follows: <br>
+` 'Si'	0.00	0.00	0.00	1 ` <br>
+`	'Si'	0.25	0.25	0.25	1 ` <br>
+` ... ` <br>
+Here, the information of atoms is ordered in row. For example, the first row gives
+the information of the first atom. The number of rows must be equal to 
+`&system/natom`.
+The first coloum can be any caracters and does not affect calculations.
+The second, third and fourth columns are reduced coordinates for
+the first, second and third directions, respectively. 
+The fifth column is a serial number of the spieces, which is used in 
+`&pseudo`.
+This option is incompatible with 
+<code>&system/file_atom_red_coor</code>,
+<code>&system/file_atom_coor</code>, and
+<code>&atomic_coor</code>.
+
+
+## &atomic_coor
+In &atomic_coor, positions of atoms can be written in Cartesian coordinates.
+The structure is same as &atomic_red_coor.
+The unit of the length can be chosen by 
+<code>&units/unit_length</code>.
+This option is incompatible with 
+<code>&system/file_atom_red_coor</code>,
+<code>&system/file_atom_coor</code>, and
+<code>&atomic_red_coor</code>.
+
 
 ## &pseudo
 <dl>
@@ -761,20 +809,6 @@ Default is <code>0.5</code>.
 
 </dl>
 
-## &atomic_positions
-In &atomic_positions, positions of atoms can be written in reduced coordinates
-as follows: <br>
-` 'Si'	0.00	0.00	0.00	1 ` <br>
-`	'Si'	0.25	0.25	0.25	1 ` <br>
-` ... ` <br>
-Here, the information of atoms is ordered in row. For example, the first row gives
-the information of the first atom. The number of rows must be equal to 
-`&system/nelem`.
-The first coloum can be any caracters and does not affect calculations.
-The second, third and fourth columns are reduced coordinates for
-the first, second and third directions, respectively. 
-The fifth column is a serial number of the spieces, which is used in 
-`&pseudo`.
 
 
 
