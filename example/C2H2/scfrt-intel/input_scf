@@ -25,7 +25,6 @@
   nstate = 5
   nelem = 2
   natom = 4
-  file_atom='coo.data'
 /
 
 &pseudo
@@ -56,10 +55,14 @@
  num_pole_xyz = 2,2,2 
 /
 
-
-
 &group_fundamental
   MST(1)=5
   ifMST(1)=5
 /
 
+&atomic_coor
+'C'    0.000000    0.000000    0.599672  1
+'H'    0.000000    0.000000    1.662257  2
+'C'    0.000000    0.000000   -0.599672  1
+'H'    0.000000    0.000000   -1.662257  2
+/

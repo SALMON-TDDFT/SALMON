@@ -685,6 +685,7 @@ contains
 
 
       if_error = .false.
+      if_cartesian = .true.
       icount = 0
       if(file_atom_coor /= 'none')then
         icount = icount + 1
@@ -698,7 +699,7 @@ contains
         filename_tmp = trim(file_atom_coor)
       end if
 
-      if(if_nml_red_coor)then
+      if(if_nml_coor)then
         icount = icount + 1
         if_cartesian = .true.
         filename_tmp = '.atomic_coor.tmp'
@@ -710,14 +711,15 @@ contains
         filename_tmp = '.atomic_red_coor.tmp'
       end if
 
-      if(icount /= 1)if_error = .true.
     end if
 
-    call comm_bcast(if_error,nproc_group_global)
-    if(if_error)then
+    if(icount == 0)return
+
+    call comm_bcast(icount,nproc_group_global)
+    if(icount>1)then
        if (comm_is_root(nproc_id_global))then
-         write(*,"(I4,2x,A)")'Error in input: The following inputs are incompatible.'
-         write(*,"(I4,2x,A)")'file_atom_coor, file_atom_red_coor, &atomic_coor, and &atomic_red_coor.'
+         write(*,"(A)")'Error in input: The following inputs are incompatible.'
+         write(*,"(A)")'file_atom_coor, file_atom_red_coor, &atomic_coor, and &atomic_red_coor.'
        end if
        call end_parallel
        stop
@@ -725,7 +727,7 @@ contains
 
     if( (.not.if_cartesian) .and. iperiodic == 0)then
        if (comm_is_root(nproc_id_global))then
-         write(*,"(I4,2x,A)")'Error in input: Reduced coordinate is invalid for isolated systems.'
+         write(*,"(A)")'Error in input: Reduced coordinate is invalid for isolated systems.'
        end if
        call end_parallel
        stop

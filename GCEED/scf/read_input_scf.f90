@@ -304,7 +304,12 @@ MKI=nelem
 !iZatom(:)=0
 !ipsfileform(:)=1
 !ps_format = 'default'
-file_atoms_coo=trim(file_atom_coor)
+if(file_atom_coor/='none')then
+   file_atoms_coo=trim(file_atom_coor)
+else
+   file_atoms_coo='.atomic_coor.tmp'
+end if
+
 !Lmax_ps(:)=-1
 !Lloc_ps(:)=-1
 if(myrank==0)then

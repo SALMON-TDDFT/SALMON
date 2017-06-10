@@ -61,7 +61,7 @@
 /
 
 
-&atomic_positions
+&atomic_red_coor
 	'Si'	.0	.0	.0	1
 	'Si'	.25	.25	.25	1
 	'Si'	.5	.0	.5	1
