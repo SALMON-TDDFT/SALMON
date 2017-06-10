@@ -27,7 +27,6 @@ contains
     use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
     use Global_Variables
     implicit none
-    character(100) :: file_atoms_coo
 
 ! Be careful for backup!!
     entrance_iter = 0
@@ -129,7 +128,6 @@ contains
      MKI = nelem; NE = nelem
 !     iZatom
 !     ipsfileform
-     file_atoms_coo = trim(file_atom)
 !     Lmax_ps
 !     Lloc_ps
 !     ps_format
@@ -189,20 +187,21 @@ contains
     real(8) :: Rion_tmp(3)
     character(32) :: char_atom
     
-    allocate(Rion(3,NI), Kion(NI))
+!    allocate(Rion(3,NI), Kion(NI))
     
-    if (comm_is_root()) then
-      open(fh_atomic_positions, file='.atomic_positions.tmp', status='old')
-      do i=1, NI
-        read(fh_atomic_positions, *) char_atom, Rion_tmp, Kion_tmp
-        Rion(:,i) = Rion_tmp
-        Kion(i) = Kion_tmp
-      end do
-      close(fh_atomic_positions)
-    end if
-    call comm_bcast(Rion, proc_group(1))
-    call comm_bcast(Kion, proc_group(1))
-    call comm_sync_all()
+!    if (comm_is_root()) then
+!      open(fh_atomic_coor, file='.atomic_positions.tmp', status='old')
+!      do i=1, NI
+!        read(fh_atomic_positions, *) char_atom, Rion_tmp, Kion_tmp
+!        Rion(:,i) = Rion_tmp
+!        Kion(i) = Kion_tmp
+!      end do
+!      close(fh_atomic_positions)
+!    end if
+!    call comm_bcast(Rion, proc_group(1))
+!    call comm_bcast(Kion, proc_group(1))
+!    call comm_sync_all()
+
     return
   end subroutine read_atomic_positions
 

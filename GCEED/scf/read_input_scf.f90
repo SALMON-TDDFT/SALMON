@@ -304,7 +304,7 @@ MKI=nelem
 !iZatom(:)=0
 !ipsfileform(:)=1
 !ps_format = 'default'
-file_atoms_coo=trim(file_atom)
+file_atoms_coo=trim(file_atom_coor)
 !Lmax_ps(:)=-1
 !Lloc_ps(:)=-1
 if(myrank==0)then
@@ -343,37 +343,13 @@ call MPI_Bcast(iZatom,MKI,MPI_INTEGER,      &
 call MPI_Bcast(Mlps,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(Lref,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
-allocate( Rion(3,MI),Kion(MI),istopt_a(MI) )
+allocate(istopt_a(MI) ); istopt_a = 0
 allocate( AtomName(MI),iAtomicNumber(MI) )
 
 if(myrank.eq.0) then
-  open(91,file=file_atoms_coo)
   do iatom=1,MI
-    if(iflag_stopt==1)then
-      read(91,*) AtomName(iatom), Rion(1,iatom),Rion(2,iatom),Rion(3,iatom),      &
-           Kion(iatom),istopt_a(iatom)
-    else
-      read(91,*) AtomName(iatom), Rion(1,iatom),Rion(2,iatom),Rion(3,iatom),      &
-           Kion(iatom)
-      istopt_a(iatom)=0
-    end if
-    if(AtomName(iatom)=="Na".or. AtomName(iatom)=="na")then
-      iAtomicNumber(iatom) = 11
-    elseif(AtomName(iatom)=="H" .or. AtomName(iatom)=="h") then
-      iAtomicNumber(iatom) = 1
-    elseif(AtomName(iatom)=="C" .or. AtomName(iatom)=="c") then
-      iAtomicNumber(iatom) = 6
-    elseif(AtomName(iatom)=="Ag".or. AtomName(iatom)=="ag")then
-      iAtomicNumber(iatom) = 47
-    elseif(AtomName(iatom)=="Au".or. AtomName(iatom)=="au")then
-      iAtomicNumber(iatom) = 79
-    elseif(AtomName(iatom)=="O" .or. AtomName(iatom)=="o") then
-      iAtomicNumber(iatom) = 8
-    elseif(AtomName(iatom)=="N" .or. AtomName(iatom)=="n") then
-      iAtomicNumber(iatom) = 7
-    endif
+    if(flag_geo_opt_atom(iatom) == 'y')istopt_a(iatom)=1
   end do
-  close(91)
 end if
 
 call MPI_Bcast(Rion,3*MI,MPI_DOUBLE_PRECISION,      &
@@ -465,13 +441,13 @@ call MPI_Bcast(file_ini,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_dos,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 call MPI_Bcast(iflag_pdos,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
 
-if(iflag_ps==1)then
-  do ii=1,3
-    do iatom=1,MI
-      Rion(ii,iatom)=Rion(ii,iatom)*ulength_to_au
-    end do
-  end do
-end if
+!if(iflag_ps==1)then
+!  do ii=1,3
+!    do iatom=1,MI
+!      Rion(ii,iatom)=Rion(ii,iatom)*ulength_to_au
+!    end do
+!  end do
+!end if
 
 nproc_Mxin_mul=nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)

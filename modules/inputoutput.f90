@@ -25,9 +25,10 @@ module inputoutput
 
   integer, parameter :: fh_namelist = 901
   integer, parameter :: fh_atomic_spiecies = 902
-  integer, parameter :: fh_atomic_positions = 903
+  integer, parameter :: fh_atomic_coor = 903
   integer, parameter :: fh_reentrance = 904
-
+  integer, parameter :: fh_atomic_red_coor = 905
+  logical :: if_nml_coor, if_nml_red_coor
 
   integer :: inml_calculation
   integer :: inml_control
@@ -89,7 +90,10 @@ contains
     if (comm_is_root(nproc_id_global)) then
       open(fh_namelist, file='.namelist.tmp', status='replace')
 !      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
-      open(fh_atomic_positions, file='.atomic_positions.tmp', status='replace')
+      if_nml_coor =.false. 
+      open(fh_atomic_coor, file='.atomic_coor.tmp', status='replace')
+      if_nml_red_coor = .false.
+      open(fh_atomic_red_coor, file='.atomic_red_coor.tmp', status='replace')
       open(fh_reentrance, file='.reenetrance.tmp', status='replace')
       
       do while (.true.)
@@ -106,8 +110,14 @@ contains
 !            cycle
 !          end if
           ! Beginning of 'atomic_positions' part
-          if (text == '&atomic_positions') then
-            cur = fh_atomic_positions
+          if (text == '&atomic_coor') then
+            cur = fh_atomic_coor
+            if_nml_coor =.true. 
+            cycle
+          end if
+          if (text == '&atomic_red_coor') then
+            cur = fh_atomic_red_coor
+            if_nml_red_coor = .true.
             cycle
           end if
           ! Beginning of 'atomic_species' part
@@ -125,7 +135,8 @@ contains
         end if
       end do
       close(fh_namelist)
-      close(fh_atomic_positions)
+      close(fh_atomic_coor)
+      close(fh_atomic_red_coor)
 !      close(fh_atomic_spiecies)
       close(fh_reentrance)
     end if
@@ -181,7 +192,8 @@ contains
       & temperature, &
       & nelem, &
       & natom, &
-      & file_atom
+      & file_atom_coor, &
+      & file_atom_red_coor
 
     namelist/pseudo/ &
       & pseudo_file, &
@@ -348,7 +360,8 @@ contains
     temperature        = -1d0
     nelem              = 0
     natom              = 0
-    file_atom          = 'none'
+    file_atom_coor          = 'none'
+    file_atom_red_coor          = 'none'
 !! == default for &pseudo
     pseudo_file     = 'none'
     Lmax_ps       = -1
@@ -535,14 +548,15 @@ contains
     call comm_bcast(ispin    ,nproc_group_global)
     call comm_bcast(al       ,nproc_group_global)
     al = al * ulength_to_au
-    call comm_bcast(isym             ,nproc_group_global)
-    call comm_bcast(crystal_structure,nproc_group_global)
-    call comm_bcast(nstate           ,nproc_group_global)
-    call comm_bcast(nelec            ,nproc_group_global)
-    call comm_bcast(temperature      ,nproc_group_global)
-    call comm_bcast(nelem            ,nproc_group_global)
-    call comm_bcast(natom            ,nproc_group_global)
-    call comm_bcast(file_atom        ,nproc_group_global)
+    call comm_bcast(isym               ,nproc_group_global)
+    call comm_bcast(crystal_structure  ,nproc_group_global)
+    call comm_bcast(nstate             ,nproc_group_global)
+    call comm_bcast(nelec              ,nproc_group_global)
+    call comm_bcast(temperature        ,nproc_group_global)
+    call comm_bcast(nelem              ,nproc_group_global)
+    call comm_bcast(natom              ,nproc_group_global)
+    call comm_bcast(file_atom_coor     ,nproc_group_global)
+    call comm_bcast(file_atom_red_coor ,nproc_group_global)
 !! == bcast for &pseudo
     call comm_bcast(pseudo_file  ,nproc_group_global)
     call comm_bcast(Lmax_ps      ,nproc_group_global)
@@ -659,6 +673,89 @@ contains
 
   end subroutine read_input_common
 
+  subroutine read_atomic_coordinates
+    use salmon_parallel
+    use salmon_communication
+    character(256) :: filename_tmp,char_atom
+    integer :: icount,i
+    logical :: if_error, if_cartesian
+
+
+    if (comm_is_root(nproc_id_global)) then
+
+
+      if_error = .false.
+      icount = 0
+      if(file_atom_coor /= 'none')then
+        icount = icount + 1
+        if_cartesian = .true.
+        filename_tmp = trim(file_atom_coor)
+      end if
+
+      if(file_atom_red_coor /= 'none')then
+        icount = icount + 1
+        if_cartesian = .false.
+        filename_tmp = trim(file_atom_coor)
+      end if
+
+      if(if_nml_red_coor)then
+        icount = icount + 1
+        if_cartesian = .true.
+        filename_tmp = '.atomic_coor.tmp'
+      end if
+
+      if(if_nml_red_coor)then
+        icount = icount + 1
+        if_cartesian = .false.
+        filename_tmp = '.atomic_red_coor.tmp'
+      end if
+
+      if(icount /= 1)if_error = .true.
+    end if
+
+    call comm_bcast(if_error,nproc_group_global)
+    if(if_error)then
+       if (comm_is_root(nproc_id_global))then
+         write(*,"(I4,2x,A)")'Error in input: The following inputs are incompatible.'
+         write(*,"(I4,2x,A)")'file_atom_coor, file_atom_red_coor, &atomic_coor, and &atomic_red_coor.'
+       end if
+       call end_parallel
+       stop
+    end if
+
+    if( (.not.if_cartesian) .and. iperiodic == 0)then
+       if (comm_is_root(nproc_id_global))then
+         write(*,"(I4,2x,A)")'Error in input: Reduced coordinate is invalid for isolated systems.'
+       end if
+       call end_parallel
+       stop
+    end if
+
+    allocate(Rion(3,natom), Kion(natom), flag_geo_opt_atom(natom))
+    Rion = 0d0
+    Kion = 0
+    flag_geo_opt_atom = 'n'
+
+    if (comm_is_root(nproc_id_global))then
+      open(fh_atomic_coor, file=filename_tmp, status='old')
+      do i=1, natom
+        if(use_geometry_opt == 'y')then
+          read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i), flag_geo_opt_atom(i)
+        else
+          read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i)
+        end if
+      end do
+      close(fh_atomic_coor)
+
+    if(if_cartesian)Rion = Rion*ulength_to_au
+    end if
+
+    call comm_bcast(Rion,nproc_group_global)
+    call comm_bcast(Kion,nproc_group_global)
+    call comm_bcast(flag_geo_opt_atom,nproc_group_global)
+
+  end subroutine read_atomic_coordinates
+
   subroutine initialize_inputoutput_units
     implicit none
 
@@ -769,7 +866,8 @@ contains
       print '("#",4X,A,"=",ES12.5)', 'temperature', temperature
       print '("#",4X,A,"=",I4)', 'nelem', nelem
       print '("#",4X,A,"=",I4)', 'natom', natom
-      print '("#",4X,A,"=",A)', 'file_atom', file_atom
+      print '("#",4X,A,"=",A)', 'file_atom_coor', trim(file_atom_coor)
+      print '("#",4X,A,"=",A)', 'file_atom_red_coor', trim(file_atom_red_coor)
 
       if(inml_pseudo >0)ierr_nml = ierr_nml +1
       print '("#namelist: ",A,", status=",I3)', 'pseudo', inml_pseudo
