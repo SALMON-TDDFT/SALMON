@@ -495,12 +495,12 @@ if(myrank.eq.0)then
           write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
           write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
           write(1,'(3e16.8)',advance="no") ((alpha2_R(iii,iene,jj)**2+alpha2_I(iii,iene,jj)**2)  &
-                                            *a_B**2**(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+                                            *a_B**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
         end do
         write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
         write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
         write(1,'(3e16.8)',advance="yes") ((alpha2_R(iii,iene,num_dip2)**2+alpha2_I(iii,iene,num_dip2)**2)  &
-                                            *a_B**2**(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+                                            *a_B**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
       end do
     end if
     close(1)
