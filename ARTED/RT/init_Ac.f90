@@ -1,5 +1,5 @@
 !
-!  Copyright 2016 ARTED developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -18,110 +18,194 @@ Subroutine init_Ac
   use Global_Variables
   use communication
   implicit none
-  integer :: iter
+  integer :: iter, npower
   real(8) :: tt
 
-  select case(AE_shape)
+  javt = 0d0
+  Ac_ext = 0d0
+  Ac_ind = 0d0
+
+
+  if(rlaser_int1 < 0d0)then
+    f0_1 = amplitude1
+  else
+    f0_1=5.338d-9*sqrt(rlaser_int1)      ! electric field in a.u.
+  end if
+  if(rlaser_int2 < 0d0)then
+    f0_2 = amplitude2
+  else
+    f0_2=5.338d-9*sqrt(rlaser_int2)      ! electric field in a.u.
+  end if
+
+
+!  f0_1=5.338d-9*sqrt(IWcm2_1)      ! electric field in a.u.
+!  f0_2=5.338d-9*sqrt(IWcm2_2)      ! electric field in a.u.
+!  omega_1=omegaev_1/(2d0*Ry)  ! frequency in a.u.
+!  tpulse_1=tpulsefs_1/0.02418d0 ! pulse duration in a.u.
+
+!  omega_2=omegaev_2/(2d0*Ry)  ! frequency in a.u.
+!  tpulse_2=tpulsefs_2/0.02418d0 ! pulse duration in a.u.
+!  T1_T2=T1_T2fs/0.02418d0 ! pulse duration in a.u.
+  javt=0.d0
+  Ac_ext=0.d0
+
+
+
+  select case(AE_shape1)
   case('impulse')
-    Ac_ext(:,1)=Epdir_1(1)*dAc
-    Ac_ext(:,2)=Epdir_1(2)*dAc
-    Ac_ext(:,3)=Epdir_1(3)*dAc
-    Ac_ind=0.d0
-    javt=0.d0
-  case default
-    if(IWcm2_1 < 0d0)IWcm2_1 = 0d0
-    if(IWcm2_2 < 0d0)IWcm2_2 = 0d0
-    f0_1=5.338d-9*sqrt(IWcm2_1)      ! electric field in a.u.
-    omega_1=omegaev_1/(2d0*Ry)  ! frequency in a.u.
-    tpulse_1=tpulsefs_1/0.02418d0 ! pulse duration in a.u.
-    f0_2=5.338d-9*sqrt(IWcm2_2)      ! electric field in a.u.
-    omega_2=omegaev_2/(2d0*Ry)  ! frequency in a.u.
-    tpulse_2=tpulsefs_2/0.02418d0 ! pulse duration in a.u.
-    T1_T2=T1_T2fs/0.02418d0 ! pulse duration in a.u.
-    javt=0.d0
-    Ac_ext=0.d0
-
-    select case(AE_shape)
-    case('Esin2sin')
-! pulse shape : E(t)=f0*sin(Pi t/T)**2 *sin (omega t+phi_CEP*2d0*pi) 
-! pump laser
-      do iter=0,Nt+1
-        tt=iter*dt
-        if (tt<tpulse_1) then
-          Ac_ext(iter,:)=Epdir_1(:)*f0_1*(&
-            &-(cos(omega_1*tt+phi_CEP_1*2d0*pi)-cos(phi_CEP_1*2d0*pi))/(2*omega_1)&
-            &+(cos((omega_1+2*Pi/tpulse_1)*tt+phi_CEP_1*2d0*pi)-cos(phi_CEP_1*2d0*pi))/(4*(omega_1+2*Pi/tpulse_1))&
-            &+(cos((omega_1-2*Pi/tpulse_1)*tt+phi_CEP_1*2d0*pi)-cos(phi_CEP_1*2d0*pi))/(4*(omega_1-2*Pi/tpulse_1))&
-            &-0.5*(cos(omega_1*tpulse_1+phi_CEP_1*2d0*pi)-cos(phi_CEP_1*2d0*pi))/(omega_1*((omega_1*tpulse_1/(2*pi))**2-1.d0))&
-            &*(3.d0*(tt/tpulse_1)**2-2.d0*(tt/tpulse_1)**3)&
-            &)
-        else
-          Ac_ext(iter,:)=Ac_ext(iter-1,:)
-        endif
-      enddo
-
-! probe laser
-      do iter=0,Nt+1
-        tt=iter*dt
-        if(tt-T1_T2 <= 0d0)then
-          
-        else if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<tpulse_2) ) then
-          Ac_ext(iter,:)=Ac_ext(iter,:)+Epdir_2(:)*f0_2*(&
-            &-(cos(omega_2*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(2*omega_2)&
-            &+(cos((omega_2+2*Pi/tpulse_2)*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(4*(omega_2+2*Pi/tpulse_2))&
-            &+(cos((omega_2-2*Pi/tpulse_2)*(tt-T1_T2)+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(4*(omega_2-2*Pi/tpulse_2))&
-            &-0.5*(cos(omega_2*tpulse_2+phi_CEP_2*2d0*pi)-cos(phi_CEP_2*2d0*pi))/(omega_2*((omega_2*tpulse_2/(2*pi))**2-1.d0))&
-            &*(3.d0*((tt-T1_T2)/tpulse_2)**2-2.d0*((tt-T1_T2)/tpulse_2)**3)&
-            &)
-        else
-          Ac_ext(iter,:)=Ac_ext(iter-1,:)
-        endif
-      enddo
-
-    case('Asin2cos')
-! pulse shape : A(t)=f0/omega*sin(Pi t/T)**2 *cos (omega t+phi_CEP*2d0*pi) 
-! pump laser
-      do iter=0,Nt+1
-        tt=iter*dt
-        if (tt<tpulse_1) then
-          Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*(sin(pi*tt/tpulse_1))**2*cos(omega_1*tt+phi_CEP_1*2d0*pi)
-        end if
-      enddo
-! probe laser
-      do iter=0,Nt+1
-        tt=iter*dt
-        if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<tpulse_2) ) then
-          Ac_ext(iter,:)=Ac_ext(iter,:) &
-            &-Epdir_2(:)*f0_2/omega_2*(sin(pi*(tt-T1_T2)/tpulse_2))**2*cos(omega_2*(tt-T1_T2)+phi_CEP_2*2d0*pi)
-        endif
-      enddo
-    case('input')
-      Ac_ext=0d0
-      if(comm_is_root())then
-        open(899,file='input_Ac.dat')
-        do iter=0,Nt
-          read(899,*)Ac_ext(iter,1),Ac_ext(iter,2),Ac_ext(iter,3)
-        end do
-        close(899)
-      end if
-      call comm_bcast(Ac_ext,proc_group(1))
-
-    case('Asin2_cw')
-! pulse shape : A(t)=f0/omega*sin(Pi t/T)**2 *cos (omega t+phi_CEP*2d0*pi) 
-! pump laser
-      do iter=0,Nt+1
-        tt=iter*dt
-        if (tt<tpulse_1*0.5d0) then
-          Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*(sin(pi*tt/tpulse_1))**2*cos(omega_1*tt+phi_CEP_1*2d0*pi)
-        else
-          Ac_ext(iter,:)=-Epdir_1(:)*f0_1/omega_1*cos(omega_1*tt+phi_CEP_1*2d0*pi)
-        end if
-      enddo
-
+    Ac_ext(:,1)=epdir_re1(1)*e_impulse
+    Ac_ext(:,2)=epdir_re1(2)*e_impulse
+    Ac_ext(:,3)=epdir_re1(3)*e_impulse
+  case('Acos2','Acos3','Acos4','Acos6','Acos8')
+    select case(ae_shape1)
+    case('Acos2'); npower = 2
+    case('Acos3'); npower = 3
+    case('Acos4'); npower = 4
+    case('Acos6'); npower = 6
+    case('Acos8'); npower = 8
+    case default
+      stop 'Error in init_Ac.f90'
     end select
 
-    Ac_ind=0.d0
+    do iter=0,Nt+1
+      tt=iter*dt - 0.5d0*pulse_tw1
+      if (abs(tt)<0.5d0*pulse_tw1) then
+        Ac_ext(iter,:)=-f0_1/omega1*(cos(pi*tt/pulse_tw1))**npower &
+          *aimag( (epdir_re1(:) + zI*epdir_im1(:)) &
+          *exp(zI*(omega1*tt+phi_CEP1*2d0*pi))  &
+          )
+      end if
+    enddo
+  case('Esin2sin')
+    do iter=0,Nt+1
+      tt=iter*dt
+      if (tt<pulse_tw1) then
+        Ac_ext(iter,:)=epdir_re1(:)*f0_1*(&
+          &-(cos(omega1*tt+phi_CEP1*2d0*pi)-cos(phi_CEP1*2d0*pi))/(2*omega1)&
+          &+(cos((omega1+2*Pi/pulse_tw1)*tt+phi_CEP1*2d0*pi)-cos(phi_CEP1*2d0*pi))/(4*(omega1+2*Pi/pulse_tw1))&
+          &+(cos((omega1-2*Pi/pulse_tw1)*tt+phi_CEP1*2d0*pi)-cos(phi_CEP1*2d0*pi))/(4*(omega1-2*Pi/pulse_tw1))&
+          &-0.5*(cos(omega1*pulse_tw1+phi_CEP1*2d0*pi)-cos(phi_CEP1*2d0*pi))&
+          &/(omega1*((omega1*pulse_tw1/(2*pi))**2-1.d0))&
+          &*(3.d0*(tt/pulse_tw1)**2-2.d0*(tt/pulse_tw1)**3)&
+          &)
+      else
+        Ac_ext(iter,:)=Ac_ext(iter-1,:)
+      endif
+    enddo
+    
+  case('Asin2cos')
+    ! pulse shape : A(t)=f0/omega*sin(Pi t/T)**2 *cos (omega t+phi_CEP*2d0*pi) 
+    ! pump laser
+    do iter=0,Nt+1
+      tt=iter*dt
+      if (tt<pulse_tw1) then
+        Ac_ext(iter,:)=-epdir_re1(:)*f0_1/omega1*(sin(pi*tt/pulse_tw1))**2*cos(omega1*tt+phi_CEP1*2d0*pi)
+      end if
+    enddo
+    
+  case('input')
+    Ac_ext=0d0
+    if(comm_is_root())then
+      open(899,file='input_Ac.dat')
+      do iter=0,Nt
+        read(899,*)Ac_ext(iter,1),Ac_ext(iter,2),Ac_ext(iter,3)
+      end do
+      close(899)
+    end if
+    call comm_bcast(Ac_ext,proc_group(1))
+    
+  case('Asin2_cw')
+    ! pulse shape : A(t)=f0/omega*sin(Pi t/T)**2 *cos (omega t+phi_CEP*2d0*pi) 
+    ! pump laser
+    do iter=0,Nt+1
+      tt=iter*dt
+      if (tt<pulse_tw1*0.5d0) then
+        Ac_ext(iter,:)=-Epdir_re1(:)*f0_1/omega1*(sin(pi*tt/pulse_tw1))**2*cos(omega1*tt+phi_CEP1*2d0*pi)
+      else
+        Ac_ext(iter,:)=-Epdir_re1(:)*f0_1/omega1*cos(omega1*tt+phi_CEP1*2d0*pi)
+      end if
+    enddo
+  case('none')
+    !there is no pump
+  case default
+    call Err_finalize("Invalid pulse_shape_1 parameter!")
   end select
+  
+
+! Probe
+  select case(ae_shape2)
+  case('impulse')
+    do iter=0,Nt+1
+      tt=iter*dt
+      if(tt > T1_T2)then
+        Ac_ext(iter,1)=Ac_ext(iter,1) + epdir_re2(1)*e_impulse
+        Ac_ext(iter,2)=Ac_ext(iter,2) + epdir_re2(2)*e_impulse
+        Ac_ext(iter,3)=Ac_ext(iter,3) + epdir_re2(3)*e_impulse
+      end if
+    end do
+  case('Acos2','Acos3','Acos4','Acos6','Acos8')
+    select case(ae_shape2)
+    case('Acos2'); npower = 2
+    case('Acos3'); npower = 3
+    case('Acos4'); npower = 4
+    case('Acos6'); npower = 6
+    case('Acos8'); npower = 8
+    case default
+      stop 'Error in init_Ac.f90'
+    end select
+
+    do iter=0,Nt+1
+      tt=iter*dt - 0.5d0*pulse_tw2 - T1_T2
+      if (abs(tt)<0.5d0*pulse_tw2) then
+        Ac_ext(iter,:)=Ac_ext(iter,:) &
+          -f0_2/omega2*(cos(pi*tt/pulse_tw2))**npower &
+          *aimag( (epdir_re2(:) + zI*epdir_im2(:)) &
+          *exp(zI*(omega2*tt+phi_CEP2*2d0*pi))  &
+          )
+      end if
+    end do
+      
+  case('Esin2sin')
+      ! probe laser
+    do iter=0,Nt+1
+      tt=iter*dt
+      if(tt-T1_T2 <= 0d0)then
+        
+      else if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<pulse_tw2) ) then
+        Ac_ext(iter,:)=Ac_ext(iter,:)+Epdir_re2(:)*f0_2*(&
+          &-(cos(omega2*(tt-T1_T2)+phi_CEP2*2d0*pi)-cos(phi_CEP2*2d0*pi))/(2*omega2)&
+          &+(cos((omega2+2*Pi/pulse_tw2)*(tt-T1_T2)+phi_CEP2*2d0*pi)-cos(phi_CEP2*2d0*pi))&
+          &/(4*(omega2+2*Pi/pulse_tw2))&
+          &+(cos((omega2-2*Pi/pulse_tw2)*(tt-T1_T2)+phi_CEP2*2d0*pi)-cos(phi_CEP2*2d0*pi))&
+          /(4*(omega2-2*Pi/pulse_tw2))&
+          &-0.5*(cos(omega2*pulse_tw2+phi_CEP2*2d0*pi)-cos(phi_CEP2*2d0*pi))/(omega2*((omega2*pulse_tw2/(2*pi))**2-1.d0))&
+          &*(3.d0*((tt-T1_T2)/pulse_tw2)**2-2.d0*((tt-T1_T2)/pulse_tw2)**3)&
+          &)
+      else
+        Ac_ext(iter,:)=Ac_ext(iter-1,:)
+      endif
+    enddo
+    
+  case('Asin2cos')
+      ! pulse shape : A(t)=f0/omega*sin(Pi t/T)**2 *cos (omega t+phi_CEP*2d0*pi) 
+    ! probe laser
+    do iter=0,Nt+1
+      tt=iter*dt
+      if ( (tt-T1_T2>0d0) .and. (tt-T1_T2<pulse_tw2) ) then
+        Ac_ext(iter,:)=Ac_ext(iter,:) &
+          &-Epdir_re2(:)*f0_2/omega2*(sin(pi*(tt-T1_T2)/pulse_tw2))**2*cos(omega2*(tt-T1_T2)+phi_CEP2*2d0*pi)
+      endif
+    enddo
+  case('input')
+    !There is no probe
+  case('Asin2_cw')
+    !There is no probe
+  case('none')
+  case default
+    call Err_finalize("Invalid pulse_shape_2 parameter!")
+  end select
+  Ac_ind=0.d0
+
   Ac_tot=Ac_ind+Ac_ext
 
   return
