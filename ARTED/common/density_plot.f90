@@ -21,27 +21,35 @@ subroutine write_density_cube(fh, write_difference)
   logical, intent(in) :: write_difference
   
   integer :: i, ix, iy, iz
+  real(8) :: r
     
   write(fh, '(A)') "# SALMON"
   write(fh, '(A)') "# COMMENT"
-  write(fh, '(I2,3(1X,F5.2))') NI, 0.00, 0.00, 0.00
-  write(fh, '(I2,3(1X,F5.2))') NLx, aLx, 0.00, 0.00
-  write(fh, '(I2,3(1X,F5.2))') NLy, 0.00, aLy, 0.00
-  write(fh, '(I2,3(1X,F5.2))') NLz, 0.00, 0.00, aLz
+  write(fh, '(I5,3(F12.6))') NI, 0.00, 0.00, 0.00
+  write(fh, '(I5,3(F12.6))') NLx, aLx, 0.00, 0.00
+  write(fh, '(I5,3(F12.6))') NLy, 0.00, aLy, 0.00
+  write(fh, '(I5,3(F12.6))') NLz, 0.00, 0.00, aLz
   
   do i=1, NI
-    write(fh, '(I2,4(1X,F5.2))') Zatom(Kion(i)), 0.00, Rion(1,i), Rion(2,i), Rion(3,i) 
+    write(fh, '(I5,4(F12.6))') Zatom(Kion(i)), 0.00, Rion(1,i), Rion(2,i), Rion(3,i) 
   end do
   
   ! Gaussian .cube file (x-slowest index, z-fastest index)
+  i = 1
   do ix=0, NLx-1
     do iy=0, NLy-1
       do iz=0, NLz-1
         if (write_difference) then
-          write(fh, '(ES12.5)') Rho(Lxyz(ix, iy, iz)) - Rho_gs(Lxyz(ix, iy, iz))
+          r = Rho(Lxyz(ix, iy, iz)) - Rho_gs(Lxyz(ix, iy, iz))
         else
-          write(fh, '(ES12.5)') Rho(Lxyz(ix, iy, iz))
+          r = Rho(Lxyz(ix, iy, iz))
         end if
+        if (mod(i, 6) == 0) then
+          write(fh, '(ES12.4)') r
+        else
+          write(fh, '(ES12.4)', advance='no') r
+        endif
+        i = i + 1
       end do
     end do
   end do
