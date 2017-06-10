@@ -748,6 +748,11 @@ contains
       close(fh_atomic_coor)
 
     if(if_cartesian)Rion = Rion*ulength_to_au
+    if(if_cartesian .and. iperiodic == 3)then
+      Rion(1,:) = Rion(1,:)/al(1)
+      Rion(2,:) = Rion(2,:)/al(2)
+      Rion(3,:) = Rion(3,:)/al(3)
+    end if
     end if
 
     call comm_bcast(Rion,nproc_group_global)
