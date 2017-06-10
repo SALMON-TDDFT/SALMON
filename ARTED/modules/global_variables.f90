@@ -106,10 +106,9 @@ Module Global_Variables
   complex(8),allocatable :: eGx(:,:),eGy(:,:),eGz(:,:),eGxc(:,:),eGyc(:,:),eGzc(:,:)
 
 ! Bloch momentum,laser pulse, electric field
-  character(8) :: AE_shape
-!  real(8) :: f0,Wcm2,pulseT,wave_length,omega,pulse_time,pdir(3),phi_CEP=0.00*2*pi
-  real(8) :: f0_1,IWcm2_1,tpulsefs_1,omegaev_1,omega_1,tpulse_1,Epdir_1(3),phi_CEP_1 ! sato
-  real(8) :: f0_2,IWcm2_2,tpulsefs_2,omegaev_2,omega_2,tpulse_2,Epdir_2(3),phi_CEP_2 ! sato
+!  character(8) :: AE_shape
+  real(8) :: f0_1 !,IWcm2_1,tpulsefs_1,omegaev_1,omega_1,tpulse_1,Epdir_1(3),phi_CEP_1 ! sato
+  real(8) :: f0_2 !,IWcm2_2,tpulsefs_2,omegaev_2,omega_2,tpulse_2,Epdir_2(3),phi_CEP_2 ! sato
   real(8) :: T1_T2fs
   real(8),allocatable :: E_ext(:,:),E_ind(:,:),E_tot(:,:)
   real(8),allocatable :: kAc(:,:),kAc0(:,:),kAc_new(:,:)                  !k+A(t)/c (kAc)

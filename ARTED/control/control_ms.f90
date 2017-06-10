@@ -1041,23 +1041,7 @@ Subroutine Read_data
     allocate(data_vac_Ac(3,2,0:Nt))
 ! sato ---------------------------------------------------------------------------------------
 
-  if (comm_is_root()) then
-    write(*,*) 'dAc=',dAc
-    write(*,*) 'Nomega,etep=',Nomega,domega
-    write(*,*) 'AE_shape=',AE_shape
-    write(*,*) 'IWcm2_1, tpulsefs_1, omegaev_1, phi_CEP_1 =',IWcm2_1,tpulsefs_1,omegaev_1,phi_CEP_1
-    write(*,*) 'Epdir_1(1), Epdir_1(2), Epdir_1(3) =', Epdir_1(1),Epdir_1(2),Epdir_1(3)
-    write(*,*) 'IWcm2_2, tpulsefs_2, omegaev_2, phi_CEP_2 =',IWcm2_2,tpulsefs_2,omegaev_2,phi_CEP_2
-    write(*,*) 'Epdir_2(1), Epdir_2(2), Epdir_2(3) =', Epdir_2(1),Epdir_2(2),Epdir_2(3)
-    write(*,*) 'T1_T2fs =', T1_T2fs
-    write(*,*) ''
-    write(*,*) '===========ion configuration================'
-    write(*,*) 'NI,NE=',NI,NE
-  endif
   call comm_sync_all
-
-  if(AE_shape /= 'Asin2cos' .and. AE_shape /= 'Esin2sin' &
-    &.and. AE_shape /= 'input' .and. AE_shape /= 'Asin2_cw' ) call err_finalize('incorrect option for AE_shape')
 
 
   allocate(Rps(NE),NRps(NE))
