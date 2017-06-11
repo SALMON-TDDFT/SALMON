@@ -5,6 +5,8 @@
 - [&units](#units)
 - [&parallel](#parallel)
 - [&system](#system)
+- [&atomic_red_coor](#atomic_red_coor)
+- [&atomic_coor](#atomic_coor)
 - [&pseudo](#pseudo)
 - [&functional](#functional)
 - [&rgrid](#rgrid)
@@ -193,8 +195,20 @@ Default is <code>'none'</code>.
 <dd>Number of states/bands.
 </dd>
 
+<dt>nstate_spin(2); <code>Integer</code></dt>
+<dd>Number of states/bands can be specified independently
+by <code>nstate_spin(1)/nstate_spin(2)</code>.
+This option is incompatible with <code>nstate</code>
+</dd>
+
 <dt>nelec; <code>Integer</code></dt>
 <dd>Number of valence electrons.
+</dd>
+
+<dt>nelec_spin(2); <code>Integer</code></dt>
+<dd>Number of up/down-spin electrons can be specified independently
+by <code>nelec_spin(1)/nelec_spin(2)</code>.
+This option is incompatible with <code>nelec</code>
 </dd>
 
 <dt>temperature; <code>Real(8)</code></dt>
