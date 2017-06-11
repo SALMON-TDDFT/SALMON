@@ -163,8 +163,6 @@ integer :: itotfMST
 integer :: MST0(2),itotMST0
 integer :: Mx(3),Mxin(3),Mxin_old(3)
 
-integer,allocatable :: Kion(:)    ! Label for ions
-real(8),allocatable :: Rion(:,:)  ! Ion coordinates
 character(8),allocatable :: AtomName(:)   
 integer,allocatable :: iAtomicNumber(:)   
 integer,allocatable :: istopt_a(:)    

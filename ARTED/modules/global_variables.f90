@@ -64,8 +64,8 @@ Module Global_Variables
 ! material
   integer :: NI,NE,NB,NBoccmax
   real(8) :: Ne_tot
-  integer,allocatable :: Zatom(:),Kion(:)
-  real(8),allocatable :: Rion(:,:),Mass(:),Rion_eq(:,:),dRion(:,:,:)
+  integer,allocatable :: Zatom(:)
+  real(8),allocatable :: Mass(:),Rion_eq(:,:),dRion(:,:,:)
   real(8),allocatable :: occ(:,:),wk(:)
 
 ! physical quantities

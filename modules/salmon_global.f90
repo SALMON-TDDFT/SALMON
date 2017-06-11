@@ -70,7 +70,8 @@ module salmon_global
   real(8)        :: temperature
   integer        :: nelem
   integer        :: natom
-  character(256) :: file_atom
+  character(256) :: file_atom_coor
+  character(256) :: file_atom_red_coor
 
 !! &pseudo
   character(256) :: pseudo_file(maxMKI)
@@ -184,6 +185,11 @@ module salmon_global
   integer        :: newald
   real(8)        :: aewald
 
+!! &atomic_coor
+!! &atomic_red_coor
+integer,allocatable :: Kion(:)    
+real(8),allocatable :: Rion(:,:)  
+character(1),allocatable :: flag_geo_opt_atom(:)
 
 
 end module salmon_global
