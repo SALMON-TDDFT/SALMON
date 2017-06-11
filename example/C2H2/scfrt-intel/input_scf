@@ -25,6 +25,7 @@
   nstate = 5
   nelem = 2
   natom = 4
+  nelec = 10
 /
 
 &pseudo
@@ -53,11 +54,6 @@
 &hartree
  meo = 3
  num_pole_xyz = 2,2,2 
-/
-
-&group_fundamental
-  MST(1)=5
-  ifMST(1)=5
 /
 
 &atomic_coor
