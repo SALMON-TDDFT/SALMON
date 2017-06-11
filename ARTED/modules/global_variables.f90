@@ -124,6 +124,8 @@ Module Global_Variables
   character(256) :: file_force_dR,file_j_ac
   character(256) :: file_DoS,file_band
   character(256) :: file_dns,file_ovlp,file_nex
+  character(256) :: file_dns_gs ! 501
+  character(256) :: file_dns_rt ! 502
   character(256) :: file_energy_transfer ! 940
   character(256) :: file_ac_vac          ! 941
   character(256) :: file_ac_vac_back     ! 942

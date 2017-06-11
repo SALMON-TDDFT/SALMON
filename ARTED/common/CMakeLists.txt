@@ -8,6 +8,7 @@ set(SOURCES
     hpsi.f90
     preprocessor.f90
     reentrance.f90
+    density_plot.f90
     )
 
 if (ENABLE_OPENACC)

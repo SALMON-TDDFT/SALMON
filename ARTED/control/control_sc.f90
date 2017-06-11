@@ -27,6 +27,7 @@ subroutine main
   use performance_analyzer
   use communication
   use misc_routines, only: get_wtime
+  use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
   logical :: Rion_update
@@ -304,6 +305,23 @@ subroutine main
       open(404,file=file_ovlp,position = position_option) 
       open(408,file=file_nex,position = position_option) 
     end if
+    
+    ! Export electronic density
+    if (out_dns == 'y') then
+      select case(format3d)
+      case ('cube')
+        write(file_dns_gs, '(2A,"_dns_gs.cube")') trim(directory), trim(SYSname)
+        open(502,file=file_dns_gs,position = position_option)
+        call write_density_cube(502, .false.)
+        close(502)
+      case ('vtk')
+        write(file_dns_gs, '(2A,"_dns_gs.vtk")') trim(directory), trim(SYSname)
+        open(502,file=file_dns_gs,position = position_option)
+        call write_density_vtk(502, .false.)
+        close(502)
+      end select
+    end if
+    
   endif
 
   call comm_sync_all
@@ -407,6 +425,25 @@ subroutine main
         write(8,'(1x,2e16.6E3)') rho(i),(rho(i)-rho_gs(i))
       enddo
     endif
+    
+    ! Export electronic density
+    if (out_dns_rt == 'y') then
+      if (mod(iter, out_dns_rt_step) == 0) then
+        select case(format3d)
+        case ('cube')
+          write(file_dns_rt, '(2A,"_dns_rt_",I6.6,".cube")') trim(directory), trim(SYSname), iter
+          open(501,file=file_dns_rt,position = position_option)
+          call write_density_cube(501, .false.)
+          close(501)
+        case ('vtk')
+          write(file_dns_gs, '(2A,"_dns_rt_",I6.6,".vtk")') trim(directory), trim(SYSname), iter
+          open(501,file=file_dns_rt,position = position_option)
+          call write_density_vtk(501, .false.)
+          close(501)
+        end select
+      end if
+    end if
+    
 
 
 !j_Ac writing
