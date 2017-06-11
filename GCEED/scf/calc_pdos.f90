@@ -86,6 +86,30 @@ if(myrank==0)then
     write(fileNumber, '(i8)') iatom
     OutFile = "pdos"//trim(adjustl(fileNumber))//".data"
     open(101,file=OutFile)
+    write(101,'("# Projected Density of States")') 
+    select case(unit_energy)
+    case('au','a.u.')
+      if(Mlps(ikoa)==0)then
+        write(101,'("# Energy[a.u.] PDOS(l=0)[a.u.]")') 
+      else if(Mlps(ikoa)==1)then
+        write(101,'("# Energy[a.u.] PDOS(l=0)[a.u.] PDOS(l=1)[a.u.]")') 
+      else if(Mlps(ikoa)==2)then
+        write(101,'("# Energy[a.u.] PDOS(l=0)[a.u.] PDOS(l=1)[a.u.] PDOS(l=2)[a.u.]")') 
+      else if(Mlps(ikoa)==3)then
+        write(101,'("# Energy[a.u.] PDOS(l=0)[a.u.] PDOS(l=1)[a.u.] PDOS(l=2)[a.u.] PDOS(l=3)[a.u.]")')
+      end if 
+    case('ev','eV')
+      if(Mlps(ikoa)==0)then
+        write(101,'("# Energy[eV]  PDOS(l=0)[1/eV]")')
+      else if(Mlps(ikoa)==1)then
+        write(101,'("# Energy[eV]  PDOS(l=0)[1/eV] PDOS(l=1)[1/eV]")')
+      else if(Mlps(ikoa)==2)then
+        write(101,'("# Energy[eV]  PDOS(l=0)[1/eV] PDOS(l=1)[1/eV] PDOS(l=2)[1/eV]")') 
+      else if(Mlps(ikoa)==3)then
+        write(101,'("# Energy[eV]  PDOS(l=0)[1/eV] PDOS(l=1)[1/eV] PDOS(l=2)[1/eV] PDOS(l=3)[1/eV]")')
+      end if 
+    end select
+    write(101,'("#-----------------------")') 
     if(Mlps(ikoa)==0)then
       do iene=-300,300
         write(101,'(f10.5,f14.8)') dble(iene)/10.d0/au_energy_ev*uenergy_from_au,   &
