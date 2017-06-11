@@ -39,6 +39,14 @@ call MPI_Allreduce(rbox_dos,dos,601,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_g
 
 if(myrank==0)then
   open(101,file="dos.data")
+  write(101,'("# Density of States")') 
+  select case(unit_energy)
+  case('au','a.u.')
+    write(101,'("# Energy[a.u.] DOS[a.u.]")') 
+  case('ev','eV')
+    write(101,'("# Energy[eV]  DOS[1/eV]")') 
+  end select
+  write(101,'("#-----------------------")') 
   do iene=-300,300
     write(101,'(f10.5,f14.8)') dble(iene)/10.d0/au_energy_ev*uenergy_from_au,&
                                dos(iene)*au_energy_ev/uenergy_from_au
