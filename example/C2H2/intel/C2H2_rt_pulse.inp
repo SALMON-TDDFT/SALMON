@@ -38,7 +38,7 @@
   nt=4800
 /
 &emfield
-  ae_shape1 = 'esin2sin'
+  ae_shape1 = 'esin2cos'
   epdir_re1 = 0.d0,0.d0,1.d0
   rlaser_int1 = 1.d8
   omega1=9.26d0
