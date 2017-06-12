@@ -47,7 +47,7 @@ Subroutine Fourier_tr
       end if
     end if
       
-    if (comm_is_root(nproc_id_maxwell)) then
+    if (comm_is_root(nproc_id_global)) then
       if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
         write(7,'(1x,f13.7,6f22.14)') hw&
              &,(real(zeps(ixyz)),ixyz=1,3)&
