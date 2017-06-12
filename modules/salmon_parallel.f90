@@ -22,11 +22,7 @@ module salmon_parallel
   integer, public :: nproc_id_global
   integer, public :: nproc_size_global
 
-!  ! Maxwell-TDDFT
-!  integer, public :: nproc_group_maxwell
-!  integer, public :: nproc_id_maxwell
-!  integer, public :: nproc_size_maxwell
-
+  ! TDKS eq.
   integer, public :: nproc_group_tdks
   integer, public :: nproc_id_tdks
   integer, public :: nproc_size_tdks

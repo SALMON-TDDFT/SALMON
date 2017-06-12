@@ -45,12 +45,9 @@ subroutine arted
   
   implicit none
 
-!  nproc_group_maxwell = nproc_group_global
-  nproc_group_tdks    = nproc_group_global
-!  nproc_id_maxwell    = nproc_id_global
-  nproc_id_tdks       = nproc_id_global
-!  nproc_size_maxwell  = nproc_size_global
-  nproc_size_tdks     = nproc_size_global
+  nproc_group_tdks = nproc_group_global
+  nproc_id_tdks    = nproc_id_global
+  nproc_size_tdks  = nproc_size_global
 
   call read_arted()
   !call dump_inputdata
