@@ -87,21 +87,21 @@ subroutine current_stencil(C,E,F,G,H)
     & +C(11)*E(IDZ(3)) &
     & +C(12)*E(IDZ(4)))
 
-    H = H + imag(w * v)
+    H = H + aimag(w * v)
 
     v=(C( 5)*E(IDY(1)) &
     & +C( 6)*E(IDY(2)) &
     & +C( 7)*E(IDY(3)) &
     & +C( 8)*E(IDY(4)))
 
-    G = G + imag(w * v)
+    G = G + aimag(w * v)
 
     v=(C( 1)*E(IDX(1)) &
     & +C( 2)*E(IDX(2)) &
     & +C( 3)*E(IDX(3)) &
     & +C( 4)*E(IDX(4)))
 
-    F = F + imag(w * v)
+    F = F + aimag(w * v)
   end do
   end do
   end do

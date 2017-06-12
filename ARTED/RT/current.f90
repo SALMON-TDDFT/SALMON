@@ -192,7 +192,7 @@ contains
     jt=0.d0
 !dir$ vector aligned
     do i=0,NL-1
-      jt=jt+real(zutmp(i))**2+imag(zutmp(i))**2
+      jt=jt+real(zutmp(i))**2+aimag(zutmp(i))**2
     end do
 
     jx=occ(ib,ik)*kAc(ik,1)*jt
@@ -273,9 +273,9 @@ contains
       uVpsix=uVpsix*Hxyz
       uVpsiy=uVpsiy*Hxyz
       uVpsiz=uVpsiz*Hxyz
-      jxt=jxt+occ(ib,ik)*IaLxyz*2*imag(conjg(uVpsix)*uVpsi)
-      jyt=jyt+occ(ib,ik)*IaLxyz*2*imag(conjg(uVpsiy)*uVpsi)
-      jzt=jzt+occ(ib,ik)*IaLxyz*2*imag(conjg(uVpsiz)*uVpsi)
+      jxt=jxt+occ(ib,ik)*IaLxyz*2*aimag(conjg(uVpsix)*uVpsi)
+      jyt=jyt+occ(ib,ik)*IaLxyz*2*aimag(conjg(uVpsiy)*uVpsi)
+      jzt=jzt+occ(ib,ik)*IaLxyz*2*aimag(conjg(uVpsiz)*uVpsi)
     end do
 
     jx=jx*Hxyz*IaLxyz+jxt

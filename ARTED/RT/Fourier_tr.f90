@@ -51,21 +51,21 @@ Subroutine Fourier_tr
       if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
         write(7,'(1x,f13.7,6f22.14)') hw&
              &,(real(zeps(ixyz)),ixyz=1,3)&
-             &,(imag(zeps(ixyz)),ixyz=1,3)
+             &,(aimag(zeps(ixyz)),ixyz=1,3)
       else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
         write(7,'(1x,f13.7,12f22.14)') hw&
              &,(real(zsigma_w(ixyz)),ixyz=1,3)&
-             &,(imag(zsigma_w(ixyz)),ixyz=1,3)&
+             &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
              &,(real(zeps(ixyz)),ixyz=1,3)&
-             &,(imag(zeps(ixyz)),ixyz=1,3)
+             &,(aimag(zeps(ixyz)),ixyz=1,3)
       else
         write(7,'(1x,f13.7,18f22.14)') hw&
              &,(real(jav_w(ixyz)),ixyz=1,3)&
-             &,(imag(jav_w(ixyz)),ixyz=1,3)&
+             &,(aimag(jav_w(ixyz)),ixyz=1,3)&
              &,(real(E_ext_w(ixyz)),ixyz=1,3)&
-             &,(imag(E_ext_w(ixyz)),ixyz=1,3)&
+             &,(aimag(E_ext_w(ixyz)),ixyz=1,3)&
              &,(real(E_tot_w(ixyz)),ixyz=1,3)&
-             &,(imag(E_tot_w(ixyz)),ixyz=1,3)
+             &,(aimag(E_tot_w(ixyz)),ixyz=1,3)
       endif
     endif
   enddo
