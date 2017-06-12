@@ -236,11 +236,9 @@ contains
   
     if (comm_is_root(nproc_id_global)) then
 
-      print *, "#section: atomic_positions"
-      do i=1, NE
-        print '("#",4X,I1,",Zatom=",I1,",Lref=",I1)', i, Zatom(i), Lref(i)
-      end do
-      
+! 2017/06/12 S.A.S
+! This part will be moved to ./module/inputoutput.f90 after introducing 
+! reduced coordinates, Rion_red
       print *, "#section: atomic_positions"
       do i=1, NI
         print '("#",4X,I1,",Rion=",3ES12.5,",Kion=",I1)', i, Rion(:,i), Kion(i)
