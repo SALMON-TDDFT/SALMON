@@ -19,39 +19,35 @@
 
 Subroutine err_finalize(err_message)
   use Global_Variables
-  use communication
+  use salmon_parallel, only: nproc_id_global, end_parallel
+  use salmon_communication, only: comm_is_root
   implicit none
   character(*),intent(in) :: err_message
-  if (comm_is_root()) then
+  if (comm_is_root(nproc_id_global)) then
     write(*,*) err_message
   endif
-  call comm_finalize
+  call end_parallel
 
   stop
 End Subroutine Err_finalize
 
 
-subroutine arted(x_nprocs, x_myrank)
+subroutine arted
   use salmon_global, only:    use_ms_maxwell
   use Global_Variables, only: calc_mode, &
                             & calc_mode_sc, &
                             & calc_mode_ms
-  use communication,    only: proc_group, &
-                            & nprocs, &
-                            & procid
   use control_sc,       only: main_sc => main
   use control_ms,       only: main_ms => main
   use inputfile,        only: read_arted => read_input, &
                             & dump_inputdata
-  use mpi,              only: MPI_COMM_WORLD
+  use salmon_parallel
   
   implicit none
-  integer, intent(in) :: x_myrank
-  integer, intent(in) :: x_nprocs
-  
-  proc_group(:) = MPI_COMM_WORLD
-  nprocs(:) = x_nprocs
-  procid(:) = x_myrank
+
+  nproc_group_tdks = nproc_group_global
+  nproc_id_tdks    = nproc_id_global
+  nproc_size_tdks  = nproc_size_global
 
   call read_arted()
   !call dump_inputdata

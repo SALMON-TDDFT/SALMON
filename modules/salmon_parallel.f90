@@ -22,6 +22,12 @@ module salmon_parallel
   integer, public :: nproc_id_global
   integer, public :: nproc_size_global
 
+  ! TDKS eq.
+  integer, public :: nproc_group_tdks
+  integer, public :: nproc_id_tdks
+  integer, public :: nproc_size_tdks
+ 
+
   ! call once
   public :: setup_parallel
   public :: end_parallel

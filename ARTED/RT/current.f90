@@ -285,7 +285,8 @@ contains
 
   subroutine summation(jx,jy,jz)
     use Global_Variables, only: jav
-    use communication
+    use salmon_parallel, only: nproc_group_tdks
+    use salmon_communication, only: comm_summation
     use timer
     implicit none
     real(8),intent(in) :: jx,jy,jz
@@ -295,7 +296,7 @@ contains
     jav_l(1)=jx
     jav_l(2)=jy
     jav_l(3)=jz
-    call comm_summation(jav_l,jav,3,proc_group(2))
+    call comm_summation(jav_l,jav,3,nproc_group_tdks)
     call timer_end(LOG_ALLREDUCE)
   end subroutine
 end subroutine

@@ -16,7 +16,7 @@ program main
   case(0)
     call gceed(nproc_size_global, nproc_id_global)
   case(3)
-    call arted(nproc_size_global, nproc_id_global)
+    call arted
   case default
     stop 'invalid iperiodic'
   end select

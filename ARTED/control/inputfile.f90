@@ -24,7 +24,7 @@ contains
   
   subroutine read_namelist()
     use salmon_global
-    use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
+    use salmon_communication, only: comm_sync_all
     use Global_Variables
     implicit none
 
@@ -139,7 +139,8 @@ contains
 
   subroutine read_atomic_spiecies()
     use salmon_global
-    use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
+    use salmon_parallel, only: nproc_group_global, nproc_id_global
+    use salmon_communication, only: comm_is_root, comm_bcast, comm_sync_all
     use Global_Variables, only: NE, Zatom, Lref
     implicit none
     integer :: i, index, Zatom_tmp, Lref_tmp
@@ -147,18 +148,18 @@ contains
 
     allocate(Zatom(NE), Lref(NE))
 
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_global)) then
        do i=1, NE
           Zatom(i) = iZatom(i)
           Lref(i) = Lloc_ps(i)
        end do
     end if
 
-    call comm_bcast(Zatom, proc_group(1))
-    call comm_bcast(Lref, proc_group(1))
-    call comm_bcast(ipsfileform, proc_group(1))
+    call comm_bcast(Zatom, nproc_group_global)
+    call comm_bcast(Lref, nproc_group_global)
+    call comm_bcast(ipsfileform, nproc_group_global)
 
-!    if (comm_is_root()) then
+!    if (comm_is_root(nproc_id_global)) then
 !      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='old')
 !      do i=1, NE
 !        read(fh_atomic_spiecies, *) index, zatom_tmp, lref_tmp
@@ -171,8 +172,8 @@ contains
 !      end do
 !      close(fh_atomic_positions)
 !    end if
-!    call comm_bcast(Zatom, proc_group(1))
-!    call comm_bcast(Lref, proc_group(1))
+!    call comm_bcast(Zatom, nproc_group_global)
+!    call comm_bcast(Lref, nproc_group_global)
 
     call comm_sync_all()
     return
@@ -180,7 +181,8 @@ contains
 
 
   subroutine read_atomic_positions()
-    use communication, only: comm_is_root, comm_bcast, comm_sync_all, proc_group
+    use salmon_parallel, only: nproc_group_global, nproc_id_global
+    use salmon_communication, only: comm_is_root, comm_bcast, comm_sync_all
     use Global_Variables, only: NI, Rion, Kion
     implicit none
     integer :: i, Kion_tmp
@@ -226,12 +228,13 @@ contains
   
   
   subroutine dump_inputdata()
-    use communication, only: comm_is_root, comm_sync_all
+    use salmon_parallel, only: nproc_id_global
+    use salmon_communication, only: comm_is_root, comm_sync_all
     use Global_Variables
     implicit none
     integer :: i
   
-    if (comm_is_root()) then
+    if (comm_is_root(nproc_id_global)) then
 
       print *, "#section: atomic_positions"
       do i=1, NE
