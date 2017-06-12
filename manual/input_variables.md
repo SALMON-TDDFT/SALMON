@@ -166,13 +166,16 @@ Default is <code>0</code>.
 
 <dt>iperiodic; <code>Integer</code></dt>
 <dd>Dimension for periodic boundary condition.
-<code>0</code> is for solated systems, and 
+<code>0</code> is for isolated systems, and 
 <code>3</code> is for solids.
 Default is <code>0</code>.
 </dd>
 
 <dt>ispin; <code>Integer</code></dt>
-<dd>spin??
+<dd>Variable for classification of closed shell systems and open shell systems.
+<code>0</code> is for closed shell systems, and
+<code>1</code> is for open shell systems.
+Default is <code>0</code>
 </dd>
 
 <dt>al(3); <code>Real(8)</code></dt>
