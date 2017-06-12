@@ -15,6 +15,24 @@
   nproc_domain = 1,1,1
   nproc_domain_s = 1,1,1
 /
+&system
+  iperiodic = 0
+  al = 16d0, 16d0, 16d0
+  nstate = 5
+  nelem = 2
+  natom = 4
+  nelec = 10
+/
+&pseudo
+  iZatom(1)=6
+  iZatom(2)=1
+  pseudo_file(1)='C_rps.dat'
+  pseudo_file(2)='H_rps.dat'
+  Lmax_ps(1)=1
+  Lmax_ps(2)=0
+  Lloc_ps(1)=1
+  Lloc_ps(2)=0
+/
 &tgrid
   dt=1.25d-3
   nt=5000
@@ -26,4 +44,10 @@
 &hartree
   meo = 3
   num_pole_xyz = 2,2,2 
+/
+&atomic_coor
+'C'    0.000000    0.000000    0.599672  1
+'H'    0.000000    0.000000    1.662257  2
+'C'    0.000000    0.000000   -0.599672  1
+'H'    0.000000    0.000000   -1.662257  2
 /
