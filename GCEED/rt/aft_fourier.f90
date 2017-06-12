@@ -17,7 +17,6 @@ program aft_fourier
 implicit none
 integer :: t,j,iene,Nenergy
 integer,parameter :: Ntime=4000
-integer :: ibox
 real(8) :: rbox
 real(8), allocatable :: curr(:,:)
 real(8), allocatable :: curr2(:,:)

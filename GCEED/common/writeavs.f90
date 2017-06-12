@@ -19,7 +19,6 @@ subroutine writeavs(fp,suffix,tmatbox_l)
   integer, intent(IN) :: fp
   real(8), intent(IN) :: tmatbox_l(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),  &
                                    lg_sta(3):lg_end(3))
-  integer :: j,iatom
   character(30),intent(in):: suffix
   character(30):: filename
   integer::ix,iy,iz

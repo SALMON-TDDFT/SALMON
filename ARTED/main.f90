@@ -34,9 +34,6 @@ End Subroutine Err_finalize
 
 subroutine arted
   use salmon_global, only:    use_ms_maxwell
-  use Global_Variables, only: calc_mode, &
-                            & calc_mode_sc, &
-                            & calc_mode_ms
   use control_sc,       only: main_sc => main
   use control_ms,       only: main_ms => main
   use inputfile,        only: read_arted => transfer_input, &

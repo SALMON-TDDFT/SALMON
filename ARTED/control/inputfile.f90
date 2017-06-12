@@ -143,7 +143,7 @@ contains
     use salmon_communication, only: comm_is_root, comm_bcast, comm_sync_all
     use Global_Variables, only: NE, Zatom, Lref
     implicit none
-    integer :: i, index, Zatom_tmp, Lref_tmp
+    integer :: i
 !Note; NI = MI, NE = MKI
 
     allocate(Zatom(NE), Lref(NE))
@@ -180,37 +180,6 @@ contains
   end subroutine
 
 
-  subroutine read_atomic_positions()
-    use salmon_parallel, only: nproc_group_global, nproc_id_global
-    use salmon_communication, only: comm_is_root, comm_bcast, comm_sync_all
-    use Global_Variables, only: NI, Rion, Kion
-    implicit none
-    integer :: i, Kion_tmp
-    real(8) :: Rion_tmp(3)
-    character(32) :: char_atom
-    
-!    allocate(Rion(3,NI), Kion(NI))
-    
-!    if (comm_is_root()) then
-!      open(fh_atomic_coor, file='.atomic_positions.tmp', status='old')
-!      do i=1, NI
-!        read(fh_atomic_positions, *) char_atom, Rion_tmp, Kion_tmp
-!        Rion(:,i) = Rion_tmp
-!        Kion(i) = Kion_tmp
-!      end do
-!      close(fh_atomic_positions)
-!    end if
-!    call comm_bcast(Rion, proc_group(1))
-!    call comm_bcast(Kion, proc_group(1))
-!    call comm_sync_all()
-
-    return
-  end subroutine read_atomic_positions
-
-
-
-
-
   subroutine transfer_input()
     use global_variables, only: entrance_option
     implicit none
@@ -219,7 +188,6 @@ contains
     call read_namelist()
     if(entrance_option == 'reentrance')return
     call read_atomic_spiecies()
-    call read_atomic_positions()
     call dump_inputdata()
 
     return

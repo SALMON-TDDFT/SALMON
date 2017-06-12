@@ -27,7 +27,7 @@ Subroutine input_pseudopotential_YS
   implicit none
   integer,parameter :: Lmax0=4,Nrmax0=50000
   real(8),parameter :: Eps0=1d-10
-  integer :: ik,Mr,l,i,ik2
+  integer :: ik,Mr,l,i
   real(8) :: rRC(0:Lmax0)
   real(8) :: r1,r2,r3,r4
   real(8) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)   !zero in radial index for taking derivative
@@ -35,7 +35,6 @@ Subroutine input_pseudopotential_YS
   real(8) :: rhor_nlcc(0:Nrmax0,0:2)   !zero in radial index for taking derivative
   character(2) :: atom_symbol
   character(256) :: ps_file
-  character(10) :: ps_postfix
   integer :: ips_type,nlen_psf
   logical,allocatable :: flag_nlcc_element(:)
 
