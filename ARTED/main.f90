@@ -39,7 +39,7 @@ subroutine arted
                             & calc_mode_ms
   use control_sc,       only: main_sc => main
   use control_ms,       only: main_ms => main
-  use inputfile,        only: read_arted => read_input, &
+  use inputfile,        only: read_arted => transfer_input, &
                             & dump_inputdata
   use salmon_parallel
   

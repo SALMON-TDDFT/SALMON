@@ -5,12 +5,7 @@ program main
   implicit none
 
   call setup_parallel
-  call read_stdin
-  call read_input_common
-  call read_atomic_coordinates
-  call dump_input_common
-! read_stdin, read_input_common and dump_input_common will be wrapped by 
-! a single routine routine after implimentation for MPI wrapper
+  call read_input
 
   select case(iperiodic)
   case(0)

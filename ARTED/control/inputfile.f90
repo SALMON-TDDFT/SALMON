@@ -211,7 +211,7 @@ contains
 
 
 
-  subroutine read_input()
+  subroutine transfer_input()
     use global_variables, only: entrance_option
     implicit none
     
@@ -223,7 +223,7 @@ contains
     call dump_inputdata()
 
     return
-  end subroutine read_input
+  end subroutine transfer_input
   
   
   

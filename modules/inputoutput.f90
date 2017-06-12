@@ -74,6 +74,15 @@ module inputoutput
   real(8) :: ucharge_to_au, ucharge_from_au
 
 contains
+  subroutine read_input
+    implicit none
+
+    call read_stdin
+    call read_input_common ! Should be renamed properly later
+    call read_atomic_coordinates
+    call dump_input_common ! Should be renamed properly later
+
+  end subroutine read_input
 
 
   subroutine read_stdin
