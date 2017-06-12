@@ -1,40 +1,33 @@
 &units
-unit_length='Angstrom'
-unit_energy='eV'
-unit_time='fs'
+  unit_length='Angstrom'
+  unit_energy='eV'
+  unit_time='fs'
 /
-
 &calculation
   calc_mode='RT'
 /
-
 &control
   sysname = 'C2H2'
 /
-
 &parallel
   domain_parallel = 'y'
   nproc_ob = 1
   nproc_domain = 1,1,1
   nproc_domain_s = 1,1,1
 /
-
 &tgrid
   dt=1.25d-3
-  Nt=100
+  nt=24000
 /
-
 &emfield
-  ae_shape1 = 'impulse'
+  ae_shape1 = 'esin2sin'
   epdir_re1 = 0.d0,0.d0,1.d0
-  epdir_re2 = 0.d0,0.d0,0.d0
-/
-&linear_response
+  rlaser_int1 = 1.d8
+  omega1=9.26d0
+  pulse_tw1=30.d0
+  phi_cep1=0.75d0
 /
 &hartree
- meo = 3
- num_pole_xyz = 2,2,2 
-/
-
-&group_others
+  meo = 3
+  num_pole_xyz = 2,2,2 
 /
