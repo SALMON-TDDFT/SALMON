@@ -188,7 +188,9 @@ contains
       & isym, &
       & crystal_structure, &
       & nstate, &
+      & nstate_spin, &
       & nelec, &
+      & nelec_spin, &
       & temperature, &
       & nelem, &
       & natom, &
@@ -356,7 +358,9 @@ contains
     isym               = 1
     crystal_structure  = 'none'
     nstate             = 0
+    nstate_spin(:)     = 0
     nelec              = 0
+    nelec_spin (:)     = 0
     temperature        = -1d0
     nelem              = 0
     natom              = 0
@@ -551,7 +555,9 @@ contains
     call comm_bcast(isym               ,nproc_group_global)
     call comm_bcast(crystal_structure  ,nproc_group_global)
     call comm_bcast(nstate             ,nproc_group_global)
+    call comm_bcast(nstate_spin        ,nproc_group_global)
     call comm_bcast(nelec              ,nproc_group_global)
+    call comm_bcast(nelec_spin         ,nproc_group_global)
     call comm_bcast(temperature        ,nproc_group_global)
     call comm_bcast(nelem              ,nproc_group_global)
     call comm_bcast(natom              ,nproc_group_global)
@@ -869,7 +875,9 @@ contains
       print '("#",4X,A,"=",I1)', 'isym', isym
       print '("#",4X,A,"=",A)', 'crystal_structure', crystal_structure
       print '("#",4X,A,"=",I4)', 'nstate', nstate
+      print '("#",4X,A,"=",I4,2x,I4)', 'nstate_spin(1:2)', nstate_spin
       print '("#",4X,A,"=",I4)', 'nelec', nelec
+      print '("#",4X,A,"=",I4,2x,I4)', 'nelec_spin(1:2)', nelec_spin
       print '("#",4X,A,"=",ES12.5)', 'temperature', temperature
       print '("#",4X,A,"=",I4)', 'nelem', nelem
       print '("#",4X,A,"=",I4)', 'natom', natom

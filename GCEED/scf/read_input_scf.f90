@@ -32,8 +32,8 @@ integer :: inml_group_fundamental, &
          & inml_group_others
 namelist / group_fundamental / imesh_oddeven,iDiterYBCG,   &
                                iDiter_nosubspace_diag, &
-                               ntmg, MST, &
-                               ifMST, ithresholdVh, threshold_norm_diff_rho, &
+                               ntmg, &
+                               ithresholdVh, threshold_norm_diff_rho, &
                                threshold_square_norm_diff_Vlocal
 
 namelist / group_parallel/ isequential,imesh_s_all
@@ -77,10 +77,27 @@ Harray(1:3,1:maxntmg)=0.d0
 rLsize(1:3,1:maxntmg)=0.d0
 iDiter(1:maxntmg)=1000
 
-ilsda=0
+ilsda = ispin
 
-MST(1:2)=0
-ifMST(1:2)=0
+if(ispin == 0)then
+  MST(1)=nstate
+  ifMST(1)=nelec/2
+  MST(2)=0
+  ifMST(2)=0
+else if(ispin == 1)then
+   if(nstate /= 0 .and. sum(nstate_spin) ==0)then
+      MST(1:2)=nstate
+      ifMST(1)=nelec - nelec/2
+      ifMST(2)=nelec/2
+   else if(nstate == 0 .and. sum(nstate_spin) /=0)then
+      MST(1:2)=nstate_spin(1:2)
+      ifMST(1:2)=nelec_spin(1:2)
+   else
+      write(*,*)"'nstate' or 'nstate_spin' should be spacified in input. "
+   end if
+else 
+   write(*,*)"'ispin' should be 0 or 1. "
+end if
 
 if(myrank==0)then
   read(fh_namelist,NML=group_fundamental, iostat=inml_group_fundamental) 

@@ -66,7 +66,9 @@ module salmon_global
   integer        :: isym
   character(32)  :: crystal_structure
   integer        :: nstate
+  integer        :: nstate_spin(2)
   integer        :: nelec
+  integer        :: nelec_spin(2)
   real(8)        :: temperature
   integer        :: nelem
   integer        :: natom
