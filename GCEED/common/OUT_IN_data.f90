@@ -591,7 +591,7 @@ if(iflag_ps.eq.1)then
    end if
 
   if(iSCFRT==2) then
-    allocate( Kion(MI),Rion(3,MI) )
+!    allocate( Kion(MI),Rion(3,MI) )
   end if
   if(iSCFRT==2) allocate( AtomName(MI), iAtomicNumber(MI) )
   if(myrank.eq.0)then
