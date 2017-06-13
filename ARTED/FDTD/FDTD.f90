@@ -153,7 +153,6 @@ subroutine init_Ac_ms
   real(8) length_y
   
   call comm_sync_all
-  if(comm_is_root(nproc_id_global))write(*,*)'ok8-1-1'
 
 !  BC_my='isolated'
 !  BC_my='periodic'
@@ -383,9 +382,6 @@ subroutine init_Ac_ms
 
 
 
-
-  
-  if(comm_is_root(nproc_id_global)) write(*,*)'ok fdtd 02'
   call comm_sync_all
 
   select case(TwoD_shape)

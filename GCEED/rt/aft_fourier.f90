@@ -17,7 +17,6 @@ program aft_fourier
 implicit none
 integer :: t,j,iene,Nenergy
 integer,parameter :: Ntime=4000
-integer :: ibox
 real(8) :: rbox
 real(8), allocatable :: curr(:,:)
 real(8), allocatable :: curr2(:,:)
@@ -62,7 +61,7 @@ do iene=1,Nenergy
 !  zalpha(1:3)=1.d0/(1.d0+4.d0*Pi*zi*zalpha(1:3)/hw)
 !  zalpha(1:3)=1.d0+4.d0*Pi*zi*zalpha(1:3)/hw
 !  zalpha(1:3)=1.d0+4.d0*Pi*zi*zalpha(1:3)/hw/F
-  write(11,'(f12.4,6e14.6)') hw*2.d0*Ry,(real(zalpha(j),8),j=1,3),(imag(zalpha(j)),j=1,3)
+  write(11,'(f12.4,6e14.6)') hw*2.d0*Ry,(real(zalpha(j),8),j=1,3),(aimag(zalpha(j)),j=1,3)
 end do
 
 

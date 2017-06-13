@@ -23,6 +23,7 @@ module inputoutput
   real(8),parameter :: au_length_aa = 0.52917721067d0
 
 
+  integer, parameter :: fh_variables_log = 801
   integer, parameter :: fh_namelist = 901
   integer, parameter :: fh_atomic_spiecies = 902
   integer, parameter :: fh_atomic_coor = 903
@@ -74,6 +75,15 @@ module inputoutput
   real(8) :: ucharge_to_au, ucharge_from_au
 
 contains
+  subroutine read_input
+    implicit none
+
+    call read_stdin
+    call read_input_common ! Should be renamed properly later
+    call read_atomic_coordinates
+    call dump_input_common ! Should be renamed properly later
+
+  end subroutine read_input
 
 
   subroutine read_stdin
@@ -829,202 +839,206 @@ contains
 
     if (comm_is_root(nproc_id_global)) then
 
+      open(fh_variables_log,file='variables.log')
+
       if(inml_calculation >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'calculation', inml_calculation
-      print '("#",4X,A,"=",A)', 'calc_mode', calc_mode
-      print '("#",4X,A,"=",A)', 'use_ehrenfest_md', use_ehrenfest_md
-      print '("#",4X,A,"=",A)', 'use_ms_maxwell', use_ms_maxwell
-      print '("#",4X,A,"=",A)', 'use_force', use_force
-      print '("#",4X,A,"=",A)', 'use_geometry_opt', use_geometry_opt
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'calculation', inml_calculation
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'calc_mode', calc_mode
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'use_ehrenfest_md', use_ehrenfest_md
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'use_ms_maxwell', use_ms_maxwell
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'use_force', use_force
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'use_geometry_opt', use_geometry_opt
 
       if(inml_control >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'control', inml_control
-      print '("#",4X,A,"=",A)', 'restart_option', restart_option
-      print '("#",4X,A,"=",I5)', 'backup_frequency', backup_frequency
-      print '("#",4X,A,"=",ES12.5)', 'time_shutdown', time_shutdown
-      print '("#",4X,A,"=",A)', 'sysname', sysname
-      print '("#",4X,A,"=",A)', 'directory', directory
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'control', inml_control
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'restart_option', restart_option
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'backup_frequency', backup_frequency
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'time_shutdown', time_shutdown
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'sysname', trim(sysname)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'directory', trim(directory)
 
       if(inml_units >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'units', inml_units
-      print '("#",4X,A,"=",A)', 'unit_time', unit_time
-      print '("#",4X,A,"=",A)', 'unit_length', unit_length
-      print '("#",4X,A,"=",A)', 'unit_energy', unit_energy
-      print '("#",4X,A,"=",A)', 'unit_charge', unit_charge
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'units', inml_units
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_time', unit_time
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_length', unit_length
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_energy', unit_energy
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_charge', unit_charge
 
       if(inml_parallel >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'parallel', inml_parallel
-      print '("#",4X,A,"=",A)', 'domain_parallel', domain_parallel
-      print '("#",4X,A,"=",I5)', 'nproc_ob', nproc_ob
-      print '("#",4X,A,"=",I5)', 'nproc_domain(1)', nproc_domain(1)
-      print '("#",4X,A,"=",I5)', 'nproc_domain(2)', nproc_domain(2)
-      print '("#",4X,A,"=",I5)', 'nproc_domain(3)', nproc_domain(3)
-      print '("#",4X,A,"=",I5)', 'nproc_domain_s(1)', nproc_domain_s(1)
-      print '("#",4X,A,"=",I5)', 'nproc_domain_s(2)', nproc_domain_s(2)
-      print '("#",4X,A,"=",I5)', 'nproc_domain_s(3)', nproc_domain_s(3)
-      print '("#",4X,A,"=",I5)', 'num_datafiles_in', num_datafiles_in
-      print '("#",4X,A,"=",I5)', 'num_datafiles_out', num_datafiles_out
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'parallel', inml_parallel
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'domain_parallel', domain_parallel
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_ob', nproc_ob
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain(1)', nproc_domain(1)
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain(2)', nproc_domain(2)
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain(3)', nproc_domain(3)
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain_s(1)', nproc_domain_s(1)
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain_s(2)', nproc_domain_s(2)
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain_s(3)', nproc_domain_s(3)
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'num_datafiles_in', num_datafiles_in
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'num_datafiles_out', num_datafiles_out
 
       if(inml_system >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'system', inml_system
-      print '("#",4X,A,"=",I1)', 'iperiodic', iperiodic
-      print '("#",4X,A,"=",I1)', 'ispin', ispin
-      print '("#",4X,A,"=",ES12.5)', 'al(1)', al(1)
-      print '("#",4X,A,"=",ES12.5)', 'al(2)', al(2)
-      print '("#",4X,A,"=",ES12.5)', 'al(3)', al(3)
-      print '("#",4X,A,"=",I1)', 'isym', isym
-      print '("#",4X,A,"=",A)', 'crystal_structure', crystal_structure
-      print '("#",4X,A,"=",I4)', 'nstate', nstate
-      print '("#",4X,A,"=",I4,2x,I4)', 'nstate_spin(1:2)', nstate_spin
-      print '("#",4X,A,"=",I4)', 'nelec', nelec
-      print '("#",4X,A,"=",I4,2x,I4)', 'nelec_spin(1:2)', nelec_spin
-      print '("#",4X,A,"=",ES12.5)', 'temperature', temperature
-      print '("#",4X,A,"=",I4)', 'nelem', nelem
-      print '("#",4X,A,"=",I4)', 'natom', natom
-      print '("#",4X,A,"=",A)', 'file_atom_coor', trim(file_atom_coor)
-      print '("#",4X,A,"=",A)', 'file_atom_red_coor', trim(file_atom_red_coor)
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'system', inml_system
+      write(fh_variables_log, '("#",4X,A,"=",I1)') 'iperiodic', iperiodic
+      write(fh_variables_log, '("#",4X,A,"=",I1)') 'ispin', ispin
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'al(1)', al(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'al(2)', al(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'al(3)', al(3)
+      write(fh_variables_log, '("#",4X,A,"=",I1)') 'isym', isym
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'crystal_structure', crystal_structure
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nstate', nstate
+      write(fh_variables_log, '("#",4X,A,"=",I4,2x,I4)') 'nstate_spin(1:2)', nstate_spin
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nelec', nelec
+      write(fh_variables_log, '("#",4X,A,"=",I4,2x,I4)') 'nelec_spin(1:2)', nelec_spin
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature', temperature
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nelem', nelem
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'natom', natom
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_atom_coor', trim(file_atom_coor)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_atom_red_coor', trim(file_atom_red_coor)
 
       if(inml_pseudo >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'pseudo', inml_pseudo
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'pseudo', inml_pseudo
 
       do i = 1,nelem
-        print '("#",4X,A,I2,A,"=",A)', 'pseudo_file(',i,')', trim(pseudo_file(i))
-        print '("#",4X,A,I2,A,"=",I4)', 'Lmax_ps(',i,')', Lmax_ps(i)
-        print '("#",4X,A,I2,A"=",I4)', 'Lloc_ps(',i,')', Lloc_ps(i)
-        print '("#",4X,A,I2,A"=",I4)', 'iZatom(',i,')', iZatom(i)
+        write(fh_variables_log, '("#",4X,A,I2,A,"=",A)') 'pseudo_file(',i,')', trim(pseudo_file(i))
+        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'Lmax_ps(',i,')', Lmax_ps(i)
+        write(fh_variables_log, '("#",4X,A,I2,A"=",I4)') 'Lloc_ps(',i,')', Lloc_ps(i)
+        write(fh_variables_log, '("#",4X,A,I2,A"=",I4)') 'iZatom(',i,')', iZatom(i)
       end do
-      print '("#",4X,A,"=",A)', 'psmask_option', psmask_option
-      print '("#",4X,A,"=",ES12.5)', 'alpha_mask', alpha_mask
-      print '("#",4X,A,"=",ES12.5)', 'gamma_mask', gamma_mask
-      print '("#",4X,A,"=",ES12.5)', 'eta_mask', eta_mask
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'psmask_option', psmask_option
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'alpha_mask', alpha_mask
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'gamma_mask', gamma_mask
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'eta_mask', eta_mask
 
       if(inml_functional >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'functional', inml_functional
-      print '("#",4X,A,"=",A)', 'xc', xc
-      print '("#",4X,A,"=",ES12.5)', 'cval', cval
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'functional', inml_functional
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'xc', trim(xc)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cval', cval
 
       if(inml_rgrid >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'rgrid', inml_rgrid
-      print '("#",4X,A,"=",ES12.5)', 'dl(1)', dl(1)
-      print '("#",4X,A,"=",ES12.5)', 'dl(2)', dl(2)
-      print '("#",4X,A,"=",ES12.5)', 'dl(3)', dl(3)
-      print '("#",4X,A,"=",I4)', 'num_rgrid(1)', num_rgrid(1)
-      print '("#",4X,A,"=",I4)', 'num_rgrid(2)', num_rgrid(2)
-      print '("#",4X,A,"=",I4)', 'num_rgrid(3)', num_rgrid(3)
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'rgrid', inml_rgrid
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl(1)', dl(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl(2)', dl(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl(3)', dl(3)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_rgrid(1)', num_rgrid(1)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_rgrid(2)', num_rgrid(2)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_rgrid(3)', num_rgrid(3)
 
       if(inml_kgrid >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I1)', 'kgrid', inml_kgrid
-      print '("#",4X,A,"=",I4)', 'num_kgrid(1)', num_kgrid(1)
-      print '("#",4X,A,"=",I4)', 'num_kgrid(2)', num_kgrid(2)
-      print '("#",4X,A,"=",I4)', 'num_kgrid(3)', num_kgrid(3)
-      print '("#",4X,A,"=",A)', 'file_kw', file_kw
+      write(fh_variables_log, '("#namelist: ",A,", status=",I1)') 'kgrid', inml_kgrid
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_kgrid(1)', num_kgrid(1)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_kgrid(2)', num_kgrid(2)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_kgrid(3)', num_kgrid(3)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_kw', trim(file_kw)
 
       if(inml_tgrid >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'tgrid', inml_tgrid
-      print '("#",4X,A,"=",I6)', 'nt', nt
-      print '("#",4X,A,"=",ES12.5)', 'dt', dt
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'tgrid', inml_tgrid
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'nt', nt
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dt', dt
 
       if(inml_scf >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'scf', inml_scf
-      print '("#",4X,A,"=",I3)', 'ncg', ncg
-      print '("#",4X,A,"=",I3)', 'nmemory_mb', nmemory_mb
-      print '("#",4X,A,"=",ES12.5)', 'alpha_mb', alpha_mb
-      print '("#",4X,A,"=",A)', 'fsset_option', fsset_option
-      print '("#",4X,A,"=",I3)', 'nfsset_start', nfsset_start
-      print '("#",4X,A,"=",I3)', 'nfsset_every', nfsset_every
-      print '("#",4X,A,"=",I3)', 'nscf', nscf
-      print '("#",4X,A,"=",I3)', 'ngeometry_opt', ngeometry_opt
-      print '("#",4X,A,"=",A)', 'subspace_diagonalization', subspace_diagonalization
-      print '("#",4X,A,"=",A)', 'cmixing', cmixing
-      print '("#",4X,A,"=",ES12.5)', 'rmixrate', rmixrate
-      print '("#",4X,A,"=",A)', 'convergence', convergence
-      print '("#",4X,A,"=",ES12.5)', 'threshold', threshold
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'scf', inml_scf
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'ncg', ncg
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'nmemory_mb', nmemory_mb
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'alpha_mb', alpha_mb
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'fsset_option', fsset_option
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'nfsset_start', nfsset_start
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'nfsset_every', nfsset_every
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'nscf', nscf
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'ngeometry_opt', ngeometry_opt
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'subspace_diagonalization', subspace_diagonalization
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'cmixing', cmixing
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rmixrate', rmixrate
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'convergence', convergence
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold', threshold
 
       if(inml_emfield >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'emfield', inml_emfield
-      print '("#",4X,A,"=",A)', 'trans_longi', trans_longi
-      print '("#",4X,A,"=",A)', 'ae_shape1', ae_shape1
-      print '("#",4X,A,"=",ES12.5)', 'amplitude1', amplitude1
-      print '("#",4X,A,"=",ES12.5)', 'rlaser_int1', rlaser_int1
-      print '("#",4X,A,"=",ES12.5)', 'pulse_tw1', pulse_tw1
-      print '("#",4X,A,"=",ES12.5)', 'omega1', omega1
-      print '("#",4X,A,"=",ES12.5)', 'epdir_re1(1)', epdir_re1(1)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_re1(2)', epdir_re1(2)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_re1(3)', epdir_re1(3)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_im1(1)', epdir_im1(1)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_im1(2)', epdir_im1(2)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_im1(3)', epdir_im1(3)
-      print '("#",4X,A,"=",ES12.5)', 'phi_cep1', phi_cep1
-      print '("#",4X,A,"=",A)', 'ae_shape2', ae_shape2
-      print '("#",4X,A,"=",ES12.5)', 'amplitude2', amplitude2
-      print '("#",4X,A,"=",ES12.5)', 'rlaser_int2', rlaser_int2
-      print '("#",4X,A,"=",ES12.5)', 'pulse_tw2', pulse_tw2
-      print '("#",4X,A,"=",ES12.5)', 'omega2', omega2
-      print '("#",4X,A,"=",ES12.5)', 'epdir_re2(1)', epdir_re2(1)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_re2(2)', epdir_re2(2)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_re2(3)', epdir_re2(3)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_im2(1)', epdir_im2(1)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_im2(2)', epdir_im2(2)
-      print '("#",4X,A,"=",ES12.5)', 'epdir_im2(3)', epdir_im2(3)
-      print '("#",4X,A,"=",ES12.5)', 'phi_cep2', phi_cep2
-      print '("#",4X,A,"=",ES12.5)', 't1_t2', t1_t2
-      print '("#",4X,A,"=",A)', 'quadrupole', quadrupole
-      print '("#",4X,A,"=",A)', 'quadrupole_pot', quadrupole_pot
-      print '("#",4X,A,"=",A)', 'alocal_laser', alocal_laser
-      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(1)', rlaserbound_sta(1)
-      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(2)', rlaserbound_sta(2)
-      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_sta(3)', rlaserbound_sta(3)
-      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(1)', rlaserbound_end(1)
-      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(2)', rlaserbound_end(2)
-      print '("#",4X,A,"=",ES12.5)', 'rlaserbound_end(3)', rlaserbound_end(3)
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'emfield', inml_emfield
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'trans_longi', trans_longi
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'ae_shape1', ae_shape1
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'amplitude1', amplitude1
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaser_int1', rlaser_int1
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'pulse_tw1', pulse_tw1
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'omega1', omega1
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re1(1)', epdir_re1(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re1(2)', epdir_re1(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re1(3)', epdir_re1(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_im1(1)', epdir_im1(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_im1(2)', epdir_im1(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_im1(3)', epdir_im1(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'phi_cep1', phi_cep1
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'ae_shape2', ae_shape2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'amplitude2', amplitude2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaser_int2', rlaser_int2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'pulse_tw2', pulse_tw2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'omega2', omega2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re2(1)', epdir_re2(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re2(2)', epdir_re2(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re2(3)', epdir_re2(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_im2(1)', epdir_im2(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_im2(2)', epdir_im2(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_im2(3)', epdir_im2(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'phi_cep2', phi_cep2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 't1_t2', t1_t2
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'quadrupole', quadrupole
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'quadrupole_pot', quadrupole_pot
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'alocal_laser', alocal_laser
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_sta(1)', rlaserbound_sta(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_sta(2)', rlaserbound_sta(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_sta(3)', rlaserbound_sta(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(1)', rlaserbound_end(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(2)', rlaserbound_end(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(3)', rlaserbound_end(3)
 
       if(inml_linear_response >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'linear_response', inml_linear_response
-      print '("#",4X,A,"=",ES12.5)', 'e_impulse', e_impulse
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'linear_response', inml_linear_response
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'e_impulse', e_impulse
 
-      print '("#namelist: ",A,", status=",I3)', 'multiscale', inml_multiscale
-      print '("#",4X,A,"=",A)', 'fdtddim', fdtddim
-      print '("#",4X,A,"=",A)', 'twod_shape', twod_shape
-      print '("#",4X,A,"=",I4)', 'nx_m', nx_m
-      print '("#",4X,A,"=",I4)', 'ny_m', ny_m
-      print '("#",4X,A,"=",I4)', 'nz_m', nz_m
-      print '("#",4X,A,"=",ES12.5)', 'hx_m', hx_m
-      print '("#",4X,A,"=",ES12.5)', 'hy_m', hy_m
-      print '("#",4X,A,"=",ES12.5)', 'hz_m', hz_m
-      print '("#",4X,A,"=",I4)', 'nksplit', nksplit
-      print '("#",4X,A,"=",I4)', 'nxysplit', nxysplit
-      print '("#",4X,A,"=",I4)', 'nxvacl_m', nxvacl_m
-      print '("#",4X,A,"=",I4)', 'nxvacr_m', nxvacr_m
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'multiscale', inml_multiscale
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'fdtddim', fdtddim
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'twod_shape', twod_shape
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nx_m', nx_m
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'ny_m', ny_m
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nz_m', nz_m
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'hx_m', hx_m
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'hy_m', hy_m
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'hz_m', hz_m
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nksplit', nksplit
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nxysplit', nxysplit
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nxvacl_m', nxvacl_m
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nxvacr_m', nxvacr_m
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'analysis', inml_analysis
-      print '("#",4X,A,"=",A)', 'projection_option', projection_option
-      print '("#",4X,A,"=",I6)', 'nenergy', nenergy
-      print '("#",4X,A,"=",ES12.5)', 'de', de
-      print '("#",4X,A,"=",A)', 'out_psi', out_psi
-      print '("#",4X,A,"=",A)', 'out_dos', out_dos
-      print '("#",4X,A,"=",A)', 'out_pdos', out_pdos
-      print '("#",4X,A,"=",A)', 'out_dns', out_dns
-      print '("#",4X,A,"=",A)', 'out_elf', out_elf
-      print '("#",4X,A,"=",A)', 'out_dns_rt', out_dns_rt
-      print '("#",4X,A,"=",I6)', 'out_dns_rt_step', out_dns_rt_step
-      print '("#",4X,A,"=",A)', 'out_elf_rt', out_elf_rt
-      print '("#",4X,A,"=",I6)', 'out_elf_rt_step', out_elf_rt_step
-      print '("#",4X,A,"=",A)', 'out_estatic_rt', out_estatic_rt
-      print '("#",4X,A,"=",I6)', 'out_estatic_rt_step', out_estatic_rt_step
-      print '("#",4X,A,"=",A)', 'format3d', format3d
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'projection_option', projection_option
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'nenergy', nenergy
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'de', de
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_psi', out_psi
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dos', out_dos
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_pdos', out_pdos
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns', out_dns
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns_rt', out_dns_rt
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_dns_rt_step', out_dns_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf_rt', out_elf_rt
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_elf_rt_step', out_elf_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_estatic_rt', out_estatic_rt
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_estatic_rt_step', out_estatic_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'format3d', format3d
 
       if(inml_hartree >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'hartree', inml_hartree
-      print '("#",4X,A,"=",I4)', 'meo', meo
-      print '("#",4X,A,"=",I4)', 'num_pole_xyz(1)', num_pole_xyz(1)
-      print '("#",4X,A,"=",I4)', 'num_pole_xyz(2)', num_pole_xyz(2)
-      print '("#",4X,A,"=",I4)', 'num_pole_xyz(3)', num_pole_xyz(3)
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'hartree', inml_hartree
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'meo', meo
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_pole_xyz(1)', num_pole_xyz(1)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_pole_xyz(2)', num_pole_xyz(2)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_pole_xyz(3)', num_pole_xyz(3)
 
       if(inml_ewald >0)ierr_nml = ierr_nml +1
-      print '("#namelist: ",A,", status=",I3)', 'ewald', inml_ewald
-      print '("#",4X,A,"=",I3)', 'newald', newald
-      print '("#",4X,A,"=",ES12.5)', 'aewald', aewald
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'ewald', inml_ewald
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'newald', newald
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'aewald', aewald
+
+      close(fh_variables_log)
 
     end if
 

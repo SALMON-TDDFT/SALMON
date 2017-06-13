@@ -1296,7 +1296,7 @@ do iene=0,Nenergy
     zalpha=zalpha*dt 
   end if
   alpha_R(:,iene)=real(zalpha(:),8)    ! Real part
-  alpha_I(:,iene)=imag(zalpha(:))      ! Imaginary part
+  alpha_I(:,iene)=aimag(zalpha(:))      ! Imaginary part
 end do
 
 deallocate(zalpha)

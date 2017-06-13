@@ -58,7 +58,7 @@ end subroutine write_density_cube
 
 
 subroutine write_density_vtk(fh, write_difference)
-  use Global_Variables, only: NLx, NLy, NLz, aLx, aLy, aLz, Hx, Hy, Hz, Lxyz, Rho, Rho_gs 
+  use Global_Variables, only: NLx, NLy, NLz, Hx, Hy, Hz, Lxyz, Rho, Rho_gs 
   implicit none
   integer, intent(in) :: fh
   logical, intent(in) :: write_difference
@@ -91,14 +91,14 @@ subroutine write_density_vtk(fh, write_difference)
 end subroutine write_density_vtk
   
 
-
-subroutine write_density_avs(fh, write_difference)
-  implicit none
-  integer, intent(in) :: fh
-  logical, intent(in) :: write_difference
-  
-  !todo: please create exporter for "avs express"
-end subroutine write_density_avs
+!! write_density_avs is not inplemented yet!!
+!subroutine write_density_avs(fh, write_difference)
+!  implicit none
+!  integer, intent(in) :: fh
+!  logical, intent(in) :: write_difference
+!  
+!  !todo: please create exporter for "avs express"
+!end subroutine write_density_avs
 
 
 
