@@ -29,6 +29,7 @@ subroutine main
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
   use misc_routines, only: get_wtime
   use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
+  use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
   logical :: Rion_update
@@ -451,12 +452,33 @@ subroutine main
     if(comm_is_root(nproc_id_global))then
       if (iter/1000*1000 == iter .or. iter == Nt) then
         open(407,file=file_j_ac)
+        write(407,'(A)')'# J     : Matter current density'
+        write(407,'(A)')'# Ac_ext: External vector-potential devided by light-velocity'
+        write(407,'(A)')'# Ac_tot: Total Vector-potential devided by light-velocity'
+        write(407,'(A1,A25,9A26)')'#','Time ['//trim(t_unit_time%name)//']', &
+             'Jx ['//trim(t_unit_current%name)//']', &
+             'Jy ['//trim(t_unit_current%name)//']', &
+             'Jz ['//trim(t_unit_current%name)//']', &
+             'Ac_ext_x ['//trim(t_unit_ac%name)//']', &
+             'Ac_ext_y ['//trim(t_unit_ac%name)//']', &
+             'Ac_ext_z ['//trim(t_unit_ac%name)//']', &
+             'Ac_tot_x ['//trim(t_unit_ac%name)//']', &
+             'Ac_tot_y ['//trim(t_unit_ac%name)//']', &
+             'Ac_tot_z ['//trim(t_unit_ac%name)//']'
         do i=0,Nt
-          write(407,'(100e26.16E3)') i*dt,javt(i,1),javt(i,2),javt(i,3),&
-            &Ac_ext(i,1),Ac_ext(i,2),Ac_ext(i,3),Ac_tot(i,1),Ac_tot(i,2),Ac_tot(i,3)
+          write(407,'(100e26.16E3)') i*dt*t_unit_time%conv, &
+                                     javt(i,1)*t_unit_current%conv, &
+                                     javt(i,2)*t_unit_current%conv, &
+                                     javt(i,3)*t_unit_current%conv, &
+                                     Ac_ext(i,1)*t_unit_ac%conv, &
+                                     Ac_ext(i,2)*t_unit_ac%conv, &
+                                     Ac_ext(i,3)*t_unit_ac%conv, &
+                                     Ac_tot(i,1)*t_unit_ac%conv, &
+                                     Ac_tot(i,2)*t_unit_ac%conv, &
+                                     Ac_tot(i,3)*t_unit_ac%conv
         end do
-        write(407,'(100e26.16E3)') (Nt+1)*dt,javt(Nt,1),javt(Nt,2),javt(Nt,3),&
-          &Ac_ext(Nt+1,1),Ac_ext(Nt+1,2),Ac_ext(Nt+1,3),Ac_tot(Nt+1,1),Ac_tot(Nt+1,2),Ac_tot(Nt+1,3)
+!        write(407,'(100e26.16E3)') (Nt+1)*dt,javt(Nt,1),javt(Nt,2),javt(Nt,3),&
+!          &Ac_ext(Nt+1,1),Ac_ext(Nt+1,2),Ac_ext(Nt+1,3),Ac_tot(Nt+1,1),Ac_tot(Nt+1,2),Ac_tot(Nt+1,3)
         close(407)
       end if
     end if
