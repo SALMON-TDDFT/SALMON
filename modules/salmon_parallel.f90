@@ -26,7 +26,35 @@ module salmon_parallel
   integer, public :: nproc_group_tdks
   integer, public :: nproc_id_tdks
   integer, public :: nproc_size_tdks
- 
+
+  integer, public :: nproc_group_spin
+  integer, public :: nproc_id_spin
+  integer, public :: nproc_size_spin
+
+  integer, public :: nproc_group_grid
+  integer, public :: nproc_id_grid
+  integer, public :: nproc_size_grid
+
+  integer, public :: nproc_group_orbital
+  integer, public :: nproc_id_orbital
+  integer, public :: nproc_size_orbital
+
+  integer, public :: nproc_group_h
+  integer, public :: nproc_id_h
+  integer, public :: nproc_size_h
+
+  integer, public :: nproc_group_kgrid_except0
+  integer, public :: nproc_id_kgrid_except0
+  integer, public :: nproc_size_kgrid_except0
+
+  integer, public :: nproc_group_korbital_vhxc
+  integer, public :: nproc_id_korbital_vhxc
+  integer, public :: nproc_size_korbital_vhxc
+
+  integer, public :: nproc_group_bound(3)
+  integer, public :: nproc_id_bound(3)
+  integer, public :: nproc_size_bound(3)
+
 
   ! call once
   public :: setup_parallel
