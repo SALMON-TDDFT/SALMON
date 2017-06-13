@@ -29,6 +29,11 @@ module salmon_global
   integer,parameter :: n_FHI_psformat = 3 ! .cpi
   integer,parameter :: n_ABINITFHI_psformat = 4 ! .fhi
 
+! Flag for atomic coordinate type
+  integer :: iflag_atom_coor
+  integer,parameter :: ntype_atom_coor_none      = 0
+  integer,parameter :: ntype_atom_coor_cartesian = 1
+  integer,parameter :: ntype_atom_coor_reduced   = 2
 
 !Input variables
 !! &calculation
@@ -191,6 +196,7 @@ module salmon_global
 !! &atomic_red_coor
 integer,allocatable :: Kion(:)    
 real(8),allocatable :: Rion(:,:)  
+real(8),allocatable :: Rion_red(:,:)  
 character(1),allocatable :: flag_geo_opt_atom(:)
 
 

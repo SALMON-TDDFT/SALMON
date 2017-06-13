@@ -890,20 +890,27 @@ Subroutine Read_data
   allocate(udVtbl(Nrmax,0:Lmax,NE),dudVtbl(Nrmax,0:Lmax,NE))
   allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
 
+  select case(iflag_atom_coor)
+  case(ntype_atom_coor_cartesian)
+     Rion_red(1,:)=Rion(1,:)/aLx
+     Rion_red(2,:)=Rion(2,:)/aLy
+     Rion_red(3,:)=Rion(3,:)/aLz
+  case(ntype_atom_coor_reduced)
+     Rion(1,:)=Rion_red(1,:)*aLx
+     Rion(2,:)=Rion_red(2,:)*aLy
+     Rion(3,:)=Rion_red(3,:)*aLz
+  end select
+
   if (comm_is_root(nproc_id_global)) then
     write(*,*) 'Zatom=',(Zatom(j),j=1,NE)
     write(*,*) 'Lref=',(Lref(j),j=1,NE)
-    write(*,*) 'i,Kion(ia)','(Rion(j,a),j=1,3)'
+    write(*,*) 'i,Kion(ia)','(Rion_red(j,a),j=1,3)'
     do ia=1,NI
       write(*,*) ia,Kion(ia)
-      write(*,'(3f12.8)') (Rion(j,ia),j=1,3)
+      write(*,'(3f12.8)') (Rion_red(j,ia),j=1,3)
     end do
   endif
   call comm_sync_all
-
-  Rion(1,:)=Rion(1,:)*aLx
-  Rion(2,:)=Rion(2,:)*aLy
-  Rion(3,:)=Rion(3,:)*aLz
 
   return
 End Subroutine Read_data
