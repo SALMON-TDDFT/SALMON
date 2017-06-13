@@ -62,6 +62,7 @@ nproc=nprocs
 myrank=nprocid
 
 call check_cep
+call check_ae_shape
 
 elp3(:)=0.d0
 elp5(:)=0.d0
