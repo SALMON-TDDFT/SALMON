@@ -4,6 +4,7 @@ set(SOURCES
     calc_env_trigon.f90
     calcEstatic.f90
     calcVbox.f90
+    check_ae_shape.f90
     dip.f90
     gradient_ex.f90
     hpsi_groupob.f90
