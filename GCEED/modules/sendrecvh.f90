@@ -29,7 +29,8 @@ CONTAINS
 
 !======================================================================
 SUBROUTINE R_sendrecvh(wk2)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_global, nproc_group_h
+use mpi, only: mpi_proc_null, mpi_status_size, mpi_double_precision
 use scf_data
 use init_sendrecv_sub
 use new_world_sub
@@ -42,6 +43,7 @@ integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
 integer :: icomm
+integer :: ierr
 
 
 if(iwk_size>=1.and.iwk_size<=3)then
@@ -53,7 +55,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
   kup=kup_array(1)
   kdw=kdw_array(1)
 
-  icomm=MPI_COMM_WORLD
+  icomm=nproc_group_global
 
 else if(iwk_size>=11.and.iwk_size<=13)then
 
@@ -64,7 +66,7 @@ else if(iwk_size>=11.and.iwk_size<=13)then
   kup=kup_array(2)
   kdw=kdw_array(2)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 else if(iwk_size>=31.and.iwk_size<=33)then
 
@@ -75,7 +77,7 @@ else if(iwk_size>=31.and.iwk_size<=33)then
   kup=kup_array(4)
   kdw=kdw_array(4)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 end if
 
@@ -267,7 +269,8 @@ END SUBROUTINE R_sendrecvh
 
 !======================================================================
 SUBROUTINE C_sendrecvh(wk2)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_global, nproc_group_h
+use mpi, only: mpi_proc_null, mpi_status_size, mpi_double_complex
 use scf_data
 use init_sendrecv_sub
 use new_world_sub
@@ -280,6 +283,7 @@ integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
 integer :: icomm
+integer :: ierr
 
 if(iwk_size>=1.and.iwk_size<=3)then
 
@@ -290,7 +294,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
   kup=kup_array(1)
   kdw=kdw_array(1)
 
-  icomm=MPI_COMM_WORLD
+  icomm=nproc_group_global
 
 else if(iwk_size>=11.and.iwk_size<=13)then
 
@@ -301,7 +305,7 @@ else if(iwk_size>=11.and.iwk_size<=13)then
   kup=kup_array(2)
   kdw=kdw_array(2)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 else if(iwk_size>=31.and.iwk_size<=33)then
 
@@ -312,7 +316,7 @@ else if(iwk_size>=31.and.iwk_size<=33)then
   kup=kup_array(4)
   kdw=kdw_array(4)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 end if
 

@@ -17,6 +17,7 @@ MODULE sendrecv_sub
 
 use scf_data
 use init_sendrecv_sub
+use mpi, only: mpi_status_size
 implicit none 
 integer :: istatuses(MPI_STATUS_SIZE,12),ireqs(12)
 
@@ -32,8 +33,9 @@ CONTAINS
 !=======================================================================
 
 SUBROUTINE R_sendrecv(wk2)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital, nproc_group_h
 use new_world_sub
+use mpi, only: mpi_proc_null, mpi_double_precision
 
 implicit none
 real(8) :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3))
@@ -43,6 +45,7 @@ integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
 integer :: icomm
+integer :: ierr
 
 
 if(iwk_size>=1.and.iwk_size<=3)then
@@ -54,7 +57,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
   kup=kup_array(1)
   kdw=kdw_array(1)
 
-  icomm=newworld_comm_orbital
+  icomm=nproc_group_orbital
 
 else if(iwk_size>=11.and.iwk_size<=13)then
 
@@ -65,7 +68,7 @@ else if(iwk_size>=11.and.iwk_size<=13)then
   kup=kup_array(2)
   kdw=kdw_array(2)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 else if(iwk_size>=31.and.iwk_size<=33)then
 
@@ -76,7 +79,7 @@ else if(iwk_size>=31.and.iwk_size<=33)then
   kup=kup_array(4)
   kdw=kdw_array(4)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 end if
 
@@ -270,8 +273,9 @@ END SUBROUTINE R_sendrecv
 !=======================================================================
 
 SUBROUTINE C_sendrecv(wk2)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital, nproc_group_h
 use new_world_sub
+use mpi, only: mpi_proc_null, mpi_double_complex
 
 implicit none
 complex(8) :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3))
@@ -281,6 +285,7 @@ integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: istatus(MPI_STATUS_SIZE)
 integer :: icomm
+integer :: ierr
 
 
 if(iwk_size>=1.and.iwk_size<=3)then
@@ -292,7 +297,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
   kup=kup_array(1)
   kdw=kdw_array(1)
 
-  icomm=newworld_comm_orbital
+  icomm=nproc_group_orbital
 
 else if(iwk_size>=11.and.iwk_size<=13)then
 
@@ -303,7 +308,7 @@ else if(iwk_size>=11.and.iwk_size<=13)then
   kup=kup_array(2)
   kdw=kdw_array(2)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 else if(iwk_size>=31.and.iwk_size<=33)then
 
@@ -314,7 +319,7 @@ else if(iwk_size>=31.and.iwk_size<=33)then
   kup=kup_array(4)
   kdw=kdw_array(4)
 
-  icomm=newworld_comm_h
+  icomm=nproc_group_h
 
 end if
 

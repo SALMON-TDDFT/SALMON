@@ -31,6 +31,8 @@ contains
 !==================================================================================================
 
 subroutine R_sendrecv_groupob(tpsi)
+use salmon_parallel, only: nproc_group_orbital
+use mpi, only: mpi_status_size, mpi_proc_null, mpi_double_precision
 implicit none
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
                 mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
@@ -50,6 +52,7 @@ integer :: ireq10,istatus10(MPI_STATUS_SIZE)
 integer :: ireq11,istatus11(MPI_STATUS_SIZE)
 integer :: ireq12,istatus12(MPI_STATUS_SIZE)
 logical :: flag
+integer :: ierr
 
 iup=iup_array(1)
 idw=idw_array(1)
@@ -58,7 +61,7 @@ jdw=jdw_array(1)
 kup=kup_array(1)
 kdw=kdw_array(1)
 
-icomm=newworld_comm_orbital
+icomm=nproc_group_orbital
 
 !send from idw to iup
 
@@ -270,6 +273,8 @@ end subroutine R_sendrecv_groupob
 !==================================================================================================
 
 subroutine C_sendrecv_groupob(tpsi)
+use salmon_parallel, only: nproc_group_orbital
+use mpi, only: mpi_status_size, mpi_proc_null, mpi_double_complex
 implicit none
 complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
@@ -289,6 +294,7 @@ integer :: ireq10,istatus10(MPI_STATUS_SIZE)
 integer :: ireq11,istatus11(MPI_STATUS_SIZE)
 integer :: ireq12,istatus12(MPI_STATUS_SIZE)
 logical :: flag
+integer :: ierr
 
 iup=iup_array(1)
 idw=idw_array(1)
@@ -297,7 +303,7 @@ jdw=jdw_array(1)
 kup=kup_array(1)
 kdw=kdw_array(1)
 
-icomm=newworld_comm_orbital
+icomm=nproc_group_orbital
 
 !send from idw to iup
 

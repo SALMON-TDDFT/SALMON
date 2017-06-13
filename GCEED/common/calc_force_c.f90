@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 subroutine calc_force_c(tzpsi)
+use salmon_parallel, only: nproc_group_orbital, nproc_group_global
+use mpi, only: mpi_double_precision, mpi_double_complex, mpi_sum
 use scf_data
 use allocate_mat_sub
 use read_pslfile_sub
@@ -28,6 +30,7 @@ complex(8),allocatable :: uVpsibox(:,:,:,:),uVpsibox2(:,:,:,:)
 real(8) :: rforce1(3,MI),rforce2(3,MI),rforce3(3,MI),rforce41(3,MI),rforce42(3,MI)
 real(8) :: rab
 integer :: iix,iiy,iiz
+integer :: ierr
 
 do iatom=1,MI
 do j2=1,3
@@ -71,7 +74,7 @@ do j2=1,3
     end do
     end do
   end do
-  call MPI_Allreduce(rbox1,rbox2,1,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+  call MPI_Allreduce(rbox1,rbox2,1,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
   rforce(j2,iatom)=rforce(j2,iatom)+rbox2*Hvol
   rforce2(j2,iatom)=rbox2*Hvol
 end do
@@ -108,7 +111,7 @@ do iatom=1,MI
 end do
 
 call MPI_allreduce(uVpsibox,uVpsibox2,iobnum*maxlm*MI,      &
-                     MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_orbital,ierr)
+                     MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_orbital,ierr)
 
 do iatom=1,MI
   ikoa=Kion(iatom)
@@ -125,7 +128,7 @@ do iatom=1,MI
       end do
     end do
     call MPI_allreduce(rbox1,rbox2,1,      &
-                       MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+                       MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
     rforce(j2,iatom)=rforce(j2,iatom)+rbox2*Hvol
     rforce3(j2,iatom)=rbox2*Hvol
   end do
@@ -159,7 +162,7 @@ select case(ikind_eext)
     end if
   end do
   call MPI_allreduce(rforce41,rforce42,3*MI,      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+                     MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
   do iatom=1,MI
     rforce(1:3,iatom)=rforce(1:3,iatom)+rforce42(1:3,iatom)
   end do

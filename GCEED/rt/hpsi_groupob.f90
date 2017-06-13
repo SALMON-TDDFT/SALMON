@@ -17,7 +17,8 @@
 !========================= Hamiltonian Operation (for complex funcitons)
 
 SUBROUTINE hpsi_groupob(tpsi,htpsi,tpsi_out,tVlocal,nn,isub)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital, nproc_group_h
+use mpi, only: mpi_wtime, mpi_double_complex, mpi_sum
 use scf_data
 use new_world_sub
 use gradient2_sub
@@ -25,7 +26,7 @@ use allocate_mat_sub
 use allocate_sendrecv_groupob_sub
 use sendrecv_groupob_sub
 use init_sendrecv_sub
-use sendrecv_groupob_ngp_sub
+!use sendrecv_groupob_ngp_sub
 implicit none
 complex(8) :: tpsi(iwk2sta(1):iwk2end(1)+1,iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3),   &
                    1:iobnum,1)
@@ -42,6 +43,7 @@ integer :: ja
 integer :: nn,isub
 integer :: jspin
 integer :: iix,iiy,iiz
+integer :: ierr
 
 complex(8) :: sumbox
 
@@ -219,12 +221,12 @@ if(iflag_ps.eq.1)then
     if(iwk_size>=1.and.iwk_size<=2)then
       elp3(705)=MPI_Wtime()
       call MPI_allreduce(uVpsibox3(1,1,1,1),uVpsibox4(1,1,1,1),maxlm*MI*iobmax,      &
-                     MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_orbital,ierr)
+                     MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_orbital,ierr)
       elp3(706)=MPI_Wtime()
       elp3(744)=elp3(744)+elp3(706)-elp3(705)
     else if(iwk_size>=11.and.iwk_size<=12)then
       call MPI_allreduce(uVpsibox3(1,1,1,1),uVpsibox4(1,1,1,1),maxlm*MI*iobmax,      &
-                     MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_h,ierr)
+                     MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_h,ierr)
     end if
   end if
 

@@ -18,13 +18,6 @@ MODULE new_world_sub
 use scf_data
 
 implicit none
-integer :: newprocs_comm_spin,newrank_comm_spin,newworld_comm_spin
-integer :: newprocs_comm_grid,newrank_comm_grid,newworld_comm_grid
-integer :: newprocs_comm_orbital,newrank_comm_orbital,newworld_comm_orbital
-integer :: newprocs_comm_h,newrank_comm_h,newworld_comm_h
-integer :: newprocs_comm_kgrid_except0,newrank_comm_kgrid_except0,newworld_comm_kgrid_except0
-integer :: newprocs_comm_korbital_Vhxc,newrank_comm_korbital_Vhxc,newworld_comm_korbital_Vhxc
-integer :: newprocs_bound(3),newrank_bound(3),new_world_bound(3)
 
 integer :: num_pole_myrank
 integer,allocatable :: icorr_polenum(:)
@@ -48,6 +41,8 @@ CONTAINS
 
 !=======================================================================
 subroutine make_new_world
+use salmon_parallel
+use salmon_communication
 implicit none
 integer :: i
 integer :: i1,i2,i3,i4
@@ -64,7 +59,7 @@ if(isequential==1)then
   do i1=0,nproc_Mxin(1)-1
     do i4=0,nproc_ob-1
       ibox=i4+(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))*nproc_ob
-      if(myrank==ibox)then
+      if(nproc_id_global==ibox)then
         icolor=(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))*nproc_ob
         ikey=i4
       end if
@@ -78,7 +73,7 @@ else if(isequential==2)then
   do i1=0,nproc_Mxin(1)-1
     do i4=0,nproc_ob-1
       ibox=(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))+i4*nproc_Mxin_mul
-      if(myrank==ibox)then
+      if(nproc_id_global==ibox)then
         icolor=(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))
         ikey=i4
       end if
@@ -88,9 +83,8 @@ else if(isequential==2)then
   end do
 end if
 
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,newworld_comm_spin,ierr)
-call MPI_comm_size(newworld_comm_spin,newprocs_comm_spin,ierr)
-call MPI_comm_rank(newworld_comm_spin,newrank_comm_spin,ierr)
+nproc_group_spin = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_spin, nproc_id_spin, nproc_size_spin)
 
 !new_world for comm_grid
 if(isequential==1)then
@@ -100,18 +94,18 @@ if(isequential==1)then
     do i4=0,nproc_ob-1
       ibox=i4+(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))*nproc_ob
       if(ilsda==0)then
-        if(myrank==ibox)then
+        if(nproc_id_global==ibox)then
           icolor=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
           ikey=i4
         end if
       else
         if(i4<nproc_ob_spin(1))then
-          if(myrank==ibox)then
+          if(nproc_id_global==ibox)then
             icolor=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
             ikey=i4
           end if
         else
-          if(myrank==ibox)then
+          if(nproc_id_global==ibox)then
             icolor=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
             ikey=i4-nproc_ob_spin(1)
           end if
@@ -128,18 +122,18 @@ else if(isequential==2)then
     do i4=0,nproc_ob-1
       ibox=(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))+i4*nproc_Mxin_mul
       if(ilsda==0)then
-        if(myrank==ibox)then
+        if(nproc_id_global==ibox)then
           icolor=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
           ikey=i4
         end if
       else
         if(i4<nproc_ob_spin(1))then
-          if(myrank==ibox)then
+          if(nproc_id_global==ibox)then
             icolor=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
             ikey=i4
           end if
         else
-          if(myrank==ibox)then
+          if(nproc_id_global==ibox)then
             icolor=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
             ikey=i4-nproc_ob_spin(1)
           end if
@@ -151,9 +145,9 @@ else if(isequential==2)then
   end do
 end if
  
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,newworld_comm_grid,ierr)
-call MPI_comm_size(newworld_comm_grid,newprocs_comm_grid,ierr)
-call MPI_comm_rank(newworld_comm_grid,newrank_comm_grid,ierr)
+nproc_group_grid = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_grid, nproc_id_grid, nproc_size_grid)
+
 
 !new_world for comm_orbital
 if(isequential==1)then
@@ -162,7 +156,7 @@ if(isequential==1)then
   do i1=0,nproc_Mxin(1)-1
     do i4=0,nproc_ob-1
       ibox=i4+(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))*nproc_ob
-      if(myrank==ibox)then
+      if(nproc_id_global==ibox)then
         icolor=i4
         ikey=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
       end if
@@ -176,7 +170,7 @@ else if(isequential==2)then
   do i1=0,nproc_Mxin(1)-1
     do i4=0,nproc_ob-1
       ibox=(i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2))+i4*nproc_Mxin_mul
-      if(myrank==ibox)then
+      if(nproc_id_global==ibox)then
         icolor=i4
         ikey=i1+i2*nproc_Mxin(1)+i3*nproc_Mxin(1)*nproc_Mxin(2)
       end if
@@ -186,16 +180,16 @@ else if(isequential==2)then
   end do
 end if
 
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,newworld_comm_orbital,ierr)
-call MPI_comm_size(newworld_comm_orbital,newprocs_comm_orbital,ierr)
-call MPI_comm_rank(newworld_comm_orbital,newrank_comm_orbital,ierr)
+nproc_group_orbital = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_orbital, nproc_id_orbital, nproc_size_orbital)
+
 
 !new_world for comm_mesh_s
 
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 
 if(isequential==1)then
-  do i4=0,nproc/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
+  do i4=0,nproc_size_global/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
   do i3=0,nproc_Mxin_s_dm(3)-1
   do i2=0,nproc_Mxin_s_dm(2)-1
   do i1=0,nproc_Mxin_s_dm(1)-1
@@ -203,8 +197,8 @@ if(isequential==1)then
       ibox=i1+i2*nproc_Mxin_s_dm(1)   &
              +i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
              +i4*nproc_Mxin_mul_s_dm  &
-             +i*nproc/nproc_Mxin_mul
-      if(myrank==ibox)then
+             +i*nproc_size_global/nproc_Mxin_mul
+      if(nproc_id_global==ibox)then
         icolor=i4
         ikey=i1+i2*nproc_Mxin_s_dm(1)   &
                +i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
@@ -216,7 +210,7 @@ if(isequential==1)then
   end do
   end do
 else if(isequential==2)then
-  do i4=0,nproc/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
+  do i4=0,nproc_size_global/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
   do i3=0,nproc_Mxin_s_dm(3)-1
   do i2=0,nproc_Mxin_s_dm(2)-1
   do i1=0,nproc_Mxin_s_dm(1)-1
@@ -224,7 +218,7 @@ else if(isequential==2)then
       ibox=i+i1*nproc_Mxin_mul+i2*nproc_Mxin_mul*nproc_Mxin_s_dm(1)   &
             +i3*nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
             +i4*nproc_Mxin_mul*nproc_Mxin_mul_s_dm
-      if(myrank==ibox)then
+      if(nproc_id_global==ibox)then
         icolor=i4
         ikey=i+i1*nproc_Mxin_mul+i2*nproc_Mxin_mul*nproc_Mxin_s_dm(1)   &
               +i3*nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
@@ -236,25 +230,25 @@ else if(isequential==2)then
   end do
 end if
 
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,newworld_comm_h,ierr)
-call MPI_comm_size(newworld_comm_h,newprocs_comm_h,ierr)
-call MPI_comm_rank(newworld_comm_h,newrank_comm_h,ierr)
+nproc_group_h = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_h, nproc_id_h, nproc_size_h)
+
 
 if(isequential==1)then
   do iz=0,nproc_Mxin(3)-1
   do iy=0,nproc_Mxin(2)-1
   do ix=0,nproc_Mxin(1)-1
-    do i4=0,nproc/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
+    do i4=0,nproc_size_global/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
     do izs=0,nproc_Mxin_s_dm(3)-1
     do iys=0,nproc_Mxin_s_dm(2)-1
     do ixs=0,nproc_Mxin_s_dm(1)-1
       ibox=ixs+iys*nproc_Mxin_s_dm(1)   &
               +izs*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)   &
               +i4*nproc_Mxin_mul_s_dm    &
-              +ix*nproc/nproc_Mxin_mul    &
-              +iy*nproc/nproc_Mxin_mul*nproc_Mxin(1)   &
-              +iz*nproc/nproc_Mxin_mul*nproc_Mxin(1)*nproc_Mxin(2)
-      if(myrank==ibox)then
+              +ix*nproc_size_global/nproc_Mxin_mul    &
+              +iy*nproc_size_global/nproc_Mxin_mul*nproc_Mxin(1)   &
+              +iz*nproc_size_global/nproc_Mxin_mul*nproc_Mxin(1)*nproc_Mxin(2)
+      if(nproc_id_global==ibox)then
         imr(1)=ix
         imr(2)=iy
         imr(3)=iz
@@ -271,7 +265,7 @@ if(isequential==1)then
   end do
   end do
 else if(isequential==2)then
-  do i4=0,nproc/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
+  do i4=0,nproc_size_global/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
   do izs=0,nproc_Mxin_s_dm(3)-1
   do iys=0,nproc_Mxin_s_dm(2)-1
   do ixs=0,nproc_Mxin_s_dm(1)-1
@@ -283,7 +277,7 @@ else if(isequential==2)then
              +iys*nproc_Mxin_mul*nproc_Mxin_s_dm(1)  &
              +izs*nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
              +i4*nproc_Mxin_mul*nproc_Mxin_mul_s_dm
-      if(myrank==ibox)then
+      if(nproc_id_global==ibox)then
         imr(1)=ix
         imr(2)=iy
         imr(3)=iz
@@ -306,69 +300,72 @@ end if
 if(isequential==1)then
   icolor=imrs(2)+imrs(3)*nproc_Mxin_s_dm(2)   &
                 +igroup*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)   &
-                +imr(2)*nproc/nproc_Mxin_mul/nproc_Mxin_s_dm(1)   &
-                +imr(3)*nproc/nproc_Mxin_mul/nproc_Mxin_s_dm(1)*nproc_Mxin(2)
+                +imr(2)*nproc_size_global/nproc_Mxin_mul/nproc_Mxin_s_dm(1)   &
+                +imr(3)*nproc_size_global/nproc_Mxin_mul/nproc_Mxin_s_dm(1)*nproc_Mxin(2)
   ikey=imrs(1)+imr(1)*nproc_Mxin_s_dm(1)
 else if(isequential==2)then
   icolor=imr(2)+imr(3)*nproc_Mxin(2)   &
                +imrs(2)*nproc_Mxin(2)*nproc_Mxin(3)   &
                +imrs(3)*nproc_Mxin(2)*nproc_Mxin(3)*nproc_Mxin_s_dm(2)  &
-               +myrank/(nproc_Mxin_mul*nproc_Mxin_mul_s_dm)*nproc_Mxin(2)*nproc_Mxin(3)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
+               +nproc_id_global/(nproc_Mxin_mul*nproc_Mxin_mul_s_dm)  &
+                *nproc_Mxin(2)*nproc_Mxin(3)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
   ikey=imrs(1)+imr(1)*nproc_Mxin_s_dm(1)
 end if
 
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,new_world_bound(1),ierr)
-call MPI_comm_size(new_world_bound(1),newprocs_bound(1),ierr)
-call MPI_comm_rank(new_world_bound(1),newrank_bound(1),ierr)
+nproc_group_bound(1) = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_bound(1), nproc_id_bound(1), nproc_size_bound(1))
+
 
 if(isequential==1)then
   icolor=imrs(1)+imrs(3)*nproc_Mxin_s_dm(1)   &
                 +igroup*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(3)   &
-                +imr(1)*nproc/nproc_Mxin_mul/nproc_Mxin_s_dm(2)   &
-                +imr(3)*nproc/nproc_Mxin_mul/nproc_Mxin_s_dm(2)*nproc_Mxin(1)
+                +imr(1)*nproc_size_global/nproc_Mxin_mul/nproc_Mxin_s_dm(2)   &
+                +imr(3)*nproc_size_global/nproc_Mxin_mul/nproc_Mxin_s_dm(2)*nproc_Mxin(1)
   ikey=imrs(2)+imr(2)*nproc_Mxin_s_dm(2)
 else if(isequential==2)then
   icolor=imr(1)+imr(3)*nproc_Mxin(1)   &
                +imrs(1)*nproc_Mxin(1)*nproc_Mxin(3)   &
                +imrs(3)*nproc_Mxin(1)*nproc_Mxin(3)*nproc_Mxin_s_dm(1)  &
-               +myrank/(nproc_Mxin_mul*nproc_Mxin_mul_s_dm)*nproc_Mxin(1)*nproc_Mxin(3)*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(3)
+               +nproc_id_global/(nproc_Mxin_mul*nproc_Mxin_mul_s_dm)  &
+                *nproc_Mxin(1)*nproc_Mxin(3)*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(3)
   ikey=imrs(2)+imr(2)*nproc_Mxin_s_dm(2)
 end if
 
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,new_world_bound(2),ierr)
-call MPI_comm_size(new_world_bound(2),newprocs_bound(2),ierr)
-call MPI_comm_rank(new_world_bound(2),newrank_bound(2),ierr)
+nproc_group_bound(2) = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_bound(2), nproc_id_bound(2), nproc_size_bound(2))
+
 
 if(isequential==1)then
   icolor=imrs(1)+imrs(2)*nproc_Mxin_s_dm(1)   &
                 +igroup*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)   &
-                +imr(1)*nproc/nproc_Mxin_mul/nproc_Mxin_s_dm(3)   &
-                +imr(2)*nproc/nproc_Mxin_mul/nproc_Mxin_s_dm(3)*nproc_Mxin(1)
+                +imr(1)*nproc_size_global/nproc_Mxin_mul/nproc_Mxin_s_dm(3)   &
+                +imr(2)*nproc_size_global/nproc_Mxin_mul/nproc_Mxin_s_dm(3)*nproc_Mxin(1)
   ikey=imrs(3)+imr(3)*nproc_Mxin_s_dm(3)
 else if(isequential==2)then
   icolor=imr(1)+imr(2)*nproc_Mxin(1)   &
                +imrs(1)*nproc_Mxin(1)*nproc_Mxin(2)   &
                +imrs(2)*nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin_s_dm(1)  &
-               +myrank/(nproc_Mxin_mul*nproc_Mxin_mul_s_dm)*nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
+               +nproc_id_global/(nproc_Mxin_mul*nproc_Mxin_mul_s_dm)  &
+                *nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
   ikey=imrs(3)+imr(3)*nproc_Mxin_s_dm(3)
 end if
 
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,new_world_bound(3),ierr)
-call MPI_comm_size(new_world_bound(3),newprocs_bound(3),ierr)
-call MPI_comm_rank(new_world_bound(3),newrank_bound(3),ierr)
+nproc_group_bound(3) = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_bound(3), nproc_id_bound(3), nproc_size_bound(3))
+
 
 if(isequential==1)then
   do i=0,nproc_Mxin_mul-1
-    do i4=0,nproc/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
+    do i4=0,nproc_size_global/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
     do i3=0,nproc_Mxin_s_dm(3)-1
     do i2=0,nproc_Mxin_s_dm(2)-1
     do i1=0,nproc_Mxin_s_dm(1)-1
       ibox=i1+i2*nproc_Mxin_s_dm(1)   &
              +i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)   &
              +i4*nproc_Mxin_mul_s_dm   &
-             +i*nproc/nproc_Mxin_mul
-      if(myrank==ibox)then
-        icolor=i4+i*nproc/nproc_Mxin_mul/nproc_Mxin_mul_s_dm
+             +i*nproc_size_global/nproc_Mxin_mul
+      if(nproc_id_global==ibox)then
+        icolor=i4+i*nproc_size_global/nproc_Mxin_mul/nproc_Mxin_mul_s_dm
         ikey=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
       end if
     end do
@@ -377,7 +374,7 @@ if(isequential==1)then
     end do
   end do
 else if(isequential==2)then
-  do i4=0,nproc/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
+  do i4=0,nproc_size_global/nproc_Mxin_mul/nproc_Mxin_mul_s_dm-1
   do i3=0,nproc_Mxin_s_dm(3)-1
   do i2=0,nproc_Mxin_s_dm(2)-1
   do i1=0,nproc_Mxin_s_dm(1)-1
@@ -385,7 +382,7 @@ else if(isequential==2)then
       ibox=i+i1*nproc_Mxin_mul+i2*nproc_Mxin_mul*nproc_Mxin_s_dm(1)   &
             +i3*nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
             +i4*nproc_Mxin_mul*nproc_Mxin_mul_s_dm
-      if(myrank==ibox)then
+      if(nproc_id_global==ibox)then
         icolor=i+i4*nproc_Mxin_mul
         ikey=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
       end if
@@ -396,9 +393,9 @@ else if(isequential==2)then
   end do
 end if
 
-call MPI_comm_split(MPI_COMM_WORLD,icolor,ikey,newworld_comm_korbital_Vhxc,ierr)
-call MPI_comm_size(newworld_comm_h,newprocs_comm_korbital_Vhxc,ierr)
-call MPI_comm_rank(newworld_comm_h,newrank_comm_korbital_Vhxc,ierr)
+nproc_group_korbital_vhxc = comm_create_group(nproc_group_global, icolor, ikey)
+call comm_get_groupinfo(nproc_group_korbital_vhxc, nproc_id_korbital_vhxc, nproc_size_korbital_vhxc)
+
 
 end subroutine make_new_world
 
@@ -586,12 +583,14 @@ end subroutine make_corr_pole
 
 !=====================================================================
 subroutine make_icoobox_bound
+use salmon_parallel
 implicit none
 integer :: ix,iy,iz
 integer :: ibox
 integer :: icount
 
-ibox=inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)*inum_Mxin_s(3,myrank)/minval(inum_Mxin_s(1:3,myrank))*2*Ndh
+ibox=inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)  &
+     *inum_Mxin_s(3,nproc_id_global)/minval(inum_Mxin_s(1:3,nproc_id_global))*2*Ndh
 
 allocate( icoobox_bound(3,ibox,3) )
 
@@ -665,7 +664,9 @@ end subroutine make_icoobox_bound
 !=====================================================================
 !======================================================================
 subroutine mpi_allgatherv_vlocal
-!$ use omp_lib
+use salmon_parallel, only: nproc_id_global, nproc_group_grid
+use salmon_communication, only: comm_allgatherv
+use mpi, only: mpi_wtime
 
 implicit none
 integer :: i
@@ -686,18 +687,18 @@ elp3(1052)=elp3(1052)+elp3(1002)-elp3(1001)
 allocate(ircnt(0:nproc_Mxin_mul_s_dm-1))
 allocate(idisp(0:nproc_Mxin_mul_s_dm-1))
 
-allocate (matbox11(0:(inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)*inum_Mxin_s(3,myrank))-1))
+allocate (matbox11(0:(inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)*inum_Mxin_s(3,nproc_id_global))-1))
 allocate (matbox12(0:(mg_num(1)*mg_num(2)*mg_num(3))-1))
 
-iscnt=inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)*inum_Mxin_s(3,myrank)
+iscnt=inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)*inum_Mxin_s(3,nproc_id_global)
 if(isequential==1)then
   do i=0,nproc_Mxin_mul_s_dm-1
-    ibox=(myrank/nproc_Mxin_mul_s_dm)*nproc_Mxin_mul_s_dm+i
+    ibox=(nproc_id_global/nproc_Mxin_mul_s_dm)*nproc_Mxin_mul_s_dm+i
     ircnt(i)=inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox)
   end do
 else if(isequential==2)then
   do i=0,nproc_Mxin_mul_s_dm-1
-    ibox=mod(myrank,nproc_Mxin_mul)+i*nproc_Mxin_mul
+    ibox=mod(nproc_id_global,nproc_Mxin_mul)+i*nproc_Mxin_mul
     ircnt(i)=inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox)
   end do
 end if
@@ -722,8 +723,8 @@ do is=is_sta,is_end
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,myrank)   &
-                    +(iz-ng_sta(3))*inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)
+      ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,nproc_id_global)   &
+                    +(iz-ng_sta(3))*inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)
       matbox11(ibox3) = Vpsl(ix,iy,iz)+Vh(ix,iy,iz)
     end do
     end do
@@ -734,8 +735,8 @@ do is=is_sta,is_end
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
-        ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,myrank)   &
-                      +(iz-ng_sta(3))*inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)
+        ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,nproc_id_global)   &
+                      +(iz-ng_sta(3))*inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)
         matbox11(ibox3) = Vpsl(ix,iy,iz)+Vh_stock2(ix,iy,iz)
       end do
       end do
@@ -745,8 +746,8 @@ do is=is_sta,is_end
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
-        ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,myrank)   &
-                      +(iz-ng_sta(3))*inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)
+        ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,nproc_id_global)   &
+                      +(iz-ng_sta(3))*inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)
         matbox11(ibox3) = Vpsl(ix,iy,iz)+Vh_stock1(ix,iy,iz)
       end do
       end do
@@ -758,8 +759,8 @@ do is=is_sta,is_end
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,myrank)   &
-                    +(iz-ng_sta(3))*inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)
+      ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,nproc_id_global)   &
+                    +(iz-ng_sta(3))*inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)
       matbox11(ibox3) = matbox11(ibox3)+Vxc(ix,iy,iz)
     end do
     end do
@@ -769,8 +770,8 @@ do is=is_sta,is_end
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,myrank)   &
-                    +(iz-ng_sta(3))*inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)
+      ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,nproc_id_global)   &
+                    +(iz-ng_sta(3))*inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)
       matbox11(ibox3) = matbox11(ibox3)+Vxc_s(ix,iy,iz,is)
     end do
     end do
@@ -778,9 +779,7 @@ do is=is_sta,is_end
   end if
 
   elp3(761)=MPI_Wtime()
-  call MPI_Allgatherv(matbox11,iscnt,      MPI_DOUBLE_PRECISION,      &
-                      matbox12,ircnt,idisp,MPI_DOUBLE_PRECISION,      &
-                      newworld_comm_grid,ierr)
+  call comm_allgatherv(matbox11,matbox12,ircnt,idisp,nproc_group_grid)
   elp3(762)=MPI_Wtime()
   elp3(781)=elp3(781)+elp3(762)-elp3(761) 
 
@@ -790,7 +789,7 @@ do is=is_sta,is_end
     do i3=0,nproc_Mxin_s_dm(3)-1
     do i2=0,nproc_Mxin_s_dm(2)-1
     do i1=0,nproc_Mxin_s_dm(1)-1
-      ibox=(myrank/nproc_Mxin_mul_s_dm)*nproc_Mxin_mul_s_dm    &
+      ibox=(nproc_id_global/nproc_Mxin_mul_s_dm)*nproc_Mxin_mul_s_dm    &
             +(i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2))
       ibox2=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
 
@@ -806,7 +805,7 @@ do is=is_sta,is_end
     do i3=0,nproc_Mxin_s_dm(3)-1
     do i2=0,nproc_Mxin_s_dm(2)-1
     do i1=0,nproc_Mxin_s_dm(1)-1
-      ibox=mod(myrank,nproc_Mxin_mul)    &
+      ibox=mod(nproc_id_global,nproc_Mxin_mul)    &
           +(i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2))*nproc_Mxin_mul
       ibox2=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
 
@@ -833,7 +832,8 @@ end subroutine mpi_allgatherv_vlocal
 
 !======================================================================
 subroutine mpibcast_mesh_s_kxc(Vbox)
-!$ use omp_lib
+use salmon_parallel, only: nproc_id_global, nproc_group_h, nproc_id_h
+use salmon_communication, only: comm_allgatherv
 
 implicit none
 integer :: i
@@ -853,9 +853,9 @@ if(nproc_ob/=1.or.nproc_Mxin_mul/=1)then
   allocate(ircnt(0:nproc_Mxin_mul_s_dm-1))
   allocate(idisp(0:nproc_Mxin_mul_s_dm-1))
 
-  iscnt=inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)*inum_Mxin_s(3,myrank)
+  iscnt=inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)*inum_Mxin_s(3,nproc_id_global)
   do i=0,nproc_Mxin_mul_s_dm-1
-    ibox=mod(myrank,nproc_Mxin_mul)+i*nproc_Mxin_mul
+    ibox=mod(nproc_id_global,nproc_Mxin_mul)+i*nproc_Mxin_mul
     ircnt(i)=inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox)
   end do
 
@@ -864,32 +864,30 @@ if(nproc_ob/=1.or.nproc_Mxin_mul/=1)then
     idisp(i)=idisp(i-1)+ircnt(i-1)
   end do
 
-  allocate (matbox1(0:(inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)*inum_Mxin_s(3,myrank))-1))
+  allocate (matbox1(0:(inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)*inum_Mxin_s(3,nproc_id_global))-1))
   allocate (matbox2(0:(mg_num(1)*mg_num(2)*mg_num(3))-1))
   
 !$OMP parallel do private(ibox3,ix,iy,iz)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
-    ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,myrank)   &
-                  +(iz-ng_sta(3))*inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)
+    ibox3=ix-ng_sta(1)+(iy-ng_sta(2))*inum_Mxin_s(1,nproc_id_global)   &
+                  +(iz-ng_sta(3))*inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)
     matbox1(ibox3) = Vbox(ix,iy,iz)
   end do
   end do
   end do
 
-  call MPI_Allgatherv(matbox1,iscnt,      MPI_DOUBLE_PRECISION,      &
-                      matbox2,ircnt,idisp,MPI_DOUBLE_PRECISION,      &
-                      newworld_comm_h,ierr)
+  call comm_allgatherv(matbox1,matbox2,ircnt,idisp,nproc_group_h)
    
   do i3=0,nproc_Mxin_s_dm(3)-1
   do i2=0,nproc_Mxin_s_dm(2)-1
   do i1=0,nproc_Mxin_s_dm(1)-1
-    ibox=mod(myrank,nproc_Mxin_mul)    &
+    ibox=mod(nproc_id_global,nproc_Mxin_mul)    &
           +(i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2))*nproc_Mxin_mul
     ibox2=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
 
-    if(newrank_comm_h/=ibox2)then
+    if(nproc_id_h/=ibox2)then
 !$OMP parallel do private(ibox3,ix,iy,iz)
       do iz=ista_Mxin_s(3,ibox),iend_Mxin_s(3,ibox)
       do iy=ista_Mxin_s(2,ibox),iend_Mxin_s(2,ibox)

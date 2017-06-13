@@ -17,6 +17,8 @@
 !======================================= Conjugate-Gradient minimization
 
 SUBROUTINE DTcg(psi_in,iflag)
+use salmon_parallel, only: nproc_group_grid
+use mpi, only: mpi_wtime, mpi_double_precision
 use scf_data
 use new_world_sub
 use inner_product_sub
@@ -39,6 +41,7 @@ integer :: iob_myob,job_myob
 integer :: icorr,jcorr               
 integer :: iroot
 integer :: is_sta,is_end
+integer :: ierr
 
 allocate (xk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate (hxk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
@@ -122,7 +125,7 @@ orbital : do iob=iobsta(is),iobend(is)
       end do
     end if
     call calc_iroot(iob,iroot)
-    call MPI_Bcast(gk,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,newworld_comm_grid,ierr)
+    call MPI_Bcast(gk,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,nproc_group_grid,ierr)
 
     do job=iobsta(is),iob-1
       sum0=0.d0
@@ -142,7 +145,7 @@ orbital : do iob=iobsta(is),iobend(is)
       end if
 
       call calc_iroot(job,iroot)
-      call MPI_Bcast(gk,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,newworld_comm_grid,ierr)
+      call MPI_Bcast(gk,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,nproc_group_grid,ierr)
     end do
 
     if(icorr==1)then

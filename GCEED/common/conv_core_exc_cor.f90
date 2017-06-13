@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 subroutine conv_core_exc_cor
+  use salmon_parallel, only: nproc_group_h
+  use mpi, only: mpi_double_precision, mpi_sum
   use scf_data
   use new_world_sub
   use allocate_mat_sub
@@ -23,6 +25,7 @@ subroutine conv_core_exc_cor
   integer :: jspin
   real(8) :: cval_t
   real(8) :: tot_exc
+  integer :: ierr
 
   xc_tmp='pz'
   jspin=0
@@ -49,7 +52,7 @@ subroutine conv_core_exc_cor
   end do
  
   call MPI_ALLREDUCE(tot_exc,Exc,1,MPI_DOUBLE_PRECISION,      &
-                     MPI_SUM,newworld_comm_h,IERR)
+                     MPI_SUM,nproc_group_h,IERR)
 
   return
 end subroutine conv_core_exc_cor

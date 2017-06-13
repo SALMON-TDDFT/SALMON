@@ -43,6 +43,8 @@ real(8), allocatable :: rad_f(:,:)
 contains
 !==================================================================================================
 subroutine read_pslfile
+use salmon_parallel, only: nproc_id_global
+use salmon_communication, only: comm_is_root
 implicit none
 integer :: ak
 character(256) :: ps_file(MKI)
@@ -85,7 +87,7 @@ do ak=1,MKI
     Mlps0(ak)=Mlps(ak)
   end if
 
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     write(*,*) iZatom(ak)
   end if
 

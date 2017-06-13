@@ -19,6 +19,8 @@
 ! J. Soc. Mat. Sci., Japan, vol.52 (3), p.260-265. (in Japanese)
 
 SUBROUTINE rmmdiis(psi_in,iflag)
+use salmon_parallel, only: nproc_group_global
+use mpi, only: mpi_double_precision, mpi_sum
 use scf_data
 use hpsi2_sub
 use new_world_sub
@@ -41,6 +43,7 @@ real(8) :: rbox1
 real(8),allocatable :: epsdiis(:,:),Rnorm(:,:)
 real(8) :: rnorm_diff_psi(itotMST,1)
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd)
+integer :: ierr
 
 allocate (htphi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate (phibox(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
@@ -269,7 +272,7 @@ else if(iflag_diisjump==1)then
     rnorm_diff_psi(iob,1)=rbox1
   end do
   call MPI_Allreduce(rnorm_diff_psi,norm_diff_psi_stock,itotMST,MPI_DOUBLE_PRECISION, &
-                       MPI_SUM,MPI_COMM_WORLD,ierr)
+                       MPI_SUM,nproc_group_global,ierr)
 end if
 
 

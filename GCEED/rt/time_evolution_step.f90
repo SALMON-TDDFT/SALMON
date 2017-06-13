@@ -17,7 +17,9 @@
 !=======================================================================
 
 SUBROUTINE time_evolution_step(shtpsi)
-!$ use omp_lib
+use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_group_grid, nproc_group_h, nproc_group_orbital
+use salmon_communication, only: comm_is_root
+use mpi, only: mpi_double_precision, mpi_sum, mpi_wtime, mpi_double_complex
 use inputoutput
 use scf_data
 use new_world_sub
@@ -30,6 +32,7 @@ integer :: ii,iob,iatom
 real(8) :: rbox1,rbox1q,rbox1q12,rbox1q23,rbox1q31,rbox1e
 complex(8),allocatable :: cmatbox1(:,:,:),cmatbox2(:,:,:)
 real(8) :: absr2
+integer :: ierr
 
 integer :: idensity, idiffDensity, ielf
 real(8) :: rNe
@@ -85,7 +88,7 @@ if(ilsda == 0) then
   call MPI_allreduce(rhobox,rho,      &
            mg_num(1)*mg_num(2)*mg_num(3),      &
            MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           newworld_comm_grid,ierr)
+           nproc_group_grid,ierr)
   elp3(762)=MPI_Wtime()
   elp3(760)=elp3(760)+elp3(762)-elp3(761)
 
@@ -95,7 +98,7 @@ else if(ilsda==1)then
   call MPI_allreduce(rhobox_s,rho_s,      &
            mg_num(1)*mg_num(2)*mg_num(3)*2,      &
            MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           newworld_comm_grid,ierr)
+           nproc_group_grid,ierr)
 !$OMP parallel do
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
@@ -137,7 +140,7 @@ end if
   elp3(516)=MPI_Wtime()
   elp3(536)=elp3(536)+elp3(516)-elp3(515)
 
-  if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
+  if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
     if(ilsda==0)then
       call conv_core_exc_cor
     else if(ilsda==1)then
@@ -198,7 +201,7 @@ end if
     end do
   
     call MPI_allreduce(rbox_array_dip2,rbox_array2_dip2,4*num_dip2,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-          newworld_comm_h,ierr)
+          nproc_group_h,ierr)
 
     do jj=1,num_dip2
       Dp2(1:3,itt,jj)=rbox_array2_dip2(1:3,jj)*Hgs(1:3)*Hvol-vecDs2(1:3,jj)
@@ -246,7 +249,7 @@ end if
       end do
 
       call MPI_allreduce(rbox_array_dip2q,rbox_array2_dip2q,9*num_dip2,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-            newworld_comm_h,ierr)
+            nproc_group_h,ierr)
  
       do jj=1,num_dip2
         do i1=1,3
@@ -272,7 +275,7 @@ end if
       end do
   
       call MPI_allreduce(rbox_array_dip2e,rbox_array2_dip2e,num_dip2,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-            newworld_comm_h,ierr)
+            nproc_group_h,ierr)
 
       do jj=1,num_dip2
         rIe2(itt,jj)=rbox_array2_dip2e(jj)*Hvol
@@ -289,20 +292,20 @@ end if
     else
       call calc_force_c(zpsi_in)
     end if
-    if(myrank==0)then
+    if(comm_is_root(nproc_id_global))then
       do iatom=1,MI
         dRion(:,iatom,1)=2*dRion(:,iatom,0)-dRion(:,iatom,-1)+    &
                              rforce(:,iatom)*dt**2/(umass*Mass(Kion(iatom)))
         Rion(:,iatom)=Rion_eq(:,iatom)+dRion(:,iatom,1)
       enddo
     end if
-    call MPI_Bcast(Rion,3*MI,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(Rion,3*MI,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
     call init_ps
-    if(myrank==0)then
+    if(comm_is_root(nproc_id_global))then
       dRion(:,:,-1)=dRion(:,:,0)
       dRion(:,:,0)=dRion(:,:,1)
     end if
-    call MPI_Bcast(dRion(1,1,-1),3*MI*3,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call MPI_Bcast(dRion(1,1,-1),3*MI*3,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
   end if
 
 
@@ -344,7 +347,7 @@ end if
       call MPI_allreduce(cmatbox1,cmatbox2,      &
                          lg_num(1)*lg_num(2)*lg_num(3),      &
                          MPI_DOUBLE_COMPLEX,MPI_SUM,      &
-                         newworld_comm_orbital,ierr)
+                         nproc_group_orbital,ierr)
       cbox3=0.d0
       do iz=lg_sta(3),lg_end(3)
       do ix=1,lg_end(1)
@@ -367,14 +370,14 @@ end if
 
     call MPI_allreduce(cbox1,cbox2,1,    &
                        MPI_DOUBLE_COMPLEX,MPI_SUM,      &
-                       MPI_COMM_WORLD,ierr)
+                       nproc_group_global,ierr)
 
     cumnum=cumnum+cbox2/zi*dt
 
     deallocate(cmatbox1,cmatbox2) 
   end if
 
-  if(myrank.eq.0)then
+  if(comm_is_root(nproc_id_global))then
     if(iflag_md==1)then
       write(15,'(3f16.8)') dble(itt)*dt*0.0241889d0,  &
                   sqrt((Rion(1,idisnum(1))-Rion(1,idisnum(2)))**2   &

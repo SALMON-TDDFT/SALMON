@@ -16,6 +16,8 @@
 !======================================================================
 !======================================================================
 subroutine writepsi
+  use salmon_parallel, only: nproc_group_global
+  use mpi, only: mpi_double_precision, mpi_sum
   use scf_data
   use allocate_mat_sub
   implicit none
@@ -24,6 +26,7 @@ subroutine writepsi
   character(30) :: suffix
   character(30) :: phys_quantity
   character(10) :: filenum
+  integer :: ierr
  
   if(iSCFRT==1)then
     do p0=1,itotMST
@@ -50,7 +53,7 @@ subroutine writepsi
       end if
       call MPI_Allreduce(matbox_l,matbox_l2,  &
   &             lg_num(1)*lg_num(2)*lg_num(3), &
-  &             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+  &             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
 
       write(filenum, '(i5)') p0
       suffix = "psi"//trim(adjustl(filenum))

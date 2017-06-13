@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 SUBROUTINE calcuV
+use salmon_parallel, only: nproc_id_global
+use salmon_communication, only: comm_is_root
 use scf_data
 use allocate_psl_sub
 implicit none
@@ -58,7 +60,7 @@ do iatom=1,MI
 end do
   
 if(iSCFRT==1)then
-  if(myrank.eq.0)then
+  if(comm_is_root(nproc_id_global))then
     do iatom=1,MI
       ikoa=Kion(iatom)
       write(*,'(1x,"ion = ",i5,"  uVu integral table")') iatom

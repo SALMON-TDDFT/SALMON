@@ -37,7 +37,10 @@ END MODULE global_variables_rt
 
 !=======================================================================
 
-subroutine Real_Time_DFT(nprocs,nprocid)
+subroutine Real_Time_DFT
+use salmon_parallel, only: nproc_id_global, nproc_group_h
+use salmon_communication, only: comm_is_root
+use mpi, only: mpi_double_precision, mpi_double_complex, mpi_wtime, mpi_sum
 use global_variables_rt
 use allocate_sendrecv_groupob_sub
 implicit none
@@ -56,10 +59,7 @@ character(100):: timeFile
 character(100):: alpha2OutFile
 integer :: ia,ib
 real(8) :: rab
-integer :: nprocs,nprocid
-
-nproc=nprocs
-myrank=nprocid
+integer :: ierr
 
 call check_cep
 call check_ae_shape
@@ -86,7 +86,7 @@ call read_input_rt(IC_rt,OC_rt,Ntime)
 
 call set_filename
 
-if(myrank.eq.0)then
+if(comm_is_root(nproc_id_global))then
   write(*,*)
   write(*,*) "Total time step      =",Ntime
   write(*,*) "Time step[fs]        =",dt*au_time_fs
@@ -174,7 +174,7 @@ elp3(402)=MPI_Wtime()
 ! Read SCF data
 call IN_data
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   if(icalcforce==1.and.iflag_md==1)then
     do jj=1,2
       if(idisnum(jj)>MI) then
@@ -304,7 +304,7 @@ Hconv  = Hconv !/(2d0*Ry)**2d0/a_B**3   ! Convergence criterion
 iterVh = 0        ! Iteration counter
 
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   write(*, *) 
   write(*, *) "dip2boundary", dip2boundary(1), dip2boundary(2)
   write(*, *) "dip2center", dip2center(1), dip2center(2)
@@ -324,7 +324,7 @@ elp3(410)=MPI_Wtime()
 ! Output
 
 if(iwrite_external==1)then
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     open(1,file=file_external)
     if(ikind_eext==1)then
       do nntime=0,itotNtime
@@ -346,7 +346,7 @@ if(quadrupole=='y')then
     call Fourier3D(Qp(iii,:,:),alphaq_R(iii,:,:),alphaq_I(iii,:,:)) 
   end do
 end if
-if(myrank.eq.0)then
+if(comm_is_root(nproc_id_global))then
   open(1,file=file_RT)
   write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A]" 
    do nntime=0,itotNtime
@@ -539,9 +539,9 @@ if(iflag_fourier_omega==1)then
 
   call MPI_Allreduce(zalpha2,zalpha3,   &
                      lg_num(1)*lg_num(2)*lg_num(3)*num_fourier_omega,    &
-                     MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_h,ierr)
+                     MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_h,ierr)
 
-  if(myrank.eq.0)then
+  if(comm_is_root(nproc_id_global))then
     alpha2=real(zalpha3,8)*dt/a_B**3/fs2eVinv/2.d0/Ry
     do jj=1,num_fourier_omega
       write(fileNumber, '(i8)') jj
@@ -566,7 +566,7 @@ end if
 
 elp3(411)=MPI_Wtime()
 
-write(fileNumber, '(i8)') myrank
+write(fileNumber, '(i8)') nproc_id_global
 timeFile = "cputime"//adjustl(fileNumber)
 open(79,file=timeFile)
 
@@ -641,6 +641,9 @@ END subroutine Real_Time_DFT
 !=======================================================================
 
 SUBROUTINE Time_Evolution(IC_rt)
+use salmon_parallel, only: nproc_id_global, nproc_group_grid, nproc_group_h
+use salmon_communication, only: comm_is_root
+use mpi, only: mpi_double_precision, mpi_sum, mpi_wtime
 use global_variables_rt
 
 implicit none
@@ -659,10 +662,11 @@ real(8)    :: rbox_array2(10)
 real(8)    :: rbox_arrayq(3,3)
 real(8)    :: rbox_arrayq2(3,3)
 real(8)    :: rbox1q,rbox1q12,rbox1q23,rbox1q31
+integer :: ierr
 
 complex(8), allocatable :: shtpsi(:,:,:,:,:)
 
-if(myrank==0.and.iflag_md==1)then
+if(comm_is_root(nproc_id_global).and.iflag_md==1)then
   open(15,file="distance.data")
   if(MI<=9)then
     wmaxMI=MI
@@ -723,7 +727,7 @@ if(ilsda==0)then
   call MPI_allreduce(rhobox,rho,      &
                      mg_num(1)*mg_num(2)*mg_num(3),      &
                      MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                     newworld_comm_grid,ierr)
+                     nproc_group_grid,ierr)
 else if(ilsda==1)then
 !$OMP parallel do
   do iz=mg_sta(3),mg_end(3)
@@ -760,7 +764,7 @@ else if(ilsda==1)then
   call MPI_allreduce(rhobox_s,rho_s,      &
                      mg_num(1)*mg_num(2)*mg_num(3)*2,      &
                      MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                     newworld_comm_grid,ierr)
+                     nproc_group_grid,ierr)
 !$OMP parallel do
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
@@ -910,7 +914,7 @@ if(IC_rt==0)then
   end do
 
   call MPI_allreduce(rbox_array,rbox_array2,4,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           newworld_comm_h,ierr)
+           nproc_group_h,ierr)
   vecDs(1:3)=rbox_array2(1:3)*Hgs(1:3)*Hvol
 
   if(quadrupole=='y')then
@@ -947,7 +951,7 @@ if(IC_rt==0)then
     rbox_arrayq(3,1)=rbox1q31 ; rbox_arrayq(1,3)=rbox1q31
 
     call MPI_allreduce(rbox_arrayq,rbox_arrayq2,9,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-             newworld_comm_h,ierr)
+             nproc_group_h,ierr)
     do i1=1,3
       vecQs(1:3,i1)=rbox_arrayq2(1:3,i1)*Hgs(1:3)*Hvol
     end do
@@ -978,7 +982,7 @@ if(IC_rt==0)then
     end do
 
     call MPI_allreduce(rbox_array_dip2,rbox_array2_dip2,4*num_dip2,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-             newworld_comm_h,ierr)
+             nproc_group_h,ierr)
     do ii=1,num_dip2
       vecDs2(1:3,ii)=rbox_array2_dip2(1:3,ii)*Hgs(1:3)*Hvol
     end do
@@ -1022,14 +1026,14 @@ if(IC_rt==0)then
       end do
 
       call MPI_allreduce(rbox_array_dip2q,rbox_array2_dip2q,9*num_dip2,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-               newworld_comm_h,ierr)
+               nproc_group_h,ierr)
 
       do jj=1,num_dip2
         do i1=1,3
           vecQs2(1:3,i1,jj)=rbox_array2_dip2q(1:3,i1,jj)*Hgs(1:3)*Hvol
         end do
       end do
-      if (myrank==0)then
+      if (comm_is_root(nproc_id_global))then
         write(*, *) "dip2center maxx", dip2center(2), vecR(1,ng_end(1),ng_end(2),ng_end(3))
         write(*, *) "initial vecQs2", vecQs2(1,1,2)
       end if
@@ -1038,7 +1042,7 @@ if(IC_rt==0)then
   end if
 
 end if
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   write(*,'(a30)', advance="no") "Static dipole moment(xyz) ="
   write(*,'(3e15.8)') (vecDs(i1)*a_B, i1=1,3)
   write(*,*)
@@ -1145,7 +1149,7 @@ if(iflag_md==1)then
   call calc_force_c(zpsi_in)
 end if
 
-if(myrank.eq.0)then
+if(comm_is_root(nproc_id_global))then
   write(*,'(1x,a10,a10,a25,a15,a25,a10)') " timestep ","time[fs]",      &
                            " Dipole moment(xyz)[A]"      &
         ,"      electrons","      Total energy[eV]","   iterVh"

@@ -14,12 +14,12 @@
 !  limitations under the License.
 !
 subroutine setmg(mg_sta,mg_end,mg_num,mg_sta_all,mg_end_all,mg_num_all,  &
-                 lg_sta,lg_end,lg_num,nproc,myrank,nproc_Mxin,nproc_ob,isequential)
+                 lg_sta,lg_end,lg_num,nproc,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
 implicit none
 integer :: i1,j1,j2,j3
 integer :: ibox
 integer :: isequential
-integer :: nproc,myrank
+integer :: nproc,nproc_id_global
 integer :: nproc_Mxin(3)
 integer :: nproc_ob
 integer :: mg_sta(3),mg_end(3),mg_num(3)
@@ -63,8 +63,8 @@ else if(isequential==2)then
 end if
 mg_num_all(:,:)=mg_end_all(:,:)-mg_sta_all(:,:)+1
 
-mg_sta(:)=mg_sta_all(:,myrank)
-mg_end(:)=mg_end_all(:,myrank)
-mg_num(:)=mg_num_all(:,myrank)
+mg_sta(:)=mg_sta_all(:,nproc_id_global)
+mg_end(:)=mg_end_all(:,nproc_id_global)
+mg_num(:)=mg_num_all(:,nproc_id_global)
 
 end subroutine setmg

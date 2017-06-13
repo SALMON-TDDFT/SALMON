@@ -14,6 +14,9 @@
 !  limitations under the License.
 !
 subroutine calc_dos
+use salmon_parallel, only: nproc_id_global, nproc_group_grid
+use salmon_communication, only: comm_is_root
+use mpi, only: mpi_double_precision, mpi_sum
 use inputoutput
 use scf_data
 use allocate_psl_sub
@@ -23,6 +26,7 @@ integer :: iob,iobmax,iob_allob,iene
 real(8) :: rbox_dos(-300:300)
 real(8) :: dos(-300:300)
 real(8),parameter :: sigma_gd=0.01d0
+integer :: ierr
 
 call calc_pmax(iobmax)
 
@@ -35,9 +39,9 @@ do iob=1,iobmax
               +exp(-(dble(iene)/10d0/au_energy_ev-esp(iob_allob,1))**2/(2.d0*sigma_gd**2))/sqrt(2.d0*Pi*sigma_gd**2)
   end do
 end do
-call MPI_Allreduce(rbox_dos,dos,601,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_grid,ierr) 
+call MPI_Allreduce(rbox_dos,dos,601,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_grid,ierr) 
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   open(101,file="dos.data")
   write(101,'("# Density of States")') 
   select case(unit_energy)

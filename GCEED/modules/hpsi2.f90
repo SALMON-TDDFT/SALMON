@@ -33,7 +33,8 @@ CONTAINS
 !========================== Hamiltonian Operation ( for real functions )
 
 SUBROUTINE R_hpsi2(tpsi,htpsi,iob,nn,isub)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital, nproc_group_h
+use mpi, only: mpi_double_precision, mpi_wtime, mpi_sum
 implicit none
 real(8) :: tpsi(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
 real(8) :: htpsi(iwk3sta(1):iwk3end(1),  &
@@ -55,6 +56,7 @@ real(8) :: wk2(iwk2sta(1):iwk2end(1),  &
                iwk2sta(3):iwk2end(3))
 
 integer :: ispin
+integer :: ierr
 
 call set_ispin(iob,ispin)
 
@@ -136,10 +138,10 @@ if(iflag_ps.eq.1)then
   else
     if(iwk_size>=1.and.iwk_size<=2)then
       call MPI_allreduce(uVpsibox(1,1),uVpsibox2(1,1),maxlm*MI,      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr)
+                     MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_orbital,ierr)
     else if(iwk_size>=11.and.iwk_size<=12)then
       call MPI_allreduce(uVpsibox(1,1),uVpsibox2(1,1),maxlm*MI,      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
+                     MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
     end if
   end if
 
@@ -226,7 +228,8 @@ END SUBROUTINE R_hpsi2
 !========================= Hamiltonian Operation (for complex funcitons)
 
 SUBROUTINE C_hpsi2(tpsi,htpsi,iob,nn,isub)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital
+use mpi, only: mpi_double_complex, mpi_wtime, mpi_sum
 implicit none
 complex(8) :: tpsi(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
 complex(8) :: htpsi(iwk3sta(1):iwk3end(1),  &
@@ -235,6 +238,7 @@ complex(8) :: htpsi(iwk3sta(1):iwk3end(1),  &
 
 integer :: iatom,ix,iy,iz,jj,lm,ik
 integer :: iob,nn,isub
+integer :: ierr
 
 complex(8) :: sumbox
 
@@ -305,7 +309,7 @@ if(iflag_ps.eq.1)then
   end do
 
   call MPI_allreduce(uVpsibox(1,1),uVpsibox2(1,1),maxlm*MI,      &
-                 MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_orbital,ierr)
+                 MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_orbital,ierr)
 end if
 
 ! Pseudopotential 2 (non-local)

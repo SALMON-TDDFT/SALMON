@@ -14,7 +14,8 @@
 !  limitations under the License.
 !
 subroutine calcELF
-!$ use omp_lib 
+use salmon_parallel, only: nproc_group_global, nproc_group_grid
+use mpi, only: mpi_double_precision, mpi_wtime, mpi_sum
 use scf_data
 use gradient_sub
 use new_world_sub
@@ -22,6 +23,7 @@ use allocate_mat_sub
 implicit none
 
 integer :: iob,ix,iy,iz
+integer :: ierr
 
 real(8) :: elftau(mg_sta(1):mg_end(1),   &
                   mg_sta(2):mg_end(2),   &
@@ -60,7 +62,7 @@ real(8) :: rho_half(mg_sta(1):mg_end(1),   &
                     mg_sta(2):mg_end(2),   &
                     mg_sta(3):mg_end(3))
 
-!call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!call MPI_BARRIER(nproc_group_global,ierr)
 elp3(801)=MPI_Wtime()
 
 !$OMP parallel do
@@ -74,7 +76,7 @@ end do
 mrelftau=0.d0
 mrcurden=0.d0
 
-!call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!call MPI_BARRIER(nproc_group_global,ierr)
 elp3(802)=MPI_Wtime()
 elp3(832)=elp3(832)+elp3(802)-elp3(801)
 
@@ -100,7 +102,7 @@ if(iSCFRT==1)then
 
   call MPI_ALLREDUCE(mrelftau,elftau,      &
        mg_num(1)*mg_num(2)*mg_num(3),      &
-       MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_grid,IERR)
+       MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_grid,IERR)
 
   call calc_gradient(rho_half(:,:,:),gradrho(:,:,:,:))
   do iz=mg_sta(3),mg_end(3)
@@ -179,24 +181,24 @@ else if(iSCFRT==2)then
 
   end do
 
-!call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!call MPI_BARRIER(nproc_group_global,ierr)
 elp3(809)=MPI_Wtime()
 elp3(839)=elp3(839)+elp3(809)-elp3(808)
 
   call MPI_ALLREDUCE(mrelftau,elftau,      &
      mg_num(1)*mg_num(2)*mg_num(3),      &
-     MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_grid,IERR)
+     MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_grid,IERR)
   call MPI_ALLREDUCE(mrcurden,curden,      &
      mg_num(1)*mg_num(2)*mg_num(3),      &
-     MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_grid,IERR)
+     MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_grid,IERR)
 
-!call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!call MPI_BARRIER(nproc_group_global,ierr)
 elp3(810)=MPI_Wtime()
 elp3(840)=elp3(840)+elp3(810)-elp3(809)
 
   call calc_gradient(rho_half(:,:,:),gradrho(:,:,:,:))
 
-!call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!call MPI_BARRIER(nproc_group_global,ierr)
 elp3(815)=MPI_Wtime()
 
   do iz=mg_sta(3),mg_end(3)
@@ -211,7 +213,7 @@ elp3(815)=MPI_Wtime()
   end do
   end do
 
-!call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!call MPI_BARRIER(nproc_group_global,ierr)
 elp3(816)=MPI_Wtime()
 elp3(846)=elp3(846)+elp3(816)-elp3(815)
 
@@ -227,7 +229,7 @@ end do
 end do
 end do
 
-!call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+!call MPI_BARRIER(nproc_group_global,ierr)
 elp3(817)=MPI_Wtime()
 elp3(847)=elp3(847)+elp3(817)-elp3(816)
 
@@ -251,7 +253,7 @@ end do
 
 call MPI_Allreduce(matbox_l,elf, &
                    lg_num(1)*lg_num(2)*lg_num(3), &
-                   MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+                   MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
 
 end subroutine calcELF
 

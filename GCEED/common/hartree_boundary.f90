@@ -16,7 +16,9 @@
 !=======================================================================
 !============================ Hartree potential (Solve Poisson equation)
 SUBROUTINE Hartree_boundary(trho,wk2)
-!$ use omp_lib
+use salmon_parallel, only: nproc_id_global, nproc_size_global, nproc_group_h, &
+                           nproc_id_bound, nproc_size_bound, nproc_group_bound
+use mpi, only: mpi_double_precision, mpi_sum, mpi_wtime
 use scf_data
 use new_world_sub
 use sendrecvh_sub
@@ -32,7 +34,7 @@ integer,parameter :: maxiter=1000
 integer :: ii,jj,ix,iy,iz,lm,LL,icen
 integer :: ixbox,iybox,izbox
 integer :: k
-integer :: istart(0:nproc-1),iend(0:nproc-1)
+integer :: istart(0:nproc_size_global-1),iend(0:nproc_size_global-1)
 integer :: icount
 integer,allocatable :: itrho(:)
 integer :: num_center
@@ -54,6 +56,7 @@ real(8) :: deno(25)
 real(8) :: rinv
 real(8) :: rbox
 real(8),allocatable :: Rion2(:,:)
+integer :: ierr
 
 iwk_size=12
 call make_iwksta_iwkend
@@ -194,7 +197,7 @@ do ii=1,num_pole_myrank
 end do
 
 elp3(201)=MPI_Wtime()
-call MPI_ALLREDUCE(center_trho_nume_deno2,center_trho_nume_deno,4*num_pole,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,IERR)
+call MPI_ALLREDUCE(center_trho_nume_deno2,center_trho_nume_deno,4*num_pole,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,IERR)
 elp3(202)=MPI_Wtime()
 elp3(251)=elp3(251)+elp3(202)-elp3(201)
 
@@ -239,7 +242,7 @@ deallocate(center_trho_nume_deno2)
 
 end select
 
-if(nproc==1)then
+if(nproc_size_global==1)then
 !$OMP parallel do
   do icen=1,num_center
     rholm(:,icen)=rholm2(:,icen)
@@ -248,7 +251,7 @@ else
   elp3(201)=MPI_Wtime()
   call MPI_ALLREDUCE(rholm2,rholm,(lmax_MEO+1)**2*num_center, &
                     MPI_DOUBLE_PRECISION,      &
-                    MPI_SUM,newworld_comm_h,IERR)
+                    MPI_SUM,nproc_group_h,IERR)
   elp3(202)=MPI_Wtime()
   elp3(252)=elp3(252)+elp3(202)-elp3(201)
 end if
@@ -269,11 +272,12 @@ do k=1,3
     wk2bound_h(jj)=0.d0
   end do
 
-  icount=inum_Mxin_s(1,myrank)*inum_Mxin_s(2,myrank)*inum_Mxin_s(3,myrank)/inum_Mxin_s(k,myrank)*2*Ndh
+  icount=inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)  &
+         *inum_Mxin_s(3,nproc_id_global)/inum_Mxin_s(k,nproc_id_global)*2*Ndh
 !$OMP parallel do
-  do ii=0,newprocs_bound(k)-1
-    istart(ii)=ii*icount/newprocs_bound(k)+1
-    iend(ii)=(ii+1)*icount/newprocs_bound(k)
+  do ii=0,nproc_size_bound(k)-1
+    istart(ii)=ii*icount/nproc_size_bound(k)+1
+    iend(ii)=(ii+1)*icount/nproc_size_bound(k)
   end do
         
   do LL=0,lmax_MEO
@@ -284,7 +288,7 @@ do k=1,3
 
 !$OMP parallel do &
 !$OMP private(xx,yy,zz,rr,xxxx,yyyy,zzzz,lm,LL,sum1,Ylm2,rrrr,xp2,yp2,zp2,xy,yz,xz,rinv,rbox,deno)
-  do jj=istart(newrank_bound(k)),iend(newrank_bound(k))
+  do jj=istart(nproc_id_bound(k)),iend(nproc_id_bound(k))
     do icen=1,num_center
       if(itrho(icen)==1)then
         xx=gridcoo(icoobox_bound(1,jj,k),1)-center_trho(1,icen)
@@ -350,7 +354,7 @@ do k=1,3
     end do
   end do
 
-  if(nproc==1)then
+  if(nproc_size_global==1)then
 !$OMP parallel do
     do jj=1,icount
       wkbound_h(jj)=wk2bound_h(jj)
@@ -359,21 +363,21 @@ do k=1,3
     elp3(201)=MPI_Wtime()
     call MPI_REDUCE(wk2bound_h(1),wkbound_h(1),icount/2, &
                       MPI_DOUBLE_PRECISION,      &
-                      MPI_SUM,0,new_world_bound(k),IERR)
+                      MPI_SUM,0,nproc_group_bound(k),IERR)
     call MPI_REDUCE(wk2bound_h(icount/2+1),wkbound_h(icount/2+1),icount/2, &
                       MPI_DOUBLE_PRECISION,      &
-                      MPI_SUM,newprocs_bound(k)-1,new_world_bound(k),IERR)
+                      MPI_SUM,nproc_size_bound(k)-1,nproc_group_bound(k),IERR)
     elp3(202)=MPI_Wtime()
     elp3(253)=elp3(253)+elp3(202)-elp3(201)
   end if
 
-  if(newrank_bound(k)==0) then
+  if(nproc_id_bound(k)==0) then
 !$OMP parallel do
     do jj=1,icount/2
       wk2(icoobox_bound(1,jj,k),icoobox_bound(2,jj,k),icoobox_bound(3,jj,k))=wkbound_h(jj)
     end do
   end if
-  if(newrank_bound(k)==newprocs_bound(k)-1) then
+  if(nproc_id_bound(k)==nproc_size_bound(k)-1) then
 !$OMP parallel do
     do jj=icount/2+1,icount
       wk2(icoobox_bound(1,jj,k),icoobox_bound(2,jj,k),icoobox_bound(3,jj,k))=wkbound_h(jj)

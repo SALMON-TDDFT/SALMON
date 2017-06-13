@@ -39,8 +39,10 @@ END MODULE global_variables_scf
 
 !=======================================================================
 
-subroutine Real_Space_DFT(nprocs,nprocid)
-!$ use omp_lib
+subroutine Real_Space_DFT
+use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_group_h, nproc_id_grid, nproc_id_spin
+use salmon_communication, only: comm_is_root
+use mpi, only: mpi_wtime, mpi_double_precision, mpi_sum
 use global_variables_scf
 implicit none
 
@@ -50,11 +52,7 @@ integer :: iter,iatom,iob,p1,p2,p5,ii,jj,iflag
 real(8) :: sum0,sum1
 character(100) :: file_atoms_coo
 real(8) :: rNebox1,rNebox2
-
-integer :: nprocs,nprocid
-
-nproc=nprocs
-myrank=nprocid
+integer :: ierr
 
 iSCFRT=1
 ihpsieff=0
@@ -75,15 +73,15 @@ call read_input_scf(iDiterYBCG,file_atoms_coo)
 call set_filename
 
 if(ilsda==0)then
-  call calc_iobnum(itotMST,nproc_ob,newrank_comm_grid,iobnum,nproc_ob,iparaway_ob)
+  call calc_iobnum(itotMST,nproc_ob,nproc_id_grid,iobnum,nproc_ob,iparaway_ob)
 else if(ilsda==1)then
   if(nproc_ob==1)then
     iobnum=itotMST
   else
-    if(newrank_comm_spin<nproc_ob_spin(1))then
-      call calc_iobnum(MST(1),nproc_ob_spin(1),newrank_comm_grid,iobnum,nproc_ob_spin(1),iparaway_ob)
+    if(nproc_id_spin<nproc_ob_spin(1))then
+      call calc_iobnum(MST(1),nproc_ob_spin(1),nproc_id_grid,iobnum,nproc_ob_spin(1),iparaway_ob)
     else
-      call calc_iobnum(MST(2),nproc_ob_spin(2),newrank_comm_grid,iobnum,nproc_ob_spin(2),iparaway_ob)
+      call calc_iobnum(MST(2),nproc_ob_spin(2),nproc_id_grid,iobnum,nproc_ob_spin(2),iparaway_ob)
     end if
   end if
 end if
@@ -221,7 +219,7 @@ end if
 
 elp3(103)=MPI_Wtime()
 
-if(myrank.eq.0) then
+if(comm_is_root(nproc_id_global)) then
   write(*,*) '-----------------------------------------------'
   if(iflag_diisjump == 0) then
     write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8,5x,"Vh iteration =",i4)') 0,Etot*2d0*Ry,iterVh
@@ -337,14 +335,14 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(115)=MPI_Wtime()
     elp3(125)=elp3(125)+elp3(115)-elp3(114)
   
-    if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
+    if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call Hartree_ns
     end if
   
     elp3(116)=MPI_Wtime()
     elp3(126)=elp3(126)+elp3(116)-elp3(115)
   
-    if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
+    if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       if(ilsda==0)then
         call conv_core_exc_cor
       else if(ilsda==1)then
@@ -394,11 +392,11 @@ DFT_Iteration : do iter=1,iDiter(img)
     
     call calc_rho_in
 
-    if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
+    if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call Hartree_ns
     end if
   
-    if(imesh_s_all==1.or.(imesh_s_all==0.and.myrank<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
+    if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       if(ilsda==0)then
         call conv_core_exc_cor
       else if(ilsda==1)then
@@ -423,7 +421,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end do
     end do
     end do
-    call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
+    call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
     sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
   else if(iflag_convergence==3)then
     sum0=0.d0
@@ -435,11 +433,11 @@ DFT_Iteration : do iter=1,iDiter(img)
     end do
     end do
     end do
-    call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
+    call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
     sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
   end if
 
-  if(myrank.eq.0) then
+  if(comm_is_root(nproc_id_global)) then
     write(*,*) '-----------------------------------------------'
     if(iflag_diisjump == 1) then
       write(*,'("Diisjump occured. Steepest descent was used.")')
@@ -467,8 +465,8 @@ DFT_Iteration : do iter=1,iDiter(img)
   end do
   end do
   call MPI_Allreduce(rNebox1,rNebox2,1,  &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-  if(myrank==0)then
+&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
+  if(comm_is_root(nproc_id_global))then
     write(*,*) "Ne=",rNebox2*Hvol
   end if
 
@@ -507,7 +505,7 @@ if(icalcforce==1) call calc_force
 
 if(iflag_stopt==1) then
   call structure_opt
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     write(*,*) "atomic coordinate"
     do iatom=1,MI
       write(*,'(a3,3f16.8,2i3)') AtomName(iatom), (Rion(jj,iatom)*a_B,jj=1,3),Kion(iatom),istopt_a(iatom)
@@ -558,7 +556,7 @@ elp3(105)=MPI_Wtime()
 
 ! LDA information
 
-if(myrank.eq.0) then
+if(comm_is_root(nproc_id_global)) then
   open(1,file=LDA_info)
 
   write(1,*) "Total number of iteration = ", Miter
@@ -603,7 +601,7 @@ if(myrank.eq.0) then
 end if
 elp3(106)=MPI_Wtime()
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
    write(*,'(a)') "==================== elapsed time ===================="
    if(IC==0)then
      write(*,'(a,f16.8)') "elapsed time before initializing [s]  = ", elp3(102)-elp3(101)
@@ -663,25 +661,27 @@ END subroutine Real_Space_DFT
 !========================================= Grid generation and labelling
 
 SUBROUTINE init_mesh
+use salmon_parallel, only: nproc_id_global, nproc_size_global
+use salmon_communication, only: comm_is_root
 use global_variables_scf
 implicit none
 
 real(8) :: rLsize1(3)
 
-if(myrank.eq.0)      &
+if(comm_is_root(nproc_id_global))      &
     print *,"----------------------------------- init_mesh"
 
 rLsize1(:)=rLsize(:,img)
 call setlg(lg_sta,lg_end,lg_num,ista_Mx_ori,iend_Mx_ori,inum_Mx_ori,    &
            Hgs,Nd,rLsize1,imesh_oddeven)
 
-allocate(ista_Mxin(3,0:nproc-1),iend_Mxin(3,0:nproc-1))
-allocate(inum_Mxin(3,0:nproc-1))
+allocate(ista_Mxin(3,0:nproc_size_global-1),iend_Mxin(3,0:nproc_size_global-1))
+allocate(inum_Mxin(3,0:nproc_size_global-1))
 
 call setmg(mg_sta,mg_end,mg_num,ista_Mxin,iend_Mxin,inum_Mxin,  &
-           lg_sta,lg_end,lg_num,nproc,myrank,nproc_Mxin,nproc_ob,isequential)
+           lg_sta,lg_end,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
 
-if(myrank.eq.0) write(*,*) "Mx     =", iend_Mx_ori
+if(comm_is_root(nproc_id_global)) write(*,*) "Mx     =", iend_Mx_ori
 
 return
 

@@ -27,7 +27,8 @@ CONTAINS
 
 !======================================================================
 subroutine R_copy_psi_mesh(tpsi_mesh)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_global, nproc_group_h
+use mpi, only: mpi_double_precision, mpi_sum
 implicit none
 
 real(8) :: tpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),   &
@@ -37,6 +38,7 @@ integer :: iob_myob
 integer :: icheck_corrkob
 real(8),allocatable :: matbox(:,:,:)
 real(8),allocatable :: matbox2(:,:,:)
+integer :: ierr
 
 allocate(matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 allocate(matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
@@ -58,7 +60,7 @@ if(icopy_psi_mesh==1)then
     end if
 
     call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
 
 !$OMP parallel do
     do iz=ng_sta(3),ng_end(3)
@@ -84,7 +86,7 @@ else if(icopy_psi_mesh==2)then
     end do
 
     call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
+             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
 
     if(icheck_corrkob==1)then
 !$OMP parallel do
@@ -107,7 +109,8 @@ end subroutine R_copy_psi_mesh
 
 !======================================================================
 subroutine C_copy_psi_mesh(tpsi_mesh)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_global, nproc_group_h
+use mpi, only: mpi_double_complex, mpi_sum
 implicit none
 
 complex(8) :: tpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),   &
@@ -116,6 +119,7 @@ integer :: ix,iy,iz,iob,iob_myob
 integer :: icheck_corrkob
 complex(8),allocatable :: matbox(:,:,:)
 complex(8),allocatable :: matbox2(:,:,:)
+integer :: ierr
 
 allocate(matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 allocate(matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
@@ -137,7 +141,7 @@ if(icopy_psi_mesh==1)then
     end if
 
     call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
+             MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_global,ierr)
 
 !$OMP parallel do
     do iz=ng_sta(3),ng_end(3)
@@ -163,7 +167,7 @@ else if(icopy_psi_mesh==2)then
     end do
 
     call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_h,ierr)
+             MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_h,ierr)
 
     if(icheck_corrkob==1)then
 !$OMP parallel do

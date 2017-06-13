@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine set_isstaend(is_sta,is_end)
+use salmon_parallel, only: nproc_id_spin
 use scf_data
 use new_world_sub
 implicit none
@@ -27,7 +28,7 @@ else
     is_sta=1
     is_end=2
   else
-    if(newrank_comm_spin<nproc_ob_spin(1))then
+    if(nproc_id_spin<nproc_ob_spin(1))then
       is_sta=1
       is_end=1
     else

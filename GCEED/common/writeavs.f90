@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 subroutine writeavs(fp,suffix,tmatbox_l)
+  use salmon_parallel, only: nproc_id_global
+  use salmon_communication, only: comm_is_root
   use scf_data
   implicit none
   integer, intent(IN) :: fp
@@ -27,12 +29,12 @@ subroutine writeavs(fp,suffix,tmatbox_l)
   character(8)  :: filenumber_data
   
   if(numfile_movie>=2)then
-    if(myrank<numfile_movie)then
-      write(filenumber_data, '(i8)') myrank
+    if(nproc_id_global<numfile_movie)then
+      write(filenumber_data, '(i8)') nproc_id_global
       filename = trim(suffix)//"."//adjustl(filenumber_data)
       open(fp,file=filename)
-      jsta=myrank*(lg_num(1)*lg_num(2)*lg_num(3))/numfile_movie+1
-      jend=(myrank+1)*(lg_num(1)*lg_num(2)*lg_num(3))/numfile_movie
+      jsta=nproc_id_global*(lg_num(1)*lg_num(2)*lg_num(3))/numfile_movie+1
+      jend=(nproc_id_global+1)*(lg_num(1)*lg_num(2)*lg_num(3))/numfile_movie
       do jj=jsta,jend
         if(abs(tmatbox_l(icoo1d(1,jj),icoo1d(2,jj),icoo1d(3,jj)))>=1.0d-10)then
           write(fp,'(e20.8)') tmatbox_l(icoo1d(1,jj),icoo1d(2,jj),icoo1d(3,jj))
@@ -43,7 +45,7 @@ subroutine writeavs(fp,suffix,tmatbox_l)
       close(1)
     end if
   else
-    if(myrank==0)then
+    if(comm_is_root(nproc_id_global))then
       filename=trim(suffix)
       open(fp,file=filename)
       do iz=lg_sta(3),lg_end(3)

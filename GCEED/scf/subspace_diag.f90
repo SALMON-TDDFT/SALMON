@@ -15,6 +15,8 @@
 !
 subroutine subspace_diag
 
+use salmon_parallel, only: nproc_group_grid, nproc_group_global, nproc_group_orbital
+use mpi, only: mpi_wtime, mpi_double_precision, mpi_sum
 use scf_data
 use inner_product_sub
 use hpsi2_sub
@@ -34,6 +36,7 @@ integer :: is_sta,is_end
 integer :: job_myob,iroot,icorr_j,iob_allob,job_allob
 integer :: iter
 integer :: iobsta(2),iobend(2)
+integer :: ierr
 
 elp3(301)=MPI_Wtime()
 
@@ -95,7 +98,7 @@ do is=is_sta,is_end
       call hpsi2(tpsi,htpsi,job,0,0)
     end if
     call calc_iroot(job,iroot)
-    call MPI_Bcast(htpsi,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,newworld_comm_grid,ierr)
+    call MPI_Bcast(htpsi,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,nproc_group_grid,ierr)
     
     do iob=1,iobnum
       call calc_allob(iob,iob_allob)
@@ -114,7 +117,7 @@ do is=is_sta,is_end
     end do
   end do
   
-  call MPI_Allreduce(Amat2,Amat,iter*iter,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+  call MPI_Allreduce(Amat2,Amat,iter*iter,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
 
   call eigen_subdiag(Amat,evec,iter,ier2)
  
@@ -147,7 +150,7 @@ do is=is_sta,is_end
       end do
     end if
     call calc_iroot(job,iroot)
-    call MPI_Bcast(matbox_m,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,newworld_comm_grid,ierr)
+    call MPI_Bcast(matbox_m,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,nproc_group_grid,ierr)
     do iob=1,iobnum
       call calc_allob(iob,iob_allob)
       if(iob_allob>=iobsta(is).and.iob_allob<=iobend(is))then
@@ -175,7 +178,7 @@ do is=is_sta,is_end
       end do
       end do
       end do
-      call MPI_Allreduce(rbox,rbox1,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr)
+      call MPI_Allreduce(rbox,rbox1,1,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_orbital,ierr)
 !$OMP parallel do
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)

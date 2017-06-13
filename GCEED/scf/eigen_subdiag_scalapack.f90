@@ -31,7 +31,7 @@ integer :: LWORK
 
 ier2=0
 
-if(nproc==1)then
+if(nproc_size_global==1)then
   JOBZ='V'
   UPLO='L'
   N=iter
@@ -206,7 +206,7 @@ real(8) :: evec(iter,iter)
 !      end do
  !     end do
 
-!      call MPI_Allreduce(evec2,evec,N*N,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+!      call MPI_Allreduce(evec2,evec,N*N,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
 
       SCOPE='A'
       TOP=' '

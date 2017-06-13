@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine calc_iroot(iob,iroot)
+use salmon_parallel, only: nproc_id_spin
 use scf_data
 use new_world_sub
 implicit none
@@ -27,13 +28,13 @@ if(ilsda==0.or.nproc_ob==1)then
   end if
 else
   if(iparaway_ob==1)then
-    if(newrank_comm_spin<nproc_ob_spin(1))then
+    if(nproc_id_spin<nproc_ob_spin(1))then
       call calc_iquotient(iob,nproc_ob_spin(1),MST(1),iroot)
     else
       call calc_iquotient(iob-MST(1),nproc_ob_spin(2),MST(2),iroot)
     end if
   else if(iparaway_ob==2)then
-    if(newrank_comm_spin<nproc_ob_spin(1))then
+    if(nproc_id_spin<nproc_ob_spin(1))then
       iroot=mod(iob-1,nproc_ob_spin(1))
     else
       iroot=mod(iob-1-MST(1),nproc_ob_spin(2))

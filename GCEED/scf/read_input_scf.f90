@@ -15,16 +15,19 @@
 !
 subroutine read_input_scf(iDiterYBCG,file_atoms_coo)
 use salmon_global
+use salmon_parallel, only: nproc_group_global, nproc_id_global
+use salmon_communication, only: comm_is_root
+use mpi, only: mpi_integer, mpi_double_precision, mpi_character
 use inputoutput
 use scf_data
 use new_world_sub
-!$ use omp_lib
 implicit none
 integer :: ii,iatom
 integer :: ibox2
 integer :: icheck1,icheck2
 character(100) :: file_atoms_coo
 integer :: iDiterYBCG
+integer :: ierr
 integer :: inml_group_fundamental, &
          & inml_group_parallel, &
          & inml_group_hartree, &
@@ -48,7 +51,7 @@ namelist / group_others / iparaway_ob,iscf_order,iswitch_orbital_mesh,iflag_psic
 iterVh = 0         ! Iteration counter
 
 
-if(myrank ==0)then
+if(comm_is_root(nproc_id_global))then
    open(fh_namelist, file='.namelist.tmp', status='old')
 end if
 !===== namelist for group_fundamental =====
@@ -99,7 +102,7 @@ else
    write(*,*)"'ispin' should be 0 or 1. "
 end if
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_fundamental, iostat=inml_group_fundamental) 
   rewind(fh_namelist)
   if(iflag_stopt==0) iter_stopt=1 ! overwrite iter_stopt
@@ -158,48 +161,48 @@ case('n')
   icalcforce = 0
 end select
 
-call MPI_Bcast(imesh_oddeven,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_stopt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iter_stopt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(minroutine,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-!call MPI_Bcast(Ncg,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iDiterYBCG,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_subspace_diag,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iDiter_nosubspace_diag,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(imesh_oddeven,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_stopt,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iter_stopt,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(minroutine,1,MPI_INTEGER,0,nproc_group_global,ierr)
+!call MPI_Bcast(Ncg,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iDiterYBCG,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_subspace_diag,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iDiter_nosubspace_diag,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
 allocate(wtk(1))
 wtk(:)=1.d0
 
-call MPI_Bcast(iflag_convergence,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(iflag_convergence,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
-call MPI_Bcast(ithresholdVh,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(threshold_norm_diff_rho,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(ithresholdVh,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(threshold_norm_diff_rho,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
 threshold_norm_diff_rho=threshold_norm_diff_rho*a_B**3
-call MPI_Bcast(threshold_square_norm_diff_Vlocal,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(threshold_square_norm_diff_Vlocal,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
 threshold_square_norm_diff_Vlocal=threshold_square_norm_diff_Vlocal/(2.d0*Ry)**2/a_B**3
 
-call MPI_Bcast(mixrate,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(Nmemory_MB,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(mixrate,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call MPI_Bcast(Nmemory_MB,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
-call MPI_Bcast(icalcforce,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(icalcforce,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   if(iflag_stopt==1.and.icalcforce==0)then
     write(*,*) "icalcforce should be set to 1 when iflag_stopt = 1"
     stop
   end if
 end if
 
-call MPI_Bcast(ntmg,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(ntmg,1,MPI_INTEGER,0,nproc_group_global,ierr)
 call MPI_Bcast(Harray,3*10,MPI_DOUBLE_PRECISION,      &
-          0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
 call MPI_Bcast(rLsize,3*10,MPI_DOUBLE_PRECISION,      &
-          0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iDiter,10,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(ilsda,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
+call MPI_Bcast(iDiter,10,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(ilsda,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
-call MPI_Bcast(MST,2,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(ifMST,2,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(MST,2,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(ifMST,2,MPI_INTEGER,0,nproc_group_global,ierr)
 
 if(ilsda==1)then
   nproc_ob_spin(1)=(nproc_ob+1)/2
@@ -230,7 +233,7 @@ nproc_Mxin(1:3)=0
 nproc_Mxin_s(1:3)=0
 isequential=2
 imesh_s_all=1
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_parallel, iostat=inml_group_parallel)
   rewind(fh_namelist)
   ibox2=1
@@ -250,20 +253,20 @@ end if
 nproc_Mxin = nproc_domain
 nproc_Mxin_s = nproc_domain_s
 
-call MPI_Bcast(nproc_ob,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(nproc_Mxin,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(nproc_Mxin_s,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(isequential,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(num_datafiles_IN,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(num_datafiles_OUT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(imesh_s_all,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-if(myrank==0.and.nproc_ob==0)then
+call MPI_Bcast(nproc_ob,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(nproc_Mxin,3,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(nproc_Mxin_s,3,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(isequential,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(num_datafiles_IN,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(num_datafiles_OUT,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(imesh_s_all,1,MPI_INTEGER,0,nproc_group_global,ierr)
+if(comm_is_root(nproc_id_global).and.nproc_ob==0)then
   write(*,*) "set nproc_ob."
   stop
-else if(myrank==0.and.nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)==0)then
+else if(comm_is_root(nproc_id_global).and.nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)==0)then
   write(*,*) "set nproc_Mxin."
   stop
-else if(myrank==0.and.nproc_Mxin_s(1)*nproc_Mxin_s(2)*nproc_Mxin_s(3)==0)then
+else if(comm_is_root(nproc_id_global).and.nproc_Mxin_s(1)*nproc_Mxin_s(2)*nproc_Mxin_s(3)==0)then
   write(*,*) "set nproc_Mxin_s."
   stop
 end if
@@ -280,7 +283,7 @@ Hconv=1.d-15*uenergy_from_au**2*ulength_from_au**3
 !num_pole_xyz(1:3)=-1
 !MEO=3
 lmax_MEO=4
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_hartree, iostat=inml_group_hartree) 
   rewind(fh_namelist)
   if(MEO<=0.or.MEO>=4)then
@@ -292,10 +295,10 @@ if(myrank==0)then
     stop
   end if
 end if
-call MPI_Bcast(Hconv,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(num_pole_xyz,3,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(lmax_MEO,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(Hconv,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call MPI_Bcast(MEO,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(num_pole_xyz,3,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(lmax_MEO,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
 num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
 Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3
@@ -303,7 +306,7 @@ Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3
 !===== namelist for group_file =====
 IC=0
 OC=1
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_file, iostat=inml_group_file ) 
   rewind(fh_namelist)
   if(IC<0.or.IC>=2)then
@@ -311,8 +314,8 @@ if(myrank==0)then
     stop
   end if
 end if
-call MPI_Bcast(IC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(OC,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(IC,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(OC,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
 !===== namelist for group_atom =====
 iflag_ps=1
@@ -329,7 +332,7 @@ end if
 
 !Lmax_ps(:)=-1
 !Lloc_ps(:)=-1
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
 !  read(fh_namelist,NML=group_atom) 
 !  rewind(fh_namelist)
 
@@ -354,36 +357,36 @@ if(myrank==0)then
 end if
 
 
-call MPI_Bcast(MI,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(MKI,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-if(myrank==0) write(*,*) "MI =",MI
+call MPI_Bcast(MI,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(MKI,1,MPI_INTEGER,0,nproc_group_global,ierr)
+if(comm_is_root(nproc_id_global)) write(*,*) "MI =",MI
 
 call MPI_Bcast(iZatom,MKI,MPI_INTEGER,      &
-          0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
 !call MPI_Bcast(ipsfileform,MKI,MPI_INTEGER,      &
-!          0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(Mlps,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(Lref,MKI,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+!          0,nproc_group_global,ierr)
+call MPI_Bcast(Mlps,MKI,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(Lref,MKI,MPI_INTEGER,0,nproc_group_global,ierr)
 
 allocate(istopt_a(MI) ); istopt_a = 0
 allocate( AtomName(MI),iAtomicNumber(MI) )
 
-if(myrank.eq.0) then
+if(comm_is_root(nproc_id_global)) then
   do iatom=1,MI
     if(flag_geo_opt_atom(iatom) == 'y')istopt_a(iatom)=1
   end do
 end if
 
 call MPI_Bcast(Rion,3*MI,MPI_DOUBLE_PRECISION,      &
-          0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
 call MPI_Bcast(Kion,MI,MPI_INTEGER,      &
-          0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
 call MPI_Bcast(istopt_a,MI,MPI_INTEGER,      &
-          0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
 call MPI_Bcast(AtomName,8*MI,MPI_CHARACTER,      &
-          0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
 call MPI_Bcast(iAtomicNumber,MI,MPI_INTEGER,      &
-          0,MPI_COMM_WORLD,ierr)
+          0,nproc_group_global,ierr)
 
 
 select case(out_psi)
@@ -423,10 +426,10 @@ case default
 end select
 
 
-call MPI_Bcast(iflag_writepsi,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_ELF,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_dos,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_pdos,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(iflag_writepsi,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_ELF,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_dos,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_pdos,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
 
 !===== namelist for group_others =====
@@ -436,7 +439,7 @@ iswitch_orbital_mesh=0
 iflag_psicube=0
 lambda1_diis=0.5d0
 lambda2_diis=0.3d0
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_others, iostat=inml_group_others) 
   rewind(fh_namelist)
   if(iparaway_ob<=0.or.iparaway_ob>=3)then
@@ -453,15 +456,15 @@ if(myrank==0)then
   end if
 end if
 
-call MPI_Bcast(iparaway_ob,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iscf_order,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iswitch_orbital_mesh,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_psicube,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(lambda1_diis,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(lambda2_diis,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(file_ini,100,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_dos,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-call MPI_Bcast(iflag_pdos,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+call MPI_Bcast(iparaway_ob,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iscf_order,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iswitch_orbital_mesh,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_psicube,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(lambda1_diis,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call MPI_Bcast(lambda2_diis,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call MPI_Bcast(file_ini,100,MPI_CHARACTER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_dos,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call MPI_Bcast(iflag_pdos,1,MPI_INTEGER,0,nproc_group_global,ierr)
 
 !if(iflag_ps==1)then
 !  do ii=1,3
@@ -475,7 +478,7 @@ nproc_Mxin_mul=nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 call make_new_world
 
-if(myrank ==0)close(fh_namelist)
+if(comm_is_root(nproc_id_global))close(fh_namelist)
 
 return
 

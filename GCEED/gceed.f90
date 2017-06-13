@@ -13,18 +13,17 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine gceed(nprocs,procid)
+subroutine gceed
 
   implicit none
-  integer :: nprocs,procid
   character(30) :: cfunction2
 
-  call read_input_gceed(procid,cfunction2)
+  call read_input_gceed(cfunction2)
 
   if(cfunction2=="GS")then
-    call real_space_dft(nprocs,procid)
+    call real_space_dft
   else if(cfunction2=="RT")then
-    call real_time_dft(nprocs,procid)
+    call real_time_dft
   end if
 
 end subroutine gceed

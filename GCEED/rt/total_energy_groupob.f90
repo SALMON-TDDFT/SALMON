@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 SUBROUTINE Total_Energy_groupob(tzpsi_in,htpsi,ifunc)
+use salmon_parallel, only: nproc_group_global, nproc_group_h, nproc_group_orbital
+use mpi, only: mpi_wtime, mpi_double_precision, mpi_sum
 use scf_data
 use new_world_sub
 use inner_product_sub
@@ -33,6 +35,7 @@ real(8) :: rab
 real(8) :: sum1,sum2
 real(8) :: rbox
 complex(8) :: cbox
+integer :: ierr
 
 if(ifunc==1)then
 
@@ -76,7 +79,7 @@ if(ifunc==1)then
   
   elp3(761)=MPI_Wtime()
   call MPI_Allreduce(esp2,esp,itotMST,MPI_DOUBLE_PRECISION,      &
-                     MPI_SUM,MPI_COMM_WORLD,ierr)
+                     MPI_SUM,nproc_group_global,ierr)
   
   
   elp3(762)=MPI_Wtime()
@@ -86,7 +89,7 @@ else if(ifunc==2)then
 
   elp3(761)=MPI_Wtime()
   call MPI_Allreduce(esp2,esp,itotMST,MPI_DOUBLE_PRECISION,      &
-                     MPI_SUM,MPI_COMM_WORLD,ierr)
+                     MPI_SUM,nproc_group_global,ierr)
   
   elp3(762)=MPI_Wtime()
   elp3(782)=elp3(782)+elp3(762)-elp3(761)
@@ -141,7 +144,7 @@ if(ilsda == 0)then
   end if
   elp3(761)=MPI_Wtime()
   call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,newworld_comm_h,ierr)
+                 MPI_SUM,nproc_group_h,ierr)
   elp3(762)=MPI_Wtime()
   elp3(783)=elp3(783)+elp3(762)-elp3(761)
   Etot=Etot+sum2*Hvol+Exc
@@ -157,7 +160,7 @@ else if(ilsda == 1)then
   end do
   end do
   call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,newworld_comm_orbital,ierr)
+                 MPI_SUM,nproc_group_orbital,ierr)
   Etot=Etot+sum2*Hvol+Exc
 end if
 

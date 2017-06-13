@@ -14,6 +14,9 @@
 !  limitations under the License.
 !
 subroutine projection(tzpsi)
+use salmon_parallel, only: nproc_group_grid, nproc_group_global, nproc_id_global
+use salmon_communication, only: comm_is_root
+use mpi, only: mpi_double_complex, mpi_sum
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -30,6 +33,7 @@ integer :: iobmax
 integer :: iroot
 complex(8),parameter :: zi=(0.d0,1.d0)
 character(100) :: projOutFile
+integer :: ierr
 
 call calc_pmax(iobmax)
 
@@ -58,7 +62,7 @@ do iob=1,itotMST0
     end do
   end if
   call calc_iroot(iob,iroot)
-  call MPI_Bcast(cmatbox_m,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_COMPLEX,iroot,newworld_comm_grid,ierr)
+  call MPI_Bcast(cmatbox_m,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_COMPLEX,iroot,nproc_group_grid,ierr)
   do job=1,iobmax
     cbox=0.d0
 !$OMP parallel do reduction(+:cbox)
@@ -75,7 +79,7 @@ do iob=1,itotMST0
 end do
 
 call MPI_Allreduce(coef_mat(1,1,1,1),coef_mat2(1,1,1,1),itotMST*itotMST0,  &
-                   MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
+                   MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_global,ierr)
 
 coef=0.d0
 do iob=1,itotMST0
@@ -83,13 +87,13 @@ do iob=1,itotMST0
     coef(iob,1,1)=coef(iob,1,1)+abs(coef_mat2(job,iob,1,1)*Hvol)**2
   end do
 end do
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   write(41,'(200f14.8)') dble(itt)*dt*2.41888d-2, &
   & (coef(iwrite_projection_ob(iob),iwrite_projection_k(iob),1),iob=1,num_projection),  &
     sum(coef(1:itotMST,:,1)),sum(coef(1:itotMST0,:,1))
 end if
 if(mod(itt,100)==0)then
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     do iob=1,itotMST0
       write(*,'(a12,2i6,f16.8)') "projection",iob,coef(iob,1,1)
     end do
