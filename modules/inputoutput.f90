@@ -730,37 +730,41 @@ contains
 
       if_error = .false.
       if_cartesian = .true.
+      iflag_atom_coor = ntype_atom_coor_none
       icount = 0
       if(file_atom_coor /= 'none')then
         icount = icount + 1
         if_cartesian = .true.
         filename_tmp = trim(file_atom_coor)
+        iflag_atom_coor = ntype_atom_coor_cartesian
       end if
 
       if(file_atom_red_coor /= 'none')then
         icount = icount + 1
         if_cartesian = .false.
         filename_tmp = trim(file_atom_coor)
+        iflag_atom_coor = ntype_atom_coor_reduced
       end if
 
       if(if_nml_coor)then
         icount = icount + 1
         if_cartesian = .true.
         filename_tmp = '.atomic_coor.tmp'
+        iflag_atom_coor = ntype_atom_coor_cartesian
       end if
 
       if(if_nml_red_coor)then
         icount = icount + 1
         if_cartesian = .false.
         filename_tmp = '.atomic_red_coor.tmp'
+        iflag_atom_coor = ntype_atom_coor_reduced
       end if
 
     end if
 
-    if(icount == 0)return
 
     call comm_bcast(icount,nproc_group_global)
-    if(icount>1)then
+    if(icount/=1)then
        if (comm_is_root(nproc_id_global))then
          write(*,"(A)")'Error in input: The following inputs are incompatible.'
          write(*,"(A)")'file_atom_coor, file_atom_red_coor, &atomic_coor, and &atomic_red_coor.'
@@ -777,33 +781,41 @@ contains
        stop
     end if
 
-    allocate(Rion(3,natom), Kion(natom), flag_geo_opt_atom(natom))
+    allocate(Rion(3,natom), Rion_red(3,natom),Kion(natom), flag_geo_opt_atom(natom))
     Rion = 0d0
+    Rion_red = 0d0
     Kion = 0
     flag_geo_opt_atom = 'n'
 
     if (comm_is_root(nproc_id_global))then
       open(fh_atomic_coor, file=filename_tmp, status='old')
-      do i=1, natom
-        if(use_geometry_opt == 'y')then
-          read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i), flag_geo_opt_atom(i)
-        else
-          read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i)
-        end if
-      end do
+      select case(iflag_atom_coor)
+      case(ntype_atom_coor_cartesian)
+         do i=1, natom
+            if(use_geometry_opt == 'y')then
+               read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i), flag_geo_opt_atom(i)
+            else
+               read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i)
+            end if
+         end do
+         Rion = Rion*ulength_to_au
+      case(ntype_atom_coor_reduced)
+         do i=1, natom
+            if(use_geometry_opt == 'y')then
+               read(fh_atomic_coor, *) char_atom, Rion_red(:,i), Kion(i), flag_geo_opt_atom(i)
+            else
+               read(fh_atomic_coor, *) char_atom, Rion_red(:,i), Kion(i)
+            end if
+         end do
+      end select
       close(fh_atomic_coor)
-
-    if(if_cartesian)Rion = Rion*ulength_to_au
-    if(if_cartesian .and. iperiodic == 3)then
-      Rion(1,:) = Rion(1,:)/al(1)
-      Rion(2,:) = Rion(2,:)/al(2)
-      Rion(3,:) = Rion(3,:)/al(3)
-    end if
     end if
 
     call comm_bcast(Rion,nproc_group_global)
+    call comm_bcast(Rion_red,nproc_group_global)
     call comm_bcast(Kion,nproc_group_global)
     call comm_bcast(flag_geo_opt_atom,nproc_group_global)
+    call comm_bcast(iflag_atom_coor,nproc_group_global)
 
   end subroutine read_atomic_coordinates
 
@@ -1125,6 +1137,20 @@ contains
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'ewald', inml_ewald
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'newald', newald
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'aewald', aewald
+
+      select case(iflag_atom_coor)
+      case(ntype_atom_coor_cartesian)
+        write(fh_variables_log, '("#namelist: ",A)') 'atom_coor'
+        do i = 1,natom
+          write(fh_variables_log, '("#",4X,A,I2,A,"=",3ES14.5)') 'Rion(',i,')', Rion(1:3,i)
+        end do
+      case(ntype_atom_coor_reduced)
+        write(fh_variables_log, '("#namelist: ",A)') 'atom_red_coor'
+        do i = 1,natom
+          write(fh_variables_log, '("#",4X,A,I2,A,"=",3ES14.5)') 'Rion_red(',i,')', Rion_red(1:3,i)
+        end do
+      case default
+      end select
 
       close(fh_variables_log)
 

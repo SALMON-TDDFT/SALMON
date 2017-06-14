@@ -36,8 +36,8 @@ subroutine arted
   use salmon_global, only:    use_ms_maxwell
   use control_sc,       only: main_sc => main
   use control_ms,       only: main_ms => main
-  use inputfile,        only: read_arted => transfer_input, &
-                            & dump_inputdata
+  use inputfile,        only: read_arted => transfer_input
+
   use salmon_parallel
   
   implicit none
@@ -47,7 +47,6 @@ subroutine arted
   nproc_size_tdks  = nproc_size_global
 
   call read_arted()
-  !call dump_inputdata
 
   select case(use_ms_maxwell)
   case ('y')

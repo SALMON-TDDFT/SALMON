@@ -188,33 +188,9 @@ contains
     call read_namelist()
     if(entrance_option == 'reentrance')return
     call read_atomic_spiecies()
-    call dump_inputdata()
 
     return
   end subroutine transfer_input
-  
-  
-  
-  subroutine dump_inputdata()
-    use salmon_parallel, only: nproc_id_global
-    use salmon_communication, only: comm_is_root, comm_sync_all
-    use Global_Variables
-    implicit none
-    integer :: i
-  
-    if (comm_is_root(nproc_id_global)) then
-
-! 2017/06/12 S.A.S
-! This part will be moved to ./module/inputoutput.f90 after introducing 
-! reduced coordinates, Rion_red
-      print *, "#section: atomic_positions"
-      do i=1, NI
-        print '("#",4X,I1,",Rion=",3ES12.5,",Kion=",I1)', i, Rion(:,i), Kion(i)
-      end do
-    end if
-    call comm_sync_all()
-    return
-  end subroutine dump_inputdata
   
   
   
