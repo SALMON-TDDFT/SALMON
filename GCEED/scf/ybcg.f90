@@ -18,7 +18,8 @@
 
 SUBROUTINE DTcg(psi_in,iflag)
 use salmon_parallel, only: nproc_group_grid
-use mpi, only: mpi_wtime, mpi_double_precision
+use salmon_communication, only: comm_bcast
+use misc_routines, only: get_wtime
 use scf_data
 use new_world_sub
 use inner_product_sub
@@ -41,7 +42,6 @@ integer :: iob_myob,job_myob
 integer :: icorr,jcorr               
 integer :: iroot
 integer :: is_sta,is_end
-integer :: ierr
 
 allocate (xk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate (hxk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
@@ -64,7 +64,7 @@ end do
 end do
 
 elp2(:)=0d0
-elp2(1)=MPI_Wtime()
+elp2(1)=get_wtime()
 
 if(ilsda == 0)then
   iobsta(1)=1
@@ -82,7 +82,7 @@ do is=is_sta,is_end
 orbital : do iob=iobsta(is),iobend(is)
   call calc_myob(iob,iob_myob)
   call check_corrkob(iob,icorr)
-  elp2(2)=MPI_Wtime()
+  elp2(2)=get_wtime()
 
   if(icorr==1)then
 
@@ -125,7 +125,7 @@ orbital : do iob=iobsta(is),iobend(is)
       end do
     end if
     call calc_iroot(iob,iroot)
-    call MPI_Bcast(gk,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,nproc_group_grid,ierr)
+    call comm_bcast(gk,nproc_group_grid,iroot)
 
     do job=iobsta(is),iob-1
       sum0=0.d0
@@ -145,7 +145,7 @@ orbital : do iob=iobsta(is),iobend(is)
       end if
 
       call calc_iroot(job,iroot)
-      call MPI_Bcast(gk,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,nproc_group_grid,ierr)
+      call comm_bcast(gk,nproc_group_grid,iroot)
     end do
 
     if(icorr==1)then

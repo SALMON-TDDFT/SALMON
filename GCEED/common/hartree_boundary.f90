@@ -18,7 +18,8 @@
 SUBROUTINE Hartree_boundary(trho,wk2)
 use salmon_parallel, only: nproc_id_global, nproc_size_global, nproc_group_h, &
                            nproc_id_bound, nproc_size_bound, nproc_group_bound
-use mpi, only: mpi_double_precision, mpi_sum, mpi_wtime
+use salmon_communication, only: comm_summation
+use misc_routines, only: get_wtime
 use scf_data
 use new_world_sub
 use sendrecvh_sub
@@ -56,7 +57,6 @@ real(8) :: deno(25)
 real(8) :: rinv
 real(8) :: rbox
 real(8),allocatable :: Rion2(:,:)
-integer :: ierr
 
 iwk_size=12
 call make_iwksta_iwkend
@@ -196,9 +196,9 @@ do ii=1,num_pole_myrank
   center_trho_nume_deno2(4,icorr_polenum(ii))=sum1
 end do
 
-elp3(201)=MPI_Wtime()
-call MPI_ALLREDUCE(center_trho_nume_deno2,center_trho_nume_deno,4*num_pole,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,IERR)
-elp3(202)=MPI_Wtime()
+elp3(201)=get_wtime()
+call comm_summation(center_trho_nume_deno2,center_trho_nume_deno,4*num_pole,nproc_group_h)
+elp3(202)=get_wtime()
 elp3(251)=elp3(251)+elp3(202)-elp3(201)
 
 do ii=1,num_pole
@@ -248,11 +248,9 @@ if(nproc_size_global==1)then
     rholm(:,icen)=rholm2(:,icen)
   end do
 else
-  elp3(201)=MPI_Wtime()
-  call MPI_ALLREDUCE(rholm2,rholm,(lmax_MEO+1)**2*num_center, &
-                    MPI_DOUBLE_PRECISION,      &
-                    MPI_SUM,nproc_group_h,IERR)
-  elp3(202)=MPI_Wtime()
+  elp3(201)=get_wtime()
+  call comm_summation(rholm2,rholm,(lmax_MEO+1)**2*num_center,nproc_group_h)
+  elp3(202)=get_wtime()
   elp3(252)=elp3(252)+elp3(202)-elp3(201)
 end if
 
@@ -360,14 +358,12 @@ do k=1,3
       wkbound_h(jj)=wk2bound_h(jj)
     end do
   else
-    elp3(201)=MPI_Wtime()
-    call MPI_REDUCE(wk2bound_h(1),wkbound_h(1),icount/2, &
-                      MPI_DOUBLE_PRECISION,      &
-                      MPI_SUM,0,nproc_group_bound(k),IERR)
-    call MPI_REDUCE(wk2bound_h(icount/2+1),wkbound_h(icount/2+1),icount/2, &
-                      MPI_DOUBLE_PRECISION,      &
-                      MPI_SUM,nproc_size_bound(k)-1,nproc_group_bound(k),IERR)
-    elp3(202)=MPI_Wtime()
+    elp3(201)=get_wtime()
+    call comm_summation( &
+      wk2bound_h,              wkbound_h,              icount/2, nproc_group_bound(k), 0                    )
+    call comm_summation( &
+      wk2bound_h(icount/2+1:), wkbound_h(icount/2+1:), icount/2, nproc_group_bound(k), nproc_size_bound(k)-1)
+    elp3(202)=get_wtime()
     elp3(253)=elp3(253)+elp3(202)-elp3(201)
   end if
 

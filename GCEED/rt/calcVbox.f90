@@ -19,7 +19,7 @@
 SUBROUTINE calcVbox
   use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root
-  use mpi, only: mpi_wtime
+  use misc_routines, only: get_wtime
   use inputoutput
   use scf_data
   
@@ -29,7 +29,7 @@ SUBROUTINE calcVbox
   integer :: ipulse
   real(8) :: env_trigon_1,env_trigon_2
 
-  elp3(511)=MPI_Wtime()
+  elp3(511)=get_wtime()
 
   if(alocal_laser=='y')then
     do jj=1,3

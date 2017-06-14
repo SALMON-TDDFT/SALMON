@@ -16,7 +16,7 @@
 !=======================================================================
 subroutine inner_product4(matbox1,matbox2,cbox2)
 use salmon_parallel, only: nproc_group_orbital
-use mpi, only: mpi_double_complex, mpi_sum
+use salmon_communication, only: comm_summation
 use scf_data
 use new_world_sub
 !$ use omp_lib
@@ -25,7 +25,6 @@ integer :: ix,iy,iz
 complex(8) :: matbox1(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 complex(8) :: matbox2(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 complex(8) :: cbox,cbox2
-integer :: ierr
 
 cbox=0.d0
 !$omp parallel do reduction(+ : cbox)
@@ -37,6 +36,6 @@ end do
 end do
 end do
 cbox=cbox*Hvol
-call MPI_Allreduce(cbox,cbox2,1,MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_orbital,ierr)
+call comm_summation(cbox,cbox2,nproc_group_orbital)
 
 end subroutine inner_product4

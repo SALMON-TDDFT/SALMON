@@ -15,7 +15,7 @@
 !
 subroutine calcEstatic
 use salmon_parallel, only: nproc_group_grid
-use mpi, only: mpi_double_complex, mpi_sum
+use salmon_communication, only: comm_summation
 use scf_data
 use new_world_sub
 use sendrecvh_sub
@@ -28,7 +28,6 @@ real(8) :: Vh_wk(ng_sta(1)-Ndh:ng_end(1)+Ndh,   &
 complex(8) :: Ex_static2(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 complex(8) :: Ey_static2(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 complex(8) :: Ez_static2(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
-integer :: ierr
 
 iwk_size=11
 call make_iwksta_iwkend
@@ -160,12 +159,9 @@ end do
 end do
 end do
 
-call MPI_Allreduce(Ex_static2,Ex_static,mg_num(1)*mg_num(2)*mg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_grid,ierr)
-call MPI_Allreduce(Ey_static2,Ey_static,mg_num(1)*mg_num(2)*mg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_grid,ierr)
-call MPI_Allreduce(Ez_static2,Ez_static,mg_num(1)*mg_num(2)*mg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_grid,ierr)
+call comm_summation(Ex_static2,Ex_static,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
+call comm_summation(Ey_static2,Ey_static,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
+call comm_summation(Ez_static2,Ez_static,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 
 end subroutine calcEstatic
 

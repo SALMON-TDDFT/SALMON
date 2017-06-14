@@ -17,7 +17,7 @@
 !======================================== Gram-Schmidt orthogonalization
 SUBROUTINE Gram_Schmidt_ns
 use salmon_parallel, only: nproc_group_grid, nproc_group_global
-use mpi, only: mpi_double_precision, mpi_sum
+use salmon_communication, only: comm_summation, comm_bcast
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -31,7 +31,6 @@ real(8) :: rbox,rbox2
 integer :: iroot
 integer :: icorr_p
 integer :: is_sta,is_end
-integer :: ierr
 
 call set_isstaend(is_sta,is_end)
 
@@ -60,7 +59,7 @@ do iob=pstart(is),pend(is)
     end do
   end if
   call calc_iroot(iob,iroot)
-  call MPI_Bcast(matbox_m,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,nproc_group_grid,ierr)
+  call comm_bcast(matbox_m,nproc_group_grid,iroot)
 
   ovrp=0.d0
   do job=1,iobnum
@@ -79,9 +78,7 @@ do iob=pstart(is),pend(is)
     end if
   end do
 
-  call MPI_Allreduce(ovrp,ovrp2,itotMST,      &
-             MPI_DOUBLE_PRECISION,MPI_SUM,      &
-             nproc_group_global,ierr)
+  call comm_summation(ovrp,ovrp2,itotMST,nproc_group_global)
 
   matbox_m=0.d0
   do job=1,iobnum
@@ -98,8 +95,7 @@ do iob=pstart(is),pend(is)
     end if
   end do
 
-  call MPI_Allreduce(matbox_m,matbox_m2,mg_num(1)*mg_num(2)*mg_num(3), & 
-                   MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_grid,ierr)
+  call comm_summation(matbox_m,matbox_m2,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 
   rbox=0.d0
   call check_corrkob(iob,icorr_p)
@@ -115,9 +111,7 @@ do iob=pstart(is),pend(is)
     end do
   end if
 
-  call MPI_Allreduce(rbox,rbox2,1,      &
-            MPI_DOUBLE_PRECISION,MPI_SUM,      &
-            nproc_group_global,ierr)
+  call comm_summation(rbox,rbox2,nproc_group_global)
 
   if(icorr_p==1)then
 !$OMP parallel do

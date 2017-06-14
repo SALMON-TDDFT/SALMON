@@ -15,8 +15,7 @@
 !
 subroutine projection(tzpsi)
 use salmon_parallel, only: nproc_group_grid, nproc_group_global, nproc_id_global
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_double_complex, mpi_sum
+use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -33,7 +32,6 @@ integer :: iobmax
 integer :: iroot
 complex(8),parameter :: zi=(0.d0,1.d0)
 character(100) :: projOutFile
-integer :: ierr
 
 call calc_pmax(iobmax)
 
@@ -62,7 +60,7 @@ do iob=1,itotMST0
     end do
   end if
   call calc_iroot(iob,iroot)
-  call MPI_Bcast(cmatbox_m,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_COMPLEX,iroot,nproc_group_grid,ierr)
+  call comm_bcast(cmatbox_m,nproc_group_grid,iroot)
   do job=1,iobmax
     cbox=0.d0
 !$OMP parallel do reduction(+:cbox)
@@ -78,8 +76,7 @@ do iob=1,itotMST0
   end do
 end do
 
-call MPI_Allreduce(coef_mat(1,1,1,1),coef_mat2(1,1,1,1),itotMST*itotMST0,  &
-                   MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_global,ierr)
+call comm_summation(coef_mat,coef_mat2,itotMST*itotMST0,nproc_group_global)
 
 coef=0.d0
 do iob=1,itotMST0

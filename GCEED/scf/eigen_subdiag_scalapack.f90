@@ -206,7 +206,7 @@ real(8) :: evec(iter,iter)
 !      end do
  !     end do
 
-!      call MPI_Allreduce(evec2,evec,N*N,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
+!      call comm_summation(evec2,evec,N*N,nproc_group_global)
 
       SCOPE='A'
       TOP=' '

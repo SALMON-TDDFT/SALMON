@@ -15,8 +15,8 @@
 !
 subroutine subdip(rNe,ifunc)
 use salmon_parallel, only: nproc_group_h, nproc_id_global
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_double_precision, mpi_sum, mpi_wtime
+use salmon_communication, only: comm_is_root, comm_summation
+use misc_routines, only: get_wtime
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -29,9 +29,8 @@ real(8) :: rbox_array2(10), rbox_arrayq2(3, 3)
 real(8) :: rbox1, rbox1q, rbox1q12, rbox1q23, rbox1q31
 real(8) :: fact
 real(8) :: absr2
-integer :: ierr
    
-  elp3(526)=MPI_Wtime()
+  elp3(526)=get_wtime()
 
 !$OMP parallel do
    do i1=1,4
@@ -112,12 +111,10 @@ end if
    
    !-----------QUADRUPOLE-end----------
 
-   elp3(761)=MPI_Wtime()
-   call MPI_allreduce(rbox_array,rbox_array2,4,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           nproc_group_h,ierr)
-   call MPI_allreduce(rbox_arrayq,rbox_arrayq2,9,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           nproc_group_h,ierr)
-   elp3(762)=MPI_Wtime()
+   elp3(761)=get_wtime()
+   call comm_summation(rbox_array,rbox_array2,4,nproc_group_h)
+   call comm_summation(rbox_arrayq,rbox_arrayq2,9,nproc_group_h)
+   elp3(762)=get_wtime()
    elp3(784)=elp3(784)+elp3(762)-elp3(761)
 
    rNe=rbox_array2(4)*Hvol               ! Number of electrons
@@ -177,7 +174,7 @@ end if
     end if
   end if
 
-  elp3(527)=MPI_Wtime()
+  elp3(527)=get_wtime()
   elp3(539)=elp3(539)+elp3(527)-elp3(526)
 
 end subroutine subdip

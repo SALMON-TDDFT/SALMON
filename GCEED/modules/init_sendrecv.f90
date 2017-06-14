@@ -46,29 +46,29 @@ CONTAINS
 
 SUBROUTINE init_updown
 use salmon_parallel
+use salmon_communication, only: comm_proc_null
 use new_world_sub
-use mpi, only: mpi_proc_null
 
 implicit none
 
 iup_array(1)=nproc_id_orbital+1
 idw_array(1)=nproc_id_orbital-1
-if(imr(1)==nproc_Mxin(1)-1) iup_array(1)=MPI_PROC_NULL
-if(imr(1)==0) idw_array(1)=MPI_PROC_NULL
+if(imr(1)==nproc_Mxin(1)-1) iup_array(1)=comm_proc_null
+if(imr(1)==0) idw_array(1)=comm_proc_null
 
 jup_array(1)=nproc_id_orbital+nproc_Mxin(1)
 jdw_array(1)=nproc_id_orbital-nproc_Mxin(1)
-if(imr(2)==nproc_Mxin(2)-1) jup_array(1)=MPI_PROC_NULL
-if(imr(2)==0) jdw_array(1)=MPI_PROC_NULL
+if(imr(2)==nproc_Mxin(2)-1) jup_array(1)=comm_proc_null
+if(imr(2)==0) jdw_array(1)=comm_proc_null
 
 kup_array(1)=nproc_id_orbital+nproc_Mxin(1)*nproc_Mxin(2)
 kdw_array(1)=nproc_id_orbital-nproc_Mxin(1)*nproc_Mxin(2)
-if(imr(3)==nproc_Mxin(3)-1) kup_array(1)=MPI_PROC_NULL
-if(imr(3)==0) kdw_array(1)=MPI_PROC_NULL
+if(imr(3)==nproc_Mxin(3)-1) kup_array(1)=comm_proc_null
+if(imr(3)==0) kdw_array(1)=comm_proc_null
 
 if(isequential==1)then
   if(imr(1)==nproc_Mxin(1)-1.and.imrs(1)==nproc_Mxin_s_dm(1)-1) then
-    iup_array(2)=MPI_PROC_NULL
+    iup_array(2)=comm_proc_null
   else if(imrs(1)==nproc_Mxin_s_dm(1)-1) then
     iup_array(2)=nproc_id_h+nproc_Mxin_mul_s_dm-nproc_Mxin_s_dm(1)+1
   else
@@ -76,7 +76,7 @@ if(isequential==1)then
   end if
 else if(isequential==2)then
   if(imr(1)==nproc_Mxin(1)-1.and.imrs(1)==nproc_Mxin_s_dm(1)-1) then
-    iup_array(2)=MPI_PROC_NULL
+    iup_array(2)=comm_proc_null
   else if(imrs(1)==nproc_Mxin_s_dm(1)-1) then
     iup_array(2)=nproc_id_h+nproc_Mxin_mul+1-nproc_Mxin_mul*nproc_Mxin_s_dm(1)
   else
@@ -86,7 +86,7 @@ end if
 
 if(isequential==2)then
   if(nproc_Mxin(1)==1.and.nproc_Mxin_s_dm(1)==1)then
-    iup_array(4)=MPI_PROC_NULL
+    iup_array(4)=comm_proc_null
   else if(imr(1)==nproc_Mxin(1)-1.and.imrs(1)==nproc_Mxin_s_dm(1)-1) then
     iup_array(4)=nproc_id_h+nproc_Mxin_mul+1-nproc_Mxin_mul*nproc_Mxin_s_dm(1)-nproc_Mxin(1)
   else if(imrs(1)==nproc_Mxin_s_dm(1)-1) then
@@ -98,7 +98,7 @@ end if
 
 if(isequential==1)then
   if(imr(1)==0.and.imrs(1)==0) then
-    idw_array(2)=MPI_PROC_NULL
+    idw_array(2)=comm_proc_null
   else if(imrs(1)==0) then
     idw_array(2)=nproc_id_h-nproc_Mxin_mul_s_dm+nproc_Mxin_s_dm(1)-1
   else
@@ -106,7 +106,7 @@ if(isequential==1)then
   end if
 else if(isequential==2)then
   if(imr(1)==0.and.imrs(1)==0) then
-    idw_array(2)=MPI_PROC_NULL
+    idw_array(2)=comm_proc_null
   else if(imrs(1)==0) then
     idw_array(2)=nproc_id_h-nproc_Mxin_mul-1+nproc_Mxin_mul*nproc_Mxin_s_dm(1)
   else
@@ -116,7 +116,7 @@ end if
 
 if(isequential==2)then
   if(nproc_Mxin(1)==1.and.nproc_Mxin_s_dm(1)==1)then
-    idw_array(4)=MPI_PROC_NULL
+    idw_array(4)=comm_proc_null
   else if(imr(1)==0.and.imrs(1)==0) then
     idw_array(4)=nproc_id_h-nproc_Mxin_mul-1+nproc_Mxin_mul*nproc_Mxin_s_dm(1)+nproc_Mxin(1)
   else if(imrs(1)==0) then
@@ -128,7 +128,7 @@ end if
 
 if(isequential==1)then
   if(imr(2)==nproc_Mxin(2)-1.and.imrs(2)==nproc_Mxin_s_dm(2)-1) then
-    jup_array(2)=MPI_PROC_NULL
+    jup_array(2)=comm_proc_null
   else if(imrs(2)==nproc_Mxin_s_dm(2)-1) then
     jup_array(2)=nproc_id_h+nproc_Mxin_mul_s_dm*nproc_Mxin(1)    &
                                     -(nproc_Mxin_s_dm(2)-1)*nproc_Mxin_s_dm(1)
@@ -137,7 +137,7 @@ if(isequential==1)then
   end if
 else if(isequential==2)then
   if(imr(2)==nproc_Mxin(2)-1.and.imrs(2)==nproc_Mxin_s_dm(2)-1) then
-    jup_array(2)=MPI_PROC_NULL
+    jup_array(2)=comm_proc_null
   else if(imrs(2)==nproc_Mxin_s_dm(2)-1) then
     jup_array(2)=nproc_id_h+nproc_Mxin_mul*nproc_Mxin_s_dm(1)  &
             +nproc_Mxin(1)-nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
@@ -148,7 +148,7 @@ end if
 
 if(isequential==2)then
   if(nproc_Mxin(2)==1.and.nproc_Mxin_s_dm(2)==1)then
-    jup_array(4)=MPI_PROC_NULL
+    jup_array(4)=comm_proc_null
   else if(imr(2)==nproc_Mxin(2)-1.and.imrs(2)==nproc_Mxin_s_dm(2)-1) then
     jup_array(4)=nproc_id_h+nproc_Mxin_mul*nproc_Mxin_s_dm(1)  &
             +nproc_Mxin(1)-nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
@@ -163,7 +163,7 @@ end if
 
 if(isequential==1)then
   if(imr(2)==0.and.imrs(2)==0) then
-    jdw_array(2)=MPI_PROC_NULL
+    jdw_array(2)=comm_proc_null
   else if(imrs(2)==0) then
     jdw_array(2)=nproc_id_h-nproc_Mxin_mul_s_dm*nproc_Mxin(1)    &
                                     +(nproc_Mxin_s_dm(2)-1)*nproc_Mxin_s_dm(1)
@@ -172,7 +172,7 @@ if(isequential==1)then
   end if
 else if(isequential==2)then
   if(imr(2)==0.and.imrs(2)==0) then
-    jdw_array(2)=MPI_PROC_NULL
+    jdw_array(2)=comm_proc_null
   else if(imrs(2)==0) then
     jdw_array(2)=nproc_id_h-nproc_Mxin_mul*nproc_Mxin_s_dm(1)  &
               -nproc_Mxin(1)+nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
@@ -183,7 +183,7 @@ end if
 
 if(isequential==2)then
   if(nproc_Mxin(2)==1.and.nproc_Mxin_s_dm(2)==1)then
-    jdw_array(4)=MPI_PROC_NULL
+    jdw_array(4)=comm_proc_null
   else if(imr(2)==0.and.imrs(2)==0) then
     jdw_array(4)=nproc_id_h-nproc_Mxin_mul*nproc_Mxin_s_dm(1)  &
               -nproc_Mxin(1)+nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
@@ -199,7 +199,7 @@ end if
 
 if(isequential==1)then
   if(imr(3)==nproc_Mxin(3)-1.and.imrs(3)==nproc_Mxin_s_dm(3)-1) then
-    kup_array(2)=MPI_PROC_NULL
+    kup_array(2)=comm_proc_null
   else if(imrs(3)==nproc_Mxin_s_dm(3)-1) then
     kup_array(2)=nproc_id_h+nproc_Mxin_mul_s_dm*nproc_Mxin(1)*nproc_Mxin(2)   &
                                     -(nproc_Mxin_s_dm(3)-1)*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
@@ -208,7 +208,7 @@ if(isequential==1)then
   end if
 else if(isequential==2)then
   if(imr(3)==nproc_Mxin(3)-1.and.imrs(3)==nproc_Mxin_s_dm(3)-1) then
-    kup_array(2)=MPI_PROC_NULL
+    kup_array(2)=comm_proc_null
   else if(imrs(3)==nproc_Mxin_s_dm(3)-1) then
     kup_array(2)=nproc_id_h+nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
               +nproc_Mxin(1)*nproc_Mxin(2)   &
@@ -220,7 +220,7 @@ end if
 
 if(isequential==2)then
   if(nproc_Mxin(3)==1.and.nproc_Mxin_s_dm(3)==1)then
-    kup_array(4)=MPI_PROC_NULL
+    kup_array(4)=comm_proc_null
   else if(imr(3)==nproc_Mxin(3)-1.and.imrs(3)==nproc_Mxin_s_dm(3)-1) then
     kup_array(4)=nproc_id_h+nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
               +nproc_Mxin(1)*nproc_Mxin(2)   &
@@ -237,7 +237,7 @@ end if
 
 if(isequential==1)then
   if(imr(3)==0.and.imrs(3)==0) then
-    kdw_array(2)=MPI_PROC_NULL
+    kdw_array(2)=comm_proc_null
   else if(imrs(3)==0) then
     kdw_array(2)=nproc_id_h-nproc_Mxin_mul_s_dm*nproc_Mxin(1)*nproc_Mxin(2)   &
                                     +(nproc_Mxin_s_dm(3)-1)*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
@@ -246,7 +246,7 @@ if(isequential==1)then
   end if
 else if(isequential==2)then
   if(imr(3)==0.and.imrs(3)==0) then
-    kdw_array(2)=MPI_PROC_NULL
+    kdw_array(2)=comm_proc_null
   else if(imrs(3)==0) then
     kdw_array(2)=nproc_id_h-nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
               -nproc_Mxin(1)*nproc_Mxin(2)   &
@@ -258,7 +258,7 @@ end if
 
 if(isequential==2)then
   if(nproc_Mxin(3)==1.and.nproc_Mxin_s_dm(3)==1)then
-    kdw_array(4)=MPI_PROC_NULL
+    kdw_array(4)=comm_proc_null
   else if(imr(3)==0.and.imrs(3)==0) then
     kdw_array(4)=nproc_id_h-nproc_Mxin_mul*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)  &
               -nproc_Mxin(1)*nproc_Mxin(2)   &

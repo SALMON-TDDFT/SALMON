@@ -63,7 +63,7 @@ END SUBROUTINE Exc_Cor_ns
 
 SUBROUTINE xc_LDA(trho,trho_s)
 use salmon_parallel, only: nproc_group_h
-use mpi, only: mpi_double_precision, mpi_sum
+use salmon_communication, only: comm_summation
 use scf_data
 use new_world_sub
 implicit none
@@ -90,7 +90,6 @@ real(8),allocatable :: Ecu(:,:,:),Ecp(:,:,:)
 real(8),allocatable :: Vcu(:,:,:),Vcp(:,:,:)
 
 integer :: ix,iy,iz
-integer :: ierr
 real(8) :: sum1
 
 real(8) :: trho(mg_sta(1):mg_end(1),  &
@@ -258,8 +257,7 @@ end do
 end do
 end do
 sum1=sum1*Hvol
-call MPI_ALLREDUCE(sum1,Exc,1,MPI_DOUBLE_PRECISION,      &
-                  MPI_SUM,nproc_group_h,IERR)
+call comm_summation(sum1,Exc,nproc_group_h)
 
 if(ilsda==1) deallocate(Ecu,Ecp,Vcu,Vcp)
 

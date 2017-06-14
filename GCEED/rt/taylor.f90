@@ -30,7 +30,6 @@ complex(8) :: tzpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                    mg_sta(2)-Nd:mg_end(2)+Nd,    &
                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
 
-!call MPI_BARRIER(nproc_group_orbital,ierr)
 
 iwk_size=2
 call make_iwksta_iwkend
@@ -79,7 +78,6 @@ if(ihpsieff==1)then
   end if
 end if
 
-!  call MPI_BARRIER(nproc_group_orbital,ierr)
 
   do nn=1,N_hamil
     if(ihpsieff==1)then
@@ -97,7 +95,6 @@ end if
     end if
   end do
 
-!call MPI_BARRIER(nproc_group_orbital,ierr)
 
 end subroutine taylor
 

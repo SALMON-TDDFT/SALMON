@@ -30,7 +30,8 @@ CONTAINS
 
 SUBROUTINE R_Total_Energy(psi_in)
 use salmon_parallel, only: nproc_group_global, nproc_group_orbital, nproc_group_h
-use mpi, only: mpi_double_precision, mpi_sum, mpi_wtime
+use salmon_communication, only: comm_summation
+use misc_routines, only: get_wtime
 implicit none
 
 real(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),  &
@@ -44,7 +45,6 @@ real(8) :: esp2(itotMST,1)
 real(8) :: sum1,sum2
 real(8) :: rbox
 integer :: iob_allob
-integer :: ierr
 
 iwk_size=2
 call make_iwksta_iwkend
@@ -90,8 +90,7 @@ do iob=1,iobnum
 
 end do
 
-call MPI_Allreduce(esp,esp2,itotMST,MPI_DOUBLE_PRECISION,      &
-                   MPI_SUM,nproc_group_global,ierr)
+call comm_summation(esp,esp2,itotMST,nproc_group_global)
 esp=esp2
 
 Etot=0.d0
@@ -115,8 +114,7 @@ if(ilsda == 0)then
   end do
   end do
   end do
-  call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,nproc_group_h,ierr)
+  call comm_summation(sum1,sum2,nproc_group_h)
   Etot=Etot+sum2*Hvol+Exc
 else if(ilsda == 1)then
   sum1=0.d0
@@ -129,8 +127,7 @@ else if(ilsda == 1)then
   end do
   end do
   end do
-  call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,nproc_group_orbital,ierr)
+  call comm_summation(sum1,sum2,nproc_group_orbital)
   Etot=Etot+sum2*Hvol+Exc
 end if
 
@@ -142,7 +139,8 @@ END SUBROUTINE R_Total_Energy
 
 SUBROUTINE C_Total_Energy(psi_in)
 use salmon_parallel, only: nproc_group_global, nproc_group_orbital, nproc_group_h
-use mpi, only: mpi_double_complex, mpi_double_precision, mpi_sum, mpi_wtime
+use salmon_communication, only: comm_summation
+use misc_routines, only: get_wtime
 implicit none
 
 complex(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),  &
@@ -156,9 +154,8 @@ real(8) :: esp2(itotMST,1)
 real(8) :: sum1,sum2
 complex(8) :: cbox
 integer :: iob_allob
-integer :: ierr
 
-elp3(861)=MPI_Wtime()
+elp3(861)=get_wtime()
 
 iwk_size=2
 call make_iwksta_iwkend
@@ -176,11 +173,11 @@ end do
 end do
 end do
 
-elp3(862)=MPI_Wtime()
+elp3(862)=get_wtime()
 elp3(882)=elp3(882)+elp3(862)-elp3(861)
 do iob=1,iobnum
   call calc_allob(iob,iob_allob)
-  elp3(863)=MPI_Wtime()
+  elp3(863)=get_wtime()
 
 !$OMP parallel do
   do iz=mg_sta(3),mg_end(3)
@@ -193,7 +190,7 @@ do iob=1,iobnum
 
   call hpsi2(tpsi,htpsi,iob_allob,0,0)
 
-  elp3(864)=MPI_Wtime()
+  elp3(864)=get_wtime()
   elp3(884)=elp3(884)+elp3(864)-elp3(863)
 
   cbox=0.d0
@@ -208,21 +205,20 @@ do iob=1,iobnum
   
   esp2(iob_allob,1)=dble(cbox)*Hvol
 
-  elp3(865)=MPI_Wtime()
+  elp3(865)=get_wtime()
   elp3(885)=elp3(885)+elp3(865)-elp3(864)
 end do
-elp3(866)=MPI_Wtime()
+elp3(866)=get_wtime()
 
-call MPI_Allreduce(esp2,esp,itotMST,MPI_DOUBLE_PRECISION,      &
-                   MPI_SUM,nproc_group_global,ierr)
+call comm_summation(esp2,esp,itotMST,nproc_group_global)
 
-elp3(867)=MPI_Wtime()
+elp3(867)=get_wtime()
 elp3(887)=elp3(887)+elp3(867)-elp3(866)
 
 Etot=0.d0
 Etot = Etot + sum( rocc(:itotMST,1)*esp(:itotMST,1) )*wtk(1)
 
-elp3(868)=MPI_Wtime()
+elp3(868)=get_wtime()
 elp3(888)=elp3(888)+elp3(868)-elp3(867)
 
 do ia=1,MI
@@ -234,7 +230,7 @@ do ib=1,ia-1
 end do
 end do
 
-elp3(869)=MPI_Wtime()
+elp3(869)=get_wtime()
 elp3(889)=elp3(889)+elp3(869)-elp3(868)
 
 if(ilsda == 0)then
@@ -246,8 +242,7 @@ if(ilsda == 0)then
   end do
   end do
   end do
-  call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,nproc_group_h,ierr)
+  call comm_summation(sum1,sum2,nproc_group_h)
   Etot=Etot+sum2*Hvol+Exc
 else if(ilsda == 1)then
   sum1=0.d0
@@ -260,12 +255,11 @@ else if(ilsda == 1)then
   end do
   end do
   end do
-  call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,nproc_group_orbital,ierr)
+  call comm_summation(sum1,sum2,nproc_group_orbital)
   Etot=Etot+sum2*Hvol+Exc
 end if
 
-elp3(870)=MPI_Wtime()
+elp3(870)=get_wtime()
 elp3(890)=elp3(890)+elp3(870)-elp3(869)
 elp3(891)=elp3(891)+elp3(870)-elp3(861)
 

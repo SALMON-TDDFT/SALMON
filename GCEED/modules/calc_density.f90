@@ -29,7 +29,7 @@ CONTAINS
 
 subroutine R_calc_density(tpsi,ifunc)
 use salmon_parallel, only: nproc_group_grid
-use mpi, only: mpi_double_precision, mpi_sum
+use salmon_communication, only: comm_summation
 implicit none
 real(8) :: tpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1)
 integer :: i1_allob
@@ -37,7 +37,6 @@ integer :: ix,iy,iz,i1,iss,iob
 integer :: iob_myob,icorr_p
 integer :: iob_start(2),iob_end(2)
 integer :: ifunc
-integer :: ierr
 
 if(ilsda==0)then
   matbox_m=0d0
@@ -54,15 +53,11 @@ if(ilsda==0)then
   end do
  
   if(ifunc==1)then 
-    call MPI_Allreduce(matbox_m,rho(mg_sta(1),mg_sta(2),mg_sta(3)),      &
-               mg_num(1)*mg_num(2)*mg_num(3), &
-               MPI_DOUBLE_PRECISION,MPI_SUM,      &
-               nproc_group_grid,ierr)
+    call comm_summation(matbox_m,rho(mg_sta(1):,mg_sta(2):,mg_sta(3):),  &
+                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
   else if(ifunc==2)then
-    call MPI_Allreduce(matbox_m,rho_out(mg_sta(1),mg_sta(2),mg_sta(3),num_rho_stock),      &
-               mg_num(1)*mg_num(2)*mg_num(3), &
-               MPI_DOUBLE_PRECISION,MPI_SUM,      &
-               nproc_group_grid,ierr)
+    call comm_summation(matbox_m,rho_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,num_rho_stock),  &
+                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
   end if
 
 else if(ilsda==1)then
@@ -87,15 +82,11 @@ else if(ilsda==1)then
       end if
     end do
     if(ifunc==1)then
-      call MPI_Allreduce(matbox_m,rho_s(mg_sta(1),mg_sta(2),mg_sta(3),iss),      &
-                 mg_num(1)*mg_num(2)*mg_num(3), &
-                 MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                 nproc_group_grid,ierr)
+      call comm_summation(matbox_m,rho_s(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss),  &
+                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
     else if(ifunc==2)then
-      call MPI_Allreduce(matbox_m,rho_s_out(mg_sta(1),mg_sta(2),mg_sta(3),iss,num_rho_stock),      &
-                 mg_num(1)*mg_num(2)*mg_num(3), &
-                 MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                 nproc_group_grid,ierr)
+      call comm_summation(matbox_m,rho_s_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss,num_rho_stock),  &
+                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
     end if
   end do
   
@@ -116,7 +107,7 @@ END SUBROUTINE R_calc_density
 
 subroutine C_calc_density(tpsi,ifunc)
 use salmon_parallel, only: nproc_group_grid
-use mpi, only: mpi_double_precision, mpi_sum
+use salmon_communication, only: comm_summation
 implicit none
 complex(8) :: tpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1)
 integer :: i1_allob
@@ -124,7 +115,6 @@ integer :: ix,iy,iz,i1,iss,iob
 integer :: iob_myob,icorr_p
 integer :: iob_start(2),iob_end(2)
 integer :: ifunc
-integer :: ierr
 
 if(ilsda==0)then
   matbox_m=0d0
@@ -141,15 +131,11 @@ if(ilsda==0)then
   end do
  
   if(ifunc==1)then 
-    call MPI_Allreduce(matbox_m,rho(mg_sta(1),mg_sta(2),mg_sta(3)),      &
-               mg_num(1)*mg_num(2)*mg_num(3), &
-               MPI_DOUBLE_PRECISION,MPI_SUM,      &
-               nproc_group_grid,ierr)
+    call comm_summation(matbox_m,rho(mg_sta(1):,mg_sta(2):,mg_sta(3):),  &
+                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
   else if(ifunc==2)then
-    call MPI_Allreduce(matbox_m,rho_out(mg_sta(1),mg_sta(2),mg_sta(3),num_rho_stock),      &
-               mg_num(1)*mg_num(2)*mg_num(3), &
-               MPI_DOUBLE_PRECISION,MPI_SUM,      &
-               nproc_group_grid,ierr)
+    call comm_summation(matbox_m,rho_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,num_rho_stock),  &
+                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
   end if
 
 else if(ilsda==1)then
@@ -174,15 +160,11 @@ else if(ilsda==1)then
       end if
     end do
     if(ifunc==1)then
-      call MPI_Allreduce(matbox_m,rho_s(mg_sta(1),mg_sta(2),mg_sta(3),iss),      &
-                 mg_num(1)*mg_num(2)*mg_num(3), &
-                 MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                 nproc_group_grid,ierr)
+      call comm_summation(matbox_m,rho_s(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss),  &
+                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
     else if(ifunc==2)then
-      call MPI_Allreduce(matbox_m,rho_s_out(mg_sta(1),mg_sta(2),mg_sta(3),iss,num_rho_stock),      &
-                 mg_num(1)*mg_num(2)*mg_num(3), &
-                 MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                 nproc_group_grid,ierr)
+      call comm_summation(matbox_m,rho_s_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss,num_rho_stock),  &
+                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
     end if
   end do
   

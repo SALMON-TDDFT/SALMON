@@ -30,7 +30,7 @@ CONTAINS
 !======================================================================
 SUBROUTINE R_sendrecvh(wk2)
 use salmon_parallel, only: nproc_group_global, nproc_group_h
-use mpi, only: mpi_proc_null, mpi_status_size, mpi_double_precision
+use salmon_communication, only: comm_proc_null, comm_exchange
 use scf_data
 use init_sendrecv_sub
 use new_world_sub
@@ -41,9 +41,7 @@ real(8) :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3)
 integer :: ibox
 integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
-integer :: istatus(MPI_STATUS_SIZE)
 integer :: icomm
-integer :: ierr
 
 
 if(iwk_size>=1.and.iwk_size<=3)then
@@ -89,7 +87,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=13
 end if
-if(iup/=MPI_PROC_NULL)then
+if(iup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -99,9 +97,8 @@ if(iup/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(rmatbox1_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_PRECISION,iup,1,   &
-                  rmatbox2_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_PRECISION,idw,1,icomm,istatus,ierr)
-if(idw/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_x_h,iup,rmatbox2_x_h,idw,1,icomm)
+if(idw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -119,7 +116,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=15
 end if
-if(idw/=MPI_PROC_NULL)then
+if(idw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -129,9 +126,8 @@ if(idw/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(rmatbox1_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_PRECISION,idw,1,   &
-                  rmatbox2_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_PRECISION,iup,1,icomm,istatus,ierr)
-if(iup/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_x_h,idw,rmatbox2_x_h,iup,1,icomm)
+if(iup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -150,7 +146,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=17
 end if
-if(jup/=MPI_PROC_NULL)then
+if(jup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -160,9 +156,8 @@ if(jup/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(rmatbox1_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_PRECISION,jup,1,   &
-                  rmatbox2_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_PRECISION,jdw,1,icomm,istatus,ierr)
-if(jdw/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_y_h,jup,rmatbox2_y_h,jdw,1,icomm)
+if(jdw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -180,7 +175,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=19
 end if
-if(jdw/=MPI_PROC_NULL)then
+if(jdw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -190,9 +185,8 @@ if(jdw/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(rmatbox1_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_PRECISION,jdw,1,   &
-                  rmatbox2_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_PRECISION,jup,1,icomm,istatus,ierr)
-if(jup/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_y_h,jdw,rmatbox2_y_h,jup,1,icomm)
+if(jup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -210,7 +204,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=21
 end if
-if(kup/=MPI_PROC_NULL)then
+if(kup/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)
@@ -220,9 +214,8 @@ if(kup/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(rmatbox1_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_PRECISION,kup,7,   &
-                  rmatbox2_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_PRECISION,kdw,7,icomm,istatus,ierr)
-if(kdw/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_z_h,kup,rmatbox2_z_h,kdw,1,icomm)
+if(kdw/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)
@@ -240,7 +233,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=23
 end if
-if(kdw/=MPI_PROC_NULL)then
+if(kdw/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)
@@ -250,9 +243,8 @@ if(kdw/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(rmatbox1_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_PRECISION,kdw,1,   &
-                  rmatbox2_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_PRECISION,kup,1,icomm,istatus,ierr)
-if(kup/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_z_h,kdw,rmatbox2_z_h,kup,1,icomm)
+if(kup/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)
@@ -270,7 +262,7 @@ END SUBROUTINE R_sendrecvh
 !======================================================================
 SUBROUTINE C_sendrecvh(wk2)
 use salmon_parallel, only: nproc_group_global, nproc_group_h
-use mpi, only: mpi_proc_null, mpi_status_size, mpi_double_complex
+use salmon_communication, only: comm_proc_null, comm_exchange
 use scf_data
 use init_sendrecv_sub
 use new_world_sub
@@ -281,9 +273,7 @@ complex(8) :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end
 integer :: ibox
 integer :: ix,iy,iz
 integer :: iup,idw,jup,jdw,kup,kdw
-integer :: istatus(MPI_STATUS_SIZE)
 integer :: icomm
-integer :: ierr
 
 if(iwk_size>=1.and.iwk_size<=3)then
 
@@ -327,7 +317,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=13
 end if
-if(iup/=MPI_PROC_NULL)then
+if(iup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -337,9 +327,8 @@ if(iup/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(cmatbox1_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_COMPLEX,iup,1,   &
-                  cmatbox2_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_COMPLEX,idw,1,icomm,istatus,ierr)
-if(idw/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_x_h,iup,rmatbox2_x_h,idw,1,icomm)
+if(idw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -357,7 +346,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=15
 end if
-if(idw/=MPI_PROC_NULL)then
+if(idw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -367,9 +356,8 @@ if(idw/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(cmatbox1_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_COMPLEX,idw,1,   &
-                  cmatbox2_x_h,Ndh*iwk3num(2)*iwk3num(3),MPI_DOUBLE_COMPLEX,iup,1,icomm,istatus,ierr)
-if(iup/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_x_h,idw,rmatbox2_x_h,iup,1,icomm)
+if(iup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
@@ -388,7 +376,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=17
 end if
-if(jup/=MPI_PROC_NULL)then
+if(jup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -398,9 +386,8 @@ if(jup/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(cmatbox1_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_COMPLEX,jup,1,   &
-                  cmatbox2_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_COMPLEX,jdw,1,icomm,istatus,ierr)
-if(jdw/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_y_h,jup,rmatbox2_y_h,jdw,1,icomm)
+if(jdw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -418,7 +405,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=19
 end if
-if(jdw/=MPI_PROC_NULL)then
+if(jdw/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -428,9 +415,8 @@ if(jdw/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(cmatbox1_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_COMPLEX,jdw,1,   &
-                  cmatbox2_y_h,iwk3num(1)*Ndh*iwk3num(3),MPI_DOUBLE_COMPLEX,jup,1,icomm,istatus,ierr)
-if(jup/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_y_h,jdw,rmatbox2_y_h,jup,1,icomm)
+if(jup/=comm_proc_null)then
 !$OMP parallel do
   do iz=1,iwk3num(3)
   do iy=1,Ndh
@@ -448,7 +434,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=21
 end if
-if(kup/=MPI_PROC_NULL)then
+if(kup/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)
@@ -458,9 +444,8 @@ if(kup/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(cmatbox1_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_COMPLEX,kup,7,   &
-                  cmatbox2_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_COMPLEX,kdw,7,icomm,istatus,ierr)
-if(kdw/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_z_h,kup,rmatbox2_z_h,kdw,1,icomm)
+if(kdw/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)
@@ -478,7 +463,7 @@ if(iwk_size>=1.and.iwk_size<=3)then
 else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=23
 end if
-if(kdw/=MPI_PROC_NULL)then
+if(kdw/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)
@@ -488,9 +473,8 @@ if(kdw/=MPI_PROC_NULL)then
   end do
   end do
 end if
-call mpi_sendrecv(cmatbox1_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_COMPLEX,kdw,1,   &
-                  cmatbox2_z_h,iwk3num(1)*iwk3num(2)*Ndh,MPI_DOUBLE_COMPLEX,kup,1,icomm,istatus,ierr)
-if(kup/=MPI_PROC_NULL)then
+call comm_exchange(rmatbox1_z_h,kdw,rmatbox2_z_h,kup,1,icomm)
+if(kup/=comm_proc_null)then
   do iz=1,Ndh
 !$OMP parallel do
   do iy=1,iwk3num(2)

@@ -15,8 +15,7 @@
 !
 subroutine read_input_rt(IC_rt,OC_rt,Ntime)
 use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_size_global
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_integer, mpi_double_precision, mpi_character
+use salmon_communication, only: comm_is_root, comm_bcast
 use inputoutput
 use scf_data
 use new_world_sub
@@ -29,7 +28,6 @@ integer :: inml_group_fundamental, &
          & inml_group_hartree, &
          & inml_group_file, &
          & inml_group_others
-integer :: ierr
 
 
 namelist / group_fundamental / idisnum, iwrite_projection, &
@@ -79,15 +77,15 @@ case default
   stop 'invald iflag_md'
 end select
 
-call MPI_Bcast(Nenergy,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(N_hamil,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(icalcforce,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iflag_md,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(idisnum,2,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iwrite_projection,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iwrite_projnum,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(itwproj,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(itcalc_ene,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(Nenergy,           nproc_group_global)
+call comm_bcast(N_hamil,           nproc_group_global)
+call comm_bcast(icalcforce,        nproc_group_global)
+call comm_bcast(iflag_md,          nproc_group_global)
+call comm_bcast(idisnum,           nproc_group_global)
+call comm_bcast(iwrite_projection, nproc_group_global)
+call comm_bcast(iwrite_projnum,    nproc_group_global)
+call comm_bcast(itwproj,           nproc_group_global)
+call comm_bcast(itcalc_ene,        nproc_group_global)
 
 allocate(wtk(1))
 wtk(:)=1.d0
@@ -116,14 +114,14 @@ end if
 nproc_Mxin = nproc_domain
 nproc_Mxin_s = nproc_domain_s
 
-call MPI_Bcast(nproc_ob,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(nproc_Mxin,3,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(nproc_Mxin_s,3,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(isequential,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(num_datafiles_IN,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(num_datafiles_OUT,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(imesh_s_all,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iflag_comm_rho,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(nproc_ob,          nproc_group_global)
+call comm_bcast(nproc_Mxin,        nproc_group_global)
+call comm_bcast(nproc_Mxin_s,      nproc_group_global)
+call comm_bcast(isequential,       nproc_group_global)
+call comm_bcast(num_datafiles_IN,  nproc_group_global)
+call comm_bcast(num_datafiles_OUT, nproc_group_global)
+call comm_bcast(imesh_s_all,       nproc_group_global)
+call comm_bcast(iflag_comm_rho,    nproc_group_global)
 if(comm_is_root(nproc_id_global).and.nproc_ob==0)then
   write(*,*) "set nproc_ob."
   stop
@@ -146,8 +144,8 @@ Ntime=nt
 !  read(fh_namelist,NML=group_propagation)
 !  rewind(fh_namelist)
 !end if
-call MPI_Bcast(dt,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
-call MPI_Bcast(Ntime,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(dt,    nproc_group_global)
+call comm_bcast(Ntime, nproc_group_global)
 if(dt<=1.d-10)then
   write(*,*) "please set dt."
   stop
@@ -173,11 +171,11 @@ if(comm_is_root(nproc_id_global))then
     stop
   end if
 end if
-call MPI_Bcast(Hconv,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call comm_bcast(Hconv,        nproc_group_global)
 Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3
-call MPI_Bcast(MEO,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(num_pole_xyz,3,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(lmax_MEO,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(MEO,          nproc_group_global)
+call comm_bcast(num_pole_xyz, nproc_group_global)
+call comm_bcast(lmax_MEO,     nproc_group_global)
 
 num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
 
@@ -189,9 +187,9 @@ if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_file, iostat=inml_group_file)
   rewind(fh_namelist)
 end if
-call MPI_Bcast(IC,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(IC_rt,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(OC_rt,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(IC,    nproc_group_global)
+call comm_bcast(IC_rt, nproc_group_global)
+call comm_bcast(OC_rt, nproc_group_global)
 
 if(IC==3.and.num_datafiles_IN/=nproc_size_global)then
   if(comm_is_root(nproc_id_global))then
@@ -246,28 +244,28 @@ if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_others, iostat=inml_group_others)
   rewind(fh_namelist)
 end if
-call MPI_Bcast(iparaway_ob,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(num_projection,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iwrite_projection_ob,200,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iwrite_projection_k,200,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(filename_pot,100,MPI_CHARACTER,0,nproc_group_global,ierr)
-call MPI_Bcast(iwrite_external,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iflag_dip2,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iflag_intelectron,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(num_dip2,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(dip2boundary,100,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call comm_bcast(iparaway_ob,          nproc_group_global)
+call comm_bcast(num_projection,       nproc_group_global)
+call comm_bcast(iwrite_projection_ob, nproc_group_global)
+call comm_bcast(iwrite_projection_k,  nproc_group_global)
+call comm_bcast(filename_pot,         nproc_group_global)
+call comm_bcast(iwrite_external,      nproc_group_global)
+call comm_bcast(iflag_dip2,           nproc_group_global)
+call comm_bcast(iflag_intelectron,    nproc_group_global)
+call comm_bcast(num_dip2,             nproc_group_global)
+call comm_bcast(dip2boundary,         nproc_group_global)
 dip2boundary = dip2boundary*ulength_to_au
-call MPI_Bcast(dip2center,100,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call comm_bcast(dip2center,           nproc_group_global)
 dip2center = dip2center*ulength_to_au
-call MPI_Bcast(iflag_fourier_omega,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(num_fourier_omega,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(fourier_omega,200,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call comm_bcast(iflag_fourier_omega,  nproc_group_global)
+call comm_bcast(num_fourier_omega,    nproc_group_global)
+call comm_bcast(fourier_omega,        nproc_group_global)
 fourier_omega = fourier_omega*uenergy_to_au
-call MPI_Bcast(itotNtime2,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iwdenoption,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iwdenstep,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(numfile_movie,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iflag_Estatic,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(itotNtime2,           nproc_group_global)
+call comm_bcast(iwdenoption,          nproc_group_global)
+call comm_bcast(iwdenstep,            nproc_group_global)
+call comm_bcast(numfile_movie,        nproc_group_global)
+call comm_bcast(iflag_Estatic,        nproc_group_global)
 
 if(iflag_dip2==0)then
   allocate(rto(1))

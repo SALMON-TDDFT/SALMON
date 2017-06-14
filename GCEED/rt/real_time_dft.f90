@@ -39,8 +39,8 @@ END MODULE global_variables_rt
 
 subroutine Real_Time_DFT
 use salmon_parallel, only: nproc_id_global, nproc_group_h
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_double_precision, mpi_double_complex, mpi_wtime, mpi_sum
+use salmon_communication, only: comm_is_root, comm_summation
+use misc_routines, only: get_wtime
 use global_variables_rt
 use allocate_sendrecv_groupob_sub
 implicit none
@@ -59,14 +59,13 @@ character(100):: timeFile
 character(100):: alpha2OutFile
 integer :: ia,ib
 real(8) :: rab
-integer :: ierr
 
 call check_cep
 call check_ae_shape
 
 elp3(:)=0.d0
 elp5(:)=0.d0
-elp3(401)=MPI_Wtime()
+elp3(401)=get_wtime()
 
 iSCFRT=2
 OC=0
@@ -169,7 +168,7 @@ if(iflag_fourier_omega==1)then
    fourier_omega(1:num_fourier_omega)=fourier_omega(1:num_fourier_omega) !/2.d0/Ry 
 end if
 
-elp3(402)=MPI_Wtime()
+elp3(402)=get_wtime()
 
 ! Read SCF data
 call IN_data
@@ -205,7 +204,7 @@ end if
 
 if(MEO==2.or.MEO==3) call make_corr_pole
 call make_icoobox_bound
-elp3(403)=MPI_Wtime()
+elp3(403)=get_wtime()
 
 
 if(iflag_dip2==1) then
@@ -234,7 +233,7 @@ do ib=1,ia-1
 end do
 end do
 
-elp3(404)=MPI_Wtime()
+elp3(404)=get_wtime()
 
 allocate(Ex_fast(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate(Ec_fast(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
@@ -279,7 +278,7 @@ else if(IC_rt==1) then
   call IN_data_rt(IC_rt,Ntime)
 end if
 
-elp3(405)=MPI_Wtime()
+elp3(405)=get_wtime()
 
 allocate( alpha_R(3,0:Nenergy), & 
                     alpha_I(3,0:Nenergy), Sf(3) )
@@ -315,10 +314,10 @@ end if
 
 call Time_Evolution(IC_rt)
 
-elp3(409)=MPI_Wtime()
+elp3(409)=get_wtime()
 
 if(OC_rt==1) call OUT_data_rt
-elp3(410)=MPI_Wtime()
+elp3(410)=get_wtime()
 
 
 ! Output
@@ -537,9 +536,7 @@ end if
 
 if(iflag_fourier_omega==1)then
 
-  call MPI_Allreduce(zalpha2,zalpha3,   &
-                     lg_num(1)*lg_num(2)*lg_num(3)*num_fourier_omega,    &
-                     MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_h,ierr)
+  call comm_summation(zalpha2,zalpha3,lg_num(1)*lg_num(2)*lg_num(3)*num_fourier_omega,nproc_group_h)
 
   if(comm_is_root(nproc_id_global))then
     alpha2=real(zalpha3,8)*dt/a_B**3/fs2eVinv/2.d0/Ry
@@ -564,7 +561,7 @@ if(iflag_fourier_omega==1)then
 end if
 
 
-elp3(411)=MPI_Wtime()
+elp3(411)=get_wtime()
 
 write(fileNumber, '(i8)') nproc_id_global
 timeFile = "cputime"//adjustl(fileNumber)
@@ -642,8 +639,8 @@ END subroutine Real_Time_DFT
 
 SUBROUTINE Time_Evolution(IC_rt)
 use salmon_parallel, only: nproc_id_global, nproc_group_grid, nproc_group_h
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_double_precision, mpi_sum, mpi_wtime
+use salmon_communication, only: comm_is_root, comm_summation
+use misc_routines, only: get_wtime
 use global_variables_rt
 
 implicit none
@@ -662,7 +659,6 @@ real(8)    :: rbox_array2(10)
 real(8)    :: rbox_arrayq(3,3)
 real(8)    :: rbox_arrayq2(3,3)
 real(8)    :: rbox1q,rbox1q12,rbox1q23,rbox1q31
-integer :: ierr
 
 complex(8), allocatable :: shtpsi(:,:,:,:,:)
 
@@ -724,10 +720,7 @@ if(ilsda==0)then
     end do
     end do
   end do
-  call MPI_allreduce(rhobox,rho,      &
-                     mg_num(1)*mg_num(2)*mg_num(3),      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                     nproc_group_grid,ierr)
+  call comm_summation(rhobox,rho,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 else if(ilsda==1)then
 !$OMP parallel do
   do iz=mg_sta(3),mg_end(3)
@@ -761,10 +754,7 @@ else if(ilsda==1)then
       end do
     end if
   end do
-  call MPI_allreduce(rhobox_s,rho_s,      &
-                     mg_num(1)*mg_num(2)*mg_num(3)*2,      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,      &
-                     nproc_group_grid,ierr)
+  call comm_summation(rhobox_s,rho_s,mg_num(1)*mg_num(2)*mg_num(3)*2,nproc_group_grid)
 !$OMP parallel do
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
@@ -913,8 +903,7 @@ if(IC_rt==0)then
   end do
   end do
 
-  call MPI_allreduce(rbox_array,rbox_array2,4,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           nproc_group_h,ierr)
+  call comm_summation(rbox_array,rbox_array2,4,nproc_group_h)
   vecDs(1:3)=rbox_array2(1:3)*Hgs(1:3)*Hvol
 
   if(quadrupole=='y')then
@@ -950,8 +939,7 @@ if(IC_rt==0)then
     rbox_arrayq(2,3)=rbox1q23 ; rbox_arrayq(3,2)=rbox1q23
     rbox_arrayq(3,1)=rbox1q31 ; rbox_arrayq(1,3)=rbox1q31
 
-    call MPI_allreduce(rbox_arrayq,rbox_arrayq2,9,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-             nproc_group_h,ierr)
+    call comm_summation(rbox_arrayq,rbox_arrayq2,9,nproc_group_h)
     do i1=1,3
       vecQs(1:3,i1)=rbox_arrayq2(1:3,i1)*Hgs(1:3)*Hvol
     end do
@@ -981,8 +969,7 @@ if(IC_rt==0)then
       end do
     end do
 
-    call MPI_allreduce(rbox_array_dip2,rbox_array2_dip2,4*num_dip2,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-             nproc_group_h,ierr)
+    call comm_summation(rbox_array_dip2,rbox_array2_dip2,4*num_dip2,nproc_group_h)
     do ii=1,num_dip2
       vecDs2(1:3,ii)=rbox_array2_dip2(1:3,ii)*Hgs(1:3)*Hvol
     end do
@@ -1025,8 +1012,7 @@ if(IC_rt==0)then
         rbox_array_dip2q(3,1,jj)=rbox1q31 ; rbox_array_dip2q(1,3,jj)=rbox1q31
       end do
 
-      call MPI_allreduce(rbox_array_dip2q,rbox_array2_dip2q,9*num_dip2,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-               nproc_group_h,ierr)
+      call comm_summation(rbox_array_dip2q,rbox_array2_dip2q,9*num_dip2,nproc_group_h)
 
       do jj=1,num_dip2
         do i1=1,3
@@ -1196,16 +1182,16 @@ if(comm_is_root(nproc_id_global))then
 end if
 
 
-elp3(406)=MPI_Wtime()
+elp3(406)=get_wtime()
 
 call taylor_coe
 
-elp3(407)=MPI_Wtime()
+elp3(407)=get_wtime()
 
 if(itotNtime-Miter_rt<=10000)then
 
-  elp3(412)=MPI_Wtime()
-  elp3(413)=MPI_Wtime()
+  elp3(412)=get_wtime()
+  elp3(413)=get_wtime()
   TE : do itt=Miter_rt+1-1,itotNtime
     
     if(iwrite_projection==1.and.itt==Miter_rt+1-1) then
@@ -1218,15 +1204,15 @@ if(itotNtime-Miter_rt<=10000)then
 
     if(itt>=Miter_rt+1) call time_evolution_step(shtpsi)
   end do TE
-  elp3(414)=MPI_Wtime()
-  elp3(415)=MPI_Wtime()
+  elp3(414)=get_wtime()
+  elp3(415)=get_wtime()
   elp5(1:400)=elp3(1:400)
   elp5(431:3000)=elp3(431:3000)
 
 
 else
 
-  elp3(412)=MPI_Wtime()
+  elp3(412)=get_wtime()
   TE1 : do itt=Miter_rt+1-1,Miter_rt+10
     if(iwrite_projection==1.and.itt==Miter_rt+1-1) then
       if(mod(itt,2)==1)then 
@@ -1238,7 +1224,7 @@ else
 
     if(itt>=Miter_rt+1) call time_evolution_step(shtpsi)
   end do TE1
-  elp3(413)=MPI_Wtime()
+  elp3(413)=get_wtime()
 
   elp3(1:400)=0.d0
   elp3(431:3000)=0.d0
@@ -1250,16 +1236,16 @@ else
   elp5(1:400)=elp3(1:400)
   elp5(431:3000)=elp3(431:3000)
 
-  elp3(414)=MPI_Wtime()
+  elp3(414)=get_wtime()
 
   TE3 : do itt=itotNtime-4,itotNtime
     call time_evolution_step(shtpsi)
   end do TE3
-  elp3(415)=MPI_Wtime()
+  elp3(415)=get_wtime()
 
 end if
 
-elp3(408)=MPI_Wtime()
+elp3(408)=get_wtime()
 
 close(030) ! laser
 

@@ -42,7 +42,8 @@ CONTAINS
 !=======================================================================
 subroutine make_new_world
 use salmon_parallel
-use salmon_communication
+use salmon_communication, only: comm_create_group, comm_get_groupinfo
+use misc_routines, only: get_wtime
 implicit none
 integer :: i
 integer :: i1,i2,i3,i4
@@ -663,10 +664,10 @@ end subroutine make_icoobox_bound
 
 !=====================================================================
 !======================================================================
-subroutine mpi_allgatherv_vlocal
+subroutine allgatherv_vlocal
 use salmon_parallel, only: nproc_id_global, nproc_group_grid
 use salmon_communication, only: comm_allgatherv
-use mpi, only: mpi_wtime
+use misc_routines, only: get_wtime
 
 implicit none
 integer :: i
@@ -679,9 +680,9 @@ integer,allocatable :: ircnt(:)
 integer,allocatable :: idisp(:)
 integer :: is,is_sta,is_end
 
-elp3(1001)=MPI_Wtime()
+elp3(1001)=get_wtime()
 
-elp3(1002)=MPI_Wtime()
+elp3(1002)=get_wtime()
 elp3(1052)=elp3(1052)+elp3(1002)-elp3(1001)
 
 allocate(ircnt(0:nproc_Mxin_mul_s_dm-1))
@@ -778,9 +779,9 @@ do is=is_sta,is_end
     end do
   end if
 
-  elp3(761)=MPI_Wtime()
+  elp3(761)=get_wtime()
   call comm_allgatherv(matbox11,matbox12,ircnt,idisp,nproc_group_grid)
-  elp3(762)=MPI_Wtime()
+  elp3(762)=get_wtime()
   elp3(781)=elp3(781)+elp3(762)-elp3(761) 
 
 
@@ -824,11 +825,11 @@ deallocate (ircnt,idisp)
 deallocate (matbox11)
 deallocate (matbox12)
 
-elp3(1003)=MPI_Wtime()
+elp3(1003)=get_wtime()
 elp3(1053)=elp3(1053)+elp3(1003)-elp3(1002)
 elp3(1054)=elp3(1054)+elp3(1003)-elp3(1001)
 
-end subroutine mpi_allgatherv_vlocal
+end subroutine allgatherv_vlocal
 
 !======================================================================
 subroutine mpibcast_mesh_s_kxc(Vbox)

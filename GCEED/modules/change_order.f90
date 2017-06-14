@@ -29,7 +29,7 @@ CONTAINS
 !======================================================================
 subroutine R_change_order(tpsi)
 use salmon_parallel, only: nproc_group_grid
-use mpi, only: mpi_double_precision, mpi_sum
+use salmon_communication, only: comm_summation
 implicit none
 
 real(8) :: tpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1)
@@ -40,7 +40,6 @@ integer :: imin,imin_myob
 integer :: icheck_corrkob
 real(8) :: rbox
 real(8),allocatable :: matbox1(:,:,:),matbox2(:,:,:),matbox3(:,:,:),matbox4(:,:,:)
-integer :: ierr
 
 allocate(matbox1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate(matbox2(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
@@ -74,11 +73,11 @@ do is=1,iss
       matbox1=0.d0
       call check_corrkob(iob,icheck_corrkob)
       if(icheck_corrkob==1) matbox1(:,:,:)=tpsi(:,:,:,iob_myob,1)
-      call MPI_Allreduce(matbox1,matbox2,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_grid,ierr)
+      call comm_summation(matbox1,matbox2,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
       matbox3=0.d0
       call check_corrkob(imin,icheck_corrkob)
       if(icheck_corrkob==1) matbox3(:,:,:)=tpsi(:,:,:,imin_myob,1)
-      call MPI_Allreduce(matbox3,matbox4,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_grid,ierr)
+      call comm_summation(matbox3,matbox4,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
       call check_corrkob(iob,icheck_corrkob)
       if(icheck_corrkob==1) tpsi(:,:,:,iob_myob,1)=matbox4(:,:,:)
       call check_corrkob(imin,icheck_corrkob)
@@ -95,7 +94,7 @@ end subroutine R_change_order
 !======================================================================
 subroutine C_change_order(tpsi)
 use salmon_parallel, only: nproc_group_grid
-use mpi, only: mpi_double_complex, mpi_sum
+use salmon_communication, only: comm_summation
 implicit none
 
 complex(8) :: tpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1)
@@ -106,7 +105,6 @@ integer :: imin,imin_myob
 integer :: icheck_corrkob
 real(8) :: rbox
 complex(8),allocatable :: matbox1(:,:,:),matbox2(:,:,:),matbox3(:,:,:),matbox4(:,:,:)
-integer :: ierr
 
 allocate(matbox1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate(matbox2(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
@@ -140,11 +138,11 @@ do is=1,iss
       matbox1=0.d0
       call check_corrkob(iob,icheck_corrkob)
       if(icheck_corrkob==1) matbox1(:,:,:)=tpsi(:,:,:,iob_myob,1)
-      call MPI_Allreduce(matbox1,matbox2,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_grid,ierr)
+      call comm_summation(matbox1,matbox2,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
       matbox3=0.d0
       call check_corrkob(imin,icheck_corrkob)
       if(icheck_corrkob==1) matbox3(:,:,:)=tpsi(:,:,:,imin_myob,1)
-      call MPI_Allreduce(matbox3,matbox4,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_grid,ierr)
+      call comm_summation(matbox3,matbox4,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
       call check_corrkob(iob,icheck_corrkob)
       if(icheck_corrkob==1) tpsi(:,:,:,iob_myob,1)=matbox4(:,:,:)
       call check_corrkob(imin,icheck_corrkob)

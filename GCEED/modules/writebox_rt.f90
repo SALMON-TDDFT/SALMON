@@ -31,15 +31,13 @@ CONTAINS
 
 SUBROUTINE R_writebox_rt(matbox)
 use salmon_parallel, only: nproc_group_global, nproc_id_global
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_sum, mpi_double_precision
+use salmon_communication, only: comm_is_root, comm_summation
 implicit none
 integer :: i1,i2,i3
 real(8) :: box
 real(8) :: matbox(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 real(8) :: lmatbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))
 real(8) :: lmatbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))
-integer :: ierr
 
 lmatbox=0.d0
 do i1=ng_sta(1),ng_end(1)
@@ -50,9 +48,7 @@ end do
 end do
 end do
 
-call MPI_Allreduce(lmatbox,lmatbox2, &
-             lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
+call comm_summation(lmatbox,lmatbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
 if(comm_is_root(nproc_id_global))then
   do i1=lg_sta(1),lg_end(1)
@@ -71,15 +67,13 @@ END SUBROUTINE R_writebox_rt
 
 SUBROUTINE C_writebox_rt(matbox)
 use salmon_parallel, only: nproc_group_global, nproc_id_global
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_sum, mpi_double_complex
+use salmon_communication, only: comm_is_root, comm_summation
 implicit none
 integer :: i1,i2,i3
 complex(8) :: box
 complex(8) :: matbox(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 complex(8) :: lmatbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))
 complex(8) :: lmatbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))
-integer :: ierr
 
 lmatbox=0.d0
 do i1=ng_sta(1),ng_end(1)
@@ -90,9 +84,7 @@ end do
 end do
 end do
 
-call MPI_Allreduce(lmatbox,lmatbox2, &
-             lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,nproc_group_global,ierr)
+call comm_summation(lmatbox,lmatbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
 if(comm_is_root(nproc_id_global))then
   do i1=lg_sta(1),lg_end(1)

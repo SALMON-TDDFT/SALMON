@@ -41,8 +41,8 @@ END MODULE global_variables_scf
 
 subroutine Real_Space_DFT
 use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_group_h, nproc_id_grid, nproc_id_spin
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_wtime, mpi_double_precision, mpi_sum
+use salmon_communication, only: comm_is_root, comm_summation
+use misc_routines, only: get_wtime
 use global_variables_scf
 implicit none
 
@@ -52,7 +52,6 @@ integer :: iter,iatom,iob,p1,p2,p5,ii,jj,iflag
 real(8) :: sum0,sum1
 character(100) :: file_atoms_coo
 real(8) :: rNebox1,rNebox2
-integer :: ierr
 
 iSCFRT=1
 ihpsieff=0
@@ -61,7 +60,7 @@ iflag_comm_rho=1
 iblacsinit=0
 
 elp3(:)=0.d0
-elp3(101)=MPI_Wtime()
+elp3(101)=get_wtime()
 
 inumcpu_check=0
 
@@ -89,7 +88,7 @@ end if
 Structure_Optimization_Iteration : do istopt=1,iter_stopt
 Multigrid_Iteration : do img=1,ntmg
 
-elp3(102)=MPI_Wtime()
+elp3(102)=get_wtime()
 
 if(istopt==1)then
   select case( IC )
@@ -183,7 +182,7 @@ if(istopt==1)then
       call Exc_cor_ns
     end if
 
-    call mpi_allgatherv_vlocal
+    call allgatherv_vlocal
 
     call Total_Energy(psi)
       
@@ -217,7 +216,7 @@ else if(istopt>=2)then
   end if
 end if
 
-elp3(103)=MPI_Wtime()
+elp3(103)=get_wtime()
 
 if(comm_is_root(nproc_id_global)) then
   write(*,*) '-----------------------------------------------'
@@ -277,7 +276,7 @@ end if
 
 DFT_Iteration : do iter=1,iDiter(img)
 
-  elp3(111)=MPI_Wtime()
+  elp3(111)=get_wtime()
 
   if(iflag_convergence==1)then
     if(iterVh <= ithresholdVh(img)) cycle DFT_Iteration
@@ -287,7 +286,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     if(sum1<threshold_square_norm_diff_Vlocal(img)) cycle DFT_Iteration
   end if
 
-  elp3(112)=MPI_Wtime()
+  elp3(112)=get_wtime()
   elp3(122)=elp3(122)+elp3(112)-elp3(111)
 
   Miter=Miter+1
@@ -300,19 +299,19 @@ DFT_Iteration : do iter=1,iDiter(img)
    
     if( minroutine == 1 .or.       &
    (minroutine == 4 .and. Miter <= iDiterYBCG) ) then
-      elp3(181)=MPI_Wtime()
+      elp3(181)=get_wtime()
       call DTcg(psi,iflag)
-      elp3(182)=MPI_Wtime()
+      elp3(182)=get_wtime()
       elp3(183)=elp3(183)+elp3(182)-elp3(181)
     else if( minroutine == 3 .or. minroutine == 4 ) then
-      elp3(181)=MPI_Wtime()
+      elp3(181)=get_wtime()
       call rmmdiis(psi,iflag)
-      elp3(182)=MPI_Wtime()
+      elp3(182)=get_wtime()
       elp3(184)=elp3(184)+elp3(182)-elp3(181)
     end if
   
   
-    elp3(113)=MPI_Wtime()
+    elp3(113)=get_wtime()
     elp3(123)=elp3(123)+elp3(113)-elp3(112)
   
     call Gram_Schmidt_ns
@@ -323,7 +322,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       end if
     end if
   
-    elp3(114)=MPI_Wtime()
+    elp3(114)=get_wtime()
     elp3(124)=elp3(124)+elp3(114)-elp3(113)
      
     call calc_density(psi,2)
@@ -332,14 +331,14 @@ DFT_Iteration : do iter=1,iDiter(img)
     
     call calc_rho_in
   
-    elp3(115)=MPI_Wtime()
+    elp3(115)=get_wtime()
     elp3(125)=elp3(125)+elp3(115)-elp3(114)
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call Hartree_ns
     end if
   
-    elp3(116)=MPI_Wtime()
+    elp3(116)=get_wtime()
     elp3(126)=elp3(126)+elp3(116)-elp3(115)
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
@@ -350,21 +349,21 @@ DFT_Iteration : do iter=1,iDiter(img)
       end if
     end if
    
-    call mpi_allgatherv_vlocal
+    call allgatherv_vlocal
     
-    elp3(117)=MPI_Wtime()
+    elp3(117)=get_wtime()
     elp3(127)=elp3(127)+elp3(117)-elp3(116)
   
     call Total_Energy(psi)
   
-    elp3(118)=MPI_Wtime()
+    elp3(118)=get_wtime()
     elp3(128)=elp3(128)+elp3(118)-elp3(117)
-    elp3(131)=MPI_Wtime()
+    elp3(131)=get_wtime()
   
-    elp3(132)=MPI_Wtime()
+    elp3(132)=get_wtime()
     elp3(142)=elp3(142)+elp3(132)-elp3(131)
     
-    elp3(118)=MPI_Wtime()
+    elp3(118)=get_wtime()
   
     call change_order(psi)
   
@@ -404,7 +403,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       end if
     end if
    
-    call mpi_allgatherv_vlocal
+    call allgatherv_vlocal
     
     call Gram_Schmidt_ns
 
@@ -421,7 +420,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end do
     end do
     end do
-    call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+    call comm_summation(sum0,sum1,nproc_group_h)
     sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
   else if(iflag_convergence==3)then
     sum0=0.d0
@@ -433,7 +432,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end do
     end do
     end do
-    call MPI_Allreduce(sum0,sum1,1,MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+    call comm_summation(sum0,sum1,nproc_group_h)
     sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
   end if
 
@@ -464,13 +463,12 @@ DFT_Iteration : do iter=1,iDiter(img)
   end do
   end do
   end do
-  call MPI_Allreduce(rNebox1,rNebox2,1,  &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
+  call comm_summation(rNebox1,rNebox2,nproc_group_global)
   if(comm_is_root(nproc_id_global))then
     write(*,*) "Ne=",rNebox2*Hvol
   end if
 
-  elp3(119)=MPI_Wtime()
+  elp3(119)=get_wtime()
   elp3(129)=elp3(129)+elp3(119)-elp3(118)
   elp3(130)=elp3(130)+elp3(119)-elp3(111)
 
@@ -497,7 +495,7 @@ else if(ilsda==1)then
 end if
 
 end do DFT_Iteration
-elp3(104)=MPI_Wtime()
+elp3(104)=get_wtime()
 
 deallocate(idiis_sd)
 
@@ -552,7 +550,7 @@ end if
 if ( OC==1.or.OC==2.or.OC==3 ) then
   call OUT_data
 end if
-elp3(105)=MPI_Wtime()
+elp3(105)=get_wtime()
 
 ! LDA information
 
@@ -599,7 +597,7 @@ if(comm_is_root(nproc_id_global)) then
   close(1)
 
 end if
-elp3(106)=MPI_Wtime()
+elp3(106)=get_wtime()
 
 if(comm_is_root(nproc_id_global))then
    write(*,'(a)') "==================== elapsed time ===================="

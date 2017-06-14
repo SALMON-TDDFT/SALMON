@@ -17,8 +17,7 @@
 
 SUBROUTINE OUT_data
 use salmon_parallel, only: nproc_id_global, nproc_size_global, nproc_group_global, nproc_group_h
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_integer, mpi_sum, mpi_double_precision
+use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use scf_data
 use new_world_sub
 use read_pslfile_sub
@@ -41,7 +40,6 @@ integer :: nproc_xyz_datafile(3)
 character(8) :: fileNumber_data
 integer :: iob_myob
 integer :: icorr_p
-integer :: ierr
 
 if(comm_is_root(nproc_id_global))then
 
@@ -162,8 +160,7 @@ if(OC<=2)then
         = psi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),iob_myob,1)
     end if
 
-    call MPI_Allreduce(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3), &
-&               MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_global,ierr)
+    call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
 
     if(num_datafiles_OUT==1.or.num_datafiles_OUT>nproc_size_global)then
@@ -208,9 +205,7 @@ matbox2(ng_sta(1):ng_end(1),   &
         ng_sta(2):ng_end(2),   &
         ng_sta(3):ng_end(3))
 
-call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
 if(comm_is_root(nproc_id_global))then
   write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -225,9 +220,7 @@ do ii=1,num_rho_stock+1
           ng_sta(2):ng_end(2),   &
           ng_sta(3):ng_end(3),ii)
 
-  call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+  call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
   if(comm_is_root(nproc_id_global))then
     write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -243,9 +236,7 @@ do ii=1,num_rho_stock
           ng_sta(2):ng_end(2),   &
           ng_sta(3):ng_end(3),ii)
 
-  call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+  call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
   if(comm_is_root(nproc_id_global))then
     write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
   end if
@@ -261,9 +252,7 @@ if(ilsda == 1)then
               ng_sta(2):ng_end(2),   &
               ng_sta(3):ng_end(3),is)
 
-    call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+    call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
     if(comm_is_root(nproc_id_global))then
       write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -278,9 +267,7 @@ if(ilsda == 1)then
                 ng_sta(2):ng_end(2),   &
                 ng_sta(3):ng_end(3),is,ii)
 
-      call MPI_Allreduce(matbox2,matbox, &
-&               lg_num(1)*lg_num(2)*lg_num(3), &
-&               MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+      call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
       if(comm_is_root(nproc_id_global))then
         write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -296,9 +283,7 @@ if(ilsda == 1)then
                 ng_sta(2):ng_end(2),   &
                 ng_sta(3):ng_end(3),is,ii)
 
-      call MPI_Allreduce(matbox2,matbox, &
-&               lg_num(1)*lg_num(2)*lg_num(3), &
-&               MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+      call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
       if(comm_is_root(nproc_id_global))then
         write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -321,9 +306,7 @@ matbox2(ng_sta(1):ng_end(1),   &
         ng_sta(2):ng_end(2),   &
         ng_sta(3):ng_end(3))
 
-call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
 if(comm_is_root(nproc_id_global))then
   write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -338,9 +321,7 @@ if(ilsda == 0)then
           ng_sta(2):ng_end(2),   &
           ng_sta(3):ng_end(3))
 
-  call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+  call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
   if(comm_is_root(nproc_id_global))then
     write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -355,9 +336,7 @@ else if(ilsda == 1) then
             ng_sta(2):ng_end(2),   &
             ng_sta(3):ng_end(3),is)
 
-    call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+    call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
     if(comm_is_root(nproc_id_global))then
       write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -374,9 +353,7 @@ matbox2(ng_sta(1):ng_end(1),   &
           ng_sta(2):ng_end(2),   &
           ng_sta(3):ng_end(3))
 
-  call MPI_Allreduce(matbox2,matbox, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,nproc_group_h,ierr)
+  call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
 if(comm_is_root(nproc_id_global))then
   write(97) ((( matbox(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
@@ -395,8 +372,7 @@ END SUBROUTINE OUT_data
 
 SUBROUTINE IN_data
 use salmon_parallel, only: nproc_id_global, nproc_size_global, nproc_group_global, nproc_id_spin, nproc_id_grid
-use salmon_communication, only: comm_is_root
-use mpi, only: mpi_integer, mpi_sum, mpi_double_precision, mpi_character
+use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -428,7 +404,6 @@ integer :: p0
 integer :: iobnum0
 integer :: icount
 complex(8),parameter :: zi=(0.d0,1.d0)
-integer :: ierr
 
 integer :: ig_sta(3),ig_end(3),ig_num(3)
 real(8),allocatable :: matbox_read(:,:,:)
@@ -453,8 +428,8 @@ if(comm_is_root(nproc_id_global))then
      imesh_oddeven=2
    end if
 end if
-call MPI_Bcast(version_num_box,2,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(imesh_oddeven,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(version_num_box,nproc_group_global)
+call comm_bcast(imesh_oddeven,nproc_group_global)
 
 if(comm_is_root(nproc_id_global)) then
    read(96) Nd0
@@ -489,8 +464,8 @@ if(comm_is_root(nproc_id_global)) then
    end if
 end if
 
-call MPI_Bcast(ilsda,1,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(iflag_ps,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(ilsda,nproc_group_global)
+call comm_bcast(iflag_ps,nproc_group_global)
 
 if(comm_is_root(nproc_id_global))then
   read(96) iend_Mx_ori(:3)
@@ -524,15 +499,10 @@ if(comm_is_root(nproc_id_global))then
   read(96) ibox
 end if
 
-call MPI_Bcast(iend_Mx_ori,3,MPI_INTEGER,0,nproc_group_global,ierr)
-call MPI_Bcast(lg_end,3,MPI_INTEGER,0,nproc_group_global,ierr)
-if(ilsda == 0) then
-   call MPI_Bcast(MST0,1,MPI_INTEGER,0,nproc_group_global,ierr)
-   call MPI_Bcast(ifMST,1,MPI_INTEGER,0,nproc_group_global,ierr)
-else if(ilsda == 1)then
-   call MPI_Bcast(MST0,2,MPI_INTEGER,0,nproc_group_global,ierr)
-   call MPI_Bcast(ifMST,2,MPI_INTEGER,0,nproc_group_global,ierr)
-end if
+call comm_bcast(iend_Mx_ori,nproc_group_global)
+call comm_bcast(lg_end,nproc_group_global)
+call comm_bcast(MST0,nproc_group_global)
+call comm_bcast(ifMST,nproc_group_global)
 
 if(iSCFRT==2) then
   if(ilsda == 0) then
@@ -553,10 +523,10 @@ inum_Mx_ori(:)=iend_Mx_ori(:)-ista_Mx_ori(:)+1
 
 lg_num(:)=lg_end(:)-lg_sta(:)+1
 
-call MPI_Bcast(Hgs,3,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
-call MPI_Bcast(Hvol,1,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
-call MPI_Bcast(rLsize,3*ntmg,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
-call MPI_Bcast(Miter,1,MPI_INTEGER,0,nproc_group_global,ierr)
+call comm_bcast(Hgs,nproc_group_global)
+call comm_bcast(Hvol,nproc_group_global)
+call comm_bcast(rLsize,nproc_group_global)
+call comm_bcast(Miter,nproc_group_global)
 
 call set_gridcoo
 
@@ -579,10 +549,10 @@ end if
 call init_mesh_s
 
 if(iflag_ps.eq.1)then
-  call MPI_Bcast(MI_read,1,MPI_INTEGER,0,nproc_group_global,ierr)
-  call MPI_Bcast(MKI,1,MPI_INTEGER,0,nproc_group_global,ierr)
-  call MPI_Bcast(maxMps,1,MPI_INTEGER,0,nproc_group_global,ierr)
-  call MPI_Bcast(Mlmps,1,MPI_INTEGER,0,nproc_group_global,ierr)
+  call comm_bcast(MI_read,nproc_group_global)
+  call comm_bcast(MKI,nproc_group_global)
+  call comm_bcast(maxMps,nproc_group_global)
+  call comm_bcast(Mlmps,nproc_group_global)
   MI=MI_read
 end if
 
@@ -616,12 +586,12 @@ if(iflag_ps.eq.1)then
     read(96) iAtomicNumber(:MI_read)
   end if
   
-  call MPI_Bcast(Kion(1),MI_read,MPI_INTEGER,0,nproc_group_global,ierr)
-  call MPI_Bcast(Rion(1,1),MI_read*3,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
-  call MPI_Bcast(iZatom,MKI,MPI_INTEGER,0,nproc_group_global,ierr)
-  call MPI_Bcast(pseudo_file,256*MKI,MPI_CHARACTER,0,nproc_group_global,ierr)
-  call MPI_Bcast(AtomName(1),8*MI_read,MPI_CHARACTER,0,nproc_group_global,ierr)
-  call MPI_Bcast(iAtomicNumber(1),MI_read,MPI_INTEGER,0,nproc_group_global,ierr)
+  call comm_bcast(Kion,nproc_group_global)
+  call comm_bcast(Rion,nproc_group_global)
+  call comm_bcast(iZatom,nproc_group_global)
+  call comm_bcast(pseudo_file,nproc_group_global)
+  call comm_bcast(AtomName,nproc_group_global)
+  call comm_bcast(iAtomicNumber,nproc_group_global)
 
 end if
 
@@ -754,8 +724,8 @@ if(comm_is_root(nproc_id_global))then
 end if
 if(version_num_box(1)>=32)then
   if(iflag_ps.eq.1)then
-    call MPI_Bcast(Mlps,MKI,MPI_INTEGER,0,nproc_group_global,ierr)
-    call MPI_Bcast(Lref,MKI,MPI_INTEGER,0,nproc_group_global,ierr)
+    call comm_bcast(Mlps,nproc_group_global)
+    call comm_bcast(Lref,nproc_group_global)
   end if
 end if 
 
@@ -888,9 +858,7 @@ do p0=pstart(is),pend(is)
   
   icomm=nproc_group_global
 
-  call MPI_Allreduce(matbox_read2,matbox_read,  &
-&           ig_num(1)*ig_num(2)*ig_num(3), &
-&           MPI_DOUBLE_PRECISION,MPI_SUM,icomm,ierr)
+  call comm_summation(matbox_read2,matbox_read,ig_num(1)*ig_num(2)*ig_num(3),icomm)
 
   if(icheck_corrkob==1)then
     if(iSCFRT==1)then
@@ -938,8 +906,7 @@ if(IC<=2)then
       read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
     end if
     if(iSCFRT==1)then
-      call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                     MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+      call comm_bcast(matbox_read,nproc_group_global)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -953,8 +920,7 @@ if(IC<=2)then
       read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
     end if
     if(iSCFRT==1)then
-      call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                     MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+      call comm_bcast(matbox_read,nproc_group_global)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -969,8 +935,7 @@ if(IC<=2)then
         if(comm_is_root(nproc_id_global))then
           read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
         end if
-        call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                     MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+        call comm_bcast(matbox_read,nproc_group_global)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -982,8 +947,7 @@ if(IC<=2)then
         if(comm_is_root(nproc_id_global))then
           read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
         end if
-        call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                     MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+        call comm_bcast(matbox_read,nproc_group_global)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -995,8 +959,7 @@ if(IC<=2)then
         if(comm_is_root(nproc_id_global))then
           read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
         end if
-        call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                     MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+        call comm_bcast(matbox_read,nproc_group_global)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -1013,8 +976,7 @@ if(IC<=2)then
         read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
       end if
       if(iSCFRT==1)then
-        call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                       MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+        call comm_bcast(matbox_read,nproc_group_global)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -1030,8 +992,7 @@ if(IC<=2)then
         read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
       end if
       if(iSCFRT==1)then
-        call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                       MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+        call comm_bcast(matbox_read,nproc_group_global)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -1047,8 +1008,7 @@ if(IC<=2)then
         if(comm_is_root(nproc_id_global))then
           read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
         end if
-        call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                       MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+        call comm_bcast(matbox_read,nproc_group_global)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -1062,8 +1022,7 @@ if(IC<=2)then
             read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
           end if
           if(iSCFRT==1)then
-            call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                           MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+            call comm_bcast(matbox_read,nproc_group_global)
             do iz=mg_sta(3),mg_end(3)
             do iy=mg_sta(2),mg_end(2)
             do ix=mg_sta(1),mg_end(1)
@@ -1079,8 +1038,7 @@ if(IC<=2)then
             read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
           end if
           if(iSCFRT==1)then
-            call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                           MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+            call comm_bcast(matbox_read,nproc_group_global)
             do iz=mg_sta(3),mg_end(3)
             do iy=mg_sta(2),mg_end(2)
             do ix=mg_sta(1),mg_end(1)
@@ -1154,8 +1112,7 @@ if(IC<=2)then
       if(comm_is_root(nproc_id_global))then
         read(96) ((( matbox_read(ix,iy,iz),ix=ig_sta(1),ig_end(1)),iy=ig_sta(2),ig_end(2)),iz=ig_sta(3),ig_end(3))
       end if
-      call MPI_Bcast(matbox_read,lg_num(1)*lg_num(2)*lg_num(3),&
-                     MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+      call comm_bcast(matbox_read,nproc_group_global)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -1181,13 +1138,13 @@ close(96)
 
 end if
 
-call MPI_Bcast(rocc,itotMST,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
-call MPI_Bcast(esp,itotMST,MPI_DOUBLE_PRECISION,0,nproc_group_global,ierr)
+call comm_bcast(rocc,nproc_group_global)
+call comm_bcast(esp,nproc_group_global)
 
 if(version_num_box(1)<=31)then
   if(iflag_ps.eq.1)then
-    call MPI_Bcast(Mlps,MKI,MPI_INTEGER,0,nproc_group_global,ierr)
-    call MPI_Bcast(Lref,MKI,MPI_INTEGER,0,nproc_group_global,ierr)
+    call comm_bcast(Mlps,nproc_group_global)
+    call comm_bcast(Lref,nproc_group_global)
   end if
 end if
 
@@ -1218,7 +1175,7 @@ end do
 end do
 end do
 
-call mpi_allgatherv_vlocal
+call allgatherv_vlocal
 
 deallocate( esp0,rocc0 )
 
