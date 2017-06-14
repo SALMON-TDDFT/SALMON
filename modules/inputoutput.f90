@@ -69,10 +69,38 @@ module inputoutput
 !! === old variables: will be removed after some time
 
 !Input/Output units
+  integer :: iflag_unit_time
+  integer,parameter :: ntype_unit_time_au = 0
+  integer,parameter :: ntype_unit_time_fs = 1
   real(8) :: utime_to_au, utime_from_au
+
+  integer :: iflag_unit_length
+  integer,parameter :: ntype_unit_length_au = 0
+  integer,parameter :: ntype_unit_length_aa = 1
   real(8) :: ulength_to_au, ulength_from_au
+
+  integer :: iflag_unit_energy
+  integer,parameter :: ntype_unit_energy_au = 0
+  integer,parameter :: ntype_unit_energy_ev = 1
   real(8) :: uenergy_to_au, uenergy_from_au
+
+  integer :: iflag_unit_charge
+  integer,parameter :: ntype_unit_charge_au = 0
   real(8) :: ucharge_to_au, ucharge_from_au
+
+
+
+  type unit_t
+     character(32) :: name
+     real(8)       :: conv
+  end type unit_t
+
+  type(unit_t) :: t_unit_energy
+  type(unit_t) :: t_unit_energy_inv
+  type(unit_t) :: t_unit_time
+  type(unit_t) :: t_unit_time_inv
+  type(unit_t) :: t_unit_current
+  type(unit_t) :: t_unit_ac
 
 contains
   subroutine read_input
@@ -788,9 +816,11 @@ contains
     case('au','a.u.')
       utime_to_au   = 1d0
       utime_from_au = 1d0
+      iflag_unit_time = ntype_unit_time_au
     case('fs','femtosecond')
       utime_to_au   = 1d0/au_time_fs
       utime_from_au = au_time_fs
+      iflag_unit_time = ntype_unit_time_fs
     case default
       stop "Invalid unit for time."
     end select
@@ -800,9 +830,11 @@ contains
     case('au','a.u.')
       ulength_to_au   = 1d0
       ulength_from_au = 1d0
+      iflag_unit_length = ntype_unit_length_au
     case('AA','angstrom','Angstrom')
       ulength_to_au   = 1d0/au_length_aa
       ulength_from_au = au_length_aa
+      iflag_unit_length = ntype_unit_length_aa
     case default
       stop "Invalid unit for length."
     end select
@@ -812,9 +844,11 @@ contains
     case('au','a.u.')
       uenergy_to_au   = 1d0
       uenergy_from_au = 1d0
+      iflag_unit_energy = ntype_unit_energy_au
     case('ev','eV')
       uenergy_to_au   = 1d0/au_energy_ev
       uenergy_from_au = au_energy_ev
+      iflag_unit_energy = ntype_unit_energy_ev
     case default
       stop "Invalid unit for energy."
     end select
@@ -824,9 +858,63 @@ contains
     case('au','a.u.')
       ucharge_to_au   = 1d0
       ucharge_from_au = 1d0
+      iflag_unit_charge = ntype_unit_charge_au
     case default
       stop "Invalid unit for charge."
     end select
+
+!! prepare type(unit_t) :: t_unit_energy,t_unit_energy_inv
+    t_unit_energy%conv = uenergy_from_au
+    t_unit_energy_inv%conv = 1d0/uenergy_from_au
+    if(iflag_unit_energy == ntype_unit_energy_ev)then
+      t_unit_energy%name     = 'eV'
+      t_unit_energy_inv%name = '1/eV'
+    else 
+      t_unit_energy%name     = 'a.u.'
+      t_unit_energy_inv%name = 'a.u.'
+      t_unit_energy%conv = 1d0
+      t_unit_energy_inv%conv = 1d0
+    end if
+
+!! prepare type(unit_t) :: t_unit_time,t_unit_time_inv
+    t_unit_time%conv = utime_from_au
+    t_unit_time_inv%conv = 1d0/utime_from_au
+    if(iflag_unit_time == ntype_unit_time_fs)then
+      t_unit_time%name     = 'fs'
+      t_unit_time_inv%name = '1/fs'
+    else 
+      t_unit_time%name     = 'a.u.'
+      t_unit_time_inv%name = 'a.u.'
+      t_unit_time%conv = 1d0
+      t_unit_time_inv%conv = 1d0
+    end if
+
+!! prepare type(unit_t) :: t_unit_current
+    t_unit_current%conv = (ulength_from_au/utime_from_au)/ulength_from_au**3
+    if(iflag_unit_time == ntype_unit_time_fs .and. &
+       iflag_unit_length == ntype_unit_length_aa &
+         )then
+      t_unit_current%name  = '1/fs*Angstrom^2'
+    else 
+      t_unit_current%name  = 'a.u.'
+      t_unit_current%conv  = 1d0
+    end if
+
+!! prepare type(unit_t) :: t_unit_ac
+    t_unit_ac%conv = utime_from_au*uenergy_from_au/ulength_from_au/ucharge_from_au
+    if(iflag_unit_time == ntype_unit_time_fs .and. &
+       iflag_unit_length == ntype_unit_length_aa .and. &
+       iflag_unit_energy == ntype_unit_energy_ev .and. &
+       iflag_unit_charge == ntype_unit_charge_au &
+         )then
+      t_unit_ac%name     = 'fs*V/Angstrom'
+    else 
+      t_unit_ac%name     = 'a.u.'
+      t_unit_ac%conv     = 1d0
+    end if
+
+
+
 
   end subroutine initialize_inputoutput_units
 
