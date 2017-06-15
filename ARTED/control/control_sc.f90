@@ -434,13 +434,21 @@ subroutine main
         select case(format3d)
         case ('cube')
           write(file_dns_rt, '(2A,"_dns_rt_",I6.6,".cube")') trim(directory), trim(SYSname), iter
+          write(file_dns_dlt, '(2A,"_dns_dlt_",I6.6,".cube")') trim(directory), trim(SYSname), iter
           open(501,file=file_dns_rt,position = position_option)
           call write_density_cube(501, .false.)
           close(501)
-        case ('vtk')
-          write(file_dns_gs, '(2A,"_dns_rt_",I6.6,".vtk")') trim(directory), trim(SYSname), iter
+          open(501,file=file_dns_dlt,position = position_option)
+          call write_density_cube(501, .true.)
+          close(501)
+        case ('vtk')          
+          write(file_dns_rt, '(2A,"_dns_rt_",I6.6,".vtk")') trim(directory), trim(SYSname), iter
+          write(file_dns_dlt, '(2A,"_dns_dlt_",I6.6,".vtk")') trim(directory), trim(SYSname), iter
           open(501,file=file_dns_rt,position = position_option)
           call write_density_vtk(501, .false.)
+          close(501)
+          open(501,file=file_dns_dlt,position = position_option)
+          call write_density_vtk(501, .true.)
           close(501)
         end select
       end if
