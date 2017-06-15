@@ -97,9 +97,11 @@ subroutine main
   call Hartree
 ! yabana
   functional_t = functional
-  if(functional_t == 'TBmBJ') functional = 'PZM'
+  if(functional_t == 'TBmBJ' .or. functional_t == 'BJ_PW') functional = 'PZM'
   call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
   if(functional_t == 'TBmBJ') functional = 'TBmBJ'
+  if(functional_t == 'BJ_PW') functional = 'BJ_PW'
+
 ! yabana
   Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
 !  call Total_Energy(Rion_update,calc_mode_gs)
@@ -163,8 +165,10 @@ subroutine main
 ! yabana
     functional_t = functional
     if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'PZM'
+    if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'PZM'
     call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
     if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'TBmBJ'
+    if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'BJ_PW'
 ! yabana
     Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
     call Total_Energy_omp(Rion_update,calc_mode_gs)
@@ -782,7 +786,8 @@ Subroutine Read_data
 !sym ---
   select case(crystal_structure)
   case("diamond2")
-     if(functional == "PZ" .or. functional == "PZM" .or. functional == "TBmBJ")then
+     if(functional == "PZ" .or. functional == "PZM" &
+          .or. functional == "TBmBJ" .or. functional == "BJ_PW")then
         if(Sym == 8)then
            if((mod(NLx,2)+mod(NLy,2)+mod(NLz,4)) /= 0)call err_finalize('Bad grid point')
            if(NLx /= NLy)call err_finalize('Bad grid point: NLx /= NLy')
@@ -794,7 +799,8 @@ Subroutine Read_data
         if(Sym /= 1)call err_finalize('Bad crystal structure')
      end if
   case("diamond")
-     if(functional == "PZ" .or. functional == "PZM" .or. functional == "TBmBJ")then
+     if(functional == "PZ" .or. functional == "PZM" &
+          .or. functional == "TBmBJ"  .or. functional == "BJ_PW")then
         if(Sym == 8)then
            if((mod(NLx,4)+mod(NLy,4)+mod(NLz,4)) /= 0)call err_finalize('Bad grid point')
            if(NLx /= NLy)call err_finalize('Bad grid point')

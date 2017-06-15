@@ -22,12 +22,22 @@ subroutine Exc_Cor(GS_RT,NBtmp,zu)
   integer,intent(in)       :: NBtmp
   complex(8),intent(inout) :: zu(NL,NBtmp,NK_s:NK_e)
   call timer_begin(LOG_EXC_COR)
-  if(functional == 'PZ')    call Exc_Cor_PZ
-  if(functional == 'PZM')   call Exc_Cor_PZM
-  if(functional == 'PBE')   call Exc_Cor_PBE(GS_RT)
-  if(functional == 'TBmBJ') call Exc_Cor_TBmBJ(GS_RT)
-  if(functional == 'TPSS')  call Exc_Cor_TPSS(GS_RT)
-  if(functional == 'VS98')  call Exc_Cor_VS98(GS_RT)
+
+  select case(functional)
+  case('PZ')
+     call Exc_Cor_PZ
+  case('PZM')
+     call Exc_Cor_PZM
+  case('PBE')
+     call Exc_Cor_PBE(GS_RT)
+  case('TBmBJ','BJ_PW')
+     call Exc_Cor_TBmBJ(GS_RT)
+  case('TPSS')
+     call Exc_Cor_TPSS(GS_RT)
+  case('VS98')
+     call Exc_Cor_VS98(GS_RT)
+  end select
+
   call timer_end(LOG_EXC_COR)
 
 contains
@@ -160,12 +170,19 @@ Subroutine Exc_Cor_TBmBJ(GS_RT)
   integer :: i
 
   call rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
-  if(cval > 1d-10) then
-    c=cval ! use c-value given by input file
-  else
-    c=sum(sqrt(grho_s(:,1)**2+grho_s(:,2)**2+grho_s(:,3)**2)/rho_s(:))*Hxyz/aLxyz
-    c=alpha+beta*sqrt(c)
-  endif
+
+  select case(functional)
+  case('TBmBJ')
+    if(cval > 1d-10) then
+      c=cval ! use c-value given by input file
+    else
+      c=sum(sqrt(grho_s(:,1)**2+grho_s(:,2)**2+grho_s(:,3)**2)/rho_s(:))*Hxyz/aLxyz
+      c=alpha+beta*sqrt(c)
+    endif
+  case('BJ_PW')
+     c=1d0
+  end select
+
 
   do i=1,NL
     tau_s_jrho=tau_s(i)-(j_s(i,1)**2+j_s(i,2)**2+j_s(i,3)**2)/rho_s(i)/2
