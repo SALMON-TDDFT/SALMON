@@ -238,12 +238,12 @@ contains
   end subroutine
 
   subroutine comm_send_array5d_complex8(invalue, ndest, ntag, ngroup)
-    use mpi, only: MPI_COMPLEX8, MPI_STATUS_SIZE
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_STATUS_SIZE
     implicit none
     complex(8), intent(in) :: invalue(:,:,:,:,:)
     integer, intent(in)    :: ndest, ntag, ngroup
     integer :: ierr
-    MPI_ERROR_CHECK(call MPI_Send(invalue, size(invalue), MPI_COMPLEX8, ndest, ntag, ngroup, ierr))
+    MPI_ERROR_CHECK(call MPI_Send(invalue, size(invalue), MPI_DOUBLE_COMPLEX, ndest, ntag, ngroup, ierr))
   end subroutine
 
   subroutine comm_recv_array5d_real8(outvalue, nsrc, ntag, ngroup)
@@ -256,15 +256,15 @@ contains
   end subroutine
 
   subroutine comm_recv_array5d_complex8(outvalue, nsrc, ntag, ngroup)
-    use mpi, only: MPI_COMPLEX8, MPI_STATUS_SIZE
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_STATUS_SIZE
     implicit none
     complex(8), intent(out) :: outvalue(:,:,:,:,:)
     integer, intent(in)     :: nsrc, ntag, ngroup
     integer :: ierr,istatus(MPI_STATUS_SIZE)
-    MPI_ERROR_CHECK(call MPI_Recv(outvalue, size(outvalue), MPI_COMPLEX8, nsrc, ntag, ngroup, istatus, ierr))
+    MPI_ERROR_CHECK(call MPI_Recv(outvalue, size(outvalue), MPI_DOUBLE_COMPLEX, nsrc, ntag, ngroup, istatus, ierr))
   end subroutine
 
-  subroutine comm_exchange_array3d_real8(invalue, nsrc, outvalue, ndest, ntag, ngroup)
+  subroutine comm_exchange_array3d_real8(invalue, ndest, outvalue, nsrc, ntag, ngroup)
     use mpi, only: MPI_REAL8, MPI_STATUS_SIZE
     implicit none
     real(8), intent(in)  :: invalue(:,:,:)
@@ -277,20 +277,20 @@ contains
     call error_check(ierr)
   end subroutine
 
-  subroutine comm_exchange_array3d_complex8(invalue, nsrc, outvalue, ndest, ntag, ngroup)
-    use mpi, only: MPI_COMPLEX8, MPI_STATUS_SIZE
+  subroutine comm_exchange_array3d_complex8(invalue, ndest, outvalue, nsrc, ntag, ngroup)
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_STATUS_SIZE
     implicit none
     complex(8), intent(in)  :: invalue(:,:,:)
     complex(8), intent(out) :: outvalue(:,:,:)
     integer, intent(in)     :: nsrc, ndest, ntag, ngroup
     integer :: ierr,istatus(MPI_STATUS_SIZE)
-    call MPI_Sendrecv(invalue,  size(invalue),  MPI_COMPLEX8, ndest, ntag, &
-                      outvalue, size(outvalue), MPI_COMPLEX8, nsrc,  ntag, &
+    call MPI_Sendrecv(invalue,  size(invalue),  MPI_DOUBLE_COMPLEX, ndest, ntag, &
+                      outvalue, size(outvalue), MPI_DOUBLE_COMPLEX, nsrc,  ntag, &
                       ngroup, istatus, ierr)
     call error_check(ierr)
   end subroutine
 
-  subroutine comm_exchange_array5d_real8(invalue, nsrc, outvalue, ndest, ntag, ngroup)
+  subroutine comm_exchange_array5d_real8(invalue, ndest, outvalue, nsrc, ntag, ngroup)
     use mpi, only: MPI_REAL8, MPI_STATUS_SIZE
     implicit none
     real(8), intent(in)  :: invalue(:,:,:,:,:)
@@ -303,15 +303,15 @@ contains
     call error_check(ierr)
   end subroutine
 
-  subroutine comm_exchange_array5d_complex8(invalue, nsrc, outvalue, ndest, ntag, ngroup)
-    use mpi, only: MPI_COMPLEX8, MPI_STATUS_SIZE
+  subroutine comm_exchange_array5d_complex8(invalue, ndest, outvalue, nsrc, ntag, ngroup)
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_STATUS_SIZE
     implicit none
     complex(8), intent(in)  :: invalue(:,:,:,:,:)
     complex(8), intent(out) :: outvalue(:,:,:,:,:)
     integer, intent(in)     :: nsrc, ndest, ntag, ngroup
     integer :: ierr,istatus(MPI_STATUS_SIZE)
-    call MPI_Sendrecv(invalue,  size(invalue),  MPI_COMPLEX8, ndest, ntag, &
-                      outvalue, size(outvalue), MPI_COMPLEX8, nsrc,  ntag, &
+    call MPI_Sendrecv(invalue,  size(invalue),  MPI_DOUBLE_COMPLEX, ndest, ntag, &
+                      outvalue, size(outvalue), MPI_DOUBLE_COMPLEX, nsrc,  ntag, &
                       ngroup, istatus, ierr)
     call error_check(ierr)
   end subroutine
@@ -328,13 +328,13 @@ contains
   end function
 
   function comm_isend_array5d_complex8(invalue, ndest, ntag, ngroup) result(req)
-    use mpi, only: MPI_COMPLEX8
+    use mpi, only: MPI_DOUBLE_COMPLEX
     implicit none
     complex(8), intent(in) :: invalue(:,:,:,:,:)
     integer, intent(in)    :: ndest, ntag, ngroup
     integer :: ierr, istatus, req
     logical :: flag
-    MPI_ERROR_CHECK(call MPI_Isend(invalue, size(invalue), MPI_COMPLEX8, ndest, ntag, ngroup, req, ierr))
+    MPI_ERROR_CHECK(call MPI_Isend(invalue, size(invalue), MPI_DOUBLE_COMPLEX, ndest, ntag, ngroup, req, ierr))
     MPI_ERROR_CHECK(call MPI_Test(req, flag, istatus, ierr))
   end function
 
@@ -350,13 +350,13 @@ contains
   end function
 
   function comm_irecv_array5d_complex8(outvalue, nsrc, ntag, ngroup) result(req)
-    use mpi, only: MPI_COMPLEX8
+    use mpi, only: MPI_DOUBLE_COMPLEX
     implicit none
     complex(8), intent(out) :: outvalue(:,:,:,:,:)
     integer, intent(in)     :: nsrc, ntag, ngroup
     integer :: ierr, istatus, req
     logical :: flag
-    MPI_ERROR_CHECK(call MPI_Irecv(outvalue, size(outvalue), MPI_COMPLEX8, nsrc, ntag, ngroup, req, ierr))
+    MPI_ERROR_CHECK(call MPI_Irecv(outvalue, size(outvalue), MPI_DOUBLE_COMPLEX, nsrc, ntag, ngroup, req, ierr))
     MPI_ERROR_CHECK(call MPI_Test(req, flag, istatus, ierr))
   end function
 
@@ -401,9 +401,9 @@ contains
     integer, optional, intent(in) :: dest
     integer :: ierr
     if (present(dest)) then
-      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, 1, MPI_COMPLEX8, MPI_SUM, dest, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, 1, MPI_DOUBLE_COMPLEX, MPI_SUM, dest, ngroup, ierr))
     else
-      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, 1, MPI_COMPLEX8, MPI_SUM, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, 1, MPI_DOUBLE_COMPLEX, MPI_SUM, ngroup, ierr))
     end if
   end subroutine
 
@@ -438,7 +438,7 @@ contains
   end subroutine
 
   subroutine comm_summation_array1d_complex8(invalue, outvalue, N, ngroup, dest)
-    use mpi, only: MPI_COMPLEX8, MPI_SUM
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_SUM
     implicit none
     complex(8), intent(in)  :: invalue(:)
     complex(8), intent(out) :: outvalue(:)
@@ -446,9 +446,9 @@ contains
     integer, optional, intent(in) :: dest
     integer :: ierr
     if (present(dest)) then
-      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, dest, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, dest, ngroup, ierr))
     else
-      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, ngroup, ierr))
     end if
   end subroutine
 
@@ -483,7 +483,7 @@ contains
   end subroutine
 
   subroutine comm_summation_array2d_complex8(invalue, outvalue, N, ngroup, dest)
-    use mpi, only: MPI_COMPLEX8, MPI_SUM
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_SUM
     implicit none
     complex(8), intent(in)  :: invalue(:,:)
     complex(8), intent(out) :: outvalue(:,:)
@@ -491,9 +491,9 @@ contains
     integer, optional, intent(in) :: dest
     integer :: ierr
     if (present(dest)) then
-      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, dest, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, dest, ngroup, ierr))
     else
-      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, ngroup, ierr))
     end if
   end subroutine
 
@@ -528,7 +528,7 @@ contains
   end subroutine
 
   subroutine comm_summation_array3d_complex8(invalue, outvalue, N, ngroup, dest)
-    use mpi, only: MPI_COMPLEX8, MPI_SUM
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_SUM
     implicit none
     complex(8), intent(in)  :: invalue(:,:,:)
     complex(8), intent(out) :: outvalue(:,:,:)
@@ -536,9 +536,9 @@ contains
     integer, optional, intent(in) :: dest
     integer :: ierr
     if (present(dest)) then
-      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, dest, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, dest, ngroup, ierr))
     else
-      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, ngroup, ierr))
     end if
   end subroutine
 
@@ -558,7 +558,7 @@ contains
   end subroutine
 
   subroutine comm_summation_array4d_complex8(invalue, outvalue, N, ngroup, dest)
-    use mpi, only: MPI_COMPLEX8, MPI_SUM
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_SUM
     implicit none
     complex(8), intent(in)  :: invalue(:,:,:,:)
     complex(8), intent(out) :: outvalue(:,:,:,:)
@@ -566,9 +566,9 @@ contains
     integer, optional, intent(in) :: dest
     integer :: ierr
     if (present(dest)) then
-      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, dest, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, dest, ngroup, ierr))
     else
-      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_COMPLEX8, MPI_SUM, ngroup, ierr))
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, ngroup, ierr))
     end if
   end subroutine
 
@@ -719,7 +719,7 @@ contains
     else
       rank = 0
     end if
-    MPI_ERROR_CHECK(call MPI_Bcast(val, size(val), MPI_COMPLEX8, rank, ngroup, ierr))
+    MPI_ERROR_CHECK(call MPI_Bcast(val, size(val), MPI_DOUBLE_COMPLEX, rank, ngroup, ierr))
   end subroutine
 
   subroutine comm_bcast_array1d_character(val, ngroup, root)
