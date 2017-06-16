@@ -764,6 +764,9 @@ contains
 
 
     call comm_bcast(icount,nproc_group_global)
+    call comm_bcast(if_cartesian,nproc_group_global)
+    call comm_bcast(iflag_atom_coor,nproc_group_global)
+
     if(icount/=1)then
        if (comm_is_root(nproc_id_global))then
          write(*,"(A)")'Error in input: The following inputs are incompatible.'
@@ -815,7 +818,7 @@ contains
     call comm_bcast(Rion_red,nproc_group_global)
     call comm_bcast(Kion,nproc_group_global)
     call comm_bcast(flag_geo_opt_atom,nproc_group_global)
-    call comm_bcast(iflag_atom_coor,nproc_group_global)
+
 
   end subroutine read_atomic_coordinates
 
