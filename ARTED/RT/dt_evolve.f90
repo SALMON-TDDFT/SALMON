@@ -156,7 +156,7 @@ Subroutine dt_evolve_omp_KB(zu)
 
 ! yabana
   select case(functional)
-  case('VS98','TPSS','TBmBJ')
+  case('VS98','TPSS','TBmBJ','BJ_PW')
 !$acc update self(zu, ekr_omp, vloc)
 
 !$omp parallel do private(ik,ib)
@@ -336,7 +336,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
 
 !== predictor-corrector ==
   select case(functional)
-  case('VS98','TPSS','TBmBJ')
+  case('VS98','TPSS','TBmBJ','BJ_PW')
 !$acc update self(zu, ekr_omp, vloc)
 
 !$omp parallel do private(ik,ib)
@@ -462,7 +462,7 @@ Subroutine dt_evolve_omp_KB_MS(zu)
 
 ! yabana
   select case(functional)
-  case('VS98','TPSS','TBmBJ')
+  case('VS98','TPSS','TBmBJ','BJ_PW')
 !$acc update self(zu, ekr_omp, vloc)
 
 

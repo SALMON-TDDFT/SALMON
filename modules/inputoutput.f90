@@ -415,7 +415,7 @@ contains
     eta_mask      = 15d0
 !! == default for &functional
     xc   = 'PZ'
-    cval = 1d0
+    cval = -1d0
 !! == default for &rgrid
     dl        = 0d0
     num_rgrid = 0
