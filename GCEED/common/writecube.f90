@@ -16,6 +16,8 @@
 !======================================================================
 !======================================================================
 subroutine writecube(fp,suffix,phys_quantity,tmatbox_l)
+  use salmon_parallel, only: nproc_id_global
+  use salmon_communication, only: comm_is_root
   use scf_data
   implicit none
   integer, intent(IN) :: fp
@@ -28,7 +30,7 @@ subroutine writecube(fp,suffix,phys_quantity,tmatbox_l)
   integer :: ix,iy,iz
   integer :: ik
 
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     filename=trim(suffix)//".cube"
     open(fp,file=filename)
     if(phys_quantity=="psi")then

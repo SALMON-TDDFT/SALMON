@@ -15,7 +15,6 @@
 !
 MODULE scf_data
 use salmon_global
-use mpi
 implicit none
 !-------------------- Parameters
 integer, parameter :: maxntmg=10
@@ -107,8 +106,6 @@ real(8) :: cNmat(0:12,0:12),bNmat(0:12,0:12)
 integer :: iflag_ps
 
 integer :: inumcpu_check
-
-integer :: ierr,nproc,myrank
 
 integer,allocatable :: ob_sta_all_kgrid(:),ob_end_all_kgrid(:),iobnum_all_kgrid(:)
 
@@ -503,10 +500,11 @@ CONTAINS
 !-------------------------------------------------------------------------
 !=========================================================================
 subroutine snum_procs
+use salmon_parallel, only: nproc_size_global
 implicit none
 integer :: i,ibox,ipow
 
-nproc_Mxin_mul=nproc/nproc_ob
+nproc_Mxin_mul=nproc_size_global/nproc_ob
 
 ibox=1
 ipow=0
@@ -531,7 +529,7 @@ end do
 ibox=1
 ipow=0
 do i=1,29
-  if(ibox<nproc)then
+  if(ibox<nproc_size_global)then
     ipow=ipow+1
     ibox=ibox*2
   end if
@@ -552,50 +550,52 @@ end subroutine snum_procs
 
 !======================================================================
 subroutine init_mesh_s
+use salmon_parallel, only: nproc_size_global, nproc_id_global
 implicit none
 
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 
-allocate(ista_Mxin_s(3,0:nproc-1),iend_Mxin_s(3,0:nproc-1))
-allocate(inum_Mxin_s(3,0:nproc-1))
+allocate(ista_Mxin_s(3,0:nproc_size_global-1),iend_Mxin_s(3,0:nproc_size_global-1))
+allocate(inum_Mxin_s(3,0:nproc_size_global-1))
 
 call setng(ng_sta,ng_end,ng_num,ista_Mxin_s,iend_Mxin_s,inum_Mxin_s, &
-           nproc,myrank,nproc_Mxin,nproc_Mxin_s_dm,ista_Mxin,iend_Mxin,inum_Mxin,isequential)
+           nproc_size_global,nproc_id_global,nproc_Mxin,nproc_Mxin_s_dm,ista_Mxin,iend_Mxin,inum_Mxin,isequential)
 
 end subroutine init_mesh_s
 
 !=====================================================================
 subroutine make_iwksta_iwkend
+use salmon_parallel, only: nproc_id_global
 implicit none
 
 if(iwk_size==1)then
-  iwksta(1:3)=ista_Mxin(1:3,myrank)
-  iwkend(1:3)=iend_Mxin(1:3,myrank)
-  iwk2sta(1:3)=ista_Mxin(1:3,myrank)-Nd
-  iwk2end(1:3)=iend_Mxin(1:3,myrank)+Nd
-  iwk3sta(1:3)=ista_Mxin(1:3,myrank)
-  iwk3end(1:3)=iend_Mxin(1:3,myrank)
+  iwksta(1:3)=ista_Mxin(1:3,nproc_id_global)
+  iwkend(1:3)=iend_Mxin(1:3,nproc_id_global)
+  iwk2sta(1:3)=ista_Mxin(1:3,nproc_id_global)-Nd
+  iwk2end(1:3)=iend_Mxin(1:3,nproc_id_global)+Nd
+  iwk3sta(1:3)=ista_Mxin(1:3,nproc_id_global)
+  iwk3end(1:3)=iend_Mxin(1:3,nproc_id_global)
 else if(iwk_size==2)then
-  iwksta(1:3)=ista_Mxin(1:3,myrank)-Nd
-  iwkend(1:3)=iend_Mxin(1:3,myrank)+Nd
-  iwk2sta(1:3)=ista_Mxin(1:3,myrank)-Nd
-  iwk2end(1:3)=iend_Mxin(1:3,myrank)+Nd
-  iwk3sta(1:3)=ista_Mxin(1:3,myrank)
-  iwk3end(1:3)=iend_Mxin(1:3,myrank)
+  iwksta(1:3)=ista_Mxin(1:3,nproc_id_global)-Nd
+  iwkend(1:3)=iend_Mxin(1:3,nproc_id_global)+Nd
+  iwk2sta(1:3)=ista_Mxin(1:3,nproc_id_global)-Nd
+  iwk2end(1:3)=iend_Mxin(1:3,nproc_id_global)+Nd
+  iwk3sta(1:3)=ista_Mxin(1:3,nproc_id_global)
+  iwk3end(1:3)=iend_Mxin(1:3,nproc_id_global)
 else if(iwk_size==11.or.iwk_size==31)then
-  iwksta(1:3)=ista_Mxin_s(1:3,myrank)
-  iwkend(1:3)=iend_Mxin_s(1:3,myrank)
-  iwk2sta(1:3)=ista_Mxin_s(1:3,myrank)-Ndh
-  iwk2end(1:3)=iend_Mxin_s(1:3,myrank)+Ndh
-  iwk3sta(1:3)=ista_Mxin_s(1:3,myrank)
-  iwk3end(1:3)=iend_Mxin_s(1:3,myrank)
+  iwksta(1:3)=ista_Mxin_s(1:3,nproc_id_global)
+  iwkend(1:3)=iend_Mxin_s(1:3,nproc_id_global)
+  iwk2sta(1:3)=ista_Mxin_s(1:3,nproc_id_global)-Ndh
+  iwk2end(1:3)=iend_Mxin_s(1:3,nproc_id_global)+Ndh
+  iwk3sta(1:3)=ista_Mxin_s(1:3,nproc_id_global)
+  iwk3end(1:3)=iend_Mxin_s(1:3,nproc_id_global)
 else if(iwk_size==12.or.iwk_size==32)then
-  iwksta(1:3)=ista_Mxin_s(1:3,myrank)-Ndh
-  iwkend(1:3)=iend_Mxin_s(1:3,myrank)+Ndh
-  iwk2sta(1:3)=ista_Mxin_s(1:3,myrank)-Ndh
-  iwk2end(1:3)=iend_Mxin_s(1:3,myrank)+Ndh
-  iwk3sta(1:3)=ista_Mxin_s(1:3,myrank)
-  iwk3end(1:3)=iend_Mxin_s(1:3,myrank)
+  iwksta(1:3)=ista_Mxin_s(1:3,nproc_id_global)-Ndh
+  iwkend(1:3)=iend_Mxin_s(1:3,nproc_id_global)+Ndh
+  iwk2sta(1:3)=ista_Mxin_s(1:3,nproc_id_global)-Ndh
+  iwk2end(1:3)=iend_Mxin_s(1:3,nproc_id_global)+Ndh
+  iwk3sta(1:3)=ista_Mxin_s(1:3,nproc_id_global)
+  iwk3end(1:3)=iend_Mxin_s(1:3,nproc_id_global)
 end if
 iwknum(1:3)=iwkend(1:3)-iwksta(1:3)+1
 iwk2num(1:3)=iwk2end(1:3)-iwk2sta(1:3)+1

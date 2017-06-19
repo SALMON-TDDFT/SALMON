@@ -19,6 +19,8 @@
 ! J. Soc. Mat. Sci., Japan, vol.52 (3), p.260-265. (in Japanese)
 
 SUBROUTINE rmmdiis(psi_in,iflag)
+use salmon_parallel, only: nproc_group_global
+use salmon_communication, only: comm_summation
 use scf_data
 use hpsi2_sub
 use new_world_sub
@@ -268,8 +270,7 @@ else if(iflag_diisjump==1)then
     rbox1=sum(phi(:,:,:,0)*phi(:,:,:,0))*Hvol
     rnorm_diff_psi(iob,1)=rbox1
   end do
-  call MPI_Allreduce(rnorm_diff_psi,norm_diff_psi_stock,itotMST,MPI_DOUBLE_PRECISION, &
-                       MPI_SUM,MPI_COMM_WORLD,ierr)
+  call comm_summation(rnorm_diff_psi,norm_diff_psi_stock,itotMST,nproc_group_global)
 end if
 
 

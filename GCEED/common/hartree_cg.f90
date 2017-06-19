@@ -16,12 +16,14 @@
 !=======================================================================
 !============================ Hartree potential (Solve Poisson equation)
 SUBROUTINE Hartree_cg(trho,tVh)
-!$ use omp_lib
+use salmon_parallel, only: nproc_id_global, nproc_size_global, nproc_group_h
+use salmon_communication, only: comm_is_root, comm_summation
 use scf_data
 use new_world_sub
 use sendrecvh_sub
 use allocate_mat_sub
 use deallocate_mat_sub
+use misc_routines, only: get_wtime
 
 implicit none
 real(8) :: trho(mg_sta(1):mg_end(1),    &
@@ -103,13 +105,11 @@ end do
 end do
 end do
 
-if(nproc==1)then
+if(nproc_size_global==1)then
 else
-  elp3(201)=MPI_Wtime()
-  call MPI_ALLREDUCE(sum1,sum2,1, &
-                  MPI_DOUBLE_PRECISION,      &
-                  MPI_SUM,newworld_comm_h,IERR)
-  elp3(202)=MPI_Wtime()
+  elp3(201)=get_wtime()
+  call comm_summation(sum1,sum2,nproc_group_h)
+  elp3(202)=get_wtime()
   elp3(254)=elp3(254)+elp3(202)-elp3(201)
   sum1=sum2
 end if
@@ -149,13 +149,12 @@ Iteration : do iter=1,maxiter
   end do
   end do
 
-  if(nproc==1)then
+  if(nproc_size_global==1)then
     tottmp=totbox
   else
-    elp3(201)=MPI_Wtime()
-    call MPI_Allreduce(totbox,tottmp,1,MPI_DOUBLE_PRECISION,      &
-                  MPI_SUM,newworld_comm_h,ierr)
-    elp3(202)=MPI_Wtime()
+    elp3(201)=get_wtime()
+    call comm_summation(totbox,tottmp,nproc_group_h)
+    elp3(202)=get_wtime()
     elp3(255)=elp3(255)+elp3(202)-elp3(201)
   end if
 
@@ -181,13 +180,12 @@ Iteration : do iter=1,maxiter
   end do
   end do
 
-  if(nproc==1)then
+  if(nproc_size_global==1)then
     tottmp=totbox
   else
-    elp3(201)=MPI_Wtime()
-    call MPI_Allreduce(totbox,tottmp,1,MPI_DOUBLE_PRECISION,      &
-                  MPI_SUM,newworld_comm_h,ierr)
-    elp3(202)=MPI_Wtime()
+    elp3(201)=get_wtime()
+    call comm_summation(totbox,tottmp,nproc_group_h)
+    elp3(202)=get_wtime()
     elp3(256)=elp3(256)+elp3(202)-elp3(201)
   end if
 
@@ -209,7 +207,7 @@ Iteration : do iter=1,maxiter
 end do Iteration
 
 iterVh=iter
-if ( iterVh>maxiter .and. myrank.eq.0) then
+if ( iterVh>maxiter .and. comm_is_root(nproc_id_global)) then
    write(*,*) "Warning:Vh iteration is not converged"
    write(*,'("||tVh(i)-tVh(i-1)||**2/(# of grids) = ",e15.8)') &
                               sum2/dble(lg_num(1)*lg_num(2)*lg_num(3))

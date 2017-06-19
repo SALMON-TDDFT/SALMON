@@ -14,7 +14,9 @@
 !  limitations under the License.
 !
 subroutine subdip(rNe,ifunc)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_h, nproc_id_global
+use salmon_communication, only: comm_is_root, comm_summation
+use misc_routines, only: get_wtime
 use scf_data
 use new_world_sub
 use allocate_mat_sub
@@ -28,7 +30,7 @@ real(8) :: rbox1, rbox1q, rbox1q12, rbox1q23, rbox1q31
 real(8) :: fact
 real(8) :: absr2
    
-  elp3(526)=MPI_Wtime()
+  elp3(526)=get_wtime()
 
 !$OMP parallel do
    do i1=1,4
@@ -109,12 +111,10 @@ end if
    
    !-----------QUADRUPOLE-end----------
 
-   elp3(761)=MPI_Wtime()
-   call MPI_allreduce(rbox_array,rbox_array2,4,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           newworld_comm_h,ierr)
-   call MPI_allreduce(rbox_arrayq,rbox_arrayq2,9,MPI_DOUBLE_PRECISION,MPI_SUM,      &
-           newworld_comm_h,ierr)
-   elp3(762)=MPI_Wtime()
+   elp3(761)=get_wtime()
+   call comm_summation(rbox_array,rbox_array2,4,nproc_group_h)
+   call comm_summation(rbox_arrayq,rbox_arrayq2,9,nproc_group_h)
+   elp3(762)=get_wtime()
    elp3(784)=elp3(784)+elp3(762)-elp3(761)
 
    rNe=rbox_array2(4)*Hvol               ! Number of electrons
@@ -132,7 +132,7 @@ end if
      rIe(itt-1)=rNe
    end if
 
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     if(ifunc==1)then
       if(circular=='y')then
         write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5,f16.8)')       &
@@ -158,23 +158,23 @@ end if
     if(rNe.lt.ifMST(1)*2.d0*10.d0*fact.and.rNe.gt.ifMST(1)*2.d0/10.d0*fact)then
       continue
     else
-      write(*,*) myrank,"t=",itt
-      write(*,*) myrank,"rbox1=",rbox1
-      write(*,*) myrank,"Ne=",rNe
+      write(*,*) nproc_id_global,"t=",itt
+      write(*,*) nproc_id_global,"rbox1=",rbox1
+      write(*,*) nproc_id_global,"Ne=",rNe
       stop
     end if
   else if(ilsda==1)then
     if(rNe.lt.(ifMST(1)+ifMST(2))*10.d0*fact.and.rNe.gt.(ifMST(1)+ifMST(2))/10.d0*fact)then
       continue
     else
-      write(*,*) myrank,"t=",itt
-      write(*,*) myrank,"rbox1=",rbox1
-      write(*,*) myrank,"Ne=",rNe
+      write(*,*) nproc_id_global,"t=",itt
+      write(*,*) nproc_id_global,"rbox1=",rbox1
+      write(*,*) nproc_id_global,"Ne=",rNe
       stop
     end if
   end if
 
-  elp3(527)=MPI_Wtime()
+  elp3(527)=get_wtime()
   elp3(539)=elp3(539)+elp3(527)-elp3(526)
 
 end subroutine subdip

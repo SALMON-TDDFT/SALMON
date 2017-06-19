@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine calc_myob(iob,iob_myob)
+use salmon_parallel, only: nproc_id_spin
 use scf_data
 use new_world_sub
 implicit none
@@ -30,7 +31,7 @@ if(ilsda==0.or.nproc_ob==1)then
   end if
 else
   if(iparaway_ob==1)then
-    if(newrank_comm_spin<nproc_ob_spin(1))then
+    if(nproc_id_spin<nproc_ob_spin(1))then
       call calc_iquotient(iob,nproc_ob_spin(1),MST(1),iquotient)
       iob_min=MST(1)*iquotient/nproc_ob_spin(1)
       iob_myob=iob-iob_min
@@ -40,7 +41,7 @@ else
       iob_myob=iob-MST(1)-iob_min
     end if
   else if(iparaway_ob==2)then
-    if(newrank_comm_spin<nproc_ob_spin(1))then
+    if(nproc_id_spin<nproc_ob_spin(1))then
       iob_myob=(iob-1)/nproc_ob_spin(1)+1
     else
       iob_myob=(iob-MST(1)-1)/nproc_ob_spin(2)+1

@@ -15,6 +15,9 @@
 !
 !=======================================================================
 subroutine inner_product3(matbox1,matbox2,rbox2)
+use salmon_parallel, only: nproc_group_orbital
+use salmon_communication, only: comm_summation
+use misc_routines, only: get_wtime
 use scf_data
 use new_world_sub
 !$ use omp_lib
@@ -34,9 +37,9 @@ end do
 end do
 end do
 
-elp3(186)=MPI_Wtime()
-call MPI_Allreduce(rbox,rbox2,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr)
-elp3(187)=MPI_Wtime()
+elp3(186)=get_wtime()
+call comm_summation(rbox,rbox2,nproc_group_orbital)
+elp3(187)=get_wtime()
 elp3(190)=elp3(190)+elp3(187)-elp3(186)
 
 end subroutine inner_product3

@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 SUBROUTINE OUT_data_rt
+use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_size_global
+use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use scf_data
 use writebox_rt_sub
 use allocate_mat_sub
@@ -23,7 +25,7 @@ integer       :: ix,iy,iz
 integer :: ibox
 character(100) :: file_OUT_rt_data
 integer :: ii,j1,j2,j3
-integer :: myrank_datafiles
+integer :: nproc_id_global_datafiles
 integer :: ista_Mxin_datafile(3)
 integer :: iend_Mxin_datafile(3)
 integer :: inum_Mxin_datafile(3)
@@ -32,13 +34,13 @@ character(8) :: fileNumber_data
 integer :: iob_myob
 integer :: icorr_p
 
-if(myrank==0) open(99,file=file_OUT_rt,form='unformatted')
+if(comm_is_root(nproc_id_global)) open(99,file=file_OUT_rt,form='unformatted')
 
-if(myrank==0) write(99) itotNtime
+if(comm_is_root(nproc_id_global)) write(99) itotNtime
 
-if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc)then
-  if(myrank<num_datafiles_OUT)then
-    myrank_datafiles=myrank
+if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc_size_global)then
+  if(nproc_id_global<num_datafiles_OUT)then
+    nproc_id_global_datafiles=nproc_id_global
 
     ibox=1
     nproc_xyz_datafile=1
@@ -55,7 +57,7 @@ if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc)then
     do j2=0,nproc_xyz_datafile(2)-1
     do j1=0,nproc_xyz_datafile(1)-1
       ibox = j1 + nproc_xyz_datafile(1)*j2 + nproc_xyz_datafile(1)*nproc_xyz_datafile(2)*j3 
-      if(ibox==myrank_datafiles)then
+      if(ibox==nproc_id_global_datafiles)then
         ista_Mxin_datafile(1)=j1*lg_num(1)/nproc_xyz_datafile(1)+lg_sta(1)
         iend_Mxin_datafile(1)=(j1+1)*lg_num(1)/nproc_xyz_datafile(1)+lg_sta(1)-1
         ista_Mxin_datafile(2)=j2*lg_num(2)/nproc_xyz_datafile(2)+lg_sta(2)
@@ -68,7 +70,7 @@ if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc)then
     end do
     inum_Mxin_datafile(:)=iend_Mxin_datafile(:)-ista_Mxin_datafile(:)+1
 
-    write(fileNumber_data, '(i8)') myrank_datafiles
+    write(fileNumber_data, '(i8)') nproc_id_global_datafiles
     file_Out_rt_data = trim(file_Out_rt)//"."//adjustl(fileNumber_data)
     open(89,file=file_Out_rt_data,form='unformatted')
 
@@ -102,16 +104,14 @@ do iob=1,itotMST
       end if
     end if
 
-  call MPI_Allreduce(cmatbox_l2,cmatbox_l, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
+  call comm_summation(cmatbox_l2,cmatbox_l,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
-  if(num_datafiles_OUT==1.or.num_datafiles_OUT>nproc)then
-    if(myrank.eq.0)then
+  if(num_datafiles_OUT==1.or.num_datafiles_OUT>nproc_size_global)then
+    if(comm_is_root(nproc_id_global))then
       write(99) ((( cmatbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
     end if
   else
-    if(myrank<num_datafiles_OUT)then
+    if(nproc_id_global<num_datafiles_OUT)then
       write(89) ((( cmatbox_l(ix,iy,iz),ix=ista_Mxin_datafile(1),iend_Mxin_datafile(1)),   &
                                         iy=ista_Mxin_datafile(2),iend_Mxin_datafile(2)),   &
                                         iz=ista_Mxin_datafile(3),iend_Mxin_datafile(3))
@@ -120,8 +120,8 @@ do iob=1,itotMST
   
 end do
 
-if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc)then
-  if(myrank<num_datafiles_OUT)then
+if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc_size_global)then
+  if(nproc_id_global<num_datafiles_OUT)then
     close(89)
   end if
 end if
@@ -135,10 +135,8 @@ end do
 end do
 end do
 
-call MPI_Allreduce(matbox_l,matbox_l2, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-if(myrank.eq.0)then
+call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
+if(comm_is_root(nproc_id_global))then
   write(99) ((( matbox_l2(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
 
@@ -154,10 +152,8 @@ if(ilsda == 1)then
     end do
     end do
 
-    call MPI_Allreduce(matbox_l,matbox_l2, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-    if(myrank.eq.0)then
+    call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
+    if(comm_is_root(nproc_id_global))then
       write(99) ((( matbox_l2(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
     end if
   end do
@@ -172,10 +168,8 @@ do i1=ng_sta(1),ng_end(1)
 end do
 end do
 end do
-call MPI_Allreduce(matbox_l,matbox_l2, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-if(myrank.eq.0)then
+call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
+if(comm_is_root(nproc_id_global))then
   write(99) ((( matbox_l2(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
 
@@ -188,10 +182,8 @@ if(ilsda == 0)then
   end do
   end do
   end do
-  call MPI_Allreduce(matbox_l,matbox_l2, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-  if(myrank.eq.0)then
+  call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
+  if(comm_is_root(nproc_id_global))then
     write(99) ((( matbox_l2(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
   end if
 else if(ilsda == 1)then
@@ -206,10 +198,8 @@ else if(ilsda == 1)then
     end do
     end do
 
-    call MPI_Allreduce(matbox_l,matbox_l2, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-    if(myrank.eq.0)then
+    call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
+    if(comm_is_root(nproc_id_global))then
       write(99) ((( matbox_l2(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
     end if
   end do
@@ -224,10 +214,8 @@ do i1=ng_sta(1),ng_end(1)
 end do
 end do
 end do
-call MPI_Allreduce(matbox_l,matbox_l2, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-if(myrank.eq.0)then
+call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
+if(comm_is_root(nproc_id_global))then
   write(99) ((( matbox_l2(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
 matbox_l=0.d0
@@ -238,14 +226,12 @@ do i1=ng_sta(1),ng_end(1)
 end do
 end do
 end do
-call MPI_Allreduce(matbox_l,matbox_l2, &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-if(myrank.eq.0)then
+call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
+if(comm_is_root(nproc_id_global))then
   write(99) ((( matbox_l2(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
 
-if(myrank==0) then
+if(comm_is_root(nproc_id_global)) then
 
   write(99) (vecDs(jj),jj=1,3)
   do it2=1,itotNtime
@@ -267,6 +253,8 @@ END SUBROUTINE OUT_data_rt
 
 !---------------------------------------------------------------------------
 SUBROUTINE IN_data_rt(IC_rt,Ntime)
+use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_size_global
+use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use scf_data
 use new_world_sub
 use readbox_rt_sub
@@ -279,7 +267,7 @@ integer       :: Ntime
 character(100) :: file_IN_rt_data
 integer :: ibox
 integer :: ii,j1,j2,j3
-integer :: myrank_datafiles
+integer :: nproc_id_global_datafiles
 integer :: ista_Mxin_datafile(3)
 integer :: iend_Mxin_datafile(3)
 integer :: inum_Mxin_datafile(3)
@@ -288,14 +276,14 @@ character(8) :: fileNumber_data
 integer :: iob_myob
 integer :: icorr_p
 
-if(myrank.eq.0)then
+if(comm_is_root(nproc_id_global))then
 
    open(98,file=file_IN_rt,form='unformatted')
 
 end if
 
-if(myrank.eq.0) read(98) Miter_rt
-call MPI_Bcast(Miter_rt,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+if(comm_is_root(nproc_id_global)) read(98) Miter_rt
+call comm_bcast(Miter_rt,nproc_group_global)
 itotNtime=Ntime+Miter_rt
 
 allocate(rIe(0:itotNtime))
@@ -307,9 +295,9 @@ if(iflag_dip2==1) then
 end if
 allocate(Qp(3,3,0:itotNtime))
 
-if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc)then
-  if(myrank<num_datafiles_IN)then
-    myrank_datafiles=myrank
+if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc_size_global)then
+  if(nproc_id_global<num_datafiles_IN)then
+    nproc_id_global_datafiles=nproc_id_global
 
     ibox=1
     nproc_xyz_datafile=1
@@ -326,7 +314,7 @@ if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc)then
     do j2=0,nproc_xyz_datafile(2)-1
     do j1=0,nproc_xyz_datafile(1)-1
       ibox = j1 + nproc_xyz_datafile(1)*j2 + nproc_xyz_datafile(1)*nproc_xyz_datafile(2)*j3 
-      if(ibox==myrank_datafiles)then
+      if(ibox==nproc_id_global_datafiles)then
         ista_Mxin_datafile(1)=j1*lg_num(1)/nproc_xyz_datafile(1)+lg_sta(1)
         iend_Mxin_datafile(1)=(j1+1)*lg_num(1)/nproc_xyz_datafile(1)+lg_sta(1)-1
         ista_Mxin_datafile(2)=j2*lg_num(2)/nproc_xyz_datafile(2)+lg_sta(2)
@@ -339,7 +327,7 @@ if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc)then
     end do
     inum_Mxin_datafile(:)=iend_Mxin_datafile(:)-ista_Mxin_datafile(:)+1
 
-    write(fileNumber_data, '(i8)') myrank_datafiles
+    write(fileNumber_data, '(i8)') nproc_id_global_datafiles
     file_IN_rt_data = trim(file_IN_rt)//"."//adjustl(fileNumber_data)
     open(88,file=file_IN_rt_data,form='unformatted')
 
@@ -350,23 +338,20 @@ do iob=1,itotMST
   call calc_myob(iob,iob_myob)
   call check_corrkob(iob,icorr_p)
   
-  if(num_datafiles_IN==1.or.num_datafiles_IN>nproc)then
-    if(myrank.eq.0)then
+  if(num_datafiles_IN==1.or.num_datafiles_IN>nproc_size_global)then
+    if(comm_is_root(nproc_id_global))then
       read(98) ((( cmatbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
     end if
-    call MPI_Bcast(cmatbox_l(lg_sta(1),lg_sta(2),lg_sta(3)),  &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_COMPLEX,0,MPI_COMM_WORLD,ierr)
+    call comm_bcast(cmatbox_l(lg_sta(1):lg_sta(1)+lg_num(1),lg_sta(2):lg_sta(2)+lg_num(2),lg_sta(3):lg_sta(3)+lg_num(3)),  &
+                    nproc_group_global)
   else
     cmatbox_l2=0.d0
-    if(myrank<num_datafiles_IN)then
+    if(nproc_id_global<num_datafiles_IN)then
       read(88) ((( cmatbox_l2(ix,iy,iz),ix=ista_Mxin_datafile(1),iend_Mxin_datafile(1)),   &
                                         iy=ista_Mxin_datafile(2),iend_Mxin_datafile(2)),   &
                                         iz=ista_Mxin_datafile(3),iend_Mxin_datafile(3))
     end if
-    call MPI_Allreduce(cmatbox_l2,cmatbox_l,  &
-&             lg_num(1)*lg_num(2)*lg_num(3), &
-&             MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
+    call comm_summation(cmatbox_l2,cmatbox_l,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
   end if
   if(mod(Miter_rt,2)==1)then
     if(icorr_p==1)then
@@ -386,17 +371,16 @@ do iob=1,itotMST
   
 end do
 
-if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc)then
-  if(myrank<num_datafiles_IN)then
+if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc_size_global)then
+  if(nproc_id_global<num_datafiles_IN)then
     close(88)
   end if
 end if
 
-if(myrank.eq.0)then
+if(comm_is_root(nproc_id_global))then
   read(98) ((( matbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
-call MPI_Bcast(matbox_l,lg_num(1)*lg_num(2)*lg_num(3), &
-                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call comm_bcast(matbox_l,nproc_group_global)
 do i3=mg_sta(3),mg_end(3)
 do i2=mg_sta(2),mg_end(2)
 do i1=mg_sta(1),mg_end(1)
@@ -406,11 +390,10 @@ end do
 end do
 if(ilsda == 1)then
   do is=1,2
-    if(myrank.eq.0)then
+    if(comm_is_root(nproc_id_global))then
       read(98) ((( matbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
     end if
-    call MPI_Bcast(matbox_l,lg_num(1)*lg_num(2)*lg_num(3), &
-                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call comm_bcast(matbox_l,nproc_group_global)
     do i3=lg_sta(3),lg_end(3)
     do i2=lg_sta(2),lg_end(2)
     do i1=lg_sta(1),lg_end(1)
@@ -421,11 +404,10 @@ if(ilsda == 1)then
   end do
 end if
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(98) ((( matbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
-call MPI_Bcast(matbox_l,lg_num(1)*lg_num(2)*lg_num(3), &
-                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call comm_bcast(matbox_l,nproc_group_global)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -435,11 +417,10 @@ end do
 end do
 
 if(ilsda == 0)then
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     read(98) ((( matbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
   end if
-  call MPI_Bcast(matbox_l,lg_num(1)*lg_num(2)*lg_num(3), &
-                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call comm_bcast(matbox_l,nproc_group_global)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -449,11 +430,10 @@ if(ilsda == 0)then
   end do
 else if(ilsda == 1)then
   do is=1,2
-    if(myrank==0)then
+    if(comm_is_root(nproc_id_global))then
       read(98) ((( matbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
     end if
-    call MPI_Bcast(matbox_l,lg_num(1)*lg_num(2)*lg_num(3), &
-                   MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call comm_bcast(matbox_l,nproc_group_global)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -465,11 +445,10 @@ else if(ilsda == 1)then
   end do
 end if
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(98) ((( matbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
-call MPI_Bcast(matbox_l,lg_num(1)*lg_num(2)*lg_num(3), &
-                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call comm_bcast(matbox_l,nproc_group_global)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -479,11 +458,10 @@ end do
 end do
 
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   read(98) ((( matbox_l(ix,iy,iz),ix=lg_sta(1),lg_end(1)),iy=lg_sta(2),lg_end(2)),iz=lg_sta(3),lg_end(3))
 end if
-call MPI_Bcast(matbox_l,lg_num(1)*lg_num(2)*lg_num(3), &
-                 MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call comm_bcast(matbox_l,nproc_group_global)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -493,41 +471,37 @@ end do
 end do
 
 itt=Miter_rt
-call mpi_allgatherv_vlocal
+call allgatherv_vlocal
 
-if(myrank.eq.0)then
+if(comm_is_root(nproc_id_global))then
   read(98) (vecDs(jj),jj=1,3)
   do it2=1,Miter_rt
     read(98) (Dp(jj,it2),jj=1,3)
   end do
 end if
 
-call MPI_Bcast(vecDs(1),3, &
-&                     MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+call comm_bcast(vecDs,nproc_group_global)
 
 do jj=1,3
 do it2=1,Miter_rt
-   call MPI_Bcast(Dp(jj,it2),1, &
-&                     MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+   call comm_bcast(Dp(jj,it2),nproc_group_global)
 end do
 end do
 
 if(iflag_dip2==1)then
-  if(myrank.eq.0)then
+  if(comm_is_root(nproc_id_global))then
     read(98) ((vecDs2(jj,kk),jj=1,3),kk=1,num_dip2)
     do it2=1,Miter_rt
       read(98) ((Dp2(jj,it2,kk),jj=1,3),kk=1,num_dip2)
     end do
   end if
-  call MPI_Bcast(vecDs2,3*num_dip2, &
-&                     MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call comm_bcast(vecDs2,nproc_group_global)
   do kk=1,num_dip2
-    call MPI_Bcast(Dp2(1,1,kk),3*Miter_rt, &
-&                     MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    call comm_bcast(Dp2(:,:,kk),nproc_group_global)
   end do
 end if
 
-if(myrank==0) close(98)
+if(comm_is_root(nproc_id_global)) close(98)
 
 END SUBROUTINE IN_data_rt
 

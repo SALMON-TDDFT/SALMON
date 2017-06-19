@@ -14,6 +14,9 @@
 !  limitations under the License.
 !
 SUBROUTINE Total_Energy_groupob(tzpsi_in,htpsi,ifunc)
+use salmon_parallel, only: nproc_group_global, nproc_group_h, nproc_group_orbital
+use salmon_communication, only: comm_summation
+use misc_routines, only: get_wtime
 use scf_data
 use new_world_sub
 use inner_product_sub
@@ -74,21 +77,19 @@ if(ifunc==1)then
   
   end do
   
-  elp3(761)=MPI_Wtime()
-  call MPI_Allreduce(esp2,esp,itotMST,MPI_DOUBLE_PRECISION,      &
-                     MPI_SUM,MPI_COMM_WORLD,ierr)
+  elp3(761)=get_wtime()
+  call comm_summation(esp2,esp,itotMST,nproc_group_global)
   
   
-  elp3(762)=MPI_Wtime()
+  elp3(762)=get_wtime()
   elp3(782)=elp3(782)+elp3(762)-elp3(761)
 
 else if(ifunc==2)then
 
-  elp3(761)=MPI_Wtime()
-  call MPI_Allreduce(esp2,esp,itotMST,MPI_DOUBLE_PRECISION,      &
-                     MPI_SUM,MPI_COMM_WORLD,ierr)
-  
-  elp3(762)=MPI_Wtime()
+  elp3(761)=get_wtime()
+  call comm_summation(esp2,esp,itotMST,nproc_group_global)
+
+  elp3(762)=get_wtime()
   elp3(782)=elp3(782)+elp3(762)-elp3(761)
 
 end if
@@ -139,10 +140,9 @@ if(ilsda == 0)then
     end do
     end do
   end if
-  elp3(761)=MPI_Wtime()
-  call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,newworld_comm_h,ierr)
-  elp3(762)=MPI_Wtime()
+  elp3(761)=get_wtime()
+  call comm_summation(sum1,sum2,nproc_group_h)
+  elp3(762)=get_wtime()
   elp3(783)=elp3(783)+elp3(762)-elp3(761)
   Etot=Etot+sum2*Hvol+Exc
 else if(ilsda == 1)then
@@ -156,8 +156,7 @@ else if(ilsda == 1)then
   end do
   end do
   end do
-  call MPI_Allreduce(sum1,sum2,1,MPI_DOUBLE_PRECISION,      &
-                 MPI_SUM,newworld_comm_orbital,ierr)
+  call comm_summation(sum1,sum2,nproc_group_orbital)
   Etot=Etot+sum2*Hvol+Exc
 end if
 

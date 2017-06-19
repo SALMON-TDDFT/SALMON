@@ -23,9 +23,9 @@ set(SOURCES
     sendrecv_groupob.f90
     sendrecv_groupob_ngp.f90
     sendrecvh.f90
-    share_mesh_1d_old.f90
     total_energy.f90
     writebox_rt.f90
     )
+  #  share_mesh_1d_old.f90
 
 add_library(${MODULE_LIB} ${SOURCES})

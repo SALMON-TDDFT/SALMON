@@ -14,13 +14,14 @@
 !  limitations under the License.
 !
 SUBROUTINE init_ps
-!$ use omp_lib
+use salmon_parallel, only: nproc_id_global
+use salmon_communication, only: comm_is_root
 use scf_data
 use allocate_psl_sub
 implicit none
 
 if(iSCFRT==1)then
-  if(myrank.eq.0)then
+  if(comm_is_root(nproc_id_global))then
     print *,"----------------------------------- init_ps"
   end if
 end if

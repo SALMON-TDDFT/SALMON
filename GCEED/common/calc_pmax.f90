@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine calc_pmax(iobmax)
+use salmon_parallel, only: nproc_id_grid
 use scf_data
 use new_world_sub
 implicit none
@@ -23,7 +24,7 @@ if(iSCFRT==1)then
   iobmax=iobnum
 else if(iSCFRT==2)then
   if(ilsda==0)then
-    call calc_iobnum(ifMST(1),nproc_ob,newrank_comm_grid,iobmax,nproc_ob,iparaway_ob)
+    call calc_iobnum(ifMST(1),nproc_ob,nproc_id_grid,iobmax,nproc_ob,iparaway_ob)
   else if(ilsda==1)then
     iobmax=iobnum
   end if

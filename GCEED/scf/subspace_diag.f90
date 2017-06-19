@@ -15,6 +15,9 @@
 !
 subroutine subspace_diag
 
+use salmon_parallel, only: nproc_group_grid, nproc_group_global, nproc_group_orbital
+use salmon_communication, only: comm_summation, comm_bcast
+use misc_routines, only: get_wtime
 use scf_data
 use inner_product_sub
 use hpsi2_sub
@@ -35,7 +38,7 @@ integer :: job_myob,iroot,icorr_j,iob_allob,job_allob
 integer :: iter
 integer :: iobsta(2),iobend(2)
 
-elp3(301)=MPI_Wtime()
+elp3(301)=get_wtime()
 
 allocate(tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd))
 allocate(htpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
@@ -95,7 +98,7 @@ do is=is_sta,is_end
       call hpsi2(tpsi,htpsi,job,0,0)
     end if
     call calc_iroot(job,iroot)
-    call MPI_Bcast(htpsi,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,newworld_comm_grid,ierr)
+    call comm_bcast(htpsi,nproc_group_grid,iroot)
     
     do iob=1,iobnum
       call calc_allob(iob,iob_allob)
@@ -114,7 +117,7 @@ do is=is_sta,is_end
     end do
   end do
   
-  call MPI_Allreduce(Amat2,Amat,iter*iter,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+  call comm_summation(Amat2,Amat,iter*iter,nproc_group_global)
 
   call eigen_subdiag(Amat,evec,iter,ier2)
  
@@ -147,7 +150,7 @@ do is=is_sta,is_end
       end do
     end if
     call calc_iroot(job,iroot)
-    call MPI_Bcast(matbox_m,mg_num(1)*mg_num(2)*mg_num(3),MPI_DOUBLE_PRECISION,iroot,newworld_comm_grid,ierr)
+    call comm_bcast(matbox_m,nproc_group_grid,iroot)
     do iob=1,iobnum
       call calc_allob(iob,iob_allob)
       if(iob_allob>=iobsta(is).and.iob_allob<=iobend(is))then
@@ -175,7 +178,7 @@ do is=is_sta,is_end
       end do
       end do
       end do
-      call MPI_Allreduce(rbox,rbox1,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr)
+      call comm_summation(rbox,rbox1,nproc_group_orbital)
 !$OMP parallel do
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)

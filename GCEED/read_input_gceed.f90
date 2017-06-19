@@ -13,13 +13,12 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine read_input_gceed(procid,cfunction2)
+subroutine read_input_gceed(cfunction2)
   use inputoutput
-  use mpi
+  use salmon_communication
+  use salmon_parallel
   implicit none
   character(30),intent(out) :: cfunction2
-  integer :: procid
-!  integer :: ierr
   namelist / group_function2 / cfunction2
 
 !  if(procid==0)then
@@ -27,7 +26,7 @@ subroutine read_input_gceed(procid,cfunction2)
 !    read(fh_namelist,nml=group_function2)
 !    close(fh_namelist)
 !  end if
-!  call mpi_bcast(cfunction2,30,mpi_character,0,mpi_comm_world,ierr)
+!  call comm_bcast(cfunction2,nproc_group_global)
 
   cfunction2 = trim(calc_mode)
 

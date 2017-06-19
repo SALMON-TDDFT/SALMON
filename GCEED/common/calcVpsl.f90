@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 SUBROUTINE calcVpsl
-!$ use omp_lib
+use salmon_parallel, only: nproc_id_global
 use scf_data
 use allocate_psl_sub
 implicit none
@@ -33,7 +33,7 @@ do a=1,MI
     if(abs(Rion(j,a))<lg_num(j)*Hgs(j))then
       continue
     else
-      write(*,*) "Rion error",myrank,a,j,Rion(j,a)
+      write(*,*) "Rion error",nproc_id_global,a,j,Rion(j,a)
     end if
   end do
   do ix=mg_sta(1),mg_end(1)
@@ -47,9 +47,9 @@ do a=1,MI
     if(intr>=0.and.intr<=Nr)then
       continue
     else
-      write(*,*) "intr error",myrank,intr,r
+      write(*,*) "intr error",nproc_id_global,intr,r
     end if
-    if(Lref(ak)>Nlps.or.Lref(ak)<0) write(*,*) "Lref error",myrank,Lref(ak)
+    if(Lref(ak)>Nlps.or.Lref(ak)<0) write(*,*) "Lref error",nproc_id_global,Lref(ak)
     Vpsl(ix,iy,iz)=Vpsl(ix,iy,iz)      &
                 +ratio1*vpp(intr+1,Lref(ak),ak)      &
                 +ratio2*vpp(intr,Lref(ak),ak)

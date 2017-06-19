@@ -17,7 +17,6 @@
 !=================================================== LDA (Perdew-Zunger)
 
 SUBROUTINE Exc_Cor_ns
-!$ use omp_lib
 use scf_data
 
 implicit none
@@ -63,7 +62,8 @@ END SUBROUTINE Exc_Cor_ns
 !======================================================================
 
 SUBROUTINE xc_LDA(trho,trho_s)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_h
+use salmon_communication, only: comm_summation
 use scf_data
 use new_world_sub
 implicit none
@@ -257,8 +257,7 @@ end do
 end do
 end do
 sum1=sum1*Hvol
-call MPI_ALLREDUCE(sum1,Exc,1,MPI_DOUBLE_PRECISION,      &
-                  MPI_SUM,newworld_comm_h,IERR)
+call comm_summation(sum1,Exc,nproc_group_h)
 
 if(ilsda==1) deallocate(Ecu,Ecp,Vcu,Vcp)
 

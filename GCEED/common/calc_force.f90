@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 subroutine calc_force
+use salmon_parallel, only: nproc_group_orbital, nproc_group_global, nproc_id_global
+use salmon_communication, only: comm_is_root, comm_summation
 use scf_data
 use allocate_mat_sub
 use read_pslfile_sub
@@ -79,7 +81,7 @@ do j2=1,3
     end do
     end do
   end do
-  call MPI_Allreduce(rbox1,rbox2,1,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+  call comm_summation(rbox1,rbox2,nproc_group_global)
   rforce(j2,iatom)=rforce(j2,iatom)+rbox2*Hvol
   rforce2(j2,iatom)=rbox2*Hvol
 end do
@@ -115,8 +117,7 @@ do iatom=1,MI
   end do
 end do
 
-call MPI_allreduce(uVpsibox,uVpsibox2,iobnum*maxlm*MI,      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr)
+call comm_summation(uVpsibox,uVpsibox2,iobnum*maxlm*MI,nproc_group_orbital)
 
 do iatom=1,MI
   ikoa=Kion(iatom)
@@ -131,14 +132,13 @@ do iatom=1,MI
         end do
       end do
     end do
-    call MPI_allreduce(rbox1,rbox2,1,      &
-                       MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+    call comm_summation(rbox1,rbox2,nproc_group_global)
     rforce(j2,iatom)=rforce(j2,iatom)+rbox2*Hvol
     rforce3(j2,iatom)=rbox2*Hvol
   end do
 end do
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   write(*,*) "===== force ====="
   do iatom=1,MI
     write(*,'(i6,3e16.8)') iatom,(rforce(j2,iatom)*2.d0*Ry/a_B,j2=1,3)

@@ -27,7 +27,8 @@ CONTAINS
 
 !======================================================================
 subroutine R_copy_psi_mesh(tpsi_mesh)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_global, nproc_group_h
+use salmon_communication, only: comm_summation
 implicit none
 
 real(8) :: tpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),   &
@@ -57,8 +58,7 @@ if(icopy_psi_mesh==1)then
       end do
     end if
 
-    call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+    call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
 !$OMP parallel do
     do iz=ng_sta(3),ng_end(3)
@@ -83,8 +83,7 @@ else if(icopy_psi_mesh==2)then
     end do
     end do
 
-    call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
+    call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
     if(icheck_corrkob==1)then
 !$OMP parallel do
@@ -107,7 +106,8 @@ end subroutine R_copy_psi_mesh
 
 !======================================================================
 subroutine C_copy_psi_mesh(tpsi_mesh)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_global, nproc_group_h
+use salmon_communication, only: comm_summation
 implicit none
 
 complex(8) :: tpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),   &
@@ -136,8 +136,7 @@ if(icopy_psi_mesh==1)then
       end do
     end if
 
-    call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,MPI_COMM_WORLD,ierr)
+    call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
 !$OMP parallel do
     do iz=ng_sta(3),ng_end(3)
@@ -162,8 +161,7 @@ else if(icopy_psi_mesh==2)then
     end do
     end do
 
-    call MPI_Allreduce(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_h,ierr)
+    call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
     if(icheck_corrkob==1)then
 !$OMP parallel do

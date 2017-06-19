@@ -33,7 +33,9 @@ CONTAINS
 !========================== Hamiltonian Operation ( for real functions )
 
 SUBROUTINE R_hpsi2(tpsi,htpsi,iob,nn,isub)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital, nproc_group_h
+use salmon_communication, only: comm_summation
+use misc_routines, only: get_wtime
 implicit none
 real(8) :: tpsi(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
 real(8) :: htpsi(iwk3sta(1):iwk3end(1),  &
@@ -135,11 +137,9 @@ if(iflag_ps.eq.1)then
     continue
   else
     if(iwk_size>=1.and.iwk_size<=2)then
-      call MPI_allreduce(uVpsibox(1,1),uVpsibox2(1,1),maxlm*MI,      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr)
+      call comm_summation(uVpsibox,uVpsibox2,maxlm*MI,nproc_group_orbital)
     else if(iwk_size>=11.and.iwk_size<=12)then
-      call MPI_allreduce(uVpsibox(1,1),uVpsibox2(1,1),maxlm*MI,      &
-                     MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
+      call comm_summation(uVpsibox,uVpsibox2,maxlm*MI,nproc_group_h)
     end if
   end if
 
@@ -226,7 +226,9 @@ END SUBROUTINE R_hpsi2
 !========================= Hamiltonian Operation (for complex funcitons)
 
 SUBROUTINE C_hpsi2(tpsi,htpsi,iob,nn,isub)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital
+use salmon_communication, only: comm_summation
+use misc_routines, only: get_wtime
 implicit none
 complex(8) :: tpsi(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
 complex(8) :: htpsi(iwk3sta(1):iwk3end(1),  &
@@ -272,7 +274,7 @@ if(nn<=1)then
   end do
 end if
 
-elp3(751)=MPI_Wtime()
+elp3(751)=get_wtime()
 
 ! Pseudopotential 1 (non-local)
 
@@ -304,8 +306,7 @@ if(iflag_ps.eq.1)then
     end do loop_lm2
   end do
 
-  call MPI_allreduce(uVpsibox(1,1),uVpsibox2(1,1),maxlm*MI,      &
-                 MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_orbital,ierr)
+  call comm_summation(uVpsibox,uVpsibox2,maxlm*MI,nproc_group_orbital)
 end if
 
 ! Pseudopotential 2 (non-local)
@@ -322,7 +323,7 @@ if(iflag_ps==1) then
   end do
 end if
  
-elp3(755)=MPI_Wtime()
+elp3(755)=get_wtime()
 elp3(775)=elp3(775)+elp3(755)-elp3(754)
 elp3(785)=elp3(785)+elp3(755)-elp3(751)
 
@@ -343,7 +344,7 @@ if(isub==0)then
     end do
   end do
 
-  elp3(757)=MPI_Wtime()
+  elp3(757)=get_wtime()
 !$OMP parallel do
   do iz=iwk3sta(3),iwk3end(3)
   do iy=iwk3sta(2),iwk3end(2)
@@ -365,12 +366,12 @@ if(isub==0)then
   end do
   end do
 
-  elp3(758)=MPI_Wtime()
+  elp3(758)=get_wtime()
   elp3(778)=elp3(778)+elp3(758)-elp3(757)
 
 else if(isub==1)then
   if(nproc_Mxin_mul>1) call sendrecv(tpsi)
-  elp3(757)=MPI_Wtime()
+  elp3(757)=get_wtime()
   call calc_laplacian2(tpsi,clap_wk)
   call calc_gradient2(tpsi,grad_wk)
 
@@ -402,12 +403,12 @@ else if(isub==1)then
     end do
     end do
   end if
-  elp3(758)=MPI_Wtime()
+  elp3(758)=get_wtime()
   elp3(778)=elp3(778)+elp3(758)-elp3(757)
 end if
 
 
-elp3(759)=MPI_Wtime()
+elp3(759)=get_wtime()
 elp3(780)=elp3(780)+elp3(759)-elp3(751)
 
 return

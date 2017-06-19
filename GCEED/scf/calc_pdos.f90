@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 subroutine calc_pdos
+use salmon_parallel, only: nproc_id_global, nproc_group_grid, nproc_group_orbital
+use salmon_communication, only: comm_is_root, comm_summation
 use inputoutput
 use scf_data
 use allocate_psl_sub
@@ -64,7 +66,7 @@ do iob=1,iobmax
       end do
     end do
   end do
-  call MPI_Allreduce(rbox_pdos,rbox_pdos2,25*MI,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr) 
+  call comm_summation(rbox_pdos,rbox_pdos2,25*MI,nproc_group_orbital) 
   do iatom=1,MI
     ikoa=Kion(iatom)
     do L=0,Mlps(ikoa)
@@ -78,9 +80,9 @@ do iob=1,iobmax
     end do
   end do
 end do
-call MPI_Allreduce(rbox_pdos3,pdos,601*5*MI,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_grid,ierr) 
+call comm_summation(rbox_pdos3,pdos,601*5*MI,nproc_group_grid) 
 
-if(myrank==0)then
+if(comm_is_root(nproc_id_global))then
   do iatom=1,MI
     ikoa=Kion(iatom)
     write(fileNumber, '(i8)') iatom

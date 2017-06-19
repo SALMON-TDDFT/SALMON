@@ -14,7 +14,8 @@
 !  limitations under the License.
 !
 subroutine calcEstatic
-!$use omp_lib
+use salmon_parallel, only: nproc_group_grid
+use salmon_communication, only: comm_summation
 use scf_data
 use new_world_sub
 use sendrecvh_sub
@@ -158,12 +159,9 @@ end do
 end do
 end do
 
-call MPI_Allreduce(Ex_static2,Ex_static,mg_num(1)*mg_num(2)*mg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_grid,ierr)
-call MPI_Allreduce(Ey_static2,Ey_static,mg_num(1)*mg_num(2)*mg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_grid,ierr)
-call MPI_Allreduce(Ez_static2,Ez_static,mg_num(1)*mg_num(2)*mg_num(3), &
-             MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_grid,ierr)
+call comm_summation(Ex_static2,Ex_static,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
+call comm_summation(Ey_static2,Ey_static,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
+call comm_summation(Ez_static2,Ez_static,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 
 end subroutine calcEstatic
 

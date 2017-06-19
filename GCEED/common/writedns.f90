@@ -15,6 +15,8 @@
 !
 !=======================================================================
 subroutine writedns
+  use salmon_parallel, only: nproc_group_global
+  use salmon_communication, only: comm_summation
   use scf_data
   use allocate_mat_sub
   implicit none
@@ -41,9 +43,7 @@ subroutine writedns
   end do
   end do
   
-  call MPI_Allreduce(matbox_l,matbox_l2, &
-  &             lg_num(1)*lg_num(2)*lg_num(3), &
-  &             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+  call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
   if(iSCFRT==1)then 
     suffix = "dns"
@@ -77,9 +77,7 @@ subroutine writedns
     end do
     end do
   
-    call MPI_Allreduce(matbox_l,matbox_l2, &
-  &             lg_num(1)*lg_num(2)*lg_num(3), &
-  &             MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+    call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
     write(filenum, '(i8)') itt
     suffix = "dnsdiff"//adjustl(filenum)

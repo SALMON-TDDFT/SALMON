@@ -29,7 +29,8 @@ CONTAINS
 
 !=======================================================================
 subroutine R_inner_product(matbox1,matbox2,rbox2)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital, nproc_group_h
+use salmon_communication, only: comm_summation
 implicit none
 integer :: ix,iy,iz
 real(8) :: matbox1(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
@@ -47,9 +48,9 @@ end do
 end do
 
 if(iwk_size>=1.and.iwk_size<=2)then
-  call MPI_Allreduce(rbox,rbox2,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_orbital,ierr)
+  call comm_summation(rbox,rbox2,nproc_group_orbital)
 else if(iwk_size>=11.and.iwk_size<=12)then
-  call MPI_Allreduce(rbox,rbox2,1,MPI_DOUBLE_PRECISION,MPI_SUM,newworld_comm_h,ierr)
+  call comm_summation(rbox,rbox2,nproc_group_h)
 else
   write(*,*) "iwk_size is not set" 
   stop
@@ -59,7 +60,8 @@ end subroutine R_inner_product
 
 !=======================================================================
 subroutine C_inner_product(matbox1,matbox2,cbox2)
-!$ use omp_lib
+use salmon_parallel, only: nproc_group_orbital, nproc_group_h
+use salmon_communication, only: comm_summation
 implicit none
 integer :: ix,iy,iz
 complex(8) :: matbox1(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
@@ -77,9 +79,9 @@ end do
 end do
 
 if(iwk_size>=1.and.iwk_size<=2)then
-  call MPI_Allreduce(cbox,cbox2,1,MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_orbital,ierr)
+  call comm_summation(cbox,cbox2,nproc_group_orbital)
 else if(iwk_size>=11.and.iwk_size<=12)then
-  call MPI_Allreduce(cbox,cbox2,1,MPI_DOUBLE_COMPLEX,MPI_SUM,newworld_comm_h,ierr)
+  call comm_summation(cbox,cbox2,nproc_group_h)
 else
   write(*,*) "iwk_size is not set" 
   stop

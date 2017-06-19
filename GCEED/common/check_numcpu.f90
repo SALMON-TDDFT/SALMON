@@ -14,13 +14,13 @@
 !  limitations under the License.
 !
 subroutine check_numcpu
+use salmon_parallel, only: nproc_size_global
 use scf_data
 use new_world_sub
-!$ use omp_lib
 implicit none
 integer :: j
 
-if(nproc_ob*nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)/=nproc)then
+if(nproc_ob*nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)/=nproc_size_global)then
   write(*,*) "inumcpu_check error!"
   write(*,*) "number of cpu is not correct!"
   stop
@@ -32,7 +32,7 @@ do j=1,3
     stop
   end if
 end do
-if(nproc_Mxin_s(1)*nproc_Mxin_s(2)*nproc_Mxin_s(3)>nproc)then
+if(nproc_Mxin_s(1)*nproc_Mxin_s(2)*nproc_Mxin_s(3)>nproc_size_global)then
   write(*,*) "inumcpu_check error!"
   write(*,*) "product of nproc_Mxin_s is larger than nproc."
   stop

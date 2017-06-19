@@ -14,6 +14,8 @@
 !  limitations under the License.
 !
 subroutine conv_core_exc_cor
+  use salmon_parallel, only: nproc_group_h
+  use salmon_communication, only: comm_summation
   use scf_data
   use new_world_sub
   use allocate_mat_sub
@@ -48,8 +50,7 @@ subroutine conv_core_exc_cor
   end do
   end do
  
-  call MPI_ALLREDUCE(tot_exc,Exc,1,MPI_DOUBLE_PRECISION,      &
-                     MPI_SUM,newworld_comm_h,IERR)
+  call comm_summation(tot_exc,Exc,nproc_group_h)
 
   return
 end subroutine conv_core_exc_cor

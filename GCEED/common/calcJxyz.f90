@@ -14,17 +14,19 @@
 !  limitations under the License.
 !
 subroutine calcJxyz
+use salmon_parallel, only: nproc_size_global, nproc_id_global, nproc_group_global
+use salmon_communication, only: comm_is_root, comm_summation
 use scf_data
 use allocate_psl_sub
 implicit none
 integer :: iatom,jj,j2,ix,iy,iz
 integer :: ikoa
 integer :: jshift
-integer :: numj1(MI,0:nproc-1),numj2(MI,0:nproc-1)
+integer :: numj1(MI,0:nproc_size_global-1),numj2(MI,0:nproc_size_global-1)
 real(8) :: rr
 
 if(iSCFRT==1)then
-  if(myrank.eq.0)then
+  if(comm_is_root(nproc_id_global))then
     write(*,*) "max( Mps(iatom) ) = ",maxMps
   end if
 end if
@@ -44,38 +46,38 @@ do iatom=1,MI
   end do
   end do
   end do
-  numj1(iatom,myrank)=jj
+  numj1(iatom,nproc_id_global)=jj
 end do
 
-call MPI_Allreduce(numj1,numj2,MI*nproc,MPI_INTEGER,MPI_SUM,MPI_COMM_WORLD,ierr)
+call comm_summation(numj1,numj2,MI*nproc_size_global,nproc_group_global)
 
 Jxyz_tmp2=0
 do iatom=1,MI
   Mps(iatom)=sum(numj2(iatom,:))
-  if(myrank==0)then
+  if(comm_is_root(nproc_id_global))then
     jshift=0
   else
-    jshift=sum(numj2(iatom,0:myrank-1))
+    jshift=sum(numj2(iatom,0:nproc_id_global-1))
   end if
-  do j2=1,numj2(iatom,myrank)
+  do j2=1,numj2(iatom,nproc_id_global)
     Jxyz_tmp2(:,j2+jshift,iatom)=Jxyz_tmp1(:,j2,iatom)
   end do
 end do
 
-call MPI_Allreduce(Jxyz_tmp2,Jxyz,3*maxMps*MI,MPI_INTEGER,MPI_SUM,MPI_COMM_WORLD,ierr)
+call comm_summation(Jxyz_tmp2,Jxyz,3*maxMps*MI,nproc_group_global)
 
 Jxxyyzz=0
 
 if(iSCFRT==1)then
   do iatom=1,MI
-    if(myrank.eq.0)then
+    if(comm_is_root(nproc_id_global))then
       write(*,*) "Mps =", Mps(iatom)
     end if
   end do
 end if
 
 if(iSCFRT==1)then
-  if(myrank.eq.0)then
+  if(comm_is_root(nproc_id_global))then
     write(*,*) "Mlmps =",Mlmps
   end if
 end if
