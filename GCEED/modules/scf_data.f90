@@ -493,6 +493,27 @@ character(100) :: file_ini
 character(100) :: file_OUT_rt
 character(100) :: file_IN_rt
 
+!arrays for isend and irecv
+real(8),allocatable :: srmatbox1_x_3d(:,:,:),srmatbox1_y_3d(:,:,:),srmatbox1_z_3d(:,:,:)
+real(8),allocatable :: srmatbox2_x_3d(:,:,:),srmatbox2_y_3d(:,:,:),srmatbox2_z_3d(:,:,:)
+real(8),allocatable :: srmatbox3_x_3d(:,:,:),srmatbox3_y_3d(:,:,:),srmatbox3_z_3d(:,:,:)
+real(8),allocatable :: srmatbox4_x_3d(:,:,:),srmatbox4_y_3d(:,:,:),srmatbox4_z_3d(:,:,:)
+
+complex(8),allocatable :: scmatbox1_x_3d(:,:,:),scmatbox1_y_3d(:,:,:),scmatbox1_z_3d(:,:,:)
+complex(8),allocatable :: scmatbox2_x_3d(:,:,:),scmatbox2_y_3d(:,:,:),scmatbox2_z_3d(:,:,:)
+complex(8),allocatable :: scmatbox3_x_3d(:,:,:),scmatbox3_y_3d(:,:,:),scmatbox3_z_3d(:,:,:)
+complex(8),allocatable :: scmatbox4_x_3d(:,:,:),scmatbox4_y_3d(:,:,:),scmatbox4_z_3d(:,:,:)
+
+real(8),allocatable :: srmatbox1_x_5d(:,:,:,:,:),srmatbox1_y_5d(:,:,:,:,:),srmatbox1_z_5d(:,:,:,:,:)
+real(8),allocatable :: srmatbox2_x_5d(:,:,:,:,:),srmatbox2_y_5d(:,:,:,:,:),srmatbox2_z_5d(:,:,:,:,:)
+real(8),allocatable :: srmatbox3_x_5d(:,:,:,:,:),srmatbox3_y_5d(:,:,:,:,:),srmatbox3_z_5d(:,:,:,:,:)
+real(8),allocatable :: srmatbox4_x_5d(:,:,:,:,:),srmatbox4_y_5d(:,:,:,:,:),srmatbox4_z_5d(:,:,:,:,:)
+
+complex(8),allocatable :: scmatbox1_x_5d(:,:,:,:,:),scmatbox1_y_5d(:,:,:,:,:),scmatbox1_z_5d(:,:,:,:,:)
+complex(8),allocatable :: scmatbox2_x_5d(:,:,:,:,:),scmatbox2_y_5d(:,:,:,:,:),scmatbox2_z_5d(:,:,:,:,:)
+complex(8),allocatable :: scmatbox3_x_5d(:,:,:,:,:),scmatbox3_y_5d(:,:,:,:,:),scmatbox3_z_5d(:,:,:,:,:)
+complex(8),allocatable :: scmatbox4_x_5d(:,:,:,:,:),scmatbox4_y_5d(:,:,:,:,:),scmatbox4_z_5d(:,:,:,:,:)
+
 CONTAINS
 
 !=========================================================================

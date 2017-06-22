@@ -85,12 +85,20 @@ module salmon_communication
   end interface
 
   interface comm_isend
+    ! 3-D array
+    module procedure comm_isend_array3d_double
+    module procedure comm_isend_array3d_dcomplex
+
     ! 5-D array
     module procedure comm_isend_array5d_double
     module procedure comm_isend_array5d_dcomplex
   end interface
 
   interface comm_irecv
+    ! 3-D array
+    module procedure comm_irecv_array3d_double
+    module procedure comm_irecv_array3d_dcomplex
+
     ! 5-D array
     module procedure comm_irecv_array5d_double
     module procedure comm_irecv_array5d_dcomplex
@@ -314,6 +322,28 @@ contains
   end subroutine
 
 
+  function comm_isend_array3d_double(invalue, ndest, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_PRECISION, MPI_STATUS_IGNORE
+    implicit none
+    real(8), intent(in) :: invalue(:,:,:)
+    integer, intent(in) :: ndest, ntag, ngroup
+    integer :: ierr, req
+    logical :: flag
+    MPI_ERROR_CHECK(call MPI_Isend(invalue, size(invalue), MPI_DOUBLE_PRECISION, ndest, ntag, ngroup, req, ierr))
+    MPI_ERROR_CHECK(call MPI_Test(req, flag, MPI_STATUS_IGNORE, ierr))
+  end function
+
+  function comm_isend_array3d_dcomplex(invalue, ndest, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_STATUS_IGNORE
+    implicit none
+    complex(8), intent(in) :: invalue(:,:,:)
+    integer, intent(in)    :: ndest, ntag, ngroup
+    integer :: ierr, req
+    logical :: flag
+    MPI_ERROR_CHECK(call MPI_Isend(invalue, size(invalue), MPI_DOUBLE_COMPLEX, ndest, ntag, ngroup, req, ierr))
+    MPI_ERROR_CHECK(call MPI_Test(req, flag, MPI_STATUS_IGNORE, ierr))
+  end function
+
   function comm_isend_array5d_double(invalue, ndest, ntag, ngroup) result(req)
     use mpi, only: MPI_DOUBLE_PRECISION, MPI_STATUS_IGNORE
     implicit none
@@ -333,6 +363,28 @@ contains
     integer :: ierr, req
     logical :: flag
     MPI_ERROR_CHECK(call MPI_Isend(invalue, size(invalue), MPI_DOUBLE_COMPLEX, ndest, ntag, ngroup, req, ierr))
+    MPI_ERROR_CHECK(call MPI_Test(req, flag, MPI_STATUS_IGNORE, ierr))
+  end function
+
+  function comm_irecv_array3d_double(outvalue, nsrc, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_PRECISION, MPI_STATUS_IGNORE
+    implicit none
+    real(8), intent(out) :: outvalue(:,:,:)
+    integer, intent(in)  :: nsrc, ntag, ngroup
+    integer :: ierr, req
+    logical :: flag
+    MPI_ERROR_CHECK(call MPI_Irecv(outvalue, size(outvalue), MPI_DOUBLE_PRECISION, nsrc, ntag, ngroup, req, ierr))
+    MPI_ERROR_CHECK(call MPI_Test(req, flag, MPI_STATUS_IGNORE, ierr))
+  end function
+
+  function comm_irecv_array3d_dcomplex(outvalue, nsrc, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_STATUS_IGNORE
+    implicit none
+    complex(8), intent(out) :: outvalue(:,:,:)
+    integer, intent(in)     :: nsrc, ntag, ngroup
+    integer :: ierr, req
+    logical :: flag
+    MPI_ERROR_CHECK(call MPI_Irecv(outvalue, size(outvalue), MPI_DOUBLE_COMPLEX, nsrc, ntag, ngroup, req, ierr))
     MPI_ERROR_CHECK(call MPI_Test(req, flag, MPI_STATUS_IGNORE, ierr))
   end function
 
