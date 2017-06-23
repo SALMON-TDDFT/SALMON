@@ -414,6 +414,7 @@ complex(8),allocatable :: cmatbox_read3(:,:,:)
 integer :: icheck_read
 integer :: ifilenum_data
 integer :: icomm
+integer :: imesh_oddeven0
 integer :: itmg
 
 if(comm_is_root(nproc_id_global))then
@@ -429,7 +430,7 @@ if(version_num_box(1)>=40)then
   continue
 else if((version_num_box(1)==17.and.version_num_box(2)>=13).or.version_num_box(1)>=18) then
   if(comm_is_root(nproc_id_global))then
-    read(96) 
+    read(96) imesh_oddeven0
   end if
 else
   continue
@@ -516,9 +517,9 @@ itmg=1
 call set_imesh_oddeven(itmg)
 
 if(version_num(1)<=39)then
-  if(imesh_oddeven(1)==1.and.imesh_oddeven(2)==1.and.imesh_oddeven(3)==1)then
+  if(imesh_oddeven0==1.and.imesh_oddeven(1)==1.and.imesh_oddeven(2)==1.and.imesh_oddeven(3)==1)then
     continue
-  else if(imesh_oddeven(1)==2.and.imesh_oddeven(2)==2.and.imesh_oddeven(3)==2)then
+  else if(imesh_oddeven0==2.and.imesh_oddeven(1)==2.and.imesh_oddeven(2)==2.and.imesh_oddeven(3)==2)then
     continue
   else
     stop "You cannot use old data files that values of Lsize/Hgs are a mixture of odd and even."
