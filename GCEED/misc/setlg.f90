@@ -19,20 +19,25 @@ implicit none
 integer :: lg_sta(3),lg_end(3),lg_num(3)
 integer :: ista_Mx_ori(3),iend_Mx_ori(3),inum_Mx_ori(3)
 integer :: Nd
-integer :: imesh_oddeven
+integer :: imesh_oddeven(3)
+integer :: jj
 real(8) :: Hgs(3)
 real(8) :: rLsize1(3)
 real(8),parameter :: epsilon=1.d-10
 
 iend_Mx_ori(:)=int((rLsize1(:)+epsilon)/2.d0/Hgs(:))+Nd
 lg_end(:)=int((rLsize1(:)+epsilon)/2.d0/Hgs(:))
-if(imesh_oddeven==1)then
-  ista_Mx_ori(:)=-(int((rLsize1(:)+epsilon)/2.d0/Hgs(:))+Nd)
-  lg_sta(:)=-(int((rLsize1(:)+epsilon)/2.d0/Hgs(:)))
-else if(imesh_oddeven==2)then
-  ista_Mx_ori(:)=-(int((rLsize1(:)+epsilon)/2.d0/Hgs(:))+Nd)+1
-  lg_sta(:)=-(int((rLsize1(:)+epsilon)/2.d0/Hgs(:)))+1
-end if
+
+do jj=1,3
+  select case(imesh_oddeven(jj))
+    case(1)
+      ista_Mx_ori(jj)=-(int((rLsize1(jj)+epsilon)/2.d0/Hgs(jj))+Nd)
+      lg_sta(jj)=-(int((rLsize1(jj)+epsilon)/2.d0/Hgs(jj)))
+    case(2)
+      ista_Mx_ori(jj)=-(int((rLsize1(jj)+epsilon)/2.d0/Hgs(jj))+Nd)+1
+      lg_sta(jj)=-(int((rLsize1(jj)+epsilon)/2.d0/Hgs(jj)))+1
+  end select
+end do
 
 inum_Mx_ori(:)=iend_Mx_ori(:)-ista_Mx_ori(:)+1
 lg_num(:)=lg_end(:)-lg_sta(:)+1

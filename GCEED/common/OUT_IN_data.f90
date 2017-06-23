@@ -46,10 +46,9 @@ if(comm_is_root(nproc_id_global))then
   open(97,file=file_OUT,form='unformatted')
   
 !version number
-  version_num(1)=39
+  version_num(1)=40
   version_num(2)=1
   write(97) version_num(1),version_num(2)
-  write(97) imesh_oddeven
   write(97) Nd
   write(97) ilsda
   write(97) iflag_ps
@@ -415,21 +414,26 @@ complex(8),allocatable :: cmatbox_read3(:,:,:)
 integer :: icheck_read
 integer :: ifilenum_data
 integer :: icomm
+integer :: itmg
 
 if(comm_is_root(nproc_id_global))then
+  write(*,*) file_IN
+  open(96,file=file_IN,form='unformatted')
 
-   write(*,*) file_IN
-   open(96,file=file_IN,form='unformatted')
-
-   read(96) version_num_box(1),version_num_box(2)
-   if((version_num_box(1)==17.and.version_num_box(2)>=13).or.version_num_box(1)>=18) then
-     read(96) imesh_oddeven
-   else
-     imesh_oddeven=2
-   end if
+  read(96) version_num_box(1),version_num_box(2)
 end if
+
 call comm_bcast(version_num_box,nproc_group_global)
-call comm_bcast(imesh_oddeven,nproc_group_global)
+
+if(version_num_box(1)>=40)then
+  continue
+else if((version_num_box(1)==17.and.version_num_box(2)>=13).or.version_num_box(1)>=18) then
+  if(comm_is_root(nproc_id_global))then
+    read(96) 
+  end if
+else
+  continue
+end if
 
 if(comm_is_root(nproc_id_global)) then
    read(96) Nd0
@@ -503,6 +507,23 @@ call comm_bcast(iend_Mx_ori,nproc_group_global)
 call comm_bcast(lg_end,nproc_group_global)
 call comm_bcast(MST0,nproc_group_global)
 call comm_bcast(ifMST,nproc_group_global)
+call comm_bcast(Hgs,nproc_group_global)
+call comm_bcast(Hvol,nproc_group_global)
+call comm_bcast(rLsize,nproc_group_global)
+call comm_bcast(Miter,nproc_group_global)
+
+itmg=1
+call set_imesh_oddeven(itmg)
+
+if(version_num(1)<=39)then
+  if(imesh_oddeven(1)==1.and.imesh_oddeven(2)==1.and.imesh_oddeven(3)==1)then
+    continue
+  else if(imesh_oddeven(1)==2.and.imesh_oddeven(2)==2.and.imesh_oddeven(3)==2)then
+    continue
+  else
+    stop "You cannot use old data files that values of Lsize/Hgs are a mixture of odd and even."
+  end if
+end if
 
 if(iSCFRT==2) then
   if(ilsda == 0) then
@@ -512,21 +533,19 @@ if(iSCFRT==2) then
   end if
 end if
 
-if(imesh_oddeven==1)then
-  ista_Mx_ori(:)=-iend_Mx_ori(:)
-  lg_sta(:)=-lg_end(:)
-else if(imesh_oddeven==2)then
-  ista_Mx_ori(:)=-iend_Mx_ori(:)+1
-  lg_sta(:)=-lg_end(:)+1
-end if
+do jj=1,3
+  select case(imesh_oddeven(jj))
+    case(1)
+      ista_Mx_ori(jj)=-iend_Mx_ori(jj)
+      lg_sta(jj)=-lg_end(jj)
+    case(2)
+      ista_Mx_ori(jj)=-iend_Mx_ori(jj)+1
+      lg_sta(jj)=-lg_end(jj)+1
+  end select
+end do
 inum_Mx_ori(:)=iend_Mx_ori(:)-ista_Mx_ori(:)+1
 
 lg_num(:)=lg_end(:)-lg_sta(:)+1
-
-call comm_bcast(Hgs,nproc_group_global)
-call comm_bcast(Hvol,nproc_group_global)
-call comm_bcast(rLsize,nproc_group_global)
-call comm_bcast(Miter,nproc_group_global)
 
 call set_gridcoo
 

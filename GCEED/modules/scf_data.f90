@@ -240,7 +240,7 @@ integer,allocatable :: max_jMps_l_s(:)
 
 integer :: maxlm
 
-integer :: imesh_oddeven
+integer :: imesh_oddeven(3)
 integer :: iswitch_orbital_mesh
 
 integer :: version_num(2)

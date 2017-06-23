@@ -52,6 +52,7 @@ integer :: iter,iatom,iob,p1,p2,p5,ii,jj,iflag
 real(8) :: sum0,sum1
 character(100) :: file_atoms_coo
 real(8) :: rNebox1,rNebox2
+integer :: itmg
 
 iSCFRT=1
 ihpsieff=0
@@ -100,7 +101,9 @@ if(istopt==1)then
     Hgs(1:3)=Harray(1:3,1)
     Hvol=Hgs(1)*Hgs(2)*Hgs(3)
     Miter = 0        ! Miter: Iteration counter set to zero
-    call init_mesh(img)
+    itmg=img
+    call set_imesh_oddeven(itmg)
+    call init_mesh(itmg)
     call set_gridcoo
     call init_mesh_s
 

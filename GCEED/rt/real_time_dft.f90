@@ -208,11 +208,11 @@ elp3(403)=get_wtime()
 
 
 if(iflag_dip2==1) then
-  if(imesh_oddeven==1)then
+  if(imesh_oddeven(1)==1)then
     dip2boundary(1:num_dip2-1)=dip2boundary(1:num_dip2-1) !/a_B
     idip2int(1:num_dip2-1)=nint(dip2boundary(1:num_dip2-1)/Hgs(1))
     rto(1:num_dip2-1)=(dip2boundary(1:num_dip2-1)-((dble(idip2int(1:num_dip2-1))-0.5d0)*Hgs(1)))/Hgs(1)
-  else if(imesh_oddeven==2)then
+  else if(imesh_oddeven(1)==2)then
     dip2boundary(1:num_dip2-1)=dip2boundary(1:num_dip2-1) !/a_B
     idip2int(1:num_dip2-1)=nint(dip2boundary(1:num_dip2-1)/Hgs(1)+0.5d0)
     rto(1:num_dip2-1)=(dip2boundary(1:num_dip2-1)-((dble(idip2int(1:num_dip2-1))-1.0d0)*Hgs(1)))/Hgs(1)
@@ -781,39 +781,53 @@ select case (ikind_eext)
   case(1)
     if(alocal_laser=='y')then
       rlaser_center(1:3)=(rlaserbound_sta(1:3)+rlaserbound_end(1:3))/2.d0
-      if(imesh_oddeven==1)then
-        ilasbound_sta(1:3)=nint(rlaserbound_sta(1:3)/Hgs(:))
-        ilasbound_end(1:3)=nint(rlaserbound_end(1:3)/Hgs(:))
-      else if(imesh_oddeven==2)then
-        ilasbound_sta(1:3)=nint(rlaserbound_sta(1:3)/Hgs(:)+0.5d0)
-        ilasbound_end(1:3)=nint(rlaserbound_end(1:3)/Hgs(:)+0.5d0)
-      end if
+      do jj=1,3
+        select case(imesh_oddeven(jj))
+          case(1)
+            ilasbound_sta(jj)=nint(rlaserbound_sta(jj)/Hgs(jj))
+            ilasbound_end(jj)=nint(rlaserbound_end(jj)/Hgs(jj))
+          case(2)
+            ilasbound_sta(jj)=nint(rlaserbound_sta(jj)/Hgs(jj)+0.5d0)
+            ilasbound_end(jj)=nint(rlaserbound_end(jj)/Hgs(jj)+0.5d0)
+        end select
+      end do
     else
       rlaser_center(1:3)=0.d0
     end if
 end select 
 
-if(imesh_oddeven==1)then
-  do i1=lg_sta(1),lg_end(1)
-    vecR(1,i1,:,:)=dble(i1)-rlaser_center(1)/Hgs(1)
-  end do
-  do i2=lg_sta(2),lg_end(2)
-    vecR(2,:,i2,:)=dble(i2)-rlaser_center(2)/Hgs(2)
-  end do
-  do i3=lg_sta(3),lg_end(3)
-    vecR(3,:,:,i3)=dble(i3)-rlaser_center(3)/Hgs(3)
-  end do
-else if(imesh_oddeven==2)then
-  do i1=lg_sta(1),lg_end(1)
-    vecR(1,i1,:,:)=dble(i1)-0.5d0-rlaser_center(1)/Hgs(1)
-  end do
-  do i2=lg_sta(2),lg_end(2)
-    vecR(2,:,i2,:)=dble(i2)-0.5d0-rlaser_center(2)/Hgs(2)
-  end do
-  do i3=lg_sta(3),lg_end(3)
-    vecR(3,:,:,i3)=dble(i3)-0.5d0-rlaser_center(3)/Hgs(3)
-  end do
-end if
+select case(imesh_oddeven(1))
+  case(1)
+    do i1=lg_sta(1),lg_end(1)
+      vecR(1,i1,:,:)=dble(i1)-rlaser_center(1)/Hgs(1)
+    end do
+  case(2)
+    do i1=lg_sta(1),lg_end(1)
+      vecR(1,i1,:,:)=dble(i1)-0.5d0-rlaser_center(1)/Hgs(1)
+    end do
+end select
+
+select case(imesh_oddeven(2))
+  case(1)
+    do i2=lg_sta(2),lg_end(2)
+      vecR(2,:,i2,:)=dble(i2)-rlaser_center(2)/Hgs(2)
+    end do
+  case(2)
+    do i2=lg_sta(2),lg_end(2)
+      vecR(2,:,i2,:)=dble(i2)-0.5d0-rlaser_center(2)/Hgs(2)
+    end do
+end select
+
+select case(imesh_oddeven(3))
+  case(1)
+    do i3=lg_sta(3),lg_end(3)
+      vecR(3,:,:,i3)=dble(i3)-rlaser_center(3)/Hgs(3)
+    end do
+  case(2)
+    do i3=lg_sta(3),lg_end(3)
+      vecR(3,:,:,i3)=dble(i3)-0.5d0-rlaser_center(3)/Hgs(3)
+    end do
+end select
 
 
 if(quadrupole=='y')then
