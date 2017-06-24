@@ -39,6 +39,8 @@ subroutine arted
   use inputfile,        only: read_arted => transfer_input
 
   use salmon_parallel
+  use initialization
+  use ground_state
   
   implicit none
 
@@ -47,6 +49,9 @@ subroutine arted
   nproc_size_tdks  = nproc_size_global
 
   call read_arted()
+
+  call initialize
+  call calc_ground_state
 
   select case(use_ms_maxwell)
   case ('y')

@@ -3,6 +3,7 @@ set(SOURCES
     control_ms.f90
     inputfile.f90
     initialization.f90
+    ground_state.f90
     )
 
 add_library(${CONTROL_LIB} STATIC ${SOURCES})
