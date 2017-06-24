@@ -34,8 +34,8 @@ End Subroutine Err_finalize
 
 subroutine arted
   use salmon_global, only:    use_ms_maxwell
-  use control_sc,       only: main_sc => main
-  use control_ms,       only: main_ms => main
+  use control_sc,       only: tddft_sc
+  use control_ms,       only: tddft_maxwell_ms
   use inputfile,        only: read_arted => transfer_input
 
   use salmon_parallel
@@ -55,9 +55,9 @@ subroutine arted
 
   select case(use_ms_maxwell)
   case ('y')
-    call main_ms
+    call tddft_maxwell_ms
   case ('n')
-    call main_sc
+    call tddft_sc
   case default
     call Err_finalize("Invalid use_ms_maxwell parameter!")
   end select

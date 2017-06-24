@@ -19,7 +19,7 @@
 module control_sc
   implicit none
 contains
-subroutine main
+subroutine tddft_sc
   use Global_Variables
   use timer
   use opt_variables
@@ -393,5 +393,5 @@ contains
       call timer_reset(i)
     end do
   end subroutine
-end subroutine main
+end subroutine tddft_sc
 end module control_sc

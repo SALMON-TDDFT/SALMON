@@ -19,7 +19,7 @@
 module control_ms
   implicit none
 contains
-subroutine main
+subroutine tddft_maxwell_ms
   use Global_Variables
   use timer
   use opt_variables
@@ -435,7 +435,7 @@ contains
       call timer_reset(i)
     end do
   end subroutine
-end subroutine main
+end subroutine tddft_maxwell_ms
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

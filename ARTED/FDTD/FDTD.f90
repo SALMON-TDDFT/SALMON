@@ -139,7 +139,6 @@ end subroutine init_Ac_ms_2dc
 !===============================================================
 subroutine init_Ac_ms
   use Global_variables
-  use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_sync_all, comm_is_root
   implicit none
   real(8) x,y
