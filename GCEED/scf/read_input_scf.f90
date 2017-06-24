@@ -31,7 +31,7 @@ integer :: inml_group_fundamental, &
          & inml_group_hartree, &
          & inml_group_file, &
          & inml_group_others
-namelist / group_fundamental / imesh_oddeven,iDiterYBCG,   &
+namelist / group_fundamental / iDiterYBCG,   &
                                iDiter_nosubspace_diag, &
                                ntmg, &
                                ithresholdVh, threshold_norm_diff_rho, &
@@ -53,7 +53,6 @@ if(comm_is_root(nproc_id_global))then
    open(fh_namelist, file='.namelist.tmp', status='old')
 end if
 !===== namelist for group_fundamental =====
-imesh_oddeven=2
 ik_oddeven=2
 iflag_stopt=0
 iter_stopt=1
@@ -104,10 +103,6 @@ if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_fundamental, iostat=inml_group_fundamental) 
   rewind(fh_namelist)
   if(iflag_stopt==0) iter_stopt=1 ! overwrite iter_stopt
-  if(imesh_oddeven<=0.or.imesh_oddeven>=3)then
-    write(*,*) "imesh_oddeven must be equal to 1 or 2."
-    stop
-  end if
   if(minroutine<=0.or.minroutine==2.or.minroutine==3.or.minroutine>=5)then
     write(*,*) "minroutine must be equal to 1 or 4."
     stop
@@ -159,7 +154,6 @@ case('n')
   icalcforce = 0
 end select
 
-call comm_bcast(imesh_oddeven,          nproc_group_global)
 call comm_bcast(iflag_stopt,            nproc_group_global)
 call comm_bcast(iter_stopt,             nproc_group_global)
 call comm_bcast(minroutine,             nproc_group_global)

@@ -54,11 +54,14 @@ rLsize_ini(:)=rLsize_ini(:)/a_B
 coo_mol_ini(:,:)=rlatcon*coo_mol_ini(:,:)
 
 lg_end_ini(:)=int((rLsize_ini(:)+epsilon)/2.d0/Hgs(:))
-if(imesh_oddeven==1)then
-  lg_sta_ini(:)=-(int((rLsize_ini(:)+epsilon)/2.d0/Hgs(:)))
-else if(imesh_oddeven==2)then 
-  lg_sta_ini(:)=-(int((rLsize_ini(:)+epsilon)/2.d0/Hgs(:)))+1
-end if
+do jj=1,3
+  select case(imesh_oddeven(jj))
+    case(1)
+      lg_sta_ini(jj)=-(int((rLsize_ini(jj)+epsilon)/2.d0/Hgs(jj)))
+    case(2)
+      lg_sta_ini(jj)=-(int((rLsize_ini(jj)+epsilon)/2.d0/Hgs(jj)))+1
+  end select
+end do
 lg_num_ini(:)=lg_end_ini(:)-lg_sta_ini(:)+1
 
 end subroutine prep_ini
