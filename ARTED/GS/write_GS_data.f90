@@ -117,7 +117,7 @@ Subroutine write_GS_data
       esp_min = minval(esp)
       desp = (esp_max-esp_min)
       esp_max = esp_max + desp*0.05d0
-      esp_min = esp_min + desp*0.05d0
+      esp_min = esp_min - desp*0.05d0
       desp = (esp_max-esp_min)/dble(Nw)
       dos_l = 0d0
 
@@ -134,6 +134,7 @@ Subroutine write_GS_data
       end do
 
       call comm_summation(dos_l,dos,Nw+1,nproc_group_tdks)
+      dos = dos/aLxyz
 
       if (comm_is_root(nproc_id_global)) then
         open(404,file=file_DoS)
