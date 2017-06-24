@@ -55,9 +55,8 @@ contains
     !ion
     if (Rion_update) then
       ftmp_l=0.d0
-!$omp parallel
+!$omp parallel do private(ia, ik,ix,iy,iz,ib,rab,rab2) reduction(+:ftmp_l) collapse(5)
       do ia=1,NI
-!$omp do private(ik,ix,iy,iz,ib,rab,rab2) collapse(4)
       do ix=-NEwald,NEwald
       do iy=-NEwald,NEwald
       do iz=-NEwald,NEwald
@@ -75,16 +74,14 @@ contains
       end do
       end do
       end do
-!$omp end do
       end do
-!$omp end parallel
       Fion=ftmp_l
     end if
 
     ftmp_l=0.d0
     ftmp_l_kl=0.d0
 
-!$omp parallel private(ia)
+!$omp parallel private(ia) reduction(+:ftmp_l, ftmp_l_kl)
 
     !loc
     do ia=1,NI
