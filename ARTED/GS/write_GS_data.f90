@@ -16,8 +16,9 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine write_GS_data
   use Global_Variables
-  use salmon_parallel, only: nproc_id_global
-  use salmon_communication, only: comm_is_root
+  use salmon_global, only: out_dos
+  use salmon_parallel, only: nproc_id_global, nproc_group_tdks
+  use salmon_communication, only: comm_is_root,comm_summation
   implicit none
   integer ik,ib,ia,iter,j
 
@@ -82,23 +83,70 @@ Subroutine write_GS_data
     end do
     close(403)
 
-    open(404,file=file_DoS)
+
     open(405,file=file_band)
-    write(404,*) '#Occupation distribution at Ground State'
-    write(404,*) '#(NK,NB)=','(',NK,NB,')'
     write(405,*) '#Bandmap at Ground State'
     write(405,*) '#(NK,NB)=','(',NK,NB,')'
     do ik=1,NK
       do ib=1,NB
-        write(404,'(1x,2i5,2f15.10)') ik,ib,esp(ib,ik),occ(ib,ik)*NKxyz
-        write(405,'(1x,2i5,3f15.8,3x,f15.10)') ik,ib,kAc(ik,1),kAc(ik,2),kAc(ik,3),esp(ib,ik)
+        write(405,'(1x,2i5,5e26.16e3)') ik,ib,kAc(ik,1),kAc(ik,2),kAc(ik,3) &
+          ,esp(ib,ik),occ(ib,ik)
       enddo
     enddo
-    close(404)
     close(405)
 
   end if
 
+  
+  if(out_dos == 'y')call dos_write
+
   return
+
+  contains
+    subroutine dos_write
+      implicit none
+      integer,parameter :: Nw = 1023
+      real(8),parameter :: gamma = 0.1d0/(Ry*2d0)
+      real(8) :: esp_max, esp_min, desp
+      real(8),allocatable :: dos(:),dos_l(:)
+      real(8) :: ww,fk
+      integer :: iw
+
+      allocate(dos(0:Nw),dos_l(0:Nw))
+      esp_max = maxval(esp)
+      esp_min = minval(esp)
+      desp = (esp_max-esp_min)
+      esp_max = esp_max + desp*0.05d0
+      esp_min = esp_min - desp*0.05d0
+      desp = (esp_max-esp_min)/dble(Nw)
+      dos_l = 0d0
+
+!$omp parallel do private(ik,ib,fk,iw,ww) reduction(+:dos_l) collapse(2)
+      do ik = NK_s,NK_e
+        do ib = 1,NB
+          fk = 2.d0/(NKxyz)*wk(ik)*(gamma/pi)          
+          do iw = 0,Nw
+            ww = esp_min + desp*iw - esp(ib,ik)
+            dos_l(iw) = dos_l(iw) + fk/(ww**2 + gamma**2)
+          end do
+
+        end do
+      end do
+
+      call comm_summation(dos_l,dos,Nw+1,nproc_group_tdks)
+      dos = dos/aLxyz
+
+      if (comm_is_root(nproc_id_global)) then
+        open(404,file=file_DoS)
+        write(404,"(A)") '#Density of states'
+        write(404,"(A)") '# energy (Hartree), dos (1/Hartree * Bohr^3)'
+        do iw = 0,Nw
+          ww = esp_min + desp*iw
+          write(404,"(2e26.16e3)")ww,dos(iw)
+        end do
+        close(404)
+      end if
+
+    end subroutine dos_write
 End Subroutine write_GS_data
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
