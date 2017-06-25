@@ -1,7 +1,6 @@
 set(SOURCES
     allocate_mat.f90
     allocate_psl.f90
-    allocate_sendrecv_groupob.f90
     calc_density.f90
     calc_invA_lapack.f90
     change_order.f90

@@ -42,7 +42,6 @@ use salmon_parallel, only: nproc_id_global, nproc_group_h
 use salmon_communication, only: comm_is_root, comm_summation
 use misc_routines, only: get_wtime
 use global_variables_rt
-use allocate_sendrecv_groupob_sub
 implicit none
 
 INTEGER :: IC_rt, OC_rt
@@ -194,7 +193,7 @@ call init_updown
 call init_itype
 call init_sendrecv_matrix
 
-call allocate_sendrecv_groupob
+call allocate_sendrecv
 
 if(ilsda==0)then
   numspin=1

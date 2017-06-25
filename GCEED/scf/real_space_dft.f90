@@ -28,7 +28,6 @@ use copy_psi_mesh_sub
 use Total_Energy_sub
 use calc_density_sub
 use change_order_sub
-use allocate_sendrecv_groupob_sub
 use read_pslfile_sub
 use allocate_psl_sub
 implicit none
@@ -114,7 +113,7 @@ if(istopt==1)then
     call make_icoobox_bound
         
     call allocate_mat
-    call allocate_sendrecv_groupob
+    call allocate_sendrecv
     allocate( Vpsl(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
     if(icalcforce==1)then
       allocate( Vpsl_atom(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),MI) )
@@ -195,7 +194,7 @@ if(istopt==1)then
     call IN_data
 
     call allocate_mat
-    call allocate_sendrecv_groupob
+    call allocate_sendrecv
 
     if(iflag_ps/=0) then
       call read_pslfile

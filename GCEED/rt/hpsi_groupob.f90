@@ -24,7 +24,6 @@ use scf_data
 use new_world_sub
 use gradient2_sub
 use allocate_mat_sub
-use allocate_sendrecv_groupob_sub
 use sendrecv_groupob_sub
 use init_sendrecv_sub
 !use sendrecv_groupob_ngp_sub

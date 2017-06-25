@@ -18,7 +18,6 @@ module sendrecv_groupob_sub
 use scf_data
 use new_world_sub
 use init_sendrecv_sub
-use allocate_sendrecv_groupob_sub
 
 interface sendrecv_groupob
 
@@ -58,14 +57,14 @@ if(iup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      srmatbox1_x(ix,iy,iz,iob,1)=tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+      srmatbox1_x_5d(ix,iy,iz,iob,1)=tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(1) = comm_isend(srmatbox1_x,iup,3,icomm)
-ireq(2) = comm_irecv(srmatbox2_x,idw,3,icomm)
+ireq(1) = comm_isend(srmatbox1_x_5d,iup,3,icomm)
+ireq(2) = comm_irecv(srmatbox2_x_5d,idw,3,icomm)
 
 !send from iup to idw
 
@@ -75,14 +74,14 @@ if(idw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      srmatbox3_x(ix,iy,iz,iob,1)=tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+      srmatbox3_x_5d(ix,iy,iz,iob,1)=tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(3) = comm_isend(srmatbox3_x,idw,4,icomm)
-ireq(4) = comm_irecv(srmatbox4_x,iup,4,icomm)
+ireq(3) = comm_isend(srmatbox3_x_5d,idw,4,icomm)
+ireq(4) = comm_irecv(srmatbox4_x_5d,iup,4,icomm)
 
 !send from jdw to jup
 
@@ -92,14 +91,14 @@ if(jup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      srmatbox1_y(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,1)
+      srmatbox1_y_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(5) = comm_isend(srmatbox1_y,jup,5,icomm)
-ireq(6) = comm_irecv(srmatbox2_y,jdw,5,icomm)
+ireq(5) = comm_isend(srmatbox1_y_5d,jup,5,icomm)
+ireq(6) = comm_irecv(srmatbox2_y_5d,jdw,5,icomm)
 
 !send from jup to jdw
 
@@ -109,14 +108,14 @@ if(jdw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      srmatbox3_y(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,1)
+      srmatbox3_y_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(7) = comm_isend(srmatbox3_y,jdw,6,icomm)
-ireq(8) = comm_irecv(srmatbox4_y,jup,6,icomm)
+ireq(7) = comm_isend(srmatbox3_y_5d,jdw,6,icomm)
+ireq(8) = comm_irecv(srmatbox4_y_5d,jup,6,icomm)
 
 !send from kdw to kup
 
@@ -126,14 +125,14 @@ if(kup/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      srmatbox1_z(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
+      srmatbox1_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq( 9)  = comm_isend(srmatbox1_z,kup,7,icomm)
-ireq(10) = comm_irecv(srmatbox2_z,kdw,7,icomm)
+ireq( 9)  = comm_isend(srmatbox1_z_5d,kup,7,icomm)
+ireq(10) = comm_irecv(srmatbox2_z_5d,kdw,7,icomm)
 
 !send from kup to kdw
 
@@ -143,14 +142,14 @@ if(kdw/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      srmatbox3_z(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)
+      srmatbox3_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(11) = comm_isend(srmatbox3_z,kdw,8,icomm)
-ireq(12) = comm_irecv(srmatbox4_z,kup,8,icomm)
+ireq(11) = comm_isend(srmatbox3_z_5d,kdw,8,icomm)
+ireq(12) = comm_irecv(srmatbox4_z_5d,kup,8,icomm)
 
 
 call comm_wait_all(ireq(1:2))
@@ -160,7 +159,7 @@ if(idw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=srmatbox2_x(ix,iy,iz,iob,1)
+      tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=srmatbox2_x_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -174,7 +173,7 @@ if(iup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=srmatbox4_x(ix,iy,iz,iob,1)
+      tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=srmatbox4_x_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -188,7 +187,7 @@ if(jdw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,1)=srmatbox2_y(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,1)=srmatbox2_y_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -202,7 +201,7 @@ if(jup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,1)=srmatbox4_y(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,1)=srmatbox4_y_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -216,7 +215,7 @@ if(kdw/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=srmatbox2_z(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=srmatbox2_z_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -230,7 +229,7 @@ if(kup/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)=srmatbox4_z(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)=srmatbox4_z_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -269,14 +268,14 @@ if(iup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      scmatbox1_x(ix,iy,iz,iob,1)=tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+      scmatbox1_x_5d(ix,iy,iz,iob,1)=tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(1) = comm_isend(scmatbox1_x,iup,3,icomm)
-ireq(2) = comm_irecv(scmatbox2_x,idw,3,icomm)
+ireq(1) = comm_isend(scmatbox1_x_5d,iup,3,icomm)
+ireq(2) = comm_irecv(scmatbox2_x_5d,idw,3,icomm)
 
 !send from iup to idw
 
@@ -286,14 +285,14 @@ if(idw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      scmatbox3_x(ix,iy,iz,iob,1)=tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+      scmatbox3_x_5d(ix,iy,iz,iob,1)=tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(3) = comm_isend(scmatbox3_x,idw,4,icomm)
-ireq(4) = comm_irecv(scmatbox4_x,iup,4,icomm)
+ireq(3) = comm_isend(scmatbox3_x_5d,idw,4,icomm)
+ireq(4) = comm_irecv(scmatbox4_x_5d,iup,4,icomm)
 
 !send from jdw to jup
 
@@ -303,14 +302,14 @@ if(jup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      scmatbox1_y(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,1)
+      scmatbox1_y_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(5) = comm_isend(scmatbox1_y,jup,5,icomm)
-ireq(6) = comm_irecv(scmatbox2_y,jdw,5,icomm)
+ireq(5) = comm_isend(scmatbox1_y_5d,jup,5,icomm)
+ireq(6) = comm_irecv(scmatbox2_y_5d,jdw,5,icomm)
 
 !send from jup to jdw
 
@@ -320,14 +319,14 @@ if(jdw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      scmatbox3_y(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,1)
+      scmatbox3_y_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(7) = comm_isend(scmatbox3_y,jdw,6,icomm)
-ireq(8) = comm_irecv(scmatbox4_y,jup,6,icomm)
+ireq(7) = comm_isend(scmatbox3_y_5d,jdw,6,icomm)
+ireq(8) = comm_irecv(scmatbox4_y_5d,jup,6,icomm)
 
 !send from kdw to kup
 
@@ -337,14 +336,14 @@ if(kup/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      scmatbox1_z(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
+      scmatbox1_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq( 9) = comm_isend(scmatbox1_z,kup,7,icomm)
-ireq(10) = comm_irecv(scmatbox2_z,kdw,7,icomm)
+ireq( 9) = comm_isend(scmatbox1_z_5d,kup,7,icomm)
+ireq(10) = comm_irecv(scmatbox2_z_5d,kdw,7,icomm)
 
 !send from kup to kdw
 
@@ -354,14 +353,14 @@ if(kdw/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      scmatbox3_z(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)
+      scmatbox3_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)
     end do
     end do
     end do
   end do
 end if
-ireq(11) = comm_isend(scmatbox3_z,kdw,8,icomm)
-ireq(12) = comm_irecv(scmatbox4_z,kup,8,icomm)
+ireq(11) = comm_isend(scmatbox3_z_5d,kdw,8,icomm)
+ireq(12) = comm_irecv(scmatbox4_z_5d,kup,8,icomm)
 
 
 call comm_wait_all(ireq(1:2))
@@ -371,7 +370,7 @@ if(idw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=scmatbox2_x(ix,iy,iz,iob,1)
+      tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=scmatbox2_x_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -385,7 +384,7 @@ if(iup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
-      tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=scmatbox4_x(ix,iy,iz,iob,1)
+      tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=scmatbox4_x_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -399,7 +398,7 @@ if(jdw/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,1)=scmatbox2_y(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,1)=scmatbox2_y_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -413,7 +412,7 @@ if(jup/=comm_proc_null)then
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,1)=scmatbox4_y(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,1)=scmatbox4_y_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -427,7 +426,7 @@ if(kdw/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=scmatbox2_z(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=scmatbox2_z_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
@@ -441,7 +440,7 @@ if(kup/=comm_proc_null)then
 !$OMP parallel do
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
-      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)=scmatbox4_z(ix,iy,iz,iob,1)
+      tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)=scmatbox4_z_5d(ix,iy,iz,iob,1)
     end do
     end do
     end do
