@@ -53,7 +53,7 @@ ihpsieff=0
 
 esp=0.d0
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
 do iz=mg_sta(3)-Nd,mg_end(3)+Nd
 do iy=mg_sta(2)-Nd,mg_end(2)+Nd
 do ix=mg_sta(1)-Nd,mg_end(1)+Nd
@@ -65,7 +65,7 @@ end do
 do iob=1,iobnum
   call calc_allob(iob,iob_allob)
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -77,7 +77,7 @@ do iob=1,iobnum
   call hpsi2(tpsi,htpsi,iob_allob,0,0)
 
   rbox=0.d0
-!$OMP parallel do reduction ( + : rbox ) private(iz,iy,ix) collapse(3)
+!$OMP parallel do reduction ( + : rbox ) private(iz,iy,ix) 
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -164,7 +164,7 @@ ihpsieff=0
 
 esp2=0.d0
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
 do iz=mg_sta(3)-Nd,mg_end(3)+Nd
 do iy=mg_sta(2)-Nd,mg_end(2)+Nd
 do ix=mg_sta(1)-Nd,mg_end(1)+Nd
@@ -179,7 +179,7 @@ do iob=1,iobnum
   call calc_allob(iob,iob_allob)
   elp3(863)=get_wtime()
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -194,7 +194,7 @@ do iob=1,iobnum
   elp3(884)=elp3(884)+elp3(864)-elp3(863)
 
   cbox=0.d0
-!$OMP parallel do reduction ( + : cbox ) private(iz,iy,ix) collapse(3)
+!$OMP parallel do reduction ( + : cbox ) private(iz,iy,ix) 
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)

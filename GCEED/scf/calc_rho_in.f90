@@ -19,7 +19,7 @@ use scf_data
 implicit none
 integer :: ix,iy,iz,is
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -30,7 +30,7 @@ end do
 
 if(ilsda==1)then
   do is=1,2
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)

@@ -47,7 +47,7 @@ if(ifunc==1)then
   esp2=0.d0
   
   if(ilsda==1)then 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -64,7 +64,7 @@ if(ifunc==1)then
   
   do iob=1,iobnum
     cbox=0.d0
-!$OMP parallel do reduction ( + : cbox ) private(iz,iy,ix) collapse(3)
+!$OMP parallel do reduction ( + : cbox ) private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -121,7 +121,7 @@ Etot=Etot+rbox
 if(ilsda == 0)then
   if((ifunc==1.and.mod(itt,2)==1).or.(ifunc==2.and.mod(itt,2)==0))then
     sum1=0.d0
-!$OMP parallel do reduction (+ : sum1 ) private(iz,iy,ix) collapse(3)
+!$OMP parallel do reduction (+ : sum1 ) private(iz,iy,ix)
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -131,7 +131,7 @@ if(ilsda == 0)then
     end do
   else
     sum1=0.d0
-!$OMP parallel do reduction (+ : sum1 ) private(iz,iy,ix) collapse(3)
+!$OMP parallel do reduction (+ : sum1 ) private(iz,iy,ix)
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)

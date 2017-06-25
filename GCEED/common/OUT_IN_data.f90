@@ -838,7 +838,7 @@ allocate( cmatbox_read2(ig_sta(1):ig_end(1),ig_sta(2):ig_end(2),ig_sta(3):ig_end
 allocate( matbox_read3(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
 allocate( cmatbox_read3(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
 do iz=ig_sta(3),ig_end(3)
 do iy=ig_sta(2),ig_end(2)
 do ix=ig_sta(1),ig_end(1)
@@ -1180,7 +1180,7 @@ end if
 if(iSCFRT==2)then
   allocate(Vh_stock1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
   allocate(Vh_stock2(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)

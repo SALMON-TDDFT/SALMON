@@ -22,7 +22,7 @@ real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
                 mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
 
 do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
   do iz=mg_sta(3)-Nd,mg_end(3)+Nd
   do iy=mg_sta(2)-Nd,mg_end(2)+Nd
   do ix=mg_sta(1)-Nd,mg_end(1)+Nd
@@ -30,7 +30,7 @@ do iob=1,iobnum
   end do
   end do
   end do
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)

@@ -24,7 +24,7 @@ complex(8) :: wk2(iwk2sta(1):iwk2end(1)+1,iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2e
 complex(8) :: grad_wk(3,iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 
 if(Nd<=3)then
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
   do iz=iwk3sta(3),iwk3end(3)
   do iy=iwk3sta(2),iwk3end(2)
   do ix=iwk3sta(1),iwk3end(1)
@@ -38,7 +38,7 @@ if(Nd<=3)then
   end do
   end do
 else if(Nd==4)then
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
   do iz=iwk3sta(3),iwk3end(3)
   do iy=iwk3sta(2),iwk3end(2)
   do ix=iwk3sta(1),iwk3end(1)

@@ -85,7 +85,7 @@ itrho(1)=1
 do LL=0,lmax_MEO
 do lm=LL**2+1,(LL+1)**2
   rholm2box=0.d0
-!$OMP parallel do collapse(3) reduction ( + : rholm2box)&
+!$OMP parallel do reduction ( + : rholm2box)&
 !$OMP private(ix,iy,iz,xx,yy,zz,rr,xxxx,yyyy,zzzz,Ylm)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
@@ -254,7 +254,7 @@ else
   elp3(252)=elp3(252)+elp3(202)-elp3(201)
 end if
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh

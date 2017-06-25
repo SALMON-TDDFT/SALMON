@@ -88,7 +88,7 @@ if(Nd==4)then
     call set_ispin(iob_allob,jspin)
 !$OMP parallel private(iz)
     do iz=iwk3sta(3),iwk3end(3)
-!$OMP do private(iy,ix) collapse(2)
+!$OMP do private(iy,ix)
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
         htpsi(ix,iy,iz,iob,1) =   &
@@ -104,7 +104,7 @@ if(Nd==4)then
       end do
       end do
 !$OMP end do nowait
-!$OMP do private(iy,ix) collapse(2)
+!$OMP do private(iy,ix)
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
         htpsi(ix,iy,iz,iob,1) = htpsi(ix,iy,iz,iob,1)  &
@@ -130,7 +130,7 @@ else
     end do
 !$OMP parallel private(iz,ist)
     do iz=iwk3sta(3),iwk3end(3)
-!$OMP do private(iy,ix) collapse(2)
+!$OMP do private(iy,ix)
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
         htpsi(ix,iy,iz,iob,1) = (tVlocal(ix,iy,iz,jspin)+fdN0) *tpsi(ix,iy,iz,iob,1)  
@@ -142,7 +142,7 @@ else
       end do
       end do
 !$OMP end do nowait
-!$OMP do private(iy,ix) collapse(2)
+!$OMP do private(iy,ix)
       do iy=iwk3sta(2),iwk3end(2)
       do ix=iwk3sta(1),iwk3end(1)
         do ist=1,Nd  

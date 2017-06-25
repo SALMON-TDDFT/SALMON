@@ -53,7 +53,7 @@ icomm=nproc_group_orbital
 
 if(iup/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -70,7 +70,7 @@ ireq(2) = comm_irecv(srmatbox2_x_5d,idw,3,icomm)
 
 if(idw/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -87,7 +87,7 @@ ireq(4) = comm_irecv(srmatbox4_x_5d,iup,4,icomm)
 
 if(jup/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -104,7 +104,7 @@ ireq(6) = comm_irecv(srmatbox2_y_5d,jdw,5,icomm)
 
 if(jdw/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -122,7 +122,7 @@ ireq(8) = comm_irecv(srmatbox4_y_5d,jup,6,icomm)
 if(kup/=comm_proc_null)then
   do iob=1,iobnum
     do iz=1,Nd
-!$OMP parallel do private(iy,ix) collapse(2)
+!$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       srmatbox1_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
@@ -139,7 +139,7 @@ ireq(10) = comm_irecv(srmatbox2_z_5d,kdw,7,icomm)
 if(kdw/=comm_proc_null)then
   do iob=1,iobnum
     do iz=1,Nd
-!$OMP parallel do private(iy,ix) collapse(2)
+!$OMP parallel do private(iy,ix) 
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       srmatbox3_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)
@@ -155,7 +155,7 @@ ireq(12) = comm_irecv(srmatbox4_z_5d,kup,8,icomm)
 call comm_wait_all(ireq(1:2))
 if(idw/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -264,7 +264,7 @@ icomm=nproc_group_orbital
 
 if(iup/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -281,7 +281,7 @@ ireq(2) = comm_irecv(scmatbox2_x_5d,idw,3,icomm)
 
 if(idw/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -298,7 +298,7 @@ ireq(4) = comm_irecv(scmatbox4_x_5d,iup,4,icomm)
 
 if(jup/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -315,7 +315,7 @@ ireq(6) = comm_irecv(scmatbox2_y_5d,jdw,5,icomm)
 
 if(jdw/=comm_proc_null)then
   do iob=1,iobnum
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -333,7 +333,7 @@ ireq(8) = comm_irecv(scmatbox4_y_5d,jup,6,icomm)
 if(kup/=comm_proc_null)then
   do iob=1,iobnum
     do iz=1,Nd
-!$OMP parallel do private(iy,ix) collapse(2)
+!$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       scmatbox1_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
@@ -350,7 +350,7 @@ ireq(10) = comm_irecv(scmatbox2_z_5d,kdw,7,icomm)
 if(kdw/=comm_proc_null)then
   do iob=1,iobnum
     do iz=1,Nd
-!$OMP parallel do private(iy,ix) collapse(2)
+!$OMP parallel do private(iy,ix) 
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       scmatbox3_z_5d(ix,iy,iz,iob,1)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)

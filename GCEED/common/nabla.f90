@@ -37,7 +37,7 @@ real(8) :: rnab_wkx(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3e
 real(8) :: rnab_wky(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 real(8) :: rnab_wkz(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 
-!$OMP parallel do collapse(3) private(iz,iy,ix)
+!$OMP parallel do private(iz,iy,ix)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)
@@ -63,7 +63,7 @@ complex(8) :: cnab_wkx(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iw
 complex(8) :: cnab_wky(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 complex(8) :: cnab_wkz(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)

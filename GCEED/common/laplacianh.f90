@@ -29,7 +29,7 @@ f0=(1.d0/Hgs(1)**2   &
    +1.d0/Hgs(3)**2)
 Hinv2(1:3)=1.d0/Hgs(1:3)**2
 
-!$OMP parallel do collapse(3) private(ist,iz,iy,ix)
+!$OMP parallel do collapse(2) private(ist,iz,iy,ix)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)

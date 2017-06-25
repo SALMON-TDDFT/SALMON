@@ -42,7 +42,7 @@ integer :: ix,iy,iz
 
 if(iwk_size==1.or.iwk_size==11)then
   wk2=0.d0
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
   do iz=iwksta(3),iwkend(3)
   do iy=iwksta(2),iwkend(2)
   do ix=iwksta(1),iwkend(1)
@@ -79,7 +79,7 @@ integer :: ix,iy,iz
 
 if(iwk_size==1.or.iwk_size==11)then
   wk2=0.d0
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
   do iz=iwksta(3),iwkend(3)
   do iy=iwksta(2),iwkend(2)
   do ix=iwksta(1),iwkend(1)

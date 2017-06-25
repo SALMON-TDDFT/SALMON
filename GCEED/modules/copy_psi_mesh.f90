@@ -48,7 +48,7 @@ if(icopy_psi_mesh==1)then
     call check_corrkob(iob,icheck_corrkob)
     matbox=0.d0
     if(icheck_corrkob==1)then
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -60,7 +60,7 @@ if(icopy_psi_mesh==1)then
 
     call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -74,7 +74,7 @@ else if(icopy_psi_mesh==2)then
     call calc_myob(iob,iob_myob)
     call check_corrkob(iob,icheck_corrkob)
     matbox=0.d0
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -86,7 +86,7 @@ else if(icopy_psi_mesh==2)then
     call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
     if(icheck_corrkob==1)then
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -126,7 +126,7 @@ if(icopy_psi_mesh==1)then
     call check_corrkob(iob,icheck_corrkob)
     matbox=0.d0
     if(icheck_corrkob==1)then
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -138,7 +138,7 @@ if(icopy_psi_mesh==1)then
 
     call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -152,7 +152,7 @@ else if(icopy_psi_mesh==2)then
     call calc_myob(iob,iob_myob)
     call check_corrkob(iob,icheck_corrkob)
     matbox=0.d0
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix) 
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -164,7 +164,7 @@ else if(icopy_psi_mesh==2)then
     call comm_summation(matbox,matbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
     if(icheck_corrkob==1)then
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)

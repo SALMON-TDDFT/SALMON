@@ -87,7 +87,7 @@ end do
 if(icount == iter)then
 ! if phibar is estimated to be equal mixture of previous phis,
 ! update phibar by newest phi
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -98,7 +98,7 @@ if(icount == iter)then
     
   call inner_product(phibar(:,:,:,iter-1),phibar(:,:,:,iter-1),rbox)
   rnorm=sqrt(rbox*Hvol)
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -115,7 +115,7 @@ else
   if(ier2 .ne. 0) then
 ! if Smat is not positive-definite,
 ! update phibar by newest phi
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -126,7 +126,7 @@ else
     call inner_product(phibar(:,:,:,iter-1),phibar(:,:,:,iter-1),rbox)
  
     rnorm=sqrt(rbox*Hvol)
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -149,7 +149,7 @@ else
       end if
     end do
 
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -158,7 +158,7 @@ else
     end do
     end do
     do ii=1,iter
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -171,7 +171,7 @@ else
 
     call inner_product(phibar(:,:,:,iter-1),phibar(:,:,:,iter-1),rbox)
     rnorm=sqrt(rbox*Hvol)
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -180,7 +180,7 @@ else
     end do
     end do
      
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -189,7 +189,7 @@ else
     end do
     end do
     do ii=1,iter
-!$OMP parallel do private(iz,iy,ix) collapse(3)
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)

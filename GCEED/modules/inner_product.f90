@@ -38,7 +38,7 @@ real(8) :: matbox2(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3en
 real(8) :: rbox,rbox2
 
 rbox=0.d0
-!$omp parallel do reduction(+ : rbox) private(iz,iy,ix) collapse(3)
+!$omp parallel do reduction(+ : rbox) private(iz,iy,ix)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)
@@ -69,7 +69,7 @@ complex(8) :: matbox2(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk
 complex(8) :: cbox,cbox2
 
 cbox=0.d0
-!$omp parallel do reduction(+ : cbox) private(iz,iy,ix) collapse(3)
+!$omp parallel do reduction(+ : cbox) private(iz,iy,ix) 
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)
