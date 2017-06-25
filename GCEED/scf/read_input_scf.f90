@@ -56,7 +56,6 @@ end if
 ik_oddeven=2
 iflag_stopt=0
 iter_stopt=1
-minroutine=1
 !Ncg=4
 iDiterYBCG=20
 iflag_subspace_diag=0
@@ -64,6 +63,13 @@ iDiter_nosubspace_diag=10
 ntmg=1
 iflag_convergence=2
 ithresholdVh(:)=1
+
+select case(amin_routine)
+  case('cg','diis','cg-diis')
+    continue
+  case default
+    stop 'Specify either "cg", "diis", or "cg-diis" for amin_routine.'
+end select
 
 ! Convergence criterion, ||rho(i)-rho(i-1)||**2/(# of grids), 1.d-17 a.u. = 6.75d-17 AA**(-3)
 threshold_norm_diff_rho(:)=1.d-17/ulength_from_au**3
@@ -103,10 +109,6 @@ if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_fundamental, iostat=inml_group_fundamental) 
   rewind(fh_namelist)
   if(iflag_stopt==0) iter_stopt=1 ! overwrite iter_stopt
-  if(minroutine<=0.or.minroutine==2.or.minroutine==3.or.minroutine>=5)then
-    write(*,*) "minroutine must be equal to 1 or 4."
-    stop
-  end if
 end if
 
 
@@ -156,7 +158,6 @@ end select
 
 call comm_bcast(iflag_stopt,            nproc_group_global)
 call comm_bcast(iter_stopt,             nproc_group_global)
-call comm_bcast(minroutine,             nproc_group_global)
 !call comm_bcast(Ncg,                    nproc_group_global)
 call comm_bcast(iDiterYBCG,             nproc_group_global)
 call comm_bcast(iflag_subspace_diag,    nproc_group_global)

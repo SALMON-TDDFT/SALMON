@@ -442,6 +442,13 @@ Default is <code>middlepoint</code>.
 ## &scf
 <dl>
 
+<dt>amin_routine; <code>Character</code></dt>
+<dd>
+Minimization routine for the ground state calculation. 
+<code>'cg'</code>, <code>'diis'</code>, and <code>'cg-diis'</code> can be chosen.
+Default is <code>'cg'</code>.
+</dd>
+
 <dt>ncg; <code>Integer</code></dt>
 <dd>
 Number of interation of Conjugate-Gradient method for each scf-cycle.

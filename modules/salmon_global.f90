@@ -111,6 +111,7 @@ module salmon_global
   character(16)  :: propagator
 
 !! &scf
+  character(8)   :: amin_routine
   integer        :: ncg
   integer        :: nmemory_mb
   real(8)        :: alpha_mb
