@@ -300,13 +300,13 @@ DFT_Iteration : do iter=1,iDiter(img)
 
   if(iscf_order==1)then
    
-    if( minroutine == 1 .or.       &
-   (minroutine == 4 .and. Miter <= iDiterYBCG) ) then
+    if( amin_routine == 'cg' .or.       &
+   (amin_routine == 'cg-diis' .and. Miter <= iDiterYBCG) ) then
       elp3(181)=get_wtime()
       call DTcg(psi,iflag)
       elp3(182)=get_wtime()
       elp3(183)=elp3(183)+elp3(182)-elp3(181)
-    else if( minroutine == 3 .or. minroutine == 4 ) then
+    else if( amin_routine  == 'diis' .or. amin_routine == 'cg-diis' ) then
       elp3(181)=get_wtime()
       call rmmdiis(psi,iflag)
       elp3(182)=get_wtime()
@@ -380,9 +380,9 @@ DFT_Iteration : do iter=1,iDiter(img)
 
     call Gram_Schmidt_ns
 
-    if( minroutine == 1 .or. (minroutine == 4 .and. Miter <= iDiterYBCG) ) then
+    if( amin_routine == 'cg' .or. (amin_routine == 'cg-diis' .and. Miter <= iDiterYBCG) ) then
       call DTcg(psi,iflag)
-    else if( minroutine == 3 .or. minroutine == 4 ) then
+    else if( amin_routine == 'diis' .or. amin_routine == 'cg-diis' ) then
       call rmmdiis(psi,iflag)
     end if
 

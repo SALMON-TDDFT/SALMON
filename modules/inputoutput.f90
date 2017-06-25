@@ -266,6 +266,7 @@ contains
       & propagator
 
     namelist/scf/ &
+      & amin_routine, &
       & ncg, &
       & nmemory_mb, &
       & alpha_mb, &
@@ -429,6 +430,7 @@ contains
     n_hamil = 4
     propagator = 'middlepoint'
 !! == default for &scf
+    amin_routine  = 'cg'
     ncg           = 5
     nmemory_mb    = 8
     alpha_mb      = 0.75d0
@@ -628,6 +630,7 @@ contains
     call comm_bcast(n_hamil   ,nproc_group_global)
     call comm_bcast(propagator,nproc_group_global)
 !! == bcast for &scf
+    call comm_bcast(amin_routine            ,nproc_group_global)
     call comm_bcast(ncg                     ,nproc_group_global)
     call comm_bcast(nmemory_mb              ,nproc_group_global)
     call comm_bcast(alpha_mb                ,nproc_group_global)
@@ -1040,6 +1043,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dt', dt
 
       if(inml_scf >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'amin_routine', amin_routine
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'scf', inml_scf
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'ncg', ncg
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'nmemory_mb', nmemory_mb
