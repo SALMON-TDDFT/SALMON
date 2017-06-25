@@ -44,7 +44,7 @@ Hgs_i2(1) = 1d0/Hgs(1)**2
 Hgs_i2(2) = 1d0/Hgs(2)**2
 Hgs_i2(3) = 1d0/Hgs(3)**2
 
-!$OMP parallel do private(ist)
+!$OMP parallel do private(ist,iz,iy,ix) collapse(3)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)
@@ -81,7 +81,7 @@ Hgs_i2(1) = 1d0/Hgs(1)**2
 Hgs_i2(2) = 1d0/Hgs(2)**2
 Hgs_i2(3) = 1d0/Hgs(3)**2
 
-!$OMP parallel do private(ist)
+!$OMP parallel do private(ist,iz,iy,ix) collapse(3)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)

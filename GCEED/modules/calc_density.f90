@@ -42,7 +42,7 @@ if(ilsda==0)then
   matbox_m=0d0
   do i1=1,iobnum
     call calc_allob(i1,i1_allob)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -71,7 +71,7 @@ else if(ilsda==1)then
       call calc_myob(iob,iob_myob)
       call check_corrkob(iob,icorr_p)
       if(icorr_p==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -90,7 +90,7 @@ else if(ilsda==1)then
     end if
   end do
   
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -120,7 +120,7 @@ if(ilsda==0)then
   matbox_m=0d0
   do i1=1,iobnum
     call calc_allob(i1,i1_allob)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -149,7 +149,7 @@ else if(ilsda==1)then
       call calc_myob(iob,iob_myob)
       call check_corrkob(iob,icorr_p)
       if(icorr_p==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -168,7 +168,7 @@ else if(ilsda==1)then
     end if
   end do
   
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)

@@ -33,7 +33,7 @@ iwk_size=11
 call make_iwksta_iwkend
 
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
@@ -43,7 +43,7 @@ end do
 end do
 
 if(mod(itt,2)==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -53,7 +53,7 @@ if(mod(itt,2)==1)then
   end do
   end do
 else
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -67,7 +67,7 @@ end if
 call sendrecvh(Vh_wk)
 
 if(ng_sta(1)==lg_sta(1))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
     do ix=1,Ndh
@@ -78,7 +78,7 @@ if(ng_sta(1)==lg_sta(1))then
 end if
 
 if(ng_end(1)==lg_end(1))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
     do ix=1,Ndh
@@ -89,7 +89,7 @@ if(ng_end(1)==lg_end(1))then
 end if
 
 if(ng_sta(2)==lg_sta(2))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do ix=ng_sta(1),ng_end(1)
     do iy=1,Ndh
@@ -100,7 +100,7 @@ if(ng_sta(2)==lg_sta(2))then
 end if
 
 if(ng_end(2)==lg_end(2))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do ix=ng_sta(1),ng_end(1)
     do iy=1,Ndh
@@ -111,7 +111,7 @@ if(ng_end(2)==lg_end(2))then
 end if
 
 if(ng_sta(3)==lg_sta(3))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
     do iz=1,Ndh
@@ -122,7 +122,7 @@ if(ng_sta(3)==lg_sta(3))then
 end if
 
 if(ng_end(3)==lg_end(3))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
     do iz=1,Ndh
@@ -132,7 +132,7 @@ if(ng_end(3)==lg_end(3))then
   end do
 end if
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -143,7 +143,7 @@ end do
 end do
 end do
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix,ist) collapse(3)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)

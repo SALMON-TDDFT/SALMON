@@ -34,7 +34,7 @@ real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
 integer :: ix,iy,iz,iob
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
@@ -48,7 +48,7 @@ end do
 !send from iup to idw
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
@@ -62,7 +62,7 @@ end do
 !send from jdw to jup
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
@@ -76,7 +76,7 @@ end do
 !send from jup to jdw
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
@@ -91,7 +91,7 @@ end do
 
 do iob=1,iobnum
   do iz=1,Nd
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
     tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=  &
@@ -105,7 +105,7 @@ end do
 
 do iob=1,iobnum
   do iz=1,Nd
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
     tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)= &
@@ -126,7 +126,7 @@ complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
 integer :: ix,iy,iz,iob
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
@@ -140,7 +140,7 @@ end do
 !send from iup to idw
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
@@ -154,7 +154,7 @@ end do
 !send from jdw to jup
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
@@ -168,7 +168,7 @@ end do
 !send from jup to jdw
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
@@ -183,7 +183,7 @@ end do
 
 do iob=1,iobnum
   do iz=1,Nd
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
     tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=  &
@@ -197,7 +197,7 @@ end do
 
 do iob=1,iobnum
   do iz=1,Nd
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
     tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)= &

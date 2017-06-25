@@ -237,7 +237,7 @@ elp3(404)=get_wtime()
 allocate(Ex_fast(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate(Ec_fast(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -252,7 +252,7 @@ allocate( Ex_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 allocate( Ey_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))) 
 allocate( Ez_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))) 
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -699,7 +699,7 @@ if(ilsda==1)then
   allocate(rhobox_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2))
 end if
 if(ilsda==0)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -710,7 +710,7 @@ if(ilsda==0)then
   
   do iob=1,iobnum
     call calc_allob(iob,iob_allob)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -721,7 +721,7 @@ if(ilsda==0)then
   end do
   call comm_summation(rhobox,rho,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 else if(ilsda==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -734,7 +734,7 @@ else if(ilsda==1)then
   do iob=1,iobnum
     call calc_allob(iob,iob_allob)
     if(iob_allob<=MST(1))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -743,7 +743,7 @@ else if(ilsda==1)then
       end do
       end do
     else
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -754,7 +754,7 @@ else if(ilsda==1)then
     end if
   end do
   call comm_summation(rhobox_s,rho_s,mg_num(1)*mg_num(2)*mg_num(3)*2,nproc_group_grid)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -764,7 +764,7 @@ else if(ilsda==1)then
   end do
 end if
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -831,7 +831,7 @@ end select
 
 if(quadrupole=='y')then
   if(quadrupole_pot=='sum')then
-    !$OMP parallel do collapse(2)
+    !$OMP parallel do collapse(2) private(iz,iy,ix)
     do iz=lg_sta(3),lg_end(3)
     do iy=lg_sta(2),lg_end(2)
     do ix=lg_sta(1),lg_end(1)
@@ -845,7 +845,7 @@ if(quadrupole=='y')then
     end do 
     end do 
   else if(quadrupole_pot=='product')then
-    !$OMP parallel do collapse(2)
+    !$OMP parallel do collapse(2) private(iz,iy,ix)
     do iz=lg_sta(3),lg_end(3)
     do iy=lg_sta(2),lg_end(2)
     do ix=lg_sta(1),lg_end(1)
@@ -860,7 +860,7 @@ if(quadrupole=='y')then
     end do 
   end if
 else
-  !$OMP parallel do collapse(2)
+  !$OMP parallel do collapse(2) private(iz,iy,ix)
   do iz=lg_sta(3),lg_end(3)
   do iy=lg_sta(2),lg_end(2)
   do ix=lg_sta(1),lg_end(1)
@@ -922,7 +922,7 @@ if(IC_rt==0)then
   if(quadrupole=='y')then
     do i1=1,3
       rbox1q=0.d0
- !$OMP parallel do reduction( + : rbox1q ) private(absr2)
+ !$OMP parallel do reduction( + : rbox1q ) private(absr2,iz,iy,ix) collapse(3)
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
@@ -937,7 +937,7 @@ if(IC_rt==0)then
     rbox1q12=0.d0
     rbox1q23=0.d0
     rbox1q31=0.d0
- !$OMP parallel do reduction( + : rbox1q12,rbox1q23,rbox1q31 )
+ !$OMP parallel do reduction( + : rbox1q12,rbox1q23,rbox1q31 ) private(iz,iy,ix) collapse(3)
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -993,7 +993,7 @@ if(IC_rt==0)then
         vecR_tmp(1,:,:,:)=vecR_tmp(1,:,:,:)-dip2center(jj)
         do i1=1,3
           rbox1q=0.d0
- !$OMP parallel do reduction( + : rbox1q ) private(absr2)
+ !$OMP parallel do reduction( + : rbox1q ) private(absr2,iz,iy,ix) collapse(3)
           do iz=ng_sta(3),ng_end(3)
           do iy=ng_sta(2),ng_end(2)
           do ix=ng_sta(1),ng_end(1)
@@ -1010,7 +1010,7 @@ if(IC_rt==0)then
         rbox1q12=0.d0
         rbox1q23=0.d0
         rbox1q31=0.d0
- !$OMP parallel do reduction( + : rbox1q12,rbox1q23,rbox1q31 )
+ !$OMP parallel do reduction( + : rbox1q12,rbox1q23,rbox1q31 ) private(iz,iy,ix) collapse(3)
         do iz=ng_sta(3),ng_end(3)
         do iy=ng_sta(2),ng_end(2)
         do ix=ng_sta(1),ng_end(1)
@@ -1079,7 +1079,7 @@ if(iflag_dip2==1)then
 end if
 
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -1106,7 +1106,7 @@ allocate (shtpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)
                  1:iobnum,1))
 
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3)-Nd,mg_end(3)+Nd
   do iy=mg_sta(2)-Nd,mg_end(2)+Nd
   do ix=mg_sta(1)-Nd,mg_end(1)+Nd+1
@@ -1119,7 +1119,7 @@ end do
 if(iflag_comm_rho==2)then
   allocate(rhobox1_all(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))) 
   allocate(rhobox2_all(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))) 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=lg_sta(3),lg_end(3)
   do iy=lg_sta(2),lg_end(2)
   do ix=lg_sta(1),lg_end(1)
@@ -1132,7 +1132,7 @@ end if
 
 if(iflag_fourier_omega==1)then
   do mm=1,num_fourier_omega
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=lg_sta(3),lg_end(3)
     do iy=lg_sta(2),lg_end(2)
     do ix=lg_sta(1),lg_end(1)

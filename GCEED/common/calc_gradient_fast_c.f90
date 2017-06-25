@@ -29,7 +29,7 @@ if(Nd==4)then
   do iob=1,iobnum
 !$OMP parallel private(iz)
     do iz=mg_sta(3),mg_end(3)
-!$OMP do
+!$OMP do private(iy,ix) collapse(2)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
       cgrad_wk(ix,iy,iz,iob,1,1) =  &
@@ -45,7 +45,7 @@ if(Nd==4)then
     end do
     end do
 !$OMP end do nowait
-!$OMP do
+!$OMP do private(iy,ix) collapse(2)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
       cgrad_wk(ix,iy,iz,iob,1,3) =  &

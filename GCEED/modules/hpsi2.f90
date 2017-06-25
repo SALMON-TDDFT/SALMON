@@ -68,14 +68,14 @@ end if
 ! Pseudopotential 1 (non-local)
 if(iflag_ps.eq.1)then
   if(nproc_Mxin_mul==1)then
-!$OMP parallel do
+!$OMP parallel do private(iatom,lm)
     do iatom=1,MI
       do lm=1,maxlm
         uVpsibox2(lm,iatom)=0.d0
       end do
     end do
   else
-!$OMP parallel do
+!$OMP parallel do private(iatom,lm)
     do iatom=1,MI
       do lm=1,maxlm
         uVpsibox(lm,iatom)=0.d0
@@ -149,7 +149,7 @@ end if
 
 ! Pseudo(local), Hartree, Exchange-Correlation potential
 if(ihpsieff==0)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=iwk3sta(3),iwk3end(3)
   do iy=iwk3sta(2),iwk3end(2)
   do ix=iwk3sta(1),iwk3end(1)
@@ -158,7 +158,7 @@ if(ihpsieff==0)then
   end do
   end do
 else if(ihpsieff==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=iwk3sta(3),iwk3end(3)
   do iy=iwk3sta(2),iwk3end(2)
   do ix=iwk3sta(1),iwk3end(1)
@@ -196,7 +196,7 @@ if(iflag_ps==1) then
 end if
 
 wk2=0.d0
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
@@ -207,7 +207,7 @@ end do
 call sendrecv(wk2)
 call calc_laplacian2(wk2,rlap_wk)
 
-!$OMP parallel do              
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)
@@ -264,7 +264,7 @@ integer :: j,ind
 call set_ispin(iob,ispin)
 
 if(nn<=1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -284,7 +284,7 @@ if(iflag_ps==1) then
 end if
 
 if(iflag_ps.eq.1)then
-!$OMP parallel do
+!$OMP parallel do private(iatom,lm)
   do iatom=1,MI
     do lm=1,maxlm
       uVpsibox(lm,iatom)=0.d0
@@ -345,7 +345,7 @@ if(isub==0)then
   end do
 
   elp3(757)=get_wtime()
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=iwk3sta(3),iwk3end(3)
   do iy=iwk3sta(2),iwk3end(2)
   do ix=iwk3sta(1),iwk3end(1)
@@ -376,7 +376,7 @@ else if(isub==1)then
   call calc_gradient2(tpsi,grad_wk)
 
   if(nn==N_hamil)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
     do iz=iwk3sta(3),iwk3end(3)
     do iy=iwk3sta(2),iwk3end(2)
     do ix=iwk3sta(1),iwk3end(1)
@@ -389,7 +389,7 @@ else if(isub==1)then
     end do
     end do
   else
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(2)
     do iz=iwk3sta(3),iwk3end(3)
     do iy=iwk3sta(2),iwk3end(2)
     do ix=iwk3sta(1),iwk3end(1)

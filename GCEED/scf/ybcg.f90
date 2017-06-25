@@ -54,7 +54,7 @@ call make_iwksta_iwkend
 
 call set_isstaend(is_sta,is_end)
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3)-Nd,mg_end(3)+Nd
 do iy=mg_sta(2)-Nd,mg_end(2)+Nd
 do ix=mg_sta(1)-Nd,mg_end(1)+Nd
@@ -86,7 +86,7 @@ orbital : do iob=iobsta(is),iobend(is)
 
   if(icorr==1)then
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -95,7 +95,7 @@ orbital : do iob=iobsta(is),iobend(is)
     end do
     end do
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -115,7 +115,7 @@ orbital : do iob=iobsta(is),iobend(is)
   Iteration : do iter=1,Ncg
 
     if(icorr==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -134,7 +134,7 @@ orbital : do iob=iobsta(is),iobend(is)
       if(jcorr==1)then
         call inner_product(psi_in(:,:,:,job_myob,1),gk(:,:,:),sum0)
         sum0=sum0*Hvol
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -154,7 +154,7 @@ orbital : do iob=iobsta(is),iobend(is)
       sum0=sum0*Hvol
 
       if ( iter==1 ) then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -164,7 +164,7 @@ orbital : do iob=iobsta(is),iobend(is)
         end do
       else
         uk=sum0/gkgk 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -186,7 +186,7 @@ orbital : do iob=iobsta(is),iobend(is)
       call inner_product(pk,hxk,pkHxk)
       pkHxk = pkHxk*Hvol
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -221,7 +221,7 @@ orbital : do iob=iobsta(is),iobend(is)
 
   if(icorr==1)then
     call inner_product(xk,xk,sum0)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)

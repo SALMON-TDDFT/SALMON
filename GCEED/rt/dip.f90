@@ -38,7 +38,7 @@ real(8) :: absr2
    end do
    do i1=1,3
      rbox1=0.d0
-!$OMP parallel do reduction( + : rbox1 )
+!$OMP parallel do reduction( + : rbox1 ) private(iz,iy,ix) collapse(3)
      do iz=ng_sta(3),ng_end(3)
      do iy=ng_sta(2),ng_end(2)
      do ix=ng_sta(1),ng_end(1)
@@ -50,7 +50,7 @@ real(8) :: absr2
    end do
    
    rbox1=0.d0
-!$OMP parallel do reduction( + : rbox1 )
+!$OMP parallel do reduction( + : rbox1 ) private(iz,iy,ix) collapse(3)
    do iz=ng_sta(3),ng_end(3)
    do iy=ng_sta(2),ng_end(2)
    do ix=ng_sta(1),ng_end(1)
@@ -65,7 +65,7 @@ real(8) :: absr2
 if(quadrupole=='y')then
    rho_diff(:,:,:) = rho(:,:,:)-rho0(:,:,:)
 
-!$OMP parallel do
+!$OMP parallel do private(i1,i2)
    do i1=1,3
      do i2=1,3
        rbox_arrayq(i1, i2)=0.d0
@@ -76,7 +76,7 @@ if(quadrupole=='y')then
 
    do i1=1,3
      rbox1q=0.d0
-!$OMP parallel do reduction( + : rbox1q ) private(absr2)
+!$OMP parallel do reduction( + : rbox1q ) private(absr2,iz,iy,ix) collapse(3)
      do iz=ng_sta(3),ng_end(3)
      do iy=ng_sta(2),ng_end(2)
      do ix=ng_sta(1),ng_end(1)
@@ -93,7 +93,7 @@ if(quadrupole=='y')then
      rbox1q12=0.d0
      rbox1q23=0.d0
      rbox1q31=0.d0
-!$OMP parallel do reduction( + : rbox1q12,rbox1q23,rbox1q31 )
+!$OMP parallel do reduction( + : rbox1q12,rbox1q23,rbox1q31 ) private(iz,iy,ix) collapse(3)
      do iz=ng_sta(3),ng_end(3)
      do iy=ng_sta(2),ng_end(2)
      do ix=ng_sta(1),ng_end(1)

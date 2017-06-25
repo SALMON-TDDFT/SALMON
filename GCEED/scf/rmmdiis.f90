@@ -60,7 +60,7 @@ iwk_size=2
 call make_iwksta_iwkend
 
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=mg_sta(3)-Nd,mg_end(3)+Nd
 do iy=mg_sta(2)-Nd,mg_end(2)+Nd
 do ix=mg_sta(1)-Nd,mg_end(1)+Nd
@@ -95,7 +95,7 @@ do iob=1,iobnum
     do iz=mg_sta(3),mg_end(3)
       phi(:,:,iz,0)=psi_in(:,:,iz,iob,1)
     end do
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -144,7 +144,7 @@ do iob=1,iobnum
       phi(:,:,iz,iter)=phi(:,:,iz,iter)/sqrt(rbox1*Hvol)
     end do
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -198,7 +198,7 @@ do iob=1,iobnum
       end do
     end if
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -218,7 +218,7 @@ end do        ! loop for iob
 
 iflag_diisjump=0
 do iob=1,iobnum
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -243,7 +243,7 @@ else if(iflag_diisjump==1)then
     do iz=mg_sta(3),mg_end(3)
       phi(:,:,iz,0)=psi_in(:,:,iz,iob,1)
     end do
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)

@@ -85,7 +85,7 @@ itrho(1)=1
 do LL=0,lmax_MEO
 do lm=LL**2+1,(LL+1)**2
   rholm2box=0.d0
-!$OMP parallel do reduction ( + : rholm2box)&
+!$OMP parallel do collapse(3) reduction ( + : rholm2box)&
 !$OMP private(ix,iy,iz,xx,yy,zz,rr,xxxx,yyyy,zzzz,Ylm)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
@@ -115,7 +115,7 @@ if(iflag_ps==1)then
   Rion2(:,:)=Rion(:,:)
 end if
 
-!$OMP parallel do
+!$OMP parallel do private(icen, lm, jj)
 do icen=1,num_center
   do lm=1,(lmax_MEO+1)**2
     rholm(lm,icen)=0.d0
@@ -160,7 +160,7 @@ allocate(center_trho(3,num_center))
 allocate(center_trho_nume_deno(4,num_center))
 allocate(center_trho_nume_deno2(4,num_center))
 
-!$OMP parallel do
+!$OMP parallel do private(icen, jj, lm)
 do icen=1,num_center
   do jj=1,4
     center_trho_nume_deno2(jj,icen)=0.d0
@@ -254,7 +254,7 @@ else
   elp3(252)=elp3(252)+elp3(202)-elp3(201)
 end if
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) collapse(3)
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
@@ -285,7 +285,7 @@ do k=1,3
   end do
 
 !$OMP parallel do &
-!$OMP private(xx,yy,zz,rr,xxxx,yyyy,zzzz,lm,LL,sum1,Ylm2,rrrr,xp2,yp2,zp2,xy,yz,xz,rinv,rbox,deno)
+!$OMP private(xx,yy,zz,rr,xxxx,yyyy,zzzz,lm,LL,sum1,Ylm2,rrrr,xp2,yp2,zp2,xy,yz,xz,rinv,rbox,deno,icen)
   do jj=istart(nproc_id_bound(k)),iend(nproc_id_bound(k))
     do icen=1,num_center
       if(itrho(icen)==1)then

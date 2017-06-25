@@ -27,7 +27,7 @@ complex(8) :: matbox2(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk
 complex(8) :: cbox,cbox2
 
 cbox=0.d0
-!$omp parallel do reduction(+ : cbox)
+!$omp parallel do private(iz,iy,ix) collapse(3) reduction(+ : cbox)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
 do ix=iwk3sta(1),iwk3end(1)
