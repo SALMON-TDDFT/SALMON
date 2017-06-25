@@ -76,7 +76,7 @@ if(quadrupole=='y')then
 
    do i1=1,3
      rbox1q=0.d0
-!$OMP parallel do reduction( + : rbox1q )
+!$OMP parallel do reduction( + : rbox1q ) private(absr2)
      do iz=ng_sta(3),ng_end(3)
      do iy=ng_sta(2),ng_end(2)
      do ix=ng_sta(1),ng_end(1)
