@@ -52,7 +52,7 @@ subroutine R_sendrecv(tpsi)
   !send from idw to iup
   
   if(iup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -67,7 +67,7 @@ subroutine R_sendrecv(tpsi)
   !send from iup to idw
   
   if(idw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -82,7 +82,7 @@ subroutine R_sendrecv(tpsi)
   !send from jdw to jup
   
   if(jup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -97,7 +97,7 @@ subroutine R_sendrecv(tpsi)
   !send from jup to jdw
   
   if(jdw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -113,7 +113,7 @@ subroutine R_sendrecv(tpsi)
   
   if(kup/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       srmatbox1_z_3d(ix,iy,iz)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz)
@@ -128,7 +128,7 @@ subroutine R_sendrecv(tpsi)
   
   if(kdw/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       srmatbox3_z_3d(ix,iy,iz)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1)
@@ -142,7 +142,7 @@ subroutine R_sendrecv(tpsi)
   
   call comm_wait_all(ireq(1:2))
   if(idw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -154,7 +154,7 @@ subroutine R_sendrecv(tpsi)
   
   call comm_wait_all(ireq(3:4))
   if(iup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -166,7 +166,7 @@ subroutine R_sendrecv(tpsi)
   
   call comm_wait_all(ireq(5:6))
   if(jdw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -178,7 +178,7 @@ subroutine R_sendrecv(tpsi)
   
   call comm_wait_all(ireq(7:8))
   if(jup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -191,7 +191,7 @@ subroutine R_sendrecv(tpsi)
   call comm_wait_all(ireq(9:10))
   if(kdw/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz)=srmatbox2_z_3d(ix,iy,iz)
@@ -203,7 +203,7 @@ subroutine R_sendrecv(tpsi)
   call comm_wait_all(ireq(11:12))
   if(kup/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz)=srmatbox4_z_3d(ix,iy,iz)
@@ -239,7 +239,7 @@ subroutine C_sendrecv(tpsi)
   !send from idw to iup
   
   if(iup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -254,7 +254,7 @@ subroutine C_sendrecv(tpsi)
   !send from iup to idw
   
   if(idw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -269,7 +269,7 @@ subroutine C_sendrecv(tpsi)
   !send from jdw to jup
   
   if(jup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -284,7 +284,7 @@ subroutine C_sendrecv(tpsi)
   !send from jup to jdw
   
   if(jdw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -300,7 +300,7 @@ subroutine C_sendrecv(tpsi)
   
   if(kup/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       scmatbox1_z_3d(ix,iy,iz)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz)
@@ -315,7 +315,7 @@ subroutine C_sendrecv(tpsi)
   
   if(kdw/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       scmatbox3_z_3d(ix,iy,iz)=tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1)
@@ -329,7 +329,7 @@ subroutine C_sendrecv(tpsi)
   
   call comm_wait_all(ireq(1:2))
   if(idw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -341,7 +341,7 @@ subroutine C_sendrecv(tpsi)
   
   call comm_wait_all(ireq(3:4))
   if(iup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,mg_num(2)
     do ix=1,Nd
@@ -353,7 +353,7 @@ subroutine C_sendrecv(tpsi)
   
   call comm_wait_all(ireq(5:6))
   if(jdw/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -365,7 +365,7 @@ subroutine C_sendrecv(tpsi)
   
   call comm_wait_all(ireq(7:8))
   if(jup/=comm_proc_null)then
-  !$OMP parallel do
+  !$OMP parallel do private(iz,iy,ix)
     do iz=1,mg_num(3)
     do iy=1,Nd
     do ix=1,mg_num(1)
@@ -378,7 +378,7 @@ subroutine C_sendrecv(tpsi)
   call comm_wait_all(ireq(9:10))
   if(kdw/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz)=scmatbox2_z_3d(ix,iy,iz)
@@ -390,7 +390,7 @@ subroutine C_sendrecv(tpsi)
   call comm_wait_all(ireq(11:12))
   if(kup/=comm_proc_null)then
     do iz=1,Nd
-  !$OMP parallel do
+  !$OMP parallel do private(iy,ix)
     do iy=1,mg_num(2)
     do ix=1,mg_num(1)
       tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz)=scmatbox4_z_3d(ix,iy,iz)

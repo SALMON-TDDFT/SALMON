@@ -38,7 +38,7 @@ integer :: iob_allob
 
 if(ifunc==0)then
   do iob=1,iobmax
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -51,7 +51,7 @@ if(ifunc==0)then
 else if(ifunc==1)then
   do iob=1,iobmax
     cbox=0.d0
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -65,7 +65,7 @@ else if(ifunc==1)then
   end do
 else if(ifunc==2)then
   do iob=1,iobmax
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -78,7 +78,7 @@ else if(ifunc==2)then
 else if(ifunc==3)then
   do iob=1,iobmax
     cbox=0.d0
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -94,7 +94,7 @@ else if(ifunc==4)then
   if(ilsda==0)then
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -110,7 +110,7 @@ else if(ifunc==4)then
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       if(iob_allob<=MST(1))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -122,7 +122,7 @@ else if(ifunc==4)then
         end do
         end do
       else
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -141,7 +141,7 @@ else if(ifunc==5)then
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       cbox=0.d0
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -160,7 +160,7 @@ else if(ifunc==5)then
       call calc_allob(iob,iob_allob)
       cbox=0.d0
       if(iob_allob<=MST(1))then
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -173,7 +173,7 @@ else if(ifunc==5)then
         end do
         end do
       else
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -193,7 +193,7 @@ else if(ifunc==6)then
   if(ilsda==0)then
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -209,7 +209,7 @@ else if(ifunc==6)then
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       if(iob_allob<=MST(1))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -221,7 +221,7 @@ else if(ifunc==6)then
         end do
         end do
       else
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -239,7 +239,7 @@ else if(ifunc==7)then
   if(ilsda==0)then
     do iob=1,iobmax
       cbox=0.d0
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -258,7 +258,7 @@ else if(ifunc==7)then
       call calc_allob(iob,iob_allob)
       cbox=0.d0
       if(iob_allob<=MST(1))then
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -271,7 +271,7 @@ else if(ifunc==7)then
         end do
         end do
       else
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -289,7 +289,7 @@ else if(ifunc==7)then
   end if
 else if(ifunc==-1)then
   do iob=1,iobmax
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)

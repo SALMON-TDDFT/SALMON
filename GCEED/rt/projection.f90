@@ -50,7 +50,7 @@ do iob=1,itotMST0
   call calc_myob(iob,iob_myob)
   call check_corrkob(iob,icorr_p)
   if(icorr_p==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -63,7 +63,7 @@ do iob=1,itotMST0
   call comm_bcast(cmatbox_m,nproc_group_grid,iroot)
   do job=1,iobmax
     cbox=0.d0
-!$OMP parallel do reduction(+:cbox)
+!$OMP parallel do reduction(+:cbox) private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)

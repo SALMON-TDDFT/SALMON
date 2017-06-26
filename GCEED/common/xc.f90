@@ -28,7 +28,7 @@ real(8) :: trho_s(mg_sta(1):mg_end(1),  &
                 mg_sta(2):mg_end(2),  &
                 mg_sta(3):mg_end(3),2)
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
@@ -44,7 +44,7 @@ end do
 end do
 end do
 if(ilsda == 1) then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -144,7 +144,7 @@ sgnsigma(1)=1.d0
 sgnsigma(2)=-1.d0
 
 !!$OMP parallel do &
-!!$OMP private(Cx,rs,zeta,sf,dsf)
+!!$OMP private(Cx,rs,zeta,sf,dsf,iz,iy,ix) 
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
@@ -248,7 +248,7 @@ end do
 end do
 
 sum1=0.d0
-!$omp parallel do reduction(+ : sum1)
+!$omp parallel do reduction(+ : sum1) private(iz,iy,ix) 
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)

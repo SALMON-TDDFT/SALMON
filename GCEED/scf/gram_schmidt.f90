@@ -49,7 +49,7 @@ do iob=pstart(is),pend(is)
   call calc_myob(iob,iob_myob)
   call check_corrkob(iob,icorr_p)
   if(icorr_p==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -66,7 +66,7 @@ do iob=pstart(is),pend(is)
     call calc_allob(job,job_allob)
     if(job_allob >= pstart(is) .and. job_allob <= iob-1)then
       rbox=0.d0
-!$OMP parallel do reduction ( + : rbox )
+!$OMP parallel do reduction ( + : rbox ) private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -84,7 +84,7 @@ do iob=pstart(is),pend(is)
   do job=1,iobnum
     call calc_allob(job,job_allob)
     if(job_allob >= pstart(is) .and. job_allob <= iob-1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -100,7 +100,7 @@ do iob=pstart(is),pend(is)
   rbox=0.d0
   call check_corrkob(iob,icorr_p)
   if(icorr_p==1)then
-!$OMP parallel do reduction ( + : rbox )
+!$OMP parallel do reduction ( + : rbox ) private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -114,7 +114,7 @@ do iob=pstart(is),pend(is)
   call comm_summation(rbox,rbox2,nproc_group_global)
 
   if(icorr_p==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)

@@ -64,11 +64,11 @@ real(8) :: rho_half(mg_sta(1):mg_end(1),   &
 
 elp3(801)=get_wtime()
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
 do iz=mg_sta(3),mg_end(3)
 do iy=mg_sta(2),mg_end(2)
 do ix=mg_sta(1),mg_end(1)
-  rho_half(ix,iy,iz)=rho(ix,iy,iz)/2.d0
+  rho_half(ix,iy,iz)=0.5d0*rho(ix,iy,iz)
 end do
 end do
 end do
@@ -86,7 +86,7 @@ if(iSCFRT==1)then
   do iob=1,iobnum
     call calc_gradient(psi(:,:,:,iob,1),gradpsi(:,:,:,:))
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -117,7 +117,7 @@ else if(iSCFRT==2)then
 
   do iob=1,iobnum
     if(itt==0)then
-      !$OMP parallel do collapse(2)
+      !$OMP parallel do collapse(2) private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -127,7 +127,7 @@ else if(iSCFRT==2)then
       end do
     else
       if(mod(itt,2)==1)then
-      !$OMP parallel do collapse(2)
+      !$OMP parallel do collapse(2) private(iz,iy,ix)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -136,7 +136,7 @@ else if(iSCFRT==2)then
         end do
         end do
       else
-      !$OMP parallel do collapse(2)
+      !$OMP parallel do collapse(2) private(iz,iy,ix)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -151,7 +151,7 @@ else if(iSCFRT==2)then
 
     elp3(807)=get_wtime()
 
-!$OMP parallel do
+!$OMP parallel do collapse(2) private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -220,7 +220,7 @@ end do
 elp3(817)=get_wtime()
 elp3(847)=elp3(847)+elp3(817)-elp3(816)
 
-!$OMP parallel do collapse(2)
+!$OMP parallel do collapse(2) private(iz,iy,ix)
 do iz=lg_sta(3),lg_end(3)
 do iy=lg_sta(2),lg_end(2)
 do ix=lg_sta(1),lg_end(1)
@@ -229,7 +229,7 @@ end do
 end do
 end do
 
-!$OMP parallel do collapse(2)
+!$OMP parallel do collapse(2) private(iz,iy,ix)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)

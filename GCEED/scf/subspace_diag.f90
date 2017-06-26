@@ -59,7 +59,7 @@ else if(ilsda == 1)then
   iobend(2)=itotMST
 end if
 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
 do iz=mg_sta(3)-Nd,mg_end(3)+Nd
 do iy=mg_sta(2)-Nd,mg_end(2)+Nd
 do ix=mg_sta(1)-Nd,mg_end(1)+Nd
@@ -77,7 +77,7 @@ do is=is_sta,is_end
   allocate(Smat(iter,iter))
 
   do jj=1,iter
-!$OMP parallel do
+!$OMP parallel do 
     do ii=1,iter
       Amat2(ii,jj)=0.d0
     end do
@@ -87,7 +87,7 @@ do is=is_sta,is_end
     call calc_myob(job,job_myob)
     call check_corrkob(job,icorr_j)
     if(icorr_j==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -104,7 +104,7 @@ do is=is_sta,is_end
       call calc_allob(iob,iob_allob)
       if(iob_allob>=iobsta(is).and.iob_allob<=iobend(is))then
         rbox=0.d0
-!$OMP parallel do reduction(+:rbox)
+!$OMP parallel do reduction(+:rbox) private(iz,iy,ix)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -124,7 +124,7 @@ do is=is_sta,is_end
   do job=1,iobnum
     call calc_allob(job,job_allob)
     if(job_allob>=iobsta(is).and.job_allob<=iobend(is))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -140,7 +140,7 @@ do is=is_sta,is_end
     call calc_myob(job,job_myob)
     call check_corrkob(job,icorr_j)
     if(icorr_j==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -154,7 +154,7 @@ do is=is_sta,is_end
     do iob=1,iobnum
       call calc_allob(iob,iob_allob)
       if(iob_allob>=iobsta(is).and.iob_allob<=iobend(is))then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -170,7 +170,7 @@ do is=is_sta,is_end
     call calc_allob(iob,iob_allob)
     if(iob_allob>=iobsta(is).and.iob_allob<=iobend(is))then
       rbox=0.d0
-!$OMP parallel do reduction(+:rbox)
+!$OMP parallel do reduction(+:rbox) private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
@@ -179,7 +179,7 @@ do is=is_sta,is_end
       end do
       end do
       call comm_summation(rbox,rbox1,nproc_group_orbital)
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)

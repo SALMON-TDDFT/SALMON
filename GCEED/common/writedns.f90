@@ -25,7 +25,7 @@ subroutine writedns
   character(30) :: phys_quantity
   character(10) :: filenum
 
-  !$OMP parallel do collapse(2)
+  !$OMP parallel do collapse(2) private(iz,iy,ix)
   do iz=lg_sta(3),lg_end(3)
   do iy=lg_sta(2),lg_end(2)
   do ix=lg_sta(1),lg_end(1)
@@ -34,7 +34,7 @@ subroutine writedns
   end do
   end do
 
-  !$OMP parallel do collapse(2)
+  !$OMP parallel do collapse(2) private(iz,iy,ix)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -59,7 +59,7 @@ subroutine writedns
   end if
 
   if(iSCFRT==2)then
-    !$OMP parallel do collapse(2)
+    !$OMP parallel do collapse(2) private(iz,iy,ix)
     do iz=lg_sta(3),lg_end(3)
     do iy=lg_sta(2),lg_end(2)
     do ix=lg_sta(1),lg_end(1)
@@ -68,7 +68,7 @@ subroutine writedns
     end do
     end do
 
-    !$OMP parallel do collapse(2)
+    !$OMP parallel do collapse(2) private(iz,iy,ix)
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)

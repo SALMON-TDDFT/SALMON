@@ -35,7 +35,7 @@ iwk_size=2
 call make_iwksta_iwkend
 
 if(ilsda==0)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -44,7 +44,7 @@ if(ilsda==0)then
   end do
   end do
 else if(ilsda==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -57,7 +57,7 @@ end if
 
 if(ihpsieff==1)then
   if(ilsda==0)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -66,7 +66,7 @@ if(ihpsieff==1)then
     end do
     end do
   else if(ilsda==1)then 
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)

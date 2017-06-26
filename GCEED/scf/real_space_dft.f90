@@ -256,7 +256,7 @@ else
 end if
 
 if(ilsda==0)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -414,7 +414,7 @@ DFT_Iteration : do iter=1,iDiter(img)
 
   if(iflag_convergence==2)then
     sum0=0.d0
-!$OMP parallel do reduction(+:sum0)
+!$OMP parallel do reduction(+:sum0) private(iz,iy,ix)
     do iz=ng_sta(3),ng_end(3) 
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -426,7 +426,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
   else if(iflag_convergence==3)then
     sum0=0.d0
-!$OMP parallel do reduction(+:sum0)
+!$OMP parallel do reduction(+:sum0) private(iz,iy,ix)
     do iz=ng_sta(3),ng_end(3) 
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
@@ -457,7 +457,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end if
   end if 
   rNebox1=0.d0 
-!$OMP parallel do reduction(+:rNebox1)
+!$OMP parallel do reduction(+:rNebox1) private(iz,iy,ix)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -475,7 +475,7 @@ DFT_Iteration : do iter=1,iDiter(img)
   elp3(130)=elp3(130)+elp3(119)-elp3(111)
 
 if(ilsda==0)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -485,7 +485,7 @@ if(ilsda==0)then
   end do
   end do
 else if(ilsda==1)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)

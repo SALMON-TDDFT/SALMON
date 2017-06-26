@@ -27,7 +27,7 @@ subroutine writeestatic
 
   do jj=1,3
 
-    !$OMP parallel do collapse(2)
+    !$OMP parallel do collapse(2) private(iz,iy,ix)
     do iz=lg_sta(3),lg_end(3)
     do iy=lg_sta(2),lg_end(2)
     do ix=lg_sta(1),lg_end(1)
@@ -37,7 +37,7 @@ subroutine writeestatic
     end do
     
     if(jj==1)then
-      !$OMP parallel do collapse(2)
+      !$OMP parallel do collapse(2) private(iz,iy,ix)
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
@@ -46,7 +46,7 @@ subroutine writeestatic
       end do
       end do
     else if(jj==2)then
-      !$OMP parallel do collapse(2)
+      !$OMP parallel do collapse(2) private(iz,iy,ix)
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
@@ -55,7 +55,7 @@ subroutine writeestatic
       end do
       end do
     else if(jj==3)then
-      !$OMP parallel do collapse(2)
+      !$OMP parallel do collapse(2) private(iz,iy,ix)
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)

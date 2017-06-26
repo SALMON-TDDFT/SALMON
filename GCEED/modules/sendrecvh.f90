@@ -88,7 +88,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=13
 end if
 if(iup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -99,7 +99,7 @@ if(iup/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_x_h,iup,rmatbox2_x_h,idw,1,icomm)
 if(idw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -117,7 +117,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=15
 end if
 if(idw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -128,7 +128,7 @@ if(idw/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_x_h,idw,rmatbox2_x_h,iup,1,icomm)
 if(iup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -147,7 +147,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=17
 end if
 if(jup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -158,7 +158,7 @@ if(jup/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_y_h,jup,rmatbox2_y_h,jdw,1,icomm)
 if(jdw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -176,7 +176,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=19
 end if
 if(jdw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -187,7 +187,7 @@ if(jdw/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_y_h,jdw,rmatbox2_y_h,jup,1,icomm)
 if(jup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -206,7 +206,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
 end if
 if(kup/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do  private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     rmatbox1_z_h(ix,iy,iz)=wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3end(3)-Ndh+iz)
@@ -217,7 +217,7 @@ end if
 call comm_exchange(rmatbox1_z_h,kup,rmatbox2_z_h,kdw,1,icomm)
 if(kdw/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3sta(3)-1-Ndh+iz)=rmatbox2_z_h(ix,iy,iz)
@@ -235,7 +235,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
 end if
 if(kdw/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     rmatbox1_z_h(ix,iy,iz)=wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3sta(3)+iz-1)
@@ -246,7 +246,7 @@ end if
 call comm_exchange(rmatbox1_z_h,kdw,rmatbox2_z_h,kup,1,icomm)
 if(kup/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3end(3)+iz)=rmatbox2_z_h(ix,iy,iz)
@@ -318,7 +318,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=13
 end if
 if(iup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -329,7 +329,7 @@ if(iup/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_x_h,iup,rmatbox2_x_h,idw,1,icomm)
 if(idw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -347,7 +347,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=15
 end if
 if(idw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -358,7 +358,7 @@ if(idw/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_x_h,idw,rmatbox2_x_h,iup,1,icomm)
 if(iup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,iwk3num(2)
   do ix=1,Ndh
@@ -377,7 +377,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=17
 end if
 if(jup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -388,7 +388,7 @@ if(jup/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_y_h,jup,rmatbox2_y_h,jdw,1,icomm)
 if(jdw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -406,7 +406,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
   ibox=19
 end if
 if(jdw/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -417,7 +417,7 @@ if(jdw/=comm_proc_null)then
 end if
 call comm_exchange(rmatbox1_y_h,jdw,rmatbox2_y_h,jup,1,icomm)
 if(jup/=comm_proc_null)then
-!$OMP parallel do
+!$OMP parallel do private(iz,iy,ix)
   do iz=1,iwk3num(3)
   do iy=1,Ndh
   do ix=1,iwk3num(1)
@@ -436,7 +436,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
 end if
 if(kup/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     cmatbox1_z_h(ix,iy,iz)=wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3end(3)-Ndh+iz)
@@ -447,7 +447,7 @@ end if
 call comm_exchange(rmatbox1_z_h,kup,rmatbox2_z_h,kdw,1,icomm)
 if(kdw/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3sta(3)-1-Ndh+iz)=cmatbox2_z_h(ix,iy,iz)
@@ -465,7 +465,7 @@ else if((iwk_size>=11.and.iwk_size<=13).or.(iwk_size>=31.and.iwk_size<=33))then
 end if
 if(kdw/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     cmatbox1_z_h(ix,iy,iz)=wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3sta(3)+iz-1)
@@ -476,7 +476,7 @@ end if
 call comm_exchange(rmatbox1_z_h,kdw,rmatbox2_z_h,kup,1,icomm)
 if(kup/=comm_proc_null)then
   do iz=1,Ndh
-!$OMP parallel do
+!$OMP parallel do private(iy,ix)
   do iy=1,iwk3num(2)
   do ix=1,iwk3num(1)
     wk2(ix+iwk3sta(1)-1,iy+iwk3sta(2)-1,iwk3end(3)+iz)=cmatbox2_z_h(ix,iy,iz)
