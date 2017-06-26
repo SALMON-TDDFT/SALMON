@@ -189,7 +189,7 @@ Default is <code>0</code>.
 Default is <code>'none'</code>.
 </dd>
 
-<dt>nstate; <code>Integer</code>;</dt>0d/3d
+<dt>nstate; <code>Integer</code>; 0d/3d</dt>
 <dd>Number of states/bands.
 </dd>
 
