@@ -456,7 +456,7 @@ the modified-Broyden method.
 Default is <code>8</code>.
 </dd>
 
-<dt>alpha_mb; <code>Integer</code>; 3d</dt>
+<dt>alpha_mb; <code>Real(8)</code>; 3d</dt>
 <dd>
 Parameter of the modified-Broyden method.
 Default is <code>0.75</code>.
