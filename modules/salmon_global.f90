@@ -123,8 +123,9 @@ module salmon_global
   character(1)   :: subspace_diagonalization
   character(16)  :: cmixing
   real(8)        :: rmixrate
-  character(3)   :: convergence
+  character(8)   :: convergence
   real(8)        :: threshold
+  real(8)        :: threshold_pot
 
 !! &emfield
   character(2)   :: trans_longi

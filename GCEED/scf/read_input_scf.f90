@@ -33,9 +33,7 @@ integer :: inml_group_fundamental, &
          & inml_group_others
 namelist / group_fundamental / iDiterYBCG,   &
                                iDiter_nosubspace_diag, &
-                               ntmg, &
-                               ithresholdVh, threshold_norm_diff_rho, &
-                               threshold_square_norm_diff_Vlocal
+                               ntmg
 
 namelist / group_parallel/ isequential,imesh_s_all
 
@@ -61,8 +59,6 @@ iDiterYBCG=20
 iflag_subspace_diag=0
 iDiter_nosubspace_diag=10
 ntmg=1
-iflag_convergence=2
-ithresholdVh(:)=1
 
 select case(amin_routine)
   case('cg','diis','cg-diis')
@@ -71,11 +67,6 @@ select case(amin_routine)
     stop 'Specify either "cg", "diis", or "cg-diis" for amin_routine.'
 end select
 
-! Convergence criterion, ||rho(i)-rho(i-1)||**2/(# of grids), 1.d-17 a.u. = 6.75d-17 AA**(-3)
-threshold_norm_diff_rho(:)=1.d-17/ulength_from_au**3
-
-! Convergence criterion, ||Vlocal(i)-Vlocal(i-1)||**2/(# of grids), 1.d-17 a.u. = 1.10d-15 eV**2*AA**3
-threshold_square_norm_diff_Vlocal(:)=1.d-17*uenergy_from_au**2*ulength_from_au**3
 mixrate=0.1d0
 icalcforce=0
 
@@ -138,12 +129,14 @@ iDiter = nscf
 ilsda = ispin
 
 select case(convergence)
-case('rho')
-  iflag_convergence = 1
-case('vh')
-  iflag_convergence = 2
+case('rho','rho_dng')
+  continue
+case('pot','pot_dng')
+  if(threshold_pot<-1.d-12)then
+    stop 'threthold_pot must be specified when the variable convergence is "pot" or "pot_dng".'
+  end if 
 case default
-  stop 'invalid   iflag_convergence'
+  stop 'the variable convergence must be set to either "rho", "rho_dng", "pot", or "pot_dng"'
 end select
 
 mixrate = rmixrate
@@ -165,14 +158,6 @@ call comm_bcast(iDiter_nosubspace_diag, nproc_group_global)
 
 allocate(wtk(1))
 wtk(:)=1.d0
-
-call comm_bcast(iflag_convergence,nproc_group_global)
-
-call comm_bcast(ithresholdVh,                      nproc_group_global)
-call comm_bcast(threshold_norm_diff_rho,           nproc_group_global)
-threshold_norm_diff_rho=threshold_norm_diff_rho*a_B**3
-call comm_bcast(threshold_square_norm_diff_Vlocal, nproc_group_global)
-threshold_square_norm_diff_Vlocal=threshold_square_norm_diff_Vlocal/(2.d0*Ry)**2/a_B**3
 
 call comm_bcast(mixrate,    nproc_group_global)
 call comm_bcast(Nmemory_MB, nproc_group_global)
