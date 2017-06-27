@@ -509,15 +509,37 @@ Mixing ratio. Default is <code>0.5</code>
 
 <dt>convergence; <code>Character</code>; 0d</dt>
 <dd>
-Choice of quantity that will be used for convergence check in scf calculation.
-<code>'rho'</code> and <code>'vh'</code> can be chosen.
-Default is <code>'rho'</code>.
+Choice of quantity that is used for convergence check in a scf calculation. 
+Default is <code>'rho_dng'</code>. The following can be chosen.
+<ul>
+<li>
+<code>'rho'</code>: Convergence is checked by ||rho(i)-rho(i-1)||^2, where i is an iteration number of the scf calculation.
+</li>
+
+<li>
+<code>'rho_dng'</code>: Convergence is checked by ||rho(i)-rho(i-1)||^2/(number of grids). "dng" means "devided by number of grids".
+</li>
+
+<li>
+<code>'pot'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||^2, where Vlocal is Vh + Vxc + Vps_local.
+</li>
+
+<li>
+<code>'pot_dng'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||^2/(number of grids).
+</li>
+</ul>
 </dd>
 
-<dt>threshold; <code>Real(8)</code></dt>
+<dt>threshold; <code>Real(8)</code>; 0d</dt>
 <dd>
-Threshold for convergence check.
-Default is <code>1d-6</code>
+Threshold for convergence check that used when either <code>'rho'</code> or <code>'rho_dng'</code> is specified.
+Default is <code>1d-17</code> (= 6.75d-17 AA**(-3))
+</dd>
+
+<dt>threshold_pot; <code>Real(8)</code>; 0d</dt>
+<dd>
+Threshold for convergence check that used when either <code>'pot'</code> or <code>'pot_dng'</code> is specified. <code>threshold_pot</code> must be set when either <code>'pot'</code> or <code>'pot_dng'</code> is specified.
+Default is <code>-1d0</code> (1 a.u.= 1.10d2 eV**2*AA**3)
 </dd>
 
 </dl>

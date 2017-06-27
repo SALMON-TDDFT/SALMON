@@ -279,7 +279,8 @@ contains
       & cmixing, &
       & rmixrate, &
       & convergence, &
-      & threshold
+      & threshold, &
+      & threshold_pot
 
     namelist/emfield/ &
       & trans_longi, &
@@ -442,8 +443,9 @@ contains
     subspace_diagonalization = 'y'
     cmixing       = 'broyden'
     rmixrate      = 0.5d0
-    convergence   = 'rho'
-    threshold     = 1d-6
+    convergence   = 'rho_dng'
+    threshold     = 1d-17*au_length_aa**3/ulength_from_au**3  ! default threshold for 'rho_dng', 1d-17 a.u. = 6.75d-17 AA**(-3)
+    threshold_pot = -1d0  ! 1 a.u. = 1.10d2 eV**2*AA**3
 !! == default for &emfield
     trans_longi    = 'tr'
     ae_shape1      = 'none'
@@ -644,6 +646,7 @@ contains
     call comm_bcast(rmixrate                ,nproc_group_global)
     call comm_bcast(convergence             ,nproc_group_global)
     call comm_bcast(threshold               ,nproc_group_global)
+    call comm_bcast(threshold_pot           ,nproc_group_global)
 !! == bcast for &emfield
     call comm_bcast(trans_longi,nproc_group_global)
     call comm_bcast(ae_shape1  ,nproc_group_global)
@@ -1058,6 +1061,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rmixrate', rmixrate
       write(fh_variables_log, '("#",4X,A,"=",A)') 'convergence', convergence
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold', threshold
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_pot', threshold_pot
 
       if(inml_emfield >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'emfield', inml_emfield

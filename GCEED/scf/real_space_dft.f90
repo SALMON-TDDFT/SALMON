@@ -280,13 +280,12 @@ DFT_Iteration : do iter=1,iDiter(img)
 
   elp3(111)=get_wtime()
 
-  if(iflag_convergence==1)then
-    if(iterVh <= ithresholdVh(img)) cycle DFT_Iteration
-  else if(iflag_convergence==2)then
-    if(sum1<threshold_norm_diff_rho(img)) cycle DFT_Iteration
-  else if(iflag_convergence==3)then
-    if(sum1<threshold_square_norm_diff_Vlocal(img)) cycle DFT_Iteration
-  end if
+  select case(convergence)
+    case('rho','rho_dng')
+      if(sum1<threshold) cycle DFT_Iteration
+    case('pot','pot_dng')
+      if(sum1<threshold_pot) cycle DFT_Iteration
+  end select 
 
   elp3(112)=get_wtime()
   elp3(122)=elp3(122)+elp3(112)-elp3(111)
@@ -412,31 +411,38 @@ DFT_Iteration : do iter=1,iDiter(img)
     call Total_Energy(psi)
   end if
 
-  if(iflag_convergence==2)then
-    sum0=0.d0
+  select case(convergence)
+    case('rho','rho_dng')
+      sum0=0.d0
 !$OMP parallel do reduction(+:sum0) private(iz,iy,ix)
-    do iz=ng_sta(3),ng_end(3) 
-    do iy=ng_sta(2),ng_end(2)
-    do ix=ng_sta(1),ng_end(1)
-      sum0=sum0+(rho(ix,iy,iz)-rho_stock(ix,iy,iz,1))**2
-    end do
-    end do
-    end do
-    call comm_summation(sum0,sum1,nproc_group_h)
-    sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
-  else if(iflag_convergence==3)then
-    sum0=0.d0
+      do iz=ng_sta(3),ng_end(3) 
+      do iy=ng_sta(2),ng_end(2)
+      do ix=ng_sta(1),ng_end(1)
+        sum0=sum0+(rho(ix,iy,iz)-rho_stock(ix,iy,iz,1))**2
+      end do
+      end do
+      end do
+      call comm_summation(sum0,sum1,nproc_group_h)
+      sum1=sum1*Hvol
+      if(convergence=='rho_dng')then
+        sum1=sum1/dble(lg_num(1)*lg_num(2)*lg_num(3))
+      end if
+    case('pot','pot_dng')
+      sum0=0.d0
 !$OMP parallel do reduction(+:sum0) private(iz,iy,ix)
-    do iz=ng_sta(3),ng_end(3) 
-    do iy=ng_sta(2),ng_end(2)
-    do ix=ng_sta(1),ng_end(1)
-      sum0=sum0+(Vlocal(ix,iy,iz,1)-Vlocal_stock(ix,iy,iz,1))**2
-    end do
-    end do
-    end do
-    call comm_summation(sum0,sum1,nproc_group_h)
-    sum1=sum1*Hvol/dble(lg_num(1)*lg_num(2)*lg_num(3))
-  end if
+      do iz=ng_sta(3),ng_end(3) 
+      do iy=ng_sta(2),ng_end(2)
+      do ix=ng_sta(1),ng_end(1)
+        sum0=sum0+(Vlocal(ix,iy,iz,1)-Vlocal_stock(ix,iy,iz,1))**2
+      end do
+      end do
+      end do
+      call comm_summation(sum0,sum1,nproc_group_h)
+      sum1=sum1*Hvol
+      if(convergence=='pot_dng')then
+        sum1=sum1/dble(lg_num(1)*lg_num(2)*lg_num(3))
+      end if
+  end select 
 
   if(comm_is_root(nproc_id_global)) then
     write(*,*) '-----------------------------------------------'
@@ -449,12 +455,18 @@ DFT_Iteration : do iter=1,iDiter(img)
       p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
       write(*,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,1)*2d0*Ry,iob=p1,p2)
     end do
-    if(iflag_convergence==2)then
-      write(*,'("iter and ||rho(i)-rho(i-1)||**2/(# of grids) = ",i6,e15.8)') Miter,sum1/a_B**3
-    else if(iflag_convergence==3)then
-      write(*,'("iter and ||Vlocal(i)-Vlocal(i-1)||**2/(# of grids) = ",i6,e15.8)') Miter,     &
-                                                                       sum1*(2.d0*Ry)**2*a_B**3
-    end if
+    select case(convergence)
+      case('rho')
+        write(*,'("iter and ||rho(i)-rho(i-1)||**2              = ",i6,e15.8)') Miter,sum1/a_B**3
+      case('rho_dng')
+        write(*,'("iter and ||rho(i)-rho(i-1)||**2/(# of grids) = ",i6,e15.8)') Miter,sum1/a_B**3
+      case('pot')
+        write(*,'("iter and ||Vlocal(i)-Vlocal(i-1)||**2              = ",i6,e15.8)') Miter,     &
+                                                                         sum1*(2.d0*Ry)**2*a_B**3
+      case('pot_dng')
+        write(*,'("iter and ||Vlocal(i)-Vlocal(i-1)||**2/(# of grids) = ",i6,e15.8)') Miter,     &
+                                                                         sum1*(2.d0*Ry)**2*a_B**3
+    end select
   end if 
   rNebox1=0.d0 
 !$OMP parallel do reduction(+:rNebox1) private(iz,iy,ix)

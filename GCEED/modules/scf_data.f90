@@ -167,7 +167,6 @@ real(8) :: Hold(3)     ! Grid spacing
 real(8) :: Hvol
 real(8) :: Harray(3,maxntmg)  ! Grid spacing
 real(8) :: rLsize(3,maxntmg)    ! size of the box
-integer :: ithresholdVh(maxntmg)  ! threshold value for Vh iteration
 
 integer :: maxMps
 integer :: lmax_MEO
@@ -288,10 +287,6 @@ real(8) :: Etot
 real(8) :: Exc
 
 integer :: imr(3),imrs(3),igroup
-
-integer :: iflag_convergence
-real(8) :: threshold_norm_diff_rho(maxntmg)
-real(8) :: threshold_square_norm_diff_Vlocal(maxntmg)
 
 real(8),allocatable :: rho_stock(:,:,:,:)
 real(8),allocatable :: Vlocal_stock(:,:,:,:)
