@@ -513,19 +513,19 @@ Choice of quantity that is used for convergence check in a scf calculation.
 Default is <code>'rho_dng'</code>. The following can be chosen.
 <ul>
 <li>
-<code>'rho'</code>: Convergence is checked by ||rho(i)-rho(i-1)||^2, where i is an iteration number of the scf calculation.
+<code>'rho'</code>: Convergence is checked by ||rho(i)-rho(i-1)||<sup>2</sup>, where i is an iteration number of the scf calculation.
 </li>
 
 <li>
-<code>'rho_dng'</code>: Convergence is checked by ||rho(i)-rho(i-1)||^2/(number of grids). "dng" means "devided by number of grids".
+<code>'rho_dng'</code>: Convergence is checked by ||rho(i)-rho(i-1)||<sup>2</sup>/(number of grids). "dng" means "devided by number of grids".
 </li>
 
 <li>
-<code>'pot'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||^2, where Vlocal is Vh + Vxc + Vps_local.
+<code>'pot'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||<sup>2</sup>, where Vlocal is Vh + Vxc + Vps_local.
 </li>
 
 <li>
-<code>'pot_dng'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||^2/(number of grids).
+<code>'pot_dng'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||<sup>2</sup>/(number of grids).
 </li>
 </ul>
 </dd>
@@ -533,13 +533,13 @@ Default is <code>'rho_dng'</code>. The following can be chosen.
 <dt>threshold; <code>Real(8)</code>; 0d</dt>
 <dd>
 Threshold for convergence check that is used when either <code>'rho'</code> or <code>'rho_dng'</code> is specified.
-Default is <code>1d-17</code> (= 6.75d-17Å^(-3))
+Default is <code>1d-17</code> (= 6.75d-17Å<sup>-3</sup>)
 </dd>
 
 <dt>threshold_pot; <code>Real(8)</code>; 0d</dt>
 <dd>
 Threshold for convergence check that is used when either <code>'pot'</code> or <code>'pot_dng'</code> is specified. <code>threshold_pot</code> must be set when either <code>'pot'</code> or <code>'pot_dng'</code> is specified.
-Default is <code>-1d0</code> (1 a.u.= 1.10d2 eV^2*Å^3)
+Default is <code>-1d0</code> (1 a.u.= 1.10d2 Å<sup>3</sup>eV<sup>2</sup>)
 </dd>
 
 </dl>
@@ -596,7 +596,7 @@ This valiable has the dimension of electric field, energy/(length*charge).
 
 <dt>rlaser_int1/rlaser_int2; <code>Real(8)</code>; 0d/3d</dt>
 <dd>
-Peak laser intensity (W/cm^2) the first/second pulse.
+Peak laser intensity (W/cm<sup>2</sup>) the first/second pulse.
 </dd>
 
 <dt>pulse_tw1/pulse_tw2; <code>Real(8)</code>; 0d/3d</dt>
