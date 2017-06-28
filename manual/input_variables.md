@@ -449,14 +449,25 @@ Number of interation of Conjugate-Gradient method for each scf-cycle.
 Default is <code>5</code>.
 </dd>
 
-<dt>nmemory_mb; <code>Integer</code>; 3d</dt>
+<dt>amixing; <code>Character</code>; 0d</dt> 
 <dd>
-Number of stored densities at previous scf-cycles for 
-the modified-Broyden method.
-Default is <code>8</code>.
+Methods for density/potential mixing for scf cycle. <code>simple</code> and <code>broyden</code> can be chosen.
+Default is <code>broyden</code>.
 </dd>
 
-<dt>alpha_mb; <code>Real(8)</code>; 3d</dt>
+<dt>rmixrate; <code>Real(8)</code>; 0d</dt>
+<dd>
+Mixing ratio for simple mixing. Default is <code>0.5</code>.
+</dd>
+
+<dt>nmemory_mb; <code>Integer</code>; 0d/3d</dt>
+<dd>
+Number of stored densities at previous scf-cycles for 
+the modified-Broyden method. Default is <code>8</code>. 
+If <code>&system/iperiodic</code> is <code>0</code>, <code>nmemory_mb</code> must be less than 21.
+</dd>
+
+<dt>alpha_mb; <code>Real(8)</code>; 0d/3d</dt>
 <dd>
 Parameter of the modified-Broyden method.
 Default is <code>0.75</code>.
@@ -494,17 +505,6 @@ Number of iteration of geometry optimization.
 <dd>
 <dd>Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
 subspace diagonalization during scf cycle.
-</dd>
-
-<dt>cmixing; <code>Character</code></dt>
-<dd>
-Methods for densiy/potential mixing for scf cycle.
-Default is <code>broyden</code>.
-</dd>
-
-<dt>rmixrate; <code>Real(8)</code>; 0d</dt>
-<dd>
-Mixing ratio. Default is <code>0.5</code>
 </dd>
 
 <dt>convergence; <code>Character</code>; 0d</dt>

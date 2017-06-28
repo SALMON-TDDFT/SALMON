@@ -106,6 +106,7 @@ module salmon_communication
 
   interface comm_summation
     ! scalar
+    module procedure comm_summation_integer
     module procedure comm_summation_double
     module procedure comm_summation_dcomplex
 
@@ -427,6 +428,21 @@ contains
     MPI_ERROR_CHECK(call MPI_Waitall(size(reqs), reqs, MPI_STATUSES_IGNORE, ierr))
   end subroutine
 
+
+  subroutine comm_summation_integer(invalue, outvalue, ngroup, dest)
+    use mpi, only: MPI_INTEGER, MPI_SUM
+    implicit none
+    integer, intent(in)  :: invalue
+    integer, intent(out) :: outvalue
+    integer, intent(in)  :: ngroup
+    integer, optional, intent(in) :: dest
+    integer :: ierr
+    if (present(dest)) then
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, 1, MPI_INTEGER, MPI_SUM, dest, ngroup, ierr))
+    else
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, 1, MPI_INTEGER, MPI_SUM, ngroup, ierr))
+    end if
+  end subroutine
 
   subroutine comm_summation_double(invalue, outvalue, ngroup, dest)
     use mpi, only: MPI_DOUBLE_PRECISION, MPI_SUM

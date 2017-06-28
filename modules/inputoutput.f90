@@ -276,7 +276,7 @@ contains
       & nscf, &
       & ngeometry_opt, &
       & subspace_diagonalization, &
-      & cmixing, &
+      & amixing, &
       & rmixrate, &
       & convergence, &
       & threshold, &
@@ -441,7 +441,7 @@ contains
     nscf          = 0
     ngeometry_opt = 1
     subspace_diagonalization = 'y'
-    cmixing       = 'broyden'
+    amixing       = 'broyden'
     rmixrate      = 0.5d0
     convergence   = 'rho_dng'
     threshold     = 1d-17*au_length_aa**3/ulength_from_au**3  ! default threshold for 'rho_dng', 1d-17 a.u. = 6.75d-17 AA**(-3)
@@ -642,7 +642,7 @@ contains
     call comm_bcast(nscf                    ,nproc_group_global)
     call comm_bcast(ngeometry_opt           ,nproc_group_global)
     call comm_bcast(subspace_diagonalization,nproc_group_global)
-    call comm_bcast(cmixing                 ,nproc_group_global)
+    call comm_bcast(amixing                 ,nproc_group_global)
     call comm_bcast(rmixrate                ,nproc_group_global)
     call comm_bcast(convergence             ,nproc_group_global)
     call comm_bcast(threshold               ,nproc_group_global)
@@ -1057,7 +1057,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'nscf', nscf
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'ngeometry_opt', ngeometry_opt
       write(fh_variables_log, '("#",4X,A,"=",A)') 'subspace_diagonalization', subspace_diagonalization
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'cmixing', cmixing
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'amixing', amixing
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rmixrate', rmixrate
       write(fh_variables_log, '("#",4X,A,"=",A)') 'convergence', convergence
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold', threshold

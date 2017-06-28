@@ -121,7 +121,7 @@ module salmon_global
   integer        :: nscf
   integer        :: ngeometry_opt
   character(1)   :: subspace_diagonalization
-  character(16)  :: cmixing
+  character(8)   :: amixing
   real(8)        :: rmixrate
   character(8)   :: convergence
   real(8)        :: threshold
