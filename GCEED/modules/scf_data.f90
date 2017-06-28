@@ -123,8 +123,6 @@ integer :: max_lg_num
 integer :: Miter       ! Total number of Iteration for SCF calculation
 integer :: Miter_rt    ! Total number of Iteration for RT calculation
 
-real(8) :: mixrate     ! Mixing rate for updating charge density
-
 integer :: iflag_diisjump
 real(8) :: lambda1_diis, lambda2_diis
 

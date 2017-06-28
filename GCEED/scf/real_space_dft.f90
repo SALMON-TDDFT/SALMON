@@ -330,7 +330,7 @@ DFT_Iteration : do iter=1,iDiter(img)
 
     select case(amixing)
       case ('simple')
-        call simple_mixing(1.d0-mixrate,mixrate)
+        call simple_mixing(1.d0-rmixrate,rmixrate)
       case ('broyden')
         call broyden(iter)
     end select
@@ -395,7 +395,7 @@ DFT_Iteration : do iter=1,iDiter(img)
   
     select case(amixing)
       case ('simple')
-        call simple_mixing(1.d0-mixrate,mixrate)
+        call simple_mixing(1.d0-rmixrate,rmixrate)
       case ('broyden')
         call broyden(iter)
     end select

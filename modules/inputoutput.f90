@@ -268,6 +268,8 @@ contains
     namelist/scf/ &
       & amin_routine, &
       & ncg, &
+      & amixing, &
+      & rmixrate, &
       & nmemory_mb, &
       & alpha_mb, &
       & fsset_option, &
@@ -276,8 +278,6 @@ contains
       & nscf, &
       & ngeometry_opt, &
       & subspace_diagonalization, &
-      & amixing, &
-      & rmixrate, &
       & convergence, &
       & threshold, &
       & threshold_pot
@@ -433,6 +433,8 @@ contains
 !! == default for &scf
     amin_routine  = 'cg'
     ncg           = 5
+    amixing       = 'broyden'
+    rmixrate      = 0.5d0
     nmemory_mb    = 8
     alpha_mb      = 0.75d0
     fsset_option  = 'n'
@@ -441,8 +443,6 @@ contains
     nscf          = 0
     ngeometry_opt = 1
     subspace_diagonalization = 'y'
-    amixing       = 'broyden'
-    rmixrate      = 0.5d0
     convergence   = 'rho_dng'
     threshold     = 1d-17*au_length_aa**3/ulength_from_au**3  ! default threshold for 'rho_dng', 1d-17 a.u. = 6.75d-17 AA**(-3)
     threshold_pot = -1d0  ! 1 a.u. = 1.10d2 eV**2*AA**3
@@ -634,6 +634,8 @@ contains
 !! == bcast for &scf
     call comm_bcast(amin_routine            ,nproc_group_global)
     call comm_bcast(ncg                     ,nproc_group_global)
+    call comm_bcast(amixing                 ,nproc_group_global)
+    call comm_bcast(rmixrate                ,nproc_group_global)
     call comm_bcast(nmemory_mb              ,nproc_group_global)
     call comm_bcast(alpha_mb                ,nproc_group_global)
     call comm_bcast(fsset_option            ,nproc_group_global)
@@ -642,8 +644,6 @@ contains
     call comm_bcast(nscf                    ,nproc_group_global)
     call comm_bcast(ngeometry_opt           ,nproc_group_global)
     call comm_bcast(subspace_diagonalization,nproc_group_global)
-    call comm_bcast(amixing                 ,nproc_group_global)
-    call comm_bcast(rmixrate                ,nproc_group_global)
     call comm_bcast(convergence             ,nproc_group_global)
     call comm_bcast(threshold               ,nproc_group_global)
     call comm_bcast(threshold_pot           ,nproc_group_global)
@@ -1049,6 +1049,8 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'amin_routine', amin_routine
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'scf', inml_scf
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'ncg', ncg
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'amixing', amixing
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rmixrate', rmixrate
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'nmemory_mb', nmemory_mb
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'alpha_mb', alpha_mb
       write(fh_variables_log, '("#",4X,A,"=",A)') 'fsset_option', fsset_option
@@ -1057,8 +1059,6 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'nscf', nscf
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'ngeometry_opt', ngeometry_opt
       write(fh_variables_log, '("#",4X,A,"=",A)') 'subspace_diagonalization', subspace_diagonalization
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'amixing', amixing
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rmixrate', rmixrate
       write(fh_variables_log, '("#",4X,A,"=",A)') 'convergence', convergence
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold', threshold
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_pot', threshold_pot
