@@ -539,7 +539,7 @@ Default is <code>1d-17</code> (= 6.75d-17Å<sup>-3</sup>)
 <dt>threshold_pot; <code>Real(8)</code>; 0d</dt>
 <dd>
 Threshold for convergence check that is used when either <code>'pot'</code> or <code>'pot_dng'</code> is specified. <code>threshold_pot</code> must be set when either <code>'pot'</code> or <code>'pot_dng'</code> is specified.
-Default is <code>-1d0</code> (1 a.u.= 1.10d2 eV<sup>2</sup>*Å<sup>3</sup>)
+Default is <code>-1d0</code> (1 a.u.= 1.10d2 Å<sup>3</sup>)eV<sup>2</sup>)
 </dd>
 
 </dl>
