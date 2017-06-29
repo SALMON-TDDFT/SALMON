@@ -823,15 +823,15 @@ Default is <code>'cube'</code>.
 A variable to determine how to put multipoles in the Hartree potential calculation. Default is <code>3</code>.
 <ul>
 <li>
-<code>'1'</code>: A single pole is put at center.
+<code>1</code>: A single pole is put at center.
 </li>
 
 <li>
-<code>'2'</code>: Multipoles are put at center of atoms.
+<code>2</code>: Multipoles are put at center of atoms.
 </li>
 
 <li>
-<code>'3'</code>: Multipoles are put at center of mass of electrons in prepared cuboids.
+<code>3</code>: Multipoles are put at center of mass of electrons in prepared cuboids.
 </li>
 </ul>
 </dd>
