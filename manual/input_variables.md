@@ -820,13 +820,25 @@ Default is <code>'cube'</code>.
 
 <dt>meo; <code>Integer</code>; 0d</dt>
 <dd>
-Order of multi-pole expansion for calculation of Hartree potential.
-Default is <code>3</code>.
+A variable to determine how to put multipoles in the Hartree potential calculation. Default is <code>3</code>.
+<ul>
+<li>
+<code>'1'</code>: A single pole is put at center.
+</li>
+
+<li>
+<code>'2'</code>: Multipoles are put at center of atoms.
+</li>
+
+<li>
+<code>'3'</code>: Multipoles are put at center of mass of electrons in prepared cuboids.
+</li>
+</ul>
 </dd>
 
 <dt>num_pole_xyz(3); <code>Integer</code>; 0d</dt>
 <dd>
-Number of multi-poles.
+Number of multipoles when <code>meo</code> is <code>3</code>. Default is <code>0,0,0</code>. When default is set, number of multipoles is calculated automatically.
 </dd>
 
 </dl>

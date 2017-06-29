@@ -12,8 +12,8 @@
 &parallel
   domain_parallel = 'y'
   nproc_ob = 1
-  nproc_domain = 1,1,1
-  nproc_domain_s = 1,1,1
+  nproc_domain = 3,4,1
+  nproc_domain_s = 3,4,1
 /
 &system
   iperiodic = 0
@@ -44,10 +44,6 @@
   omega1=9.26d0
   pulse_tw1=6.d0
   phi_cep1=0.75d0
-/
-&hartree
-  meo = 3
-  num_pole_xyz = 2,2,2 
 /
 &atomic_coor
 'C'    0.000000    0.000000    0.599672  1

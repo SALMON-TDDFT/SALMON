@@ -12,8 +12,8 @@
 &parallel
   domain_parallel = 'y'
   nproc_ob = 1
-  nproc_domain = 1,1,1
-  nproc_domain_s = 1,1,1
+  nproc_domain = 3,4,1
+  nproc_domain_s = 3,4,1
 /
 &system
   iperiodic = 0
@@ -40,10 +40,6 @@
 &emfield
   ae_shape1 = 'impulse'
   epdir_re1 = 0.d0,0.d0,1.d0
-/
-&hartree
-  meo = 3
-  num_pole_xyz = 2,2,2 
 /
 &atomic_coor
 'C'    0.000000    0.000000    0.599672  1
