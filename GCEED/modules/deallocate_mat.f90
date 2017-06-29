@@ -63,6 +63,8 @@ deallocate (exc_dummy)
 deallocate (exc_dummy2)
 deallocate (exc_dummy3)
 
+deallocate (icoo1d)
+
 END SUBROUTINE deallocate_mat
 
 !======================================================================

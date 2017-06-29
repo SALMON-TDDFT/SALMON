@@ -28,13 +28,13 @@ subroutine writeavs(fp,suffix,tmatbox_l)
   integer::jsta,jend
   character(8)  :: filenumber_data
   
-  if(numfile_movie>=2)then
-    if(nproc_id_global<numfile_movie)then
+  if(numfiles_out_3d>=2)then
+    if(nproc_id_global<numfiles_out_3d)then
       write(filenumber_data, '(i8)') nproc_id_global
       filename = trim(suffix)//"."//adjustl(filenumber_data)
       open(fp,file=filename)
-      jsta=nproc_id_global*(lg_num(1)*lg_num(2)*lg_num(3))/numfile_movie+1
-      jend=(nproc_id_global+1)*(lg_num(1)*lg_num(2)*lg_num(3))/numfile_movie
+      jsta=nproc_id_global*(lg_num(1)*lg_num(2)*lg_num(3))/numfiles_out_3d+1
+      jend=(nproc_id_global+1)*(lg_num(1)*lg_num(2)*lg_num(3))/numfiles_out_3d
       do jj=jsta,jend
         if(abs(tmatbox_l(icoo1d(1,jj),icoo1d(2,jj),icoo1d(3,jj)))>=1.0d-10)then
           write(fp,'(e20.8)') tmatbox_l(icoo1d(1,jj),icoo1d(2,jj),icoo1d(3,jj))

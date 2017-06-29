@@ -339,7 +339,8 @@ contains
       & out_elf_rt_step, &
       & out_estatic_rt, &
       & out_estatic_rt_step, &
-      & format3d
+      & format3d, &
+      & numfiles_out_3d
 
     namelist/hartree/ &
       & meo, &
@@ -505,6 +506,7 @@ contains
     out_estatic_rt      = 'n'
     out_estatic_rt_step = 50
     format3d            = 'cube'
+    numfiles_out_3d     = 1
 !! == default for &hartree
     meo          = 3
     num_pole_xyz = 0
@@ -714,6 +716,7 @@ contains
     call comm_bcast(out_estatic_rt     ,nproc_group_global)
     call comm_bcast(out_estatic_rt_step,nproc_group_global)
     call comm_bcast(format3d           ,nproc_group_global)
+    call comm_bcast(numfiles_out_3d    ,nproc_group_global)
 !! == bcast for &hartree
     call comm_bcast(meo         ,nproc_group_global)
     call comm_bcast(num_pole_xyz,nproc_group_global)
@@ -1136,6 +1139,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_estatic_rt', out_estatic_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_estatic_rt_step', out_estatic_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'format3d', format3d
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'numfiles_out_3d', numfiles_out_3d
 
       if(inml_hartree >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'hartree', inml_hartree

@@ -813,6 +813,14 @@ can be chosen.
 Default is <code>'cube'</code>.
 </dd>
 
+<dt>numfiles_out_3d; <code>Integer</code>; 0d</dt>
+<dd>
+Number of separated files for three dimensional data.
+Effective only when <code>format3d</code> is <code>'avs'</code>.
+<code>numfiles_out_3d</code> must be less than or equal to number of processes.
+Default is <code>1</code>.
+</dd>
+
 </dl>
 
 ## &hartree

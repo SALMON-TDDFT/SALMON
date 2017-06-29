@@ -39,6 +39,7 @@ set(SOURCES
     setcN.f90
     set_filename.f90
     set_gridcoo.f90
+    set_icoo1d.f90
     set_imesh_oddeven.f90
     set_ispin.f90
     set_isstaend.f90
