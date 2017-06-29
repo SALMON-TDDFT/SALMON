@@ -12,8 +12,8 @@
 &parallel
   domain_parallel = 'y'
   nproc_ob = 1
-  nproc_domain = 3,4,1
-  nproc_domain_s = 3,4,1
+  nproc_domain = 1,1,1
+  nproc_domain_s = 1,1,1
 /
 &system
   iperiodic = 0
