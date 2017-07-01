@@ -274,7 +274,7 @@ else if(meo==3)then
     stop "num_pole_xyz must be largar than 0 when they are not default values."
   end if
   if(num_pole_xyz(1)==0.and.num_pole_xyz(2)==0.and.num_pole_xyz(3)==0)then
-    dip_spacing = 8.d0*au_length_aa/ulength_from_au  ! approximate spacing of multipoles 
+    dip_spacing = 8.d0/au_length_aa  ! approximate spacing of multipoles 
     num_pole_xyz(:)=int((al(:)+dip_spacing)/dip_spacing-1.d-8)
   end if
 end if
