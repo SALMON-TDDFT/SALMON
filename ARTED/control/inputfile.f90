@@ -22,7 +22,7 @@ module inputfile
 contains
 
   
-  subroutine read_namelist()
+  subroutine transfer_basic_input()
     use salmon_global
     use salmon_communication, only: comm_sync_all
     use Global_Variables
@@ -134,10 +134,10 @@ contains
       
     call comm_sync_all()
     return
-  end subroutine read_namelist
+  end subroutine transfer_basic_input
 
 
-  subroutine read_atomic_spiecies()
+  subroutine transfer_atomic_data()
     use salmon_global
     use salmon_parallel, only: nproc_group_global, nproc_id_global
     use salmon_communication, only: comm_is_root, comm_bcast, comm_sync_all
@@ -177,7 +177,7 @@ contains
 
     call comm_sync_all()
     return
-  end subroutine
+  end subroutine transfer_atomic_data
 
 
   subroutine transfer_input()
@@ -185,9 +185,9 @@ contains
     implicit none
     
 !    call extract_stdin()
-    call read_namelist()
+    call transfer_basic_input()
     if(entrance_option == 'reentrance')return
-    call read_atomic_spiecies()
+    call transfer_atomic_data()
 
     return
   end subroutine transfer_input
