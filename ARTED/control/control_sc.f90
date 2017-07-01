@@ -57,7 +57,7 @@ subroutine tddft_sc
 !====RT calculation============================
 
   call init_Ac
-  iter=Nscf+1
+  iter=0
   do ixyz=1,3
     kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
   enddo
