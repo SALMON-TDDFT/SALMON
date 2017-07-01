@@ -282,10 +282,10 @@ contains
     
        macRANK=NXY_s
        kRANK=mod(nproc_id_global,NKsplit)
-    end if
     
-    nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
-    call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
+       nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
+       call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
+    end if
     
     !  NK_ave=NK/Nprocs; NK_remainder=NK-NK_ave*Nprocs
     !  NG_ave=NG/Nprocs; NG_remainder=NG-NG_ave*Nprocs
