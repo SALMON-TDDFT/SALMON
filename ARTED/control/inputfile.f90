@@ -31,6 +31,14 @@ contains
 ! Be careful for backup!!
     entrance_iter = 0
 
+    select case(calc_mode)
+    case('GS_RT','gs_rt')
+      iflag_calc_mode = iflag_calc_mode_gs_rt
+    case('GS','gs')
+      iflag_calc_mode = iflag_calc_mode_gs
+    case('RT','rt')
+      iflag_calc_mode = iflag_calc_mode_rt
+    end select
     
 !    namelist/control/ &
     entrance_option = trim(restart_option)
