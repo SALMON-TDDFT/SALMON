@@ -31,6 +31,7 @@ integer :: inml_group_fundamental, &
          & inml_group_hartree, &
          & inml_group_file, &
          & inml_group_others
+real(8) :: dip_spacing
 namelist / group_fundamental / iDiterYBCG,   &
                                iDiter_nosubspace_diag, &
                                ntmg
@@ -256,25 +257,27 @@ nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 ! Convergence criterion, ||Vh(i)-Vh(i-1)||**2/(# of grids), 1.d-15 a.u. = 1.10d-13 eV**2*AA**3
 Hconv=1.d-15*uenergy_from_au**2*ulength_from_au**3
 
-!num_pole_xyz(1:3)=-1
-!MEO=3
 lmax_MEO=4
 if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_hartree, iostat=inml_group_hartree) 
   rewind(fh_namelist)
-  if(MEO<=0.or.MEO>=4)then
-    write(*,*) "MEO must be equal to 1 or 2 or 3."
-    stop
-  end if
-  if(MEO==3.and.(num_pole_xyz(1)==-1.or.num_pole_xyz(2)==-1.or.num_pole_xyz(3)==-1))then
-    write(*,*) "num_pole_xyz must be set when MEO=3."
-    stop
-  end if
 end if
 call comm_bcast(Hconv,        nproc_group_global)
-call comm_bcast(MEO,          nproc_group_global)
-call comm_bcast(num_pole_xyz, nproc_group_global)
 call comm_bcast(lmax_MEO,     nproc_group_global)
+
+if(meo<=0.or.meo>=4)then
+  stop "meo must be equal to 1 or 2 or 3."
+else if(meo==3)then
+  if(num_pole_xyz(1)==0.and.num_pole_xyz(2)==0.and.num_pole_xyz(3)==0)then
+    continue
+  else if(num_pole_xyz(1)<=0.or.num_pole_xyz(2)<=0.or.num_pole_xyz(3)<=0)then
+    stop "num_pole_xyz must be largar than 0 when they are not default values."
+  end if
+  if(num_pole_xyz(1)==0.and.num_pole_xyz(2)==0.and.num_pole_xyz(3)==0)then
+    dip_spacing = 8.d0/au_length_aa  ! approximate spacing of multipoles 
+    num_pole_xyz(:)=int((al(:)+dip_spacing)/dip_spacing-1.d-8)
+  end if
+end if
 
 num_pole=num_pole_xyz(1)*num_pole_xyz(2)*num_pole_xyz(3)
 Hconv  = Hconv*uenergy_to_au**2*ulength_to_au**3
