@@ -26,10 +26,7 @@ contains
     use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
     implicit none
     integer :: iter, ik, ib, ia
-    logical :: Rion_update
     character(10) :: functional_t
-
-    Rion_update = rion_update_on
 
     allocate(rho_in(1:NL,1:Nscf+1),rho_out(1:NL,1:Nscf+1))
     rho_in(1:NL,1:Nscf+1)=0.d0; rho_out(1:NL,1:Nscf+1)=0.d0
@@ -50,9 +47,8 @@ contains
     if(functional_t == 'BJ_PW') functional = 'BJ_PW'
 
     Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
-    call Total_Energy_omp(Rion_update,calc_mode_gs)
-    call Ion_Force_omp(Rion_update,calc_mode_gs)
-    if (use_ehrenfest_md /= 'y') Rion_update = rion_update_off
+    call Total_Energy_omp(rion_update_on,calc_mode_gs)
+    call Ion_Force_omp(rion_update_on,calc_mode_gs)
     Eall_GS(0)=Eall
 
     if(comm_is_root(nproc_id_global)) then
@@ -115,8 +111,8 @@ contains
        if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'BJ_PW'
 
        Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
-       call Total_Energy_omp(Rion_update,calc_mode_gs)
-       call Ion_Force_omp(Rion_update,calc_mode_gs)
+       call Total_Energy_omp(rion_update_off,calc_mode_gs)
+       call Ion_Force_omp(rion_update_off,calc_mode_gs)
        call sp_energy_omp
        call current_GS
        Eall_GS(iter)=Eall
@@ -176,7 +172,7 @@ contains
 
     Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
     Vloc_GS(:)=Vloc(:)
-    call Total_Energy_omp(Rion_update,calc_mode_gs)
+    call Total_Energy_omp(rion_update_off,calc_mode_gs)
     Eall0=Eall
     if(comm_is_root(nproc_id_global)) write(*,*) 'Eall =',Eall
     

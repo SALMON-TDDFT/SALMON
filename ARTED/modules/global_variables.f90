@@ -67,6 +67,7 @@ Module Global_Variables
   integer,allocatable :: Zatom(:)
   real(8),allocatable :: Mass(:),Rion_eq(:,:),dRion(:,:,:)
   real(8),allocatable :: occ(:,:),wk(:)
+  logical :: Rion_update_rt
 
 ! physical quantities
   real(8) :: Eall,Eall0,jav(3),Tion

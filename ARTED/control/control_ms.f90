@@ -31,7 +31,6 @@ subroutine tddft_maxwell_ms
 
   implicit none
   integer :: iter
-  logical :: Rion_update
   integer :: ix_m,iy_m,ixy_m
   integer :: index, n
   character(len=128) :: fmt
@@ -41,9 +40,9 @@ subroutine tddft_maxwell_ms
 
   select case(use_ehrenfest_md)
   case('y')
-     Rion_update = rion_update_on
+     Rion_update_rt = rion_update_on
   case('n')
-     Rion_update = rion_update_off
+     Rion_update_rt = rion_update_off
   end select
 
 #ifdef ARTED_LBLK
@@ -88,7 +87,7 @@ subroutine tddft_maxwell_ms
 !reentrance
 2 if (entrance_option == 'reentrance') then
     position_option='asis'
-    if (use_ehrenfest_md /= 'y') Rion_update = rion_update_off
+    if (use_ehrenfest_md /= 'y') Rion_update_rt = rion_update_off
   else
     position_option='rewind'
     entrance_iter=-1
@@ -155,15 +154,15 @@ subroutine tddft_maxwell_ms
       javt(iter,:)=jav(:)
       if (use_ehrenfest_md == 'y') then
 !$acc update self(zu)
-        call Ion_Force_omp(Rion_update,calc_mode_rt,ixy_m)
+        call Ion_Force_omp(Rion_update_rt,calc_mode_rt,ixy_m)
         if (mod(iter, Nstep_write) == 0) then
-          call Total_Energy_omp(Rion_update,calc_mode_rt,ixy_m)
+          call Total_Energy_omp(Rion_update_rt,calc_mode_rt,ixy_m)
         end if
       else
         if (mod(iter, Nstep_write) == 0) then
 !$acc update self(zu)
-          call Total_Energy_omp(Rion_update,calc_mode_rt,ixy_m)
-          call Ion_Force_omp(Rion_update,calc_mode_rt,ixy_m)
+          call Total_Energy_omp(Rion_update_rt,calc_mode_rt,ixy_m)
+          call Ion_Force_omp(Rion_update_rt,calc_mode_rt,ixy_m)
         end if
       end if
     
@@ -176,12 +175,12 @@ subroutine tddft_maxwell_ms
       call timer_begin(LOG_K_SHIFT_WF)
 !Adiabatic evolution
       if (projection_option /= 'no' .and. mod(iter,100) == 0) then
-        call k_shift_wf(Rion_update,2,zu_m(:,:,:,ixy_m))
+        call k_shift_wf(Rion_update_rt,2,zu_m(:,:,:,ixy_m))
         if(comm_is_root(nproc_id_tdks))then ! sato
           excited_electron_l(ix_m,iy_m)=sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
         end if ! sato
       else if (iter == Nt ) then
-        call k_shift_wf(Rion_update,2,zu_m(:,:,:,ixy_m))
+        call k_shift_wf(Rion_update_rt,2,zu_m(:,:,:,ixy_m))
         if(comm_is_root(nproc_id_tdks))then ! sato
           excited_electron_l(ix_m,iy_m)=sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
         end if ! sato
