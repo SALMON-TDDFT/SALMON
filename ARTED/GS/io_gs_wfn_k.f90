@@ -60,6 +60,12 @@ contains
       close(nfile_occ)
     end if
 
+    select case(iflag_read_write)
+    case(iflag_read )
+      call comm_bcast(occ,nproc_group_global)
+    end select
+
+
     if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. NXY_s == 0))then
       do ik=NK_s,NK_e
         
