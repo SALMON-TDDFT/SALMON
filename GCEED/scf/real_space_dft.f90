@@ -327,8 +327,13 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(124)=elp3(124)+elp3(114)-elp3(113)
      
     call calc_density(psi,2)
-  
-    call simple_mixing(1.d0-mixrate,mixrate)
+
+    select case(amixing)
+      case ('simple')
+        call simple_mixing(1.d0-rmixrate,rmixrate)
+      case ('broyden')
+        call broyden(iter)
+    end select
     
     call calc_rho_in
   
@@ -388,7 +393,12 @@ DFT_Iteration : do iter=1,iDiter(img)
 
     call calc_density(psi,2)
   
-    call simple_mixing(1.d0-mixrate,mixrate)
+    select case(amixing)
+      case ('simple')
+        call simple_mixing(1.d0-rmixrate,rmixrate)
+      case ('broyden')
+        call broyden(iter)
+    end select
     
     call calc_rho_in
 

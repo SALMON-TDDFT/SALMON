@@ -113,6 +113,8 @@ module salmon_global
 !! &scf
   character(8)   :: amin_routine
   integer        :: ncg
+  character(8)   :: amixing
+  real(8)        :: rmixrate
   integer        :: nmemory_mb
   real(8)        :: alpha_mb
   character(1)   :: fsset_option
@@ -121,8 +123,6 @@ module salmon_global
   integer        :: nscf
   integer        :: ngeometry_opt
   character(1)   :: subspace_diagonalization
-  character(16)  :: cmixing
-  real(8)        :: rmixrate
   character(8)   :: convergence
   real(8)        :: threshold
   real(8)        :: threshold_pot

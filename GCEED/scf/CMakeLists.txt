@@ -1,4 +1,6 @@
 set(SOURCES
+    add_in_broyden.f90
+    broyden.f90
     calc_dos.f90
     calc_occupation.f90
     calc_pdos.f90

@@ -68,7 +68,13 @@ select case(amin_routine)
     stop 'Specify either "cg", "diis", or "cg-diis" for amin_routine.'
 end select
 
-mixrate=0.1d0
+select case(amixing)
+  case ('simple','broyden')
+    continue
+  case default
+    stop 'Specify either "simple" or "broyden" for amixing.'
+end select
+    
 icalcforce=0
 
 Harray(1:3,1:maxntmg)=0.d0
@@ -140,8 +146,6 @@ case default
   stop 'the variable convergence must be set to either "rho", "rho_dng", "pot", or "pot_dng"'
 end select
 
-mixrate = rmixrate
-
 !Nmemory_MB = Nmemory_MB
 select case(use_force)
 case('y')
@@ -159,9 +163,6 @@ call comm_bcast(iDiter_nosubspace_diag, nproc_group_global)
 
 allocate(wtk(1))
 wtk(:)=1.d0
-
-call comm_bcast(mixrate,    nproc_group_global)
-call comm_bcast(Nmemory_MB, nproc_group_global)
 
 call comm_bcast(icalcforce,nproc_group_global)
 
