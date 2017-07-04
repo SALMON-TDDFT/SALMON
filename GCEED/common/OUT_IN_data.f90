@@ -645,7 +645,10 @@ else if(ilsda==1)then
   end if
 end if
 
-if(iSCFRT==2) call allocate_mat
+if(iSCFRT==2)then
+  call allocate_mat
+  call set_icoo1d
+end if
 
 allocate( matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)) )
 allocate( cmatbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)) )
@@ -1190,19 +1193,6 @@ if(iSCFRT==2)then
   end do
   end do
 end if
-
-allocate(icoo1d(3,lg_num(1)*lg_num(2)*lg_num(3)))
-icount=0
-do iz=lg_sta(3),lg_end(3),1
-do iy=lg_sta(2),lg_end(2),1
-do ix=lg_sta(1),lg_end(1),1
-  icount=icount+1
-  icoo1d(1,icount)=ix
-  icoo1d(2,icount)=iy
-  icoo1d(3,icount)=iz
-end do
-end do
-end do
 
 call allgatherv_vlocal
 

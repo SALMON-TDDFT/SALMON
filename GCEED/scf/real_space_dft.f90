@@ -113,6 +113,7 @@ if(istopt==1)then
     call make_icoobox_bound
         
     call allocate_mat
+    call set_icoo1d
     call allocate_sendrecv
     allocate( Vpsl(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
     if(icalcforce==1)then
@@ -194,6 +195,7 @@ if(istopt==1)then
     call IN_data
 
     call allocate_mat
+    call set_icoo1d
     call allocate_sendrecv
 
     if(iflag_ps/=0) then

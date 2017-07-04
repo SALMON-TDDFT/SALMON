@@ -40,7 +40,7 @@ namelist / group_others / iparaway_ob,num_projection,iwrite_projection_ob,iwrite
                           filename_pot, &
     & iwrite_external,iflag_dip2,iflag_intelectron,num_dip2, dip2boundary, dip2center,& 
     & iflag_fourier_omega, num_fourier_omega, fourier_omega, itotNtime2, &
-    & iwdenoption,iwdenstep, numfile_movie, iflag_Estatic
+    & iwdenoption,iwdenstep, iflag_Estatic
 
 if(comm_is_root(nproc_id_global))then
    open(fh_namelist, file='.namelist.tmp', status='old')
@@ -243,7 +243,6 @@ fourier_omega(:)=0.d0
 itotNtime2=Ntime
 iwdenoption=0
 iwdenstep=0
-numfile_movie=1
 iflag_Estatic=0
 if(comm_is_root(nproc_id_global))then
   read(fh_namelist,NML=group_others, iostat=inml_group_others)
@@ -269,7 +268,6 @@ fourier_omega = fourier_omega*uenergy_to_au
 call comm_bcast(itotNtime2,           nproc_group_global)
 call comm_bcast(iwdenoption,          nproc_group_global)
 call comm_bcast(iwdenstep,            nproc_group_global)
-call comm_bcast(numfile_movie,        nproc_group_global)
 call comm_bcast(iflag_Estatic,        nproc_group_global)
 
 if(iflag_dip2==0)then

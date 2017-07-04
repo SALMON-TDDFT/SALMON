@@ -347,7 +347,6 @@ integer       :: idensum   ! whether density is summed up along direction
                            ! (0: not summed, 1: summed)
 real(8)       :: posplane  ! position of the plane
                            ! (only for idensum = 0)
-integer       :: numfile_movie
 
 character(1) :: circular
 
