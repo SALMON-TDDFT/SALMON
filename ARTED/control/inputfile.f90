@@ -22,7 +22,7 @@ module inputfile
 contains
 
   
-  subroutine read_namelist()
+  subroutine transfer_basic_input()
     use salmon_global
     use salmon_communication, only: comm_sync_all
     use Global_Variables
@@ -31,6 +31,14 @@ contains
 ! Be careful for backup!!
     entrance_iter = 0
 
+    select case(calc_mode)
+    case('GS_RT','gs_rt')
+      iflag_calc_mode = iflag_calc_mode_gs_rt
+    case('GS','gs')
+      iflag_calc_mode = iflag_calc_mode_gs
+    case('RT','rt')
+      iflag_calc_mode = iflag_calc_mode_rt
+    end select
     
 !    namelist/control/ &
     entrance_option = trim(restart_option)
@@ -134,10 +142,10 @@ contains
       
     call comm_sync_all()
     return
-  end subroutine read_namelist
+  end subroutine transfer_basic_input
 
 
-  subroutine read_atomic_spiecies()
+  subroutine transfer_atomic_data()
     use salmon_global
     use salmon_parallel, only: nproc_group_global, nproc_id_global
     use salmon_communication, only: comm_is_root, comm_bcast, comm_sync_all
@@ -177,7 +185,7 @@ contains
 
     call comm_sync_all()
     return
-  end subroutine
+  end subroutine transfer_atomic_data
 
 
   subroutine transfer_input()
@@ -185,9 +193,9 @@ contains
     implicit none
     
 !    call extract_stdin()
-    call read_namelist()
+    call transfer_basic_input()
     if(entrance_option == 'reentrance')return
-    call read_atomic_spiecies()
+    call transfer_atomic_data()
 
     return
   end subroutine transfer_input

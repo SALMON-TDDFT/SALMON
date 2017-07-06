@@ -41,6 +41,7 @@ subroutine arted
   use salmon_parallel
   use initialization
   use ground_state
+  use io_gs_wfn_k
   
   implicit none
 
@@ -49,9 +50,18 @@ subroutine arted
   nproc_size_tdks  = nproc_size_global
 
   call read_arted()
-
   call initialize
-  call calc_ground_state
+
+  select case(iflag_calc_mode)
+  case(iflag_calc_mode_gs_rt)
+    call calc_ground_state
+  case(iflag_calc_mode_gs)
+    call calc_ground_state
+    call read_write_gs_wfn_k(iflag_write)
+    return
+  case(iflag_calc_mode_rt)
+    call read_write_gs_wfn_k(iflag_read)
+  end select
 
   select case(use_ms_maxwell)
   case ('y')

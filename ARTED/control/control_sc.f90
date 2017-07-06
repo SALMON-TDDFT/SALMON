@@ -33,14 +33,14 @@ subroutine tddft_sc
 
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
-  logical :: Rion_update
+
 
 
   select case(use_ehrenfest_md)
   case('y')
-     Rion_update = rion_update_on
+     Rion_update_rt = rion_update_on
   case('n')
-     Rion_update = rion_update_off
+     Rion_update_rt = rion_update_off
   end select
 
 
@@ -145,15 +145,15 @@ subroutine tddft_sc
     javt(iter+1,:)=jav(:)
     if (use_ehrenfest_md == 'y') then
 !$acc update self(zu)
-      call Ion_Force_omp(Rion_update,calc_mode_rt)
+      call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
       if (iter/10*10 == iter) then
-        call Total_Energy_omp(Rion_update,calc_mode_rt)
+        call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
       end if
     else
       if (iter/10*10 == iter) then
 !$acc update self(zu)
-        call Total_Energy_omp(Rion_update,calc_mode_rt)
-        call Ion_Force_omp(Rion_update,calc_mode_rt)
+        call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
+        call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
       end if
     end if
 
@@ -270,7 +270,7 @@ subroutine tddft_sc
     end if
 !Adiabatic evolution
     if (projection_option /= 'no' .and. iter/100*100 == iter) then
-      call k_shift_wf(Rion_update,5,zu_t)
+      call k_shift_wf(Rion_update_rt,5,zu_t)
       if (comm_is_root(nproc_id_global)) then
         do ia=1,NI
           write(*,'(1x,i7,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
@@ -372,7 +372,7 @@ subroutine tddft_sc
 !====Analyzing calculation====================
 
 !Adiabatic evolution
-  call k_shift_wf_last(Rion_update,10,zu_t)
+  call k_shift_wf_last(Rion_update_rt,10,zu_t)
 
   call Fourier_tr
 

@@ -1,4 +1,5 @@
 set(SOURCES
+    io_gs_wfn_k.f90
     Gram_Schmidt.f90
     diag.f90
     sp_energy.f90

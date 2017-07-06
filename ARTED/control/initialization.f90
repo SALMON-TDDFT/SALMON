@@ -26,7 +26,7 @@ contains
     use salmon_parallel
     use salmon_communication
     use environment
-    use misc_routines, only: get_wtime
+    use misc_routines
     implicit none
 !$ integer :: omp_get_max_threads  
 

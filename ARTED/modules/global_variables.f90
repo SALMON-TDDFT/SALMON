@@ -213,12 +213,18 @@ Module Global_Variables
 
   logical :: need_backup      = .FALSE.
 
+  ! calculation mode flag
+  integer :: iflag_calc_mode
+  integer,parameter :: iflag_calc_mode_gs_rt = 0
+  integer,parameter :: iflag_calc_mode_gs    = 1
+  integer,parameter :: iflag_calc_mode_rt    = 2
 
-  ! calculation mode
+  ! calculation mode 
   integer, parameter :: calc_mode_gs = 1000
   integer, parameter :: calc_mode_rt = 1100
 
   ! Rion update flag
+  logical :: Rion_update_rt
   logical, parameter :: rion_update_on  = .true.
   logical, parameter :: rion_update_off = .false.
 
