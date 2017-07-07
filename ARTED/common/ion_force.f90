@@ -40,6 +40,7 @@ contains
     use salmon_parallel, only: nproc_group_tdks
     use salmon_communication, only: comm_summation
     use timer
+    use salmon_math
     implicit none
     logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
@@ -68,7 +69,7 @@ contains
         rab(3)=Rion(3,ia)-iz*aLz-Rion(3,ib)
         rab2=sum(rab(:)**2)
         ftmp_l(:,ia)=ftmp_l(:,ia)&
-             &-Zps(Kion(ia))*Zps(Kion(ib))*rab(:)/sqrt(rab2)*(-erfc(sqrt(aEwald*rab2))/rab2&
+             &-Zps(Kion(ia))*Zps(Kion(ib))*rab(:)/sqrt(rab2)*(-erfc_salmon(sqrt(aEwald*rab2))/rab2&
              &-2*sqrt(aEwald/(rab2*Pi))*exp(-aEwald*rab2))
       end do
       end do

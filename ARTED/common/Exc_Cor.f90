@@ -17,6 +17,7 @@
 subroutine Exc_Cor(GS_RT,NBtmp,zu)
   use Global_Variables
   use timer
+  use salmon_math
   implicit none
   integer,intent(in)       :: GS_RT
   integer,intent(in)       :: NBtmp
@@ -618,12 +619,12 @@ End Subroutine PZMxc
     G_a=sqpi*(15d0*E+6d0*C*(1d0+F*s2)*DHs+4d0*B*DHs2+8d0*A*DHs3) &
  &     /(16d0*DHs72) &
  &     -0.75d0*pi*sqrt(A)*exp(A94*H*s2) &
- &     *derfc(1.5d0*s*sqrt(H/A))
+ &     *erfc_salmon(1.5d0*s*sqrt(H/A))
     G_b=(15d0/16d0*sqpi*s2)/DHs72
     EG=-(0.75d0*pi+G_a)/G_b
     ds_EGs=-14d0/5d0*sqpi*DHs52*ds_Hs &
  &         +sqpi*sqrt(A)/5*DHs52  &
- &         *exp(9*H*s2/(4*A))*derfc(1.5d0*s*sqrt(H/A)) &
+ &         *exp(9*H*s2/(4*A))*erfc_salmon(1.5d0*s*sqrt(H/A)) &
  &         *(14+9/A*DHs)*ds_Hs &
  &         -6d0/5d0*DHs72/sqrt(H*s2)*ds_Hs &
  &         -2d0/5d0*DHs*ds_CFs-2d0/5d0*C*(1+F*s2)*ds_Hs &
@@ -635,7 +636,7 @@ End Subroutine PZMxc
 
   if(HA94 > eps) then
     if(HA94 < expcut) then
-      exer=pi*exp(HA94)*derfc(sqrt(HA94))
+      exer=pi*exp(HA94)*erfc_salmon(sqrt(HA94))
       exei=exp(HA94)*ei(-HA94)
     else
       exer=pi*(1d0/(sqpi*sqrt(HA94))-1d0/(2d0*sqrt(pi*HA943)) &
@@ -670,7 +671,7 @@ End Subroutine PZMxc
  & )
 
   drho_FxHSE= -8d0/9d0*(2*w/3d0/sqpi/rho)*( &
- &   -3d0/4d0*sqrt(A)*pi*exp(A94*(H*s2+w2))*derfc(sqrt(A94*(H*s2+w2))) &
+ &   -3d0/4d0*sqrt(A)*pi*exp(A94*(H*s2+w2))*erfc_salmon(sqrt(A94*(H*s2+w2))) &
  &   +sqpi*(A/2/DHsw12+B/4/DHsw32+C*(1+F*s2)*3d0/8d0/DHsw52+(E+EG*s2)*15d0/16d0/DHsw72) )
 
   ds_FxHSE= -8d0/9d0*( &

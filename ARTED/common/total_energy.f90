@@ -41,6 +41,7 @@ contains
     use Global_Variables
     use Opt_Variables
     use timer
+    use salmon_math
     implicit none
     logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
@@ -86,7 +87,7 @@ contains
         rab(2)=Rion(2,ia)-iy*aLy-Rion(2,ib)
         rab(3)=Rion(3,ia)-iz*aLz-Rion(3,ib)
         rab2=sum(rab(:)**2)
-        Eion_tmp1=Eion_tmp1 + 0.5d0*Zps(Kion(ia))*Zps(Kion(ib))*erfc(sqrt(aEwald*rab2))/sqrt(rab2)
+        Eion_tmp1=Eion_tmp1 + 0.5d0*Zps(Kion(ia))*Zps(Kion(ib))*erfc_salmon(sqrt(aEwald*rab2))/sqrt(rab2)
       end do
       end do
       end do
