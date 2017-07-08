@@ -33,10 +33,10 @@ End Subroutine Err_finalize
 
 
 subroutine arted
-  use salmon_global, only:    use_ms_maxwell
+  use salmon_global, only:    use_ms_maxwell, restart_option
   use control_sc,       only: tddft_sc
   use control_ms,       only: tddft_maxwell_ms
-  use inputfile,        only: read_arted => transfer_input
+
 
   use salmon_parallel
   use initialization
@@ -49,19 +49,23 @@ subroutine arted
   nproc_id_tdks    = nproc_id_global
   nproc_size_tdks  = nproc_size_global
 
-  call read_arted()
   call initialize
 
-  select case(iflag_calc_mode)
-  case(iflag_calc_mode_gs_rt)
-    call calc_ground_state
-  case(iflag_calc_mode_gs)
-    call calc_ground_state
-    call read_write_gs_wfn_k(iflag_write)
-    return
-  case(iflag_calc_mode_rt)
-    call read_write_gs_wfn_k(iflag_read)
-  end select
+  if(restart_option == 'new')then
+    select case(iflag_calc_mode)
+    case(iflag_calc_mode_gs_rt)
+      call calc_ground_state
+    case(iflag_calc_mode_gs)
+      call calc_ground_state
+      call read_write_gs_wfn_k(iflag_write)
+      return
+    case(iflag_calc_mode_rt)
+      call read_write_gs_wfn_k(iflag_read)
+    end select
+  else if(restart_option == 'restart')then
+  else
+    call Err_finalize("Invalid restart_option!")
+  end if
 
   select case(use_ms_maxwell)
   case ('y')

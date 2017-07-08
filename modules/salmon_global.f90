@@ -49,6 +49,7 @@ module salmon_global
   real(8)        :: time_shutdown
   character(256) :: sysname
   character(256) :: directory
+  character(256) :: dump_filename
                  
 !! &units
   character(16)  :: unit_time

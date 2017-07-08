@@ -35,6 +35,7 @@ module backup_routines
     module procedure save_array1d_real8
     module procedure save_array1d_complex8
     module procedure save_array1d_integer
+    module procedure save_array1d_character
 
     ! 2-D array
     module procedure save_array2d_real8
@@ -65,6 +66,7 @@ module backup_routines
     module procedure load_array1d_real8
     module procedure load_array1d_complex8
     module procedure load_array1d_integer
+    module procedure load_array1d_character
 
     ! 2-D array
     module procedure load_array2d_real8
@@ -96,6 +98,7 @@ module backup_routines
     module procedure backup_array1d_real8
     module procedure backup_array1d_complex8
     module procedure backup_array1d_integer
+    module procedure backup_array1d_character
 
     ! 2-D array
     module procedure backup_array2d_real8
@@ -137,6 +140,46 @@ contains
       call save_character(iounit, val)
     else
       call load_character(iounit, val)
+    end if
+  end subroutine
+
+  subroutine save_array1d_character(iounit, val)
+    implicit none
+    integer, intent(in)      :: iounit
+    character(*),allocatable, intent(in) :: val(:)
+    logical :: f
+    f = allocated(val)
+    write(iounit) f
+    if (f) then
+      write(iounit) lbound(val), ubound(val)
+      write(iounit) val(:)
+    end if
+  end subroutine
+
+  subroutine load_array1d_character(iounit, val)
+    implicit none
+    integer, intent(in)       :: iounit
+    character(*),allocatable, intent(out) :: val(:)
+    logical :: f
+    integer :: lb1, ub1
+    read(iounit) f
+    if (f) then
+      read(iounit) lb1, ub1
+      allocate(val(lb1:ub1))
+      read(iounit) val(:)
+    end if
+
+  end subroutine
+
+  subroutine backup_array1d_character(is_backup, iounit, val)
+    implicit none
+    logical, intent(in)         :: is_backup
+    integer, intent(in)         :: iounit
+    character(*), allocatable, intent(inout) :: val(:)
+    if (is_backup) then
+      call save_array1d_character(iounit, val)
+    else
+      call load_array1d_character(iounit, val)
     end if
   end subroutine
 

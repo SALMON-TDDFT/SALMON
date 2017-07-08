@@ -41,7 +41,7 @@ contains
     end select
     
 !    namelist/control/ &
-    entrance_option = trim(restart_option)
+!    entrance_option = trim(restart_option)
 !    Time_shutdown = time_shutdown
 !    backup_frequency = backup_frequency
 !    entrance_iter = entrance_iter
@@ -189,12 +189,10 @@ contains
 
 
   subroutine transfer_input()
-    use global_variables, only: entrance_option
     implicit none
     
 !    call extract_stdin()
     call transfer_basic_input()
-    if(entrance_option == 'reentrance')return
     call transfer_atomic_data()
 
     return

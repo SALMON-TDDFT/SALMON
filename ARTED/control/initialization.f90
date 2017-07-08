@@ -27,6 +27,8 @@ contains
     use salmon_communication
     use environment
     use misc_routines
+    use inputfile,only: transfer_input
+    use backup,only: prep_restart_read
     implicit none
 !$ integer :: omp_get_max_threads  
 
@@ -57,6 +59,13 @@ contains
     Time_start=get_wtime() !reentrance
     call comm_bcast(Time_start,nproc_group_global)
 
+    if(restart_option == 'restart') then
+      if (comm_is_root(nproc_id_global)) call timer_show_current_hour('Restore...', LOG_ALL)
+      call prep_restart_read
+      return
+    end if
+
+    call transfer_input
     call Read_data
 
     call fd_coef
@@ -91,19 +100,8 @@ contains
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Nprocs=',nproc_size_global
        write(*,*) 'nproc_id_global=0:  ',nproc_id_global
-       write(*,*) 'entrance_option=',entrance_option
        write(*,*) 'Time_shutdown=',Time_shutdown,'sec'
     end if
-    
-    if(entrance_option == 'reentrance') then
-       if (comm_is_root(nproc_id_global)) call timer_show_current_hour('Restore...', LOG_ALL)
-       call prep_Reentrance_Read
-       return
-    else if(entrance_option == 'new') then
-    else 
-       call err_finalize('entrance_option /= new or reentrance')
-    end if
-    
     
     if(comm_is_root(nproc_id_global))then
        

@@ -86,6 +86,15 @@ Default is <code>-1</code> sec.
 Default is <code>default</code>.
 </dd>
 
+<dt>sysname; <code>Character</code>; 0d/3d</dt>
+<dd>Name of a default directory, where the basic results will be written down.
+Default is the current directoy, <code>./</code>.
+</dd>
+
+<dt>dump_filename; <code>Character</code>; 3d</dt>
+<dd>Name of a filename for the restart calculation.
+</dd>
+
 
 </dl>
 
