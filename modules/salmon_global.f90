@@ -130,6 +130,7 @@ module salmon_global
 !! &emfield
   character(2)   :: trans_longi
   character(16)  :: ae_shape1
+  real(8)        :: e_impulse
   real(8)        :: amplitude1
   real(8)        :: rlaser_int1
   real(8)        :: pulse_tw1
@@ -151,9 +152,6 @@ module salmon_global
   character(1)   :: alocal_laser
   real(8)        :: rlaserbound_sta(3)
   real(8)        :: rlaserbound_end(3)
-
-!! &linear_response
-  real(8)        :: e_impulse
 
 !! &multiscale
   character(16)  :: fdtddim

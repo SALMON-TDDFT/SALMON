@@ -15,7 +15,6 @@
 - [&propagation](#propagation)
 - [&scf](#scf)
 - [&emfield](#emfield)
-- [&linear_response](#linear_response)
 - [&analysis](#analysis)
 - [&hartree](#hartree)
 - [&ewald](#ewald)
@@ -587,6 +586,12 @@ cos<sup>6</sup>, and cos<sup>8</sup> for a vector potential.
 </ul>
 </dd>
 
+<dt>e_impulse; <code>Real(8)</code>; 0d/3d</dt>
+<dd>
+Momentum of impulsive perturbation.
+This valiable has the dimention of momentum, energy*time/length.
+Defalt value is <code>1d-2</code> a.u.
+</dd>
 
 <dt>amplitude1/amplitude2; <code>Real(8)</code>; 0d/3d</dt>
 <dd>
@@ -661,20 +666,8 @@ Unit of length can be chosen by <code>&units/unit_length</code>.
 
 </dl>
 
-## &linear_response
-<dl>
-
-<dt>e_impulse; <code>Real(8)</code>; 0d/3d</dt>
-<dd>
-Momentum of impulsive perturbation.
-This valiable has the dimention of momentum, energy*time/length.
-Defalt value is <code>1d-2</code> a.u.
-</dd>
-</dl>
-
 ## &multiscale
 <dl>
-
 
 <dt>fdtddim; <code>Character</code>; 3d</dt>
 <dd>

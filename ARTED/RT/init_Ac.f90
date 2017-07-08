@@ -78,8 +78,8 @@ Subroutine init_Ac
       end if
     enddo
   case('Ecos2')
-    if(phi_CEP1 /= -0.5d0)then
-      call Err_finalize("Error: phi_cep1 should be -0.5 when ae_shape1 is 'Ecos2'.")
+    if(phi_CEP1 /= 0.75d0)then
+      call Err_finalize("Error: phi_cep1 should be 0.75 when ae_shape1 is 'Ecos2'.")
     end if
     do iter=0,Nt+1
       tt=iter*dt - 0.5d0*pulse_tw1
@@ -182,8 +182,8 @@ Subroutine init_Ac
     end do
 
   case('Ecos2')
-    if(phi_CEP2 /= -0.5d0)then
-      call Err_finalize("Error: phi_cep2 should be -0.5 when ae_shape2 is 'Ecos2'.")
+    if(phi_CEP2 /= 0.75d0)then
+      call Err_finalize("Error: phi_cep2 should be 0.75 when ae_shape2 is 'Ecos2'.")
     end if
     do iter=0,Nt+1
       tt=iter*dt - 0.5d0*pulse_tw2 - T1_T2
