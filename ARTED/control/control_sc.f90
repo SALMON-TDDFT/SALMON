@@ -30,7 +30,7 @@ subroutine tddft_sc
   use misc_routines, only: get_wtime
   use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
   use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac
-  use backup, only: prep_restart_write
+  use restart, only: prep_restart_write
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
 

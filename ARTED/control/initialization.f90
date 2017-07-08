@@ -28,7 +28,7 @@ contains
     use environment
     use misc_routines
     use inputfile,only: transfer_input
-    use backup,only: prep_restart_read
+    use restart,only: prep_restart_read
     implicit none
 !$ integer :: omp_get_max_threads  
 

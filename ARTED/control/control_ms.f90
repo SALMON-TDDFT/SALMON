@@ -28,7 +28,7 @@ subroutine tddft_maxwell_ms
   use salmon_parallel
   use salmon_communication
   use misc_routines
-  use backup, only: prep_restart_write
+  use restart, only: prep_restart_write
 
   implicit none
   integer :: iter

@@ -7,7 +7,7 @@ set(SOURCES
     psi_rho.f90
     hpsi.f90
     preprocessor.f90
-    reentrance.f90
+    restart.f90
     density_plot.f90
     )
 

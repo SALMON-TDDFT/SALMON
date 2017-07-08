@@ -13,7 +13,7 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-module backup
+module restart
   implicit none
   private
   public :: prep_restart_read, &
@@ -52,11 +52,11 @@ subroutine prep_backup_values(is_backup)
       write(iounit,"(A)") '&control'
       write(iounit,"(A)") "restart_option = 'restart'  "
       write(iounit,"(A,e26.16e3)") "Time_shutdown=",Time_shutdown
-      write(iounit,"(A)") "'"//trim(directory)//"'  !directory"
-      write(iounit,"(A)") "'"//trim(dump_filename)//"'  !dump_filename"
+      write(iounit,"(A)") "directory = '"//trim(directory)//"'  !directory"
+      write(iounit,"(A)") "dump_filename = '"//trim(dump_filename)//"'  !dump_filename"
       write(iounit,"(A)") '/'
       write(iounit,"(A)") '&tgrid'
-      write(iounit,'(I7,A)')Nt,'  ! Nt: If you want continuous execution, please change the value.'
+      write(iounit,'(A,I7,A)')"Nt = ",Nt,'  ! Nt: If you want continuous execution, please change the value.'
       write(iounit,"(A)") '/'
       write(iounit,"(A)") '&system'
       write(iounit,"(A)") 'iperiodic = 3'
@@ -69,8 +69,11 @@ subroutine prep_backup_values(is_backup)
     ! restore
     gNt = Nt
     call comm_bcast(gNt, nproc_group_global)
-
+#ifdef ARTED_USE_FORTRAN2008
     write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',nproc_id_global,'/'
+#else
+    process_directory = trim(directory)
+#endif
     open(iounit, status='old', form='unformatted', file=gen_filename(dump_filename, nproc_id_global))
   end if
 
@@ -581,7 +584,7 @@ subroutine prep_backup_values(is_backup)
 
 ! initialize
   if (.not. is_backup) then
-    if(calc_mode == calc_mode_ms)then
+    if(use_ms_maxwell == 'y')then
       nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
       call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
     end if
@@ -760,4 +763,4 @@ subroutine prep_restart_write
   call prep_backup_values(.TRUE.)
 end subroutine
 
-end module backup
+end module restart
