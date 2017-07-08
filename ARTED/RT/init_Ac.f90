@@ -77,6 +77,21 @@ Subroutine init_Ac
           )
       end if
     enddo
+  case('Ecos2')
+    if(phi_CEP1 /= 0.75d0)then
+      call Err_finalize("Error: phi_cep1 should be 0.75 when ae_shape1 is 'Ecos2'.")
+    end if
+    do iter=0,Nt+1
+      tt=iter*dt - 0.5d0*pulse_tw1
+      if (abs(tt)<0.5d0*pulse_tw1) then
+        Ac_ext(iter,:)=-f0_1/(8d0*pi**2*omega1 - 2d0*pulse_tw1**2*omega1**3) &
+          *( &
+          (-4d0*pi**2+pulse_tw1**2*omega1**2 + pulse_tw1**2*omega1**2*cos(2d0*pi*tt/pulse_tw1))*cos(omega1*tt) &
+          +2d0*pi*(2d0*pi*cos(pulse_tw1*omega1/2d0) &
+          +pulse_tw1*omega1*sin(2d0*pi*tt/pulse_tw1)*sin(omega1*tt)))
+      end if
+    enddo
+
   case('Esin2sin')
     do iter=0,Nt+1
       tt=iter*dt
@@ -165,7 +180,23 @@ Subroutine init_Ac
           )
       end if
     end do
-      
+
+  case('Ecos2')
+    if(phi_CEP2 /= 0.75d0)then
+      call Err_finalize("Error: phi_cep2 should be 0.75 when ae_shape2 is 'Ecos2'.")
+    end if
+    do iter=0,Nt+1
+      tt=iter*dt - 0.5d0*pulse_tw2 - T1_T2
+      if (abs(tt)<0.5d0*pulse_tw2) then
+        Ac_ext(iter,:)=Ac_ext(iter,:) &
+          -f0_2/(8d0*pi**2*omega2 - 2d0*pulse_tw2**2*omega2**3) &
+          *( &
+          (-4d0*pi**2+pulse_tw2**2*omega2**2 + pulse_tw2**2*omega2**2*cos(2d0*pi*tt/pulse_tw2))*cos(omega2*tt) &
+          +2d0*pi*(2d0*pi*cos(pulse_tw2*omega2/2d0) &
+          +pulse_tw2*omega2*sin(2d0*pi*tt/pulse_tw2)*sin(omega2*tt)))
+      end if
+    enddo
+
   case('Esin2sin')
       ! probe laser
     do iter=0,Nt+1

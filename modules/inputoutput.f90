@@ -44,7 +44,6 @@ module inputoutput
   integer :: inml_propagation
   integer :: inml_scf
   integer :: inml_emfield
-  integer :: inml_linear_response
   integer :: inml_multiscale
   integer :: inml_analysis
   integer :: inml_hartree
@@ -285,6 +284,7 @@ contains
     namelist/emfield/ &
       & trans_longi, &
       & ae_shape1, &
+      & e_impulse, &
       & amplitude1, &
       & rlaser_int1, &
       & pulse_tw1, &
@@ -306,9 +306,6 @@ contains
       & alocal_laser , &
       & rlaserbound_sta , &
       & rlaserbound_end
-
-    namelist/linear_response/ &
-      & e_impulse
 
     namelist/multiscale/ &
       & fdtddim, &
@@ -450,6 +447,7 @@ contains
 !! == default for &emfield
     trans_longi    = 'tr'
     ae_shape1      = 'none'
+    e_impulse = 1d-2*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
     amplitude1     = 0d0
     rlaser_int1    = -1d0
     pulse_tw1      = 0d0
@@ -475,8 +473,6 @@ contains
     rlaserbound_end(1) = 1.d7/au_length_aa*ulength_from_au
     rlaserbound_end(2) = 1.d7/au_length_aa*ulength_from_au
     rlaserbound_end(3) = 1.d7/au_length_aa*ulength_from_au
-!! == default for &linear_response
-    e_impulse = 1d-2*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'
@@ -553,8 +549,6 @@ contains
       read(fh_namelist, nml=emfield, iostat=inml_emfield)
       rewind(fh_namelist)
 
-      read(fh_namelist, nml=linear_response, iostat=inml_linear_response)
-      rewind(fh_namelist)
 
       read(fh_namelist, nml=multiscale, iostat=inml_multiscale)
       rewind(fh_namelist)
@@ -652,6 +646,8 @@ contains
 !! == bcast for &emfield
     call comm_bcast(trans_longi,nproc_group_global)
     call comm_bcast(ae_shape1  ,nproc_group_global)
+    call comm_bcast(e_impulse,nproc_group_global)
+    e_impulse = e_impulse *uenergy_to_au/ulength_to_au*utime_to_au
     call comm_bcast(amplitude1 ,nproc_group_global)
     amplitude1 = amplitude1*(uenergy_to_au/ulength_to_au/ucharge_to_au)
     call comm_bcast(rlaser_int1,nproc_group_global)
@@ -680,9 +676,8 @@ contains
     call comm_bcast(alocal_laser  ,nproc_group_global)
     call comm_bcast(rlaserbound_sta,nproc_group_global)
     call comm_bcast(rlaserbound_end,nproc_group_global)
-!! == bcast for &linear_response
-    call comm_bcast(e_impulse,nproc_group_global)
-    e_impulse = e_impulse *uenergy_to_au/ulength_to_au*utime_to_au
+
+
 !! == bcast for &multiscale
     call comm_bcast(fdtddim   ,nproc_group_global)
     call comm_bcast(twod_shape,nproc_group_global)
@@ -1070,6 +1065,7 @@ contains
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'emfield', inml_emfield
       write(fh_variables_log, '("#",4X,A,"=",A)') 'trans_longi', trans_longi
       write(fh_variables_log, '("#",4X,A,"=",A)') 'ae_shape1', ae_shape1
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'e_impulse', e_impulse
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'amplitude1', amplitude1
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaser_int1', rlaser_int1
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'pulse_tw1', pulse_tw1
@@ -1103,10 +1099,6 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(1)', rlaserbound_end(1)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(2)', rlaserbound_end(2)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(3)', rlaserbound_end(3)
-
-      if(inml_linear_response >0)ierr_nml = ierr_nml +1
-      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'linear_response', inml_linear_response
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'e_impulse', e_impulse
 
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'multiscale', inml_multiscale
       write(fh_variables_log, '("#",4X,A,"=",A)') 'fdtddim', fdtddim
