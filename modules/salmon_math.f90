@@ -21,7 +21,8 @@ module salmon_math
   real(8),parameter :: Pi=3.141592653589793d0
 
   public :: erf_salmon, &
-            erfc_salmon
+            erfc_salmon, &
+            fbessel_j1
 contains
 !--------------------------------------------------------------------------------
 !! Error function and its complement are implemented based on the reference
@@ -160,5 +161,25 @@ contains
     y = exp(-x2)/x*y
 
   end function erfc_salmon_long
+  
+  
+!--------------------------------------------------------------------------------
+  real(8) function fbessel_j1(x)
+    implicit none
+    real(8), intent(in) :: x
+    integer, parameter :: order = 30
+    real(8) :: c, s
+    integer :: m
+
+    c = 0.5 * x
+    s = c
+    do m = 1, 30
+      c = -0.25d0 * x * x / (m * (m + 1)) * c
+      s = s + c
+    end do
+    fbessel_j1 = s
+    return
+  end function fbessel_j1
+  
 end module salmon_math
 !--------------------------------------------------------------------------------
