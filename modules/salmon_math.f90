@@ -22,7 +22,7 @@ module salmon_math
 
   public :: erf_salmon, &
             erfc_salmon, &
-            fbessel_j1
+            bessel_j1_salmon
 contains
 !--------------------------------------------------------------------------------
 !! Error function and its complement are implemented based on the reference
@@ -164,7 +164,8 @@ contains
   
   
 !--------------------------------------------------------------------------------
-  real(8) function fbessel_j1(x)
+  !! 1st order Bessel function
+  real(8) function bessel_j1_salmon(x) result(y)
     implicit none
     real(8), intent(in) :: x
     integer, parameter :: order = 30
@@ -177,9 +178,9 @@ contains
       c = -0.25d0 * x * x / (m * (m + 1)) * c
       s = s + c
     end do
-    fbessel_j1 = s
+    y = s
     return
-  end function fbessel_j1
+  end function bessel_j1_salmon
   
 end module salmon_math
 !--------------------------------------------------------------------------------

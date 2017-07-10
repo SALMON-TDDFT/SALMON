@@ -37,7 +37,7 @@ subroutine incident_bessel_beam()
                             & NXvacL_m, NXvacR_m, NYvacB_m, NYvacT_m, &
                             & HX_m, HY_m, Ac_m, Ac_new_m, dt, &
                             & pi, c_light
-  use salmon_math, only: fbessel_j1
+  use salmon_math, only: bessel_j1_salmon
   implicit none
   real(8) :: f0_1, wpulse_1
   integer :: ix_m, iy_m
@@ -73,7 +73,7 @@ subroutine incident_bessel_beam()
   Ac_new_m = 0.0
   do iy_m = NYvacB_m, NYvacT_m
      y = HY_m * iy_m
-     j = fbessel_j1(ky * y)
+     j = bessel_j1_salmon(ky * y)
      f = j * f0_1 / 0.58186d0 * Epdir_re1
      do ix_m = NXvacL_m-1, 0
        x = ix_m * HX_m
