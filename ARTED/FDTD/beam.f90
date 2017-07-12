@@ -15,24 +15,6 @@
 !
 
 !===============================================================
-! NOTE: bessel_j1 is Fortran 2008 standard intrinsic procedure
-real(8) function fbessel_j1(x)
-  implicit none
-  real(8), intent(in) :: x
-  integer, parameter :: order = 30
-  real(8) :: c, s
-  integer :: m
-
-  c = 0.5 * x
-  s = c
-  do m = 1, 30
-    c = -0.25d0 * x * x / (m * (m + 1)) * c
-    s = s + c
-  end do
-  fbessel_j1 = s
-  return
-end function fbessel_j1
-!===============================================================
 real(8) function sin2cos(t, tw, omega, cep)
   use Global_Variables, only: pi
   implicit none
@@ -55,13 +37,14 @@ subroutine incident_bessel_beam()
                             & NXvacL_m, NXvacR_m, NYvacB_m, NYvacT_m, &
                             & HX_m, HY_m, Ac_m, Ac_new_m, dt, &
                             & pi, c_light
+  use salmon_math, only: bessel_j1_salmon
   implicit none
   real(8) :: f0_1, wpulse_1
   integer :: ix_m, iy_m
   real(8) :: lx, ly, x, y, kx, ky, k, vx
   real(8) :: f(3), j, tau
   
-  real(8) fbessel_j1, sin2cos
+  real(8) sin2cos
   
   ! First pulse
   if(rlaser_int1 < 0d0)then
@@ -90,7 +73,7 @@ subroutine incident_bessel_beam()
   Ac_new_m = 0.0
   do iy_m = NYvacB_m, NYvacT_m
      y = HY_m * iy_m
-     j = fbessel_j1(ky * y)
+     j = bessel_j1_salmon(ky * y)
      f = j * f0_1 / 0.58186d0 * Epdir_re1
      do ix_m = NXvacL_m-1, 0
        x = ix_m * HX_m
