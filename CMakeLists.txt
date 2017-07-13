@@ -8,6 +8,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/setup.cmake)
 project(SALMON Fortran C)
 
 # optimization options
+option_set(USE_MPI                        "Use MPI parallelization"                                  OFF)
 option_set(USE_TLOG                       "Use TLOG library"                                         OFF)
 option_set(USE_PAPI                       "Use Performance API"                                      OFF)
 option_set(USE_NVTX                       "Use NVIDIA Tools Extension Library"                       OFF)
@@ -47,18 +48,20 @@ else ()
     set(MPI_C_COMPILER ${CMAKE_C_COMPILER})
   endif ()
 
-  find_package(MPI REQUIRED)
+  if (USE_MPI)
+    find_package(MPI REQUIRED)
 
-  if (NOT DEFINED MPI_Fortran_FOUND)
-    message(FATAL_ERROR "MPI Fortran compilers not found.")
-  endif()
+    if (NOT DEFINED MPI_Fortran_FOUND)
+      message(FATAL_ERROR "MPI Fortran compilers not found.")
+    endif()
 
-  if (NOT DEFINED MPI_C_FOUND)
-    message(FATAL_ERROR "MPI C compilers not found.")
-  endif()
+    if (NOT DEFINED MPI_C_FOUND)
+      message(FATAL_ERROR "MPI C compilers not found.")
+    endif()
 
-  set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
-  set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+    set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
+    set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+  endif ()
 
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O2 -g")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")

@@ -54,6 +54,8 @@ group.add_option('-a', '--arch',   action='store', default=None, dest='arch',   
 parser.add_option_group(group)
 
 group = OptionGroup(parser, 'Optimization options')
+group.add_option('--enable-mpi',          action='store_true',  dest='mpi',               help='enable MPI parallelization.')
+group.add_option('--disable-mpi',         action='store_false', dest='mpi',               help='disable MPI parallelization.')
 group.add_option('--old-stencil',         action='store_false', dest='stencil_optimized', help='use old implementation of the stencil computation code.')
 group.add_option('--explicit-vec',        action='store_true',  dest='explicit_vec',      help='enable explicit vectorization in the stencil computation.')
 group.add_option('--compiler-vec',        action='store_false', dest='explicit_vec',      help='defer to compiler vectorization in the stencil computation.')
@@ -83,6 +85,7 @@ if options.arch is not None:
 dict['CMAKE_BUILD_TYPE']           = debug_or_release(options.debug)
 dict['CMAKE_VERBOSE_MAKEFILE']     = on_or_off(options.verbose)
 
+add_option(dict, 'USE_MPI',                    options.mpi)
 add_option(dict, 'USE_PAPI',                   options.papi)
 add_option(dict, 'USE_NVTX',                   options.nvtx)
 add_option(dict, 'USE_SCALAPACK',              options.scalapack)
