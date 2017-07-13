@@ -118,13 +118,6 @@ Default is <code>'a.u.'</code>.
 ## &parallel
 <dl>
 
-<dt>domain_parallel; <code>Character</code></dt>
-<dd>
-Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
-domain parallelization.
-Default is <code>'n'</code>.
-</dd>
-
 <dt>nproc_ob; <code>Integer</code>; 0d</dt>
 <dd>Number of MPI parallelization for orbitals.
 Default is <code>0</code>.

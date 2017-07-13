@@ -973,7 +973,6 @@ contains
 
       if(inml_parallel >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'parallel', inml_parallel
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'domain_parallel', domain_parallel
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_ob', nproc_ob
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain(1)', nproc_domain(1)
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain(2)', nproc_domain(2)
