@@ -30,62 +30,54 @@ subroutine tddft_sc
   use misc_routines, only: get_wtime
   use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
   use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac
-
+  use restart, only: prep_restart_write
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
-
-
-
-  select case(use_ehrenfest_md)
-  case('y')
-     Rion_update_rt = rion_update_on
-  case('n')
-     Rion_update_rt = rion_update_off
-  end select
 
 
 #ifdef ARTED_LBLK
   call opt_vars_init_t4ppt()
 #endif
 
-  if(comm_is_root(nproc_id_global)) then
-    write(*,*) 'This is the end of preparation for Real time calculation'
-    call timer_show_current_hour('elapse time=',LOG_ALL)
-    write(*,*) '-----------------------------------------------------------'
-  end if
+
+!reentrance
+2 if (restart_option == 'restart') then
+    position_option='append'
+  else if(restart_option == 'new')then
+
+    select case(use_ehrenfest_md)
+    case('y')
+      Rion_update_rt = rion_update_on
+    case('n')
+      Rion_update_rt = rion_update_off
+    end select
+
+    if(comm_is_root(nproc_id_global)) then
+      write(*,*) 'This is the end of preparation for Real time calculation'
+      call timer_show_current_hour('elapse time=',LOG_ALL)
+      write(*,*) '-----------------------------------------------------------'
+    end if
 
 !====RT calculation============================
 
-  call init_Ac
-  iter=0
-  do ixyz=1,3
-    kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
-  enddo
-  call current0(zu_t)
-  javt(0,:)=jav(:)
+    call init_Ac
+    iter=0
+    do ixyz=1,3
+      kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
+    enddo
+    call current0(zu_t)
+    javt(0,:)=jav(:)
 
-  Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
+    Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
 
-  rho_gs(:)=rho(:)
+    rho_gs(:)=rho(:)
 
-!reentrance
-2 if (entrance_option == 'reentrance') then
-    position_option='append'
-  else
     position_option='rewind'
     entrance_iter=-1
     call reset_rt_timer
-  end if
 
-  if (comm_is_root(nproc_id_global)) then
-    open(7,file=file_epst,position = position_option)
-    open(8,file=file_dns,position = position_option)
-    open(9,file=file_force_dR,position = position_option)
-    if (projection_option /= 'no') then 
-      open(404,file=file_ovlp,position = position_option) 
-      open(408,file=file_nex,position = position_option) 
-    end if
-    
+
+
     ! Export electronic density
     if (out_dns == 'y') then
       select case(format3d)
@@ -101,8 +93,21 @@ subroutine tddft_sc
         close(502)
       end select
     end if
+
+  end if
+
+
+  if (comm_is_root(nproc_id_global)) then
+    open(7,file=file_epst,position = position_option)
+    open(8,file=file_dns,position = position_option)
+    open(9,file=file_force_dR,position = position_option)
+    if (projection_option /= 'no') then 
+      open(404,file=file_ovlp,position = position_option) 
+      open(408,file=file_nex,position = position_option) 
+    end if
     
   endif
+
 
   call comm_sync_all
 
@@ -306,7 +311,7 @@ subroutine tddft_sc
         iter_now=iter
 !$acc update self(zu)
         call timer_end(LOG_DYNAMICS)
-        call prep_Reentrance_write
+        call prep_restart_write
         go to 1
       end if
     end if
@@ -318,7 +323,7 @@ subroutine tddft_sc
       call timer_end(LOG_DYNAMICS)
       call timer_end(LOG_ALL)
       iter_now=iter
-      call prep_Reentrance_write
+      call prep_restart_write
       call timer_begin(LOG_ALL)
       call timer_begin(LOG_DYNAMICS)
     end if

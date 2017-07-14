@@ -28,6 +28,7 @@ subroutine tddft_maxwell_ms
   use salmon_parallel
   use salmon_communication
   use misc_routines
+  use restart, only: prep_restart_write
 
   implicit none
   integer :: iter
@@ -36,59 +37,62 @@ subroutine tddft_maxwell_ms
   character(len=128) :: fmt
   
   real(8) calc_pulse_xcenter
+  logical :: flag_shutdown = .false.
 
-
-  select case(use_ehrenfest_md)
-  case('y')
-     Rion_update_rt = rion_update_on
-  case('n')
-     Rion_update_rt = rion_update_off
-  end select
 
 #ifdef ARTED_LBLK
   call opt_vars_init_t4ppt()
 #endif
 
-  if(comm_is_root(nproc_id_global)) then
-    write(*,*) 'This is the end of preparation for Real time calculation'
-    call timer_show_current_hour('elapse time=',LOG_ALL)
-    write(*,*) '-----------------------------------------------------------'
-  end if
+  if (restart_option == 'restart') then
+    position_option='asis'
+  else if(restart_option == 'new')then
+
+    select case(use_ehrenfest_md)
+    case('y')
+      Rion_update_rt = rion_update_on
+    case('n')
+      Rion_update_rt = rion_update_off
+    end select
+
+
+    if(comm_is_root(nproc_id_global)) then
+      write(*,*) 'This is the end of preparation for Real time calculation'
+      call timer_show_current_hour('elapse time=',LOG_ALL)
+      write(*,*) '-----------------------------------------------------------'
+    end if
 
 !====RT calculation============================
 
-  if (trim(FDTDdim) == '2DC') then
-    call init_Ac_ms_2dc()
-  else
-    call init_Ac_ms
-  endif
+    if (trim(FDTDdim) == '2DC') then
+      call init_Ac_ms_2dc()
+    else
+      call init_Ac_ms
+    endif
   
-  rho_gs(:)=rho(:)
-
-  Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
-
-  do ixy_m=NXY_s,NXY_e
-    zu_m(:,:,:,ixy_m)=zu_t(:,1:NBoccmax,:)
-  end do
-
-  if (NXYsplit /= 1) then
+    rho_gs(:)=rho(:)
+    
+    Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
+    
     do ixy_m=NXY_s,NXY_e
-      rho_m(:,ixy_m)=rho(:)
-      Vh_m(:,ixy_m)=Vh(:)
-      Vexc_m(:,ixy_m)=Vexc(:)
-      Eexc_m(:,ixy_m)=Eexc(:)
-      Vloc_m(:,ixy_m)=Vloc(:)
-      Vloc_old_m(:,:,ixy_m)=Vloc_old(:,:)
+      zu_m(:,:,:,ixy_m)=zu_t(:,1:NBoccmax,:)
     end do
-  end if
-
-  deallocate(zu_t)
+    
+    if (NXYsplit /= 1) then
+      do ixy_m=NXY_s,NXY_e
+        rho_m(:,ixy_m)=rho(:)
+        Vh_m(:,ixy_m)=Vh(:)
+        Vexc_m(:,ixy_m)=Vexc(:)
+        Eexc_m(:,ixy_m)=Eexc(:)
+        Vloc_m(:,ixy_m)=Vloc(:)
+        Vloc_old_m(:,:,ixy_m)=Vloc_old(:,:)
+      end do
+    end if
+    
+    deallocate(zu_t)
 
 !reentrance
-2 if (entrance_option == 'reentrance') then
-    position_option='asis'
-    if (use_ehrenfest_md /= 'y') Rion_update_rt = rion_update_off
-  else
+
     position_option='rewind'
     entrance_iter=-1
     call reset_rt_timer
@@ -193,7 +197,7 @@ subroutine tddft_maxwell_ms
     call comm_summation(jmatter_m_l,jmatter_m,3*NX_m*NY_m,nproc_group_global)
     j_m(:,1:NX_m,1:NY_m)=jmatter_m(:,1:NX_m,1:NY_m)
     if(mod(iter,10) == 1) then
-      call comm_bcast(reentrance_switch,nproc_group_global)
+      call comm_bcast(flag_shutdown,nproc_group_global)
     end if
     call timer_end(LOG_ALLREDUCE)
 
@@ -273,13 +277,13 @@ subroutine tddft_maxwell_ms
     end if
 
     call timer_begin(LOG_OTHER)
-    if (reentrance_switch == 1) then 
+    if (flag_shutdown) then 
       call comm_sync_all
       write(*,*) nproc_id_global,'iter =',iter
       iter_now=iter
 !$acc update self(zu)
       call timer_end(LOG_DYNAMICS)
-      call prep_Reentrance_write
+      call prep_restart_write
       go to 1
     end if
 
@@ -298,7 +302,7 @@ subroutine tddft_maxwell_ms
         write(*,*) 'Total time =',(Time_now-Time_start)
       end if
       if ((Time_now - Time_start)>Time_shutdown .and. Time_shutdown >= 0d0) then 
-        reentrance_switch=1
+        flag_shutdown =.true.
       end if
     end if
 ! sato ---------------------------------------
@@ -310,7 +314,7 @@ subroutine tddft_maxwell_ms
       call timer_end(LOG_DYNAMICS)
       call timer_end(LOG_ALL)
       iter_now=iter
-      call prep_Reentrance_write
+      call prep_restart_write
       call timer_begin(LOG_ALL)
       call timer_begin(LOG_DYNAMICS)
     end if

@@ -1,5 +1,5 @@
 !
-!  Copyright 2016 ARTED developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -13,7 +13,16 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
+module restart
+  implicit none
+  private
+  public :: prep_restart_read, &
+            prep_restart_write
+
+contains
 subroutine prep_backup_values(is_backup)
+  use salmon_global
+  use inputoutput
   use global_variables
   use timer,           only: timer_reentrance_read, timer_reentrance_write
   use opt_variables,   only: opt_vars_initialize_p1, opt_vars_initialize_p2
@@ -25,9 +34,10 @@ subroutine prep_backup_values(is_backup)
   logical, intent(in) :: is_backup
 
   integer, parameter :: iounit = 500
-  character(256)     :: reent_filename, dump_filename
+  character(256)     :: reent_filename
   real(8) :: beg_time, end_time
   integer :: gNt
+  integer :: i
 
 
   call comm_sync_all; beg_time = get_wtime()
@@ -39,19 +49,17 @@ subroutine prep_backup_values(is_backup)
       write(reent_filename,'(A,A,I6.6,A)') trim(SYSname),'_re_',iter_now,'.dat'
       write(dump_filename,'(A,A,A,I6.6)') 'dump_',trim(SYSname),'_',iter_now
       open(iounit, file=gen_filename(reent_filename))
-      write(iounit,"(A)") '&group_function'
-      write(iounit,"(A,A,A)") "cfunction='",trim(calc_mode),"'"
-      write(iounit,"(A)") '/'
       write(iounit,"(A)") '&control'
-      write(iounit,"(A)") "entrance_option = 'reentrance'  "
+      write(iounit,"(A)") "restart_option = 'restart'  "
       write(iounit,"(A,e26.16e3)") "Time_shutdown=",Time_shutdown
+      write(iounit,"(A)") "directory = '"//trim(directory)//"'  !directory"
+      write(iounit,"(A)") "dump_filename = '"//trim(dump_filename)//"'  !dump_filename"
       write(iounit,"(A)") '/'
-      write(iounit,"(A)") '&reentrance'
-      write(iounit,"(A)") "'"//trim(directory)//"'  !directory"
-      write(iounit,"(A)") "'"//trim(dump_filename)//"'  !dump_filename"
-      if(calc_mode == calc_mode_ms)then
-         write(iounit,'(I7,A)')Nt,'  ! Nt: If you want continuous execution, please change the value.'
-      end if
+      write(iounit,"(A)") '&tgrid'
+      write(iounit,'(A,I7,A)')"Nt = ",Nt,'  ! Nt: If you want continuous execution, please change the value.'
+      write(iounit,"(A)") '/'
+      write(iounit,"(A)") '&system'
+      write(iounit,"(A)") 'iperiodic = 3'
       write(iounit,"(A)") '/'
       close(iounit)
     end if
@@ -59,24 +67,213 @@ subroutine prep_backup_values(is_backup)
     open(iounit, status='replace', form='unformatted', file=gen_filename(dump_filename, nproc_id_global))
   else
     ! restore
-    if(comm_is_root(nproc_id_global)) then
-      open(iounit, file='.reenetrance.tmp', status='old')
-      read(iounit, *)directory
-      read(iounit, *)dump_filename
-      if(calc_mode == calc_mode_ms) read(iounit, *)gNt
-      close(iounit)
-
-    end if
-    call comm_bcast(directory, nproc_group_global)
-    call comm_bcast(dump_filename, nproc_group_global)
-    if(calc_mode == calc_mode_ms) call comm_bcast(gNt, nproc_group_global)
-
+    gNt = Nt
+    call comm_bcast(gNt, nproc_group_global)
+#ifdef ARTED_USE_FORTRAN2008
     write (process_directory,'(A,A,I5.5,A)') trim(directory),'/work_p',nproc_id_global,'/'
+#else
+    process_directory = trim(directory)
+#endif
     open(iounit, status='old', form='unformatted', file=gen_filename(dump_filename, nproc_id_global))
   end if
 
 !============= backup values ==============
 #define BACKUP(TARGET_VAR) call backup_value(is_backup, iounit, TARGET_VAR)
+
+! salmon_global
+  BACKUP(MI)
+  BACKUP(MKI)
+  do i = 1,maxMKI
+    BACKUP(ipsfileform(i))
+    BACKUP(ps_format(i))
+  end do
+  BACKUP(iflag_atom_coor)
+  BACKUP(calc_mode)
+  BACKUP(use_ehrenfest_md)
+  BACKUP(use_ms_maxwell)
+  BACKUP(use_force)
+  BACKUP(use_geometry_opt)
+!  BACKUP(restart_option)
+  BACKUP(backup_frequency)
+!  BACKUP(time_shutdown)
+  BACKUP(sysname)
+!  BACKUP(directory)
+!  BACKUP(dump_filename)
+  BACKUP(unit_time)
+  BACKUP(unit_length)
+  BACKUP(unit_energy)
+  BACKUP(unit_charge)
+  BACKUP(domain_parallel)
+  BACKUP(nproc_ob)
+  BACKUP(nproc_domain(1))
+  BACKUP(nproc_domain(2))
+  BACKUP(nproc_domain(3))
+  BACKUP(nproc_domain_s(1))
+  BACKUP(nproc_domain_s(2))
+  BACKUP(nproc_domain_s(3))
+  BACKUP(num_datafiles_in)
+  BACKUP(num_datafiles_out)
+!  BACKUP(iperiodic)
+  BACKUP(ispin)
+  BACKUP(al(1))
+  BACKUP(al(2))
+  BACKUP(al(3))
+  BACKUP(isym)
+  BACKUP(crystal_structure)
+  BACKUP(nstate)
+  BACKUP(nstate_spin(1))
+  BACKUP(nstate_spin(2))
+  BACKUP(nelec)
+  BACKUP(nelec_spin(1))
+  BACKUP(nelec_spin(2))
+  BACKUP(temperature)
+  BACKUP(nelem)
+  BACKUP(natom)
+  BACKUP(file_atom_coor)
+  BACKUP(file_atom_red_coor)
+  do i = 1,maxMKI
+    BACKUP(pseudo_file(i))
+    BACKUP(Lmax_ps(i))
+    BACKUP(Lloc_ps(i))
+    BACKUP(iZatom(i))
+  end do
+  BACKUP(psmask_option)
+  BACKUP(alpha_mask)
+  BACKUP(gamma_mask)
+  BACKUP(eta_mask)
+  BACKUP(xc)
+  BACKUP(cval)
+  BACKUP(dl(1))
+  BACKUP(dl(2))
+  BACKUP(dl(3))
+  BACKUP(num_rgrid(1))
+  BACKUP(num_rgrid(2))
+  BACKUP(num_rgrid(3))
+  BACKUP(num_kgrid(1))
+  BACKUP(num_kgrid(2))
+  BACKUP(num_kgrid(3))
+  BACKUP(file_kw)
+  BACKUP(nt)
+  BACKUP(dt)
+
+  BACKUP(n_hamil)
+  BACKUP(propagator)
+  BACKUP(amin_routine)
+  BACKUP(ncg)
+  BACKUP(amixing)
+  BACKUP(rmixrate)
+  BACKUP(nmemory_mb)
+  BACKUP(alpha_mb)
+  BACKUP(fsset_option)
+  BACKUP(nfsset_start)
+  BACKUP(nfsset_every)
+  BACKUP(nscf)
+  BACKUP(ngeometry_opt)
+  BACKUP(subspace_diagonalization)
+  BACKUP(convergence)
+  BACKUP(threshold)
+  BACKUP(threshold_pot)
+  BACKUP(trans_longi)
+  BACKUP(ae_shape1)
+  BACKUP(amplitude1)
+  BACKUP(rlaser_int1)
+  BACKUP(pulse_tw1)
+  BACKUP(omega1)
+  BACKUP(epdir_re1(1))
+  BACKUP(epdir_re1(2))
+  BACKUP(epdir_re1(3))
+  BACKUP(epdir_im1(1))
+  BACKUP(epdir_im1(2))
+  BACKUP(epdir_im1(3))
+  BACKUP(phi_cep1)
+  BACKUP(ae_shape2)
+  BACKUP(amplitude2)
+  BACKUP(rlaser_int2)
+  BACKUP(pulse_tw2)
+  BACKUP(omega2)
+  BACKUP(epdir_re2(1))
+  BACKUP(epdir_re2(2))
+  BACKUP(epdir_re2(3))
+  BACKUP(epdir_im2(1))
+  BACKUP(epdir_im2(2))
+  BACKUP(epdir_im2(3))
+  BACKUP(phi_cep2)
+  BACKUP(t1_t2)
+  BACKUP(quadrupole)
+  BACKUP(quadrupole_pot)
+  BACKUP(alocal_laser)
+  BACKUP(rlaserbound_sta(1))
+  BACKUP(rlaserbound_sta(2))
+  BACKUP(rlaserbound_sta(3))
+  BACKUP(rlaserbound_end(1))
+  BACKUP(rlaserbound_end(2))
+  BACKUP(rlaserbound_end(3))
+  BACKUP(e_impulse)
+  BACKUP(fdtddim)
+  BACKUP(twod_shape)
+  BACKUP(nx_m)
+  BACKUP(ny_m)
+  BACKUP(nz_m)
+  BACKUP(hx_m)
+  BACKUP(hy_m)
+  BACKUP(hz_m)
+  BACKUP(nksplit)
+  BACKUP(nxysplit)
+  BACKUP(nxvacl_m)
+  BACKUP(nxvacr_m)
+  BACKUP(projection_option)
+  BACKUP(nenergy)
+  BACKUP(de)
+  BACKUP(out_psi)
+  BACKUP(out_dos)
+  BACKUP(out_pdos)
+  BACKUP(out_dns)
+  BACKUP(out_elf)
+  BACKUP(out_dns_rt)
+  BACKUP(out_dns_rt_step)
+  BACKUP(out_elf_rt)
+  BACKUP(out_elf_rt_step)
+  BACKUP(out_estatic_rt)
+  BACKUP(out_estatic_rt_step)
+  BACKUP(format3d)
+  BACKUP(numfiles_out_3d)
+  BACKUP(meo)
+  BACKUP(num_pole_xyz(1))
+  BACKUP(num_pole_xyz(2))
+  BACKUP(num_pole_xyz(3))
+  BACKUP(newald)
+  BACKUP(aewald)
+  BACKUP(Kion)
+  BACKUP(Rion)
+  BACKUP(Rion_red)
+  BACKUP(flag_geo_opt_atom)
+! inputoutput
+  BACKUP(iflag_unit_time)
+  BACKUP(utime_to_au)
+  BACKUP(utime_from_au)
+  BACKUP(iflag_unit_length)
+  BACKUP(ulength_to_au)
+  BACKUP(ulength_from_au)
+  BACKUP(iflag_unit_energy)
+  BACKUP(uenergy_to_au)
+  BACKUP(uenergy_from_au)
+  BACKUP(iflag_unit_charge)
+  BACKUP(ucharge_to_au)
+  BACKUP(ucharge_from_au)
+  BACKUP(t_unit_energy%name)
+  BACKUP(t_unit_energy%conv)
+  BACKUP(t_unit_energy_inv%name)
+  BACKUP(t_unit_energy_inv%conv)
+  BACKUP(t_unit_time%name)
+  BACKUP(t_unit_time%conv)
+  BACKUP(t_unit_time_inv%name)
+  BACKUP(t_unit_time_inv%conv)
+  BACKUP(t_unit_current%name)
+  BACKUP(t_unit_current%conv)
+  BACKUP(t_unit_ac%name)
+  BACKUP(t_unit_ac%conv)
+
+!! global_variables of ARTED
 
   BACKUP(iter_now)
   BACKUP(entrance_iter)
@@ -94,7 +291,6 @@ subroutine prep_backup_values(is_backup)
   BACKUP(Sym)
   BACKUP(nGzero)
   BACKUP(NKxyz)
-!  BACKUP(aL) ! temporary removed since non-allocatable array is not supported yet.
   BACKUP(aLx)
   BACKUP(aLy)
   BACKUP(aLz)
@@ -127,10 +323,6 @@ subroutine prep_backup_values(is_backup)
 
 ! pseudopotential
   BACKUP(ps_type)
-  BACKUP(PSmask_option)
-  BACKUP(alpha_mask)
-  BACKUP(gamma_mask)
-  BACKUP(eta_mask)
   BACKUP(Nps)
   BACKUP(Nlma)
   BACKUP(Mps)
@@ -165,8 +357,6 @@ subroutine prep_backup_values(is_backup)
   BACKUP(NBoccmax)
   BACKUP(Ne_tot)
   BACKUP(Zatom)
-  BACKUP(Kion)
-  BACKUP(Rion)
   BACKUP(Mass)
   BACKUP(Rion_eq)
   BACKUP(dRion)
@@ -223,6 +413,8 @@ subroutine prep_backup_values(is_backup)
 
 ! Nonlinear core correction
   BACKUP(flag_nlcc)
+  BACKUP(rho_nlcc_tbl)
+  BACKUP(tau_nlcc_tbl)
   BACKUP(rho_nlcc)
   BACKUP(tau_nlcc)
 
@@ -253,7 +445,7 @@ subroutine prep_backup_values(is_backup)
 !  BACKUP(AE_shape)
   BACKUP(f0_1)
   BACKUP(f0_2)
-  BACKUP(T1_T2)
+  BACKUP(T1_T2fs)
   BACKUP(E_ext)
   BACKUP(E_ind)
   BACKUP(E_tot)
@@ -265,23 +457,11 @@ subroutine prep_backup_values(is_backup)
   BACKUP(Ac_tot)
 
 ! control parameters
-  BACKUP(NEwald)
-  BACKUP(aEwald)
-  BACKUP(Ncg)
-  BACKUP(dt)
   BACKUP(dAc)
   BACKUP(domega)
-  BACKUP(Nscf)
-  BACKUP(Nt)
   BACKUP(Nomega)
-  BACKUP(Nmemory_MB)
-  BACKUP(alpha_MB)
-  BACKUP(NFSset_start)
-  BACKUP(NFSset_every)
 
 ! file names, flags, etc
-  BACKUP(SYSname)
-  BACKUP(directory)
   BACKUP(file_GS)
   BACKUP(file_RT)
   BACKUP(file_epst)
@@ -299,14 +479,10 @@ subroutine prep_backup_values(is_backup)
   BACKUP(file_ac_vac_back)
   BACKUP(file_ac_m)
   BACKUP(file_ac)
+  BACKUP(file_ac_init)
+  BACKUP(process_directory)
 
-  BACKUP(trans_longi)
-  BACKUP(FSset_option)
-  BACKUP(use_ehrenfest_md)
-  BACKUP(projection_option)
   BACKUP(functional)
-  BACKUP(cval)
-  BACKUP(propagator)
 
   BACKUP(NK_ave)
   BACKUP(NG_ave)
@@ -339,7 +515,6 @@ subroutine prep_backup_values(is_backup)
   BACKUP(j_s_l_omp)
 
 ! sym
-  BACKUP(crystal_structure)
   BACKUP(itable_sym)
   BACKUP(rho_l)
   BACKUP(rho_tmp1)
@@ -349,21 +524,11 @@ subroutine prep_backup_values(is_backup)
   BACKUP(KbTev)
 
 ! multi scale
-  BACKUP(FDTDdim)
-  BACKUP(TwoD_shape)
   BACKUP(NXY_s)
   BACKUP(NXY_e)
-  BACKUP(NKsplit)
-  BACKUP(NXYsplit)
   BACKUP(macRANK)
   BACKUP(kRANK)
 
-  BACKUP(HX_m)
-  BACKUP(HY_m)
-  BACKUP(NX_m)
-  BACKUP(NXvacL_m)
-  BACKUP(NXvacR_m)
-  BACKUP(NY_m)
   BACKUP(NYvacT_m)
   BACKUP(NYvacB_m)
   BACKUP(Ac_m)
@@ -401,10 +566,13 @@ subroutine prep_backup_values(is_backup)
   BACKUP(data_local_jm)
   BACKUP(data_vac_Ac)
   BACKUP(Nstep_write)
+  BACKUP(ndata_out)
+  BACKUP(Ndata_out_per_proc)
 
-
-  BACKUP(backup_frequency)
   BACKUP(need_backup)
+
+  BACKUP(iflag_calc_mode)
+  BACKUP(Rion_update_rt)
 
   if (is_backup) then
     call timer_reentrance_write(iounit)
@@ -416,13 +584,15 @@ subroutine prep_backup_values(is_backup)
 
 ! initialize
   if (.not. is_backup) then
-    nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
-    call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
+    if(use_ms_maxwell == 'y')then
+      nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
+      call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
+    end if
 
     call opt_vars_initialize_p1
     call opt_vars_initialize_p2
 
-    if(calc_mode == calc_mode_ms)then
+!    if(calc_mode == calc_mode_ms)then
   ! continuous execution (is available only multi-scale mode)
       if (gNt /= Nt) then
         if (comm_is_root(nproc_id_global)) then
@@ -433,7 +603,7 @@ subroutine prep_backup_values(is_backup)
         Ndata_out_per_proc = Ndata_out / nproc_size_global
         call resize_arrays
       end if
-    end if
+!    end if
   end if
 
   call comm_sync_all; end_time = get_wtime()
@@ -510,7 +680,7 @@ contains
     deallocate(tmp2)
 
     ! Ac_ext
-    mt = min(Nt+1, ubound(Ac_ind, 1))
+    mt = min(Nt+1, ubound(Ac_ext, 1))
     allocate(tmp2(-1:Nt+1,3))
     tmp2(:,:) = 0.d0
     tmp2(-1:mt,:) = Ac_ext(-1:mt,:)
@@ -581,14 +751,16 @@ contains
   end subroutine
 end subroutine
 
-subroutine prep_Reentrance_Read
+subroutine prep_restart_read
   implicit none
   call prep_backup_values(.FALSE.)
 end subroutine
 
-subroutine prep_Reentrance_Write
+subroutine prep_restart_write
   use global_variables, only: iter_now, entrance_iter
   implicit none
   entrance_iter = iter_now
   call prep_backup_values(.TRUE.)
 end subroutine
+
+end module restart

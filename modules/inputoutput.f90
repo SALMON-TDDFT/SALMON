@@ -107,6 +107,7 @@ contains
 
     call read_stdin
     call read_input_common ! Should be renamed properly later
+    if(restart_option == 'restart')return
     call read_atomic_coordinates
     call dump_input_common ! Should be renamed properly later
 
@@ -201,7 +202,8 @@ contains
       & backup_frequency, &
       & time_shutdown, &
       & sysname, &
-      & directory
+      & directory, &
+      & dump_filename
 
     namelist/units/ &
       & unit_time, &
@@ -382,6 +384,7 @@ contains
     time_shutdown    = -1d0
     sysname          = 'default'
     directory        = './'
+    dump_filename    = 'default'
 !! == default for &parallel
     domain_parallel   = 'n'
     nproc_ob          = 0
@@ -578,6 +581,7 @@ contains
     call comm_bcast(time_shutdown   ,nproc_group_global)
     call comm_bcast(sysname         ,nproc_group_global)
     call comm_bcast(directory       ,nproc_group_global)
+    call comm_bcast(dump_filename   ,nproc_group_global)
 !! == bcast for &parallel
     call comm_bcast(domain_parallel  ,nproc_group_global)
     call comm_bcast(nproc_ob         ,nproc_group_global)
