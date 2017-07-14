@@ -18,17 +18,17 @@ subroutine check_ae_shape
   implicit none
 
   select case(ae_shape1)
-  case("impulse","ecos2","acos2")
+  case("impulse","Ecos2","Acos2")
     continue
   case default
-    stop 'set ae_shape1 to "impulse", "ecos2", or "acos2"'
+    stop 'set ae_shape1 to "impulse", "Ecos2", or "Acos2"'
   end select 
 
   select case(ae_shape2)
-  case("none","impulse","ecos2","acos2")
+  case("none","impulse","Ecos2","Acos2")
     continue
   case default 
-    stop 'set ae_shape2 to "none", "impulse", "ecos2", or "acos2"'
+    stop 'set ae_shape2 to "none", "impulse", "Ecos2", or "Acos2"'
   end select 
 
 end subroutine check_ae_shape
