@@ -12,6 +12,7 @@ set(SOURCES
     read_input_rt.f90
     read_rt.f90
     real_time_dft.f90
+    set_numcpu_rt.f90
     taylor_coe.f90
     taylor.f90
     time_evolution_step.f90
