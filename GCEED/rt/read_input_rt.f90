@@ -97,9 +97,6 @@ if(iwrite_projection==1.and.itwproj==-1)then
 end if
 
 !===== namelist for group_parallel =====
-!nproc_ob=0
-nproc_Mxin(1:3)=0
-nproc_Mxin_s(1:3)=0
 isequential=2
 imesh_s_all=1
 iflag_comm_rho=1
@@ -112,28 +109,21 @@ if(comm_is_root(nproc_id_global))then
   end if
 end if
 
-nproc_Mxin = nproc_domain
-nproc_Mxin_s = nproc_domain_s
-
-call comm_bcast(nproc_ob,          nproc_group_global)
-call comm_bcast(nproc_Mxin,        nproc_group_global)
-call comm_bcast(nproc_Mxin_s,      nproc_group_global)
 call comm_bcast(isequential,       nproc_group_global)
 call comm_bcast(num_datafiles_IN,  nproc_group_global)
 call comm_bcast(num_datafiles_OUT, nproc_group_global)
 call comm_bcast(imesh_s_all,       nproc_group_global)
 call comm_bcast(iflag_comm_rho,    nproc_group_global)
-if(comm_is_root(nproc_id_global).and.nproc_ob==0)then
-  write(*,*) "set nproc_ob."
-  stop
-else if(comm_is_root(nproc_id_global).and.nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)==0)then
-  write(*,*) "set nproc_Mxin."
-  stop
-else if(comm_is_root(nproc_id_global).and.nproc_Mxin_s(1)*nproc_Mxin_s(2)*nproc_Mxin_s(3)==0)then
-  write(*,*) "set nproc_Mxin_s."
-  stop
+
+nproc_Mxin = nproc_domain
+nproc_Mxin_s = nproc_domain_s
+
+if(nproc_ob==0.and.nproc_mxin(1)==0.and.nproc_mxin(2)==0.and.nproc_mxin(3)==0.and.  &
+                   nproc_mxin_s(1)==0.and.nproc_mxin_s(2)==0.and.nproc_mxin_s(3)==0) then
+  call set_numcpu_rt
+else
+  call check_numcpu
 end if
-call check_numcpu
 
 nproc_Mxin_mul=nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)

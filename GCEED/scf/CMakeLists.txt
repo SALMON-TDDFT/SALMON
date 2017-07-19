@@ -14,6 +14,7 @@ set(SOURCES
     real_space_dft.f90
     rmmdiis_eigen.f90
     rmmdiis.f90
+    set_numcpu_scf.f90
     simple_mixing.f90
     structure_opt.f90
     subdgemm_lapack.f90

@@ -9,11 +9,6 @@
 &control
   sysname = 'C2H2'
 /
-&parallel
-  nproc_ob = 1
-  nproc_domain = 1,1,1
-  nproc_domain_s = 1,1,1
-/
 &system
   iperiodic = 0
   al = 16d0, 16d0, 16d0
