@@ -10,4 +10,5 @@ set(SOURCES
     Fermi_Dirac_distribution.f90
     )
 
-add_library(${GS_LIB} STATIC ${SOURCES})
+add_library(${ARTED_GS_LIB} STATIC ${SOURCES})
+add_dependencies(${ARTED_GS_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB} ${ARTED_COMMON_LIB})

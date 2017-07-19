@@ -20,4 +20,5 @@ set(SOURCES
     xc_fast.f90
     )
 
-add_library(${RT_LIB} ${SOURCES})
+add_library(${GCEED_RT_LIB} ${SOURCES})
+add_dependencies(${GCEED_RT_LIB} ${SALMON_MODULE_LIB} ${GCEED_MODULE_LIB} ${GCEED_SCF_LIB})

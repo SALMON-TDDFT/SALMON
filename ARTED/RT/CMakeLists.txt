@@ -21,4 +21,5 @@ else ()
   set(SOURCES ${SOURCES} ${SOURCES_OMP})
 endif ()
 
-add_library(${RT_LIB} STATIC ${SOURCES})
+add_library(${ARTED_RT_LIB} STATIC ${SOURCES})
+add_dependencies(${ARTED_RT_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB} ${ARTED_COMMON_LIB})

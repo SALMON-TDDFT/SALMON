@@ -27,4 +27,5 @@ set(SOURCES
     )
   #  share_mesh_1d_old.f90
 
-add_library(${MODULE_LIB} ${SOURCES})
+add_library(${GCEED_MODULE_LIB} ${SOURCES})
+add_dependencies(${GCEED_MODULE_LIB} ${SALMON_MODULE_LIB} ${GCEED_MISC_LIB})

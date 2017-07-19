@@ -140,22 +140,29 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/workaround.cmake)
 
 
 ### Build target
-set(CORE_LIB src/core)
-set(ARTED_LIB ARTED)
-set(GCEED_LIB GCEED)
-set(SALMON_MODULE_LIB modules)
+set(SALMON_CORE_LIB   "salmon_core")
+set(SALMON_MODULE_LIB "salmon_module")
+set(ARTED_LIB         "arted_rtl")
+set(GCEED_LIB         "gceed_rtl")
 
-add_subdirectory(${ARTED_LIB})
-add_subdirectory(${GCEED_LIB})
-add_subdirectory(${CORE_LIB})
-add_subdirectory(${SALMON_MODULE_LIB})
+### Build target directories
+set(SALMON_CORE_LIB_DIR   "./src/core")
+set(SALMON_MODULE_LIB_DIR "./modules/")
+set(ARTED_LIB_DIR         "./ARTED/")
+set(GCEED_LIB_DIR         "./GCEED/")
 
-add_executable(${TARGET_NAME}
-               main/main.f90
-               )
 
-add_dependencies(${TARGET_NAME} ${SALMON_LINK_LIBRARIES})
+add_subdirectory(${ARTED_LIB_DIR})
+add_subdirectory(${GCEED_LIB_DIR})
+add_subdirectory(${SALMON_CORE_LIB_DIR})
+add_subdirectory(${SALMON_MODULE_LIB_DIR})
+
+
+# Executable binary
+add_executable(${TARGET_NAME} main/main.f90)
 target_link_libraries(${TARGET_NAME} ${SALMON_LINK_LIBRARIES} ${EXTERNAL_LIBS})
+add_dependencies(${TARGET_NAME} ${SALMON_LINK_LIBRARIES})
+
 
 message(STATUS "Enabled macro")
 get_directory_property(MACRO_LOG COMPILE_DEFINITIONS)

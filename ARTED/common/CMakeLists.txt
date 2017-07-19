@@ -15,4 +15,5 @@ if (ENABLE_OPENACC)
   set(SOURCES ${SOURCES} acc/hpsi.f90)
 endif ()
 
-add_library(${COMMON_LIB} STATIC ${SOURCES})
+add_library(${ARTED_COMMON_LIB} STATIC ${SOURCES})
+add_dependencies(${ARTED_COMMON_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB})

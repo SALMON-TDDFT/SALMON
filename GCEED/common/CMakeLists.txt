@@ -54,4 +54,5 @@ set(SOURCES
     ylm.f90
     )
 
-add_library(${COMMON_LIB} ${SOURCES})
+add_library(${GCEED_COMMON_LIB} ${SOURCES})
+add_dependencies(${GCEED_COMMON_LIB} ${SALMON_MODULE_LIB} ${GCEED_MODULE_LIB})

@@ -4,4 +4,4 @@ set(SOURCES
     setng.f90
     )
 
-  add_library(${MISC_LIB} ${SOURCES})
+add_library(${GCEED_MISC_LIB} ${SOURCES})

@@ -6,4 +6,5 @@ set(SOURCES
     prep_ps.f90
     )
 
-add_library(${PREP_LIB} STATIC ${SOURCES})
+add_library(${ARTED_PREP_LIB} STATIC ${SOURCES})
+add_dependencies(${ARTED_PREP_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB})

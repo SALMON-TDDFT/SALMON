@@ -7,7 +7,7 @@ set(SOURCES
     )
 
 add_executable(${TARGET} EXCLUDE_FROM_ALL ${SOURCES})
-add_dependencies(${TARGET} ${MODULE_LIB} ${COMMON_LIB} ${RT_LIB} ${STENCIL_LIB})
-target_link_libraries(${TARGET} ${MODULE_LIB} ${COMMON_LIB} ${RT_LIB} ${STENCIL_LIB})
+add_dependencies(${TARGET} ${ARTED_MODULE_LIB} ${ARTED_COMMON_LIB} ${ARTED_RT_LIB} ${ARTED_STENCIL_LIB})
+target_link_libraries(${TARGET} ${ARTED_MODULE_LIB} ${ARTED_COMMON_LIB} ${ARTED_RT_LIB} ${ARTED_STENCIL_LIB})
 
 add_custom_target(stencilperf DEPENDS ${TARGET})
