@@ -47,4 +47,5 @@ else ()
   set(SOURCES ${SOURCES_OMP})
 endif ()
 
-add_library(${STENCIL_LIB} STATIC ${SOURCES})
+add_library(${ARTED_STENCIL_LIB} STATIC ${SOURCES})
+add_dependencies(${ARTED_STENCIL_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB})

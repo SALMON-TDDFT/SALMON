@@ -1,39 +1,30 @@
-set(GCEED_LIB      gceed)
-set(MODULE_LIBDIR  modules)
-set(MISC_LIBDIR    misc)
-set(COMMON_LIBDIR  common)
-set(SCF_LIBDIR     scf)
-set(RT_LIBDIR      rt)
+set(GCEED_MODULE_LIB_DIR  modules)
+set(GCEED_MISC_LIB_DIR    misc)
+set(GCEED_COMMON_LIB_DIR  common)
+set(GCEED_SCF_LIB_DIR     scf)
+set(GCEED_RT_LIB_DIR      rt)
 
-set(MODULE_LIB  ${GCEED_LIB}_${MODULE_LIBDIR})
-set(MISC_LIB    ${GCEED_LIB}_${MISC_LIBDIR})
-set(COMMON_LIB  ${GCEED_LIB}_${COMMON_LIBDIR})
-set(SCF_LIB     ${GCEED_LIB}_${SCF_LIBDIR})
-set(RT_LIB      ${GCEED_LIB}_${RT_LIBDIR})
+set(GCEED_MODULE_LIB  ${GCEED_LIB}_${GCEED_MODULE_LIB_DIR})
+set(GCEED_MISC_LIB    ${GCEED_LIB}_${GCEED_MISC_LIB_DIR})
+set(GCEED_COMMON_LIB  ${GCEED_LIB}_${GCEED_COMMON_LIB_DIR})
+set(GCEED_SCF_LIB     ${GCEED_LIB}_${GCEED_SCF_LIB_DIR})
+set(GCEED_RT_LIB      ${GCEED_LIB}_${GCEED_RT_LIB_DIR})
 
+add_subdirectory(${GCEED_MODULE_LIB_DIR})
+add_subdirectory(${GCEED_MISC_LIB_DIR})
+add_subdirectory(${GCEED_COMMON_LIB_DIR})
+add_subdirectory(${GCEED_SCF_LIB_DIR})
+add_subdirectory(${GCEED_RT_LIB_DIR})
 
-### Build target
-add_subdirectory(${MODULE_LIBDIR})
-add_subdirectory(${MISC_LIBDIR})
-add_subdirectory(${COMMON_LIBDIR})
-add_subdirectory(${SCF_LIBDIR})
-add_subdirectory(${RT_LIBDIR})
 add_library(${GCEED_LIB} STATIC gceed.f90 read_input_gceed.f90)
+add_dependencies(${GCEED_LIB} ${SALMON_MODULE_LIB} ${GCEED_MODULE_LIB} ${GCEED_COMMON_LIB} ${GCEED_SCF_LIB} ${GCEED_RT_LIB})
 
-add_dependencies(${MODULE_LIB} ${MISC_LIB})
-add_dependencies(${COMMON_LIB} ${MODULE_LIB})
-add_dependencies(${SCF_LIB}    ${MODULE_LIB})
-add_dependencies(${RT_LIB}     ${MODULE_LIB} ${SCF_LIB})
-add_dependencies(${GCEED_LIB}  ${MODULE_LIB} ${COMMON_LIB} ${SCF_LIB} ${RT_LIB})
-
-
-set(LIBRARIES
+list(APPEND SALMON_LINK_LIBRARIES
     ${GCEED_LIB}
-    ${RT_LIB}
-    ${SCF_LIB}
-    ${COMMON_LIB}
-    ${MODULE_LIB}
-    ${MISC_LIB}
+    ${GCEED_RT_LIB}
+    ${GCEED_SCF_LIB}
+    ${GCEED_COMMON_LIB}
+    ${GCEED_MODULE_LIB}
+    ${GCEED_MISC_LIB}
     )
-list(APPEND SALMON_LINK_LIBRARIES ${LIBRARIES})
 set(SALMON_LINK_LIBRARIES ${SALMON_LINK_LIBRARIES} PARENT_SCOPE)

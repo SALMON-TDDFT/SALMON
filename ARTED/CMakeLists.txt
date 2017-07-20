@@ -1,47 +1,45 @@
-set(ARTED_LIB     arted)
-set(MODULE_LIB    modules)
-set(PREP_LIB      preparation)
-set(GS_LIB        GS)
-set(RT_LIB        RT)
-set(COMMON_LIB    common)
-set(STENCIL_LIB   stencil)
-set(FDTD_LIB      FDTD)
-set(PERFCHECK_EXT perfcheck)
-set(CONTROL_LIB   control)
+set(ARTED_MODULE_LIB_DIR    modules)
+set(ARTED_PREP_LIB_DIR      preparation)
+set(ARTED_GS_LIB_DIR        GS)
+set(ARTED_RT_LIB_DIR        RT)
+set(ARTED_COMMON_LIB_DIR    common)
+set(ARTED_STENCIL_LIB_DIR   stencil)
+set(ARTED_FDTD_LIB_DIR      FDTD)
+set(ARTED_CONTROL_LIB_DIR   control)
+set(ARTED_PERFCHECK_EXT_DIR perfcheck)
 
+set(ARTED_MODULE_LIB    ${ARTED_LIB}_${ARTED_MODULE_LIB_DIR})
+set(ARTED_PREP_LIB      ${ARTED_LIB}_${ARTED_PREP_LIB_DIR})
+set(ARTED_GS_LIB        ${ARTED_LIB}_${ARTED_GS_LIB_DIR})
+set(ARTED_RT_LIB        ${ARTED_LIB}_${ARTED_RT_LIB_DIR})
+set(ARTED_COMMON_LIB    ${ARTED_LIB}_${ARTED_COMMON_LIB_DIR})
+set(ARTED_STENCIL_LIB   ${ARTED_LIB}_${ARTED_STENCIL_LIB_DIR})
+set(ARTED_FDTD_LIB      ${ARTED_LIB}_${ARTED_FDTD_LIB_DIR})
+set(ARTED_CONTROL_LIB   ${ARTED_LIB}_${ARTED_CONTROL_LIB_DIR})
+set(ARTED_PERFCHECK_EXT ${ARTED_LIB}_${ARTED_PERFCHECK_EXT_DIR})
 
-### Build target
-add_subdirectory(${MODULE_LIB})
-add_subdirectory(${PREP_LIB})
-add_subdirectory(${GS_LIB})
-add_subdirectory(${RT_LIB})
-add_subdirectory(${COMMON_LIB})
-add_subdirectory(${STENCIL_LIB})
-add_subdirectory(${PERFCHECK_EXT})
-add_subdirectory(${FDTD_LIB})
-add_subdirectory(${CONTROL_LIB})
+add_subdirectory(${ARTED_MODULE_LIB_DIR})
+add_subdirectory(${ARTED_PREP_LIB_DIR})
+add_subdirectory(${ARTED_GS_LIB_DIR})
+add_subdirectory(${ARTED_RT_LIB_DIR})
+add_subdirectory(${ARTED_COMMON_LIB_DIR})
+add_subdirectory(${ARTED_STENCIL_LIB_DIR})
+add_subdirectory(${ARTED_FDTD_LIB_DIR})
+add_subdirectory(${ARTED_CONTROL_LIB_DIR})
+add_subdirectory(${ARTED_PERFCHECK_EXT_DIR})
+
 add_library(${ARTED_LIB} STATIC main.f90)
+add_dependencies(${ARTED_LIB} ${SALMON_MODULE_LIB} ${ARTED_CONTROL_LIB})
 
-add_dependencies(${PREP_LIB}    ${MODULE_LIB})
-add_dependencies(${GS_LIB}      ${MODULE_LIB} ${COMMON_LIB})
-add_dependencies(${RT_LIB}      ${MODULE_LIB} ${COMMON_LIB})
-add_dependencies(${COMMON_LIB}  ${MODULE_LIB})
-add_dependencies(${STENCIL_LIB} ${MODULE_LIB})
-add_dependencies(${FDTD_LIB}    ${MODULE_LIB})
-add_dependencies(${CONTROL_LIB} ${MODULE_LIB} ${PREP_LIB} ${GS_LIB} ${RT_LIB} ${COMMON_LIB} ${STENCIL_LIB} ${FDTD_LIB})
-add_dependencies(${ARTED_LIB}   ${CONTROL_LIB})
-
-
-set(LIBRARIES
+list(APPEND SALMON_LINK_LIBRARIES
     ${ARTED_LIB}
-    ${CONTROL_LIB}
-    ${PREP_LIB}
-    ${GS_LIB}
-    ${RT_LIB}
-    ${COMMON_LIB}
-    ${STENCIL_LIB}
-    ${MODULE_LIB}
-    ${FDTD_LIB}
+    ${ARTED_CONTROL_LIB}
+    ${ARTED_PREP_LIB}
+    ${ARTED_GS_LIB}
+    ${ARTED_RT_LIB}
+    ${ARTED_COMMON_LIB}
+    ${ARTED_STENCIL_LIB}
+    ${ARTED_MODULE_LIB}
+    ${ARTED_FDTD_LIB}
     )
-list(APPEND SALMON_LINK_LIBRARIES ${LIBRARIES})
 set(SALMON_LINK_LIBRARIES ${SALMON_LINK_LIBRARIES} PARENT_SCOPE)

@@ -22,4 +22,5 @@ set(SOURCES
     ybcg.f90
     )
 
-add_library(${SCF_LIB} ${SOURCES})
+add_library(${GCEED_SCF_LIB} ${SOURCES})
+add_dependencies(${GCEED_SCF_LIB} ${SALMON_MODULE_LIB} ${GCEED_MODULE_LIB})
