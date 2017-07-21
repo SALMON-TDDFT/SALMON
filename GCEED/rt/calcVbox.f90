@@ -78,8 +78,9 @@ SUBROUTINE calcVbox
   else
     if(quadrupole=='y')then
       if(comm_is_root(nproc_id_global))then
-        write(191,*) dt*itt*0.0241889d0, amplitude1         &
-                        *cos(omega1*(dble(itt)*dt-0.5d0*pulse_tw1)+phi_cep1*2d0*pi)*sin(Pi*dble(itt)*dt/pulse_tw1)**2 
+        ipulse=1
+        call calc_env_trigon(ipulse,env_trigon_1)
+        write(191,*) dt*itt*0.0241889d0, amplitude1*env_trigon_1
       end if
       if(quadrupole_pot=='sum')then
         ipulse=1
