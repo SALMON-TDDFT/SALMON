@@ -864,7 +864,7 @@ Default is <code>0.5</code>.
 
 </dl>
 
-<dt> Following variables are moved from the isolated part. Some of them may be added to common input, be combined to it, and be removed. </dt>
+**Following variables are moved from the isolated part. Some of them may be added to common input, be combined to it, and be removed.**
 
 ## &group_fundamental
 <dl>
