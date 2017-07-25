@@ -174,6 +174,12 @@ module salmon_global
   real(8)        :: de
   character(1)   :: out_psi
   character(1)   :: out_dos
+  real(8)        :: out_dos_start
+  real(8)        :: out_dos_end
+  integer        :: out_dos_nenergy
+  real(8)        :: out_dos_smearing
+  character(16)  :: out_dos_method
+  character(1)   :: out_dos_fshift
   character(1)   :: out_pdos
   character(1)   :: out_dns
   character(1)   :: out_elf

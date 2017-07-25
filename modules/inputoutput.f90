@@ -335,6 +335,12 @@ contains
       & out_dos, &
       & out_pdos, &
       & out_dns, &
+      & out_dos_start, &
+      & out_dos_end, &
+      & out_dos_nenergy, &
+      & out_dos_smearing, &
+      & out_dos_method, &
+      & out_dos_fshift, &
       & out_elf, &
       & out_dns_rt, &
       & out_dns_rt_step, &
@@ -551,6 +557,12 @@ contains
     de                  = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
     out_psi             = 'n'
     out_dos             = 'n'
+    out_dos_start       = -3.00d0 / au_energy_ev * uenergy_from_au
+    out_dos_end         = +3.00d0 / au_energy_ev * uenergy_from_au
+    out_dos_nenergy     = 601
+    out_dos_smearing    = 0.1d0 / au_energy_ev * uenergy_from_au
+    out_dos_method      = 'gaussian'
+    out_dos_fshift      = 'n'
     out_pdos            = 'n'
     out_dns             = 'n'
     out_elf             = 'n'
@@ -826,6 +838,15 @@ contains
     de = de * uenergy_to_au
     call comm_bcast(out_psi            ,nproc_group_global)
     call comm_bcast(out_dos            ,nproc_group_global)
+    call comm_bcast(out_dos_start      ,nproc_group_global)
+    out_dos_start = out_dos_start * uenergy_to_au
+    call comm_bcast(out_dos_end        ,nproc_group_global)
+    out_dos_end = out_dos_end * uenergy_to_au
+    call comm_bcast(out_dos_nenergy    ,nproc_group_global)
+    call comm_bcast(out_dos_smearing   ,nproc_group_global)
+    out_dos_smearing = out_dos_smearing * uenergy_to_au
+    call comm_bcast(out_dos_method     ,nproc_group_global)
+    call comm_bcast(out_dos_fshift     ,nproc_group_global)
     call comm_bcast(out_pdos           ,nproc_group_global)
     call comm_bcast(out_dns            ,nproc_group_global)
     call comm_bcast(out_elf            ,nproc_group_global)
@@ -1296,6 +1317,12 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'de', de
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_psi', out_psi
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dos', out_dos
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'out_dos_start', out_dos_start
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'out_dos_end', out_dos_end
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_dos_nenergy', out_dos_nenergy
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'out_dos_smearing', out_dos_smearing
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dos_method', out_dos_method
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dos_fshift', out_dos_fshift
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_pdos', out_pdos
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns', out_dns
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
@@ -1414,6 +1441,3 @@ contains
   end subroutine dump_input_common
     
 end module inputoutput
-
-
-

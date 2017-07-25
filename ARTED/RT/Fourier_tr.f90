@@ -43,7 +43,7 @@ Subroutine Fourier_tr
         zeps(:)=1.d0/(1.d0-E_tot_w(:)/dAc)
       else if (Trans_Longi == 'tr') then
         zsigma_w(:)=jav_w(:)/dAc
-        zeps=1.d0+zI*4.d0*pi*zsigma_w(:)/hw
+        zeps=epdir_re1(:)+zI*4.d0*pi*zsigma_w(:)/hw
       end if
     end if
       

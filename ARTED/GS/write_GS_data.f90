@@ -16,7 +16,13 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine write_GS_data
   use Global_Variables
-  use salmon_global, only: out_dos
+  use salmon_global, only: out_dos, &
+                         & out_dos_start, &
+                         & out_dos_end, &
+                         & out_dos_nenergy, &
+                         & out_dos_smearing, &
+                         & out_dos_method, &
+                         & out_dos_fshift
   use salmon_parallel, only: nproc_id_global, nproc_group_tdks
   use salmon_communication, only: comm_is_root,comm_summation
   implicit none
@@ -103,50 +109,71 @@ Subroutine write_GS_data
   return
 
   contains
+
+
     subroutine dos_write
+      use inputoutput, only: t_unit_energy_inv, t_unit_energy
       implicit none
-      integer,parameter :: Nw = 1023
-      real(8),parameter :: gamma = 0.1d0/(Ry*2d0)
-      real(8) :: esp_max, esp_min, desp
-      real(8),allocatable :: dos(:),dos_l(:)
-      real(8) :: ww,fk
+      real(8) :: vbmax, cbmin, efermi, eshift
+      real(8) :: ww, fk, dw
       integer :: iw
-
-      allocate(dos(0:Nw),dos_l(0:Nw))
-      esp_max = maxval(esp)
-      esp_min = minval(esp)
-      desp = (esp_max-esp_min)
-      esp_max = esp_max + desp*0.05d0
-      esp_min = esp_min - desp*0.05d0
-      desp = (esp_max-esp_min)/dble(Nw)
+      real(8), allocatable :: dos(:), dos_l(:)  
+      
+      allocate(dos(out_dos_nenergy), dos_l(out_dos_nenergy))
+      
+      if (out_dos_fshift == 'y') then
+        vbmax = maxval(esp_vb_max)
+        cbmin = minval(esp_cb_min)
+        efermi = (vbmax + cbmin) * 0.5d0
+        eshift = efermi
+      else
+        eshift = 0d0
+      endif
+      
       dos_l = 0d0
-
-!$omp parallel do private(ik,ib,fk,iw,ww) reduction(+:dos_l) collapse(2)
-      do ik = NK_s,NK_e
-        do ib = 1,NB
-          fk = 2.d0/(NKxyz)*wk(ik)*(gamma/pi)          
-          do iw = 0,Nw
-            ww = esp_min + desp*iw - esp(ib,ik)
-            dos_l(iw) = dos_l(iw) + fk/(ww**2 + gamma**2)
+      dw = (out_dos_end - out_dos_start) / (out_dos_nenergy - 1)
+      
+      select case (out_dos_method)
+      case('lorentzian')
+        !$omp parallel do private(ik,ib,fk,iw,ww) reduction(+:dos_l) collapse(2)
+        do ik = NK_s,NK_e
+          do ib = 1,NB
+            fk = 2.d0/(NKxyz)*wk(ik)*(out_dos_smearing/pi)          
+            do iw = 1, out_dos_nenergy
+              ww =  out_dos_start + (iw-1) * dw + eshift - esp(ib,ik) 
+              dos_l(iw) = dos_l(iw) + fk/(ww**2 + out_dos_smearing**2)
+            end do
           end do
-
         end do
-      end do
-
-      call comm_summation(dos_l,dos,Nw+1,nproc_group_tdks)
-      dos = dos/aLxyz
+        
+      case('gaussian')
+        !$omp parallel do private(ik,ib,fk,iw,ww) reduction(+:dos_l) collapse(2)
+        do ik = NK_s,NK_e
+          do ib = 1,NB
+            fk = (2.d0 / (NKxyz * sqrt(2.d0*pi) * out_dos_smearing)) * wk(ik)
+            do iw = 1, out_dos_nenergy
+              ww =  out_dos_start + (iw-1) * dw + eshift - esp(ib,ik) 
+              dos_l(iw) = dos_l(iw) + fk * exp(-(0.5/out_dos_smearing**2)*ww**2)
+            end do
+          end do
+        end do
+      end select
+      
+      call comm_summation(dos_l,dos,out_dos_nenergy,nproc_group_tdks)
 
       if (comm_is_root(nproc_id_global)) then
         open(404,file=file_DoS)
         write(404,"(A)") '#Density of states'
-        write(404,"(A)") '# energy (Hartree), dos (1/Hartree * Bohr^3)'
-        do iw = 0,Nw
-          ww = esp_min + desp*iw
-          write(404,"(2e26.16e3)")ww,dos(iw)
+        write(404,"(6A)") '# energy (', trim(t_unit_energy%name) ,'),', &
+                        & ' dos (',  trim(t_unit_energy_inv%name)  ,')'
+        do iw = 1, out_dos_nenergy
+          ww =  out_dos_start + (iw-1) * dw 
+          write(404,"(2e26.16e3)") ww * t_unit_energy%conv, &
+                                 & dos(iw) * t_unit_energy_inv%conv
         end do
         close(404)
       end if
-
     end subroutine dos_write
+
 End Subroutine write_GS_data
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
