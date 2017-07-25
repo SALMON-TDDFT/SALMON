@@ -534,13 +534,13 @@ Default is <code>'rho_dng'</code>. The following can be chosen.
 <dt>threshold; <code>Real(8)</code>; 0d</dt>
 <dd>
 Threshold for convergence check that is used when either <code>'rho'</code> or <code>'rho_dng'</code> is specified.
-Default is <code>1d-17</code> (= 6.75d-17Å<sup>-3</sup>)
+Default is <code>1d-17</code> a.u. (= 6.75d-17Å<sup>-3</sup>)
 </dd>
 
 <dt>threshold_pot; <code>Real(8)</code>; 0d</dt>
 <dd>
 Threshold for convergence check that is used when either <code>'pot'</code> or <code>'pot_dng'</code> is specified. <code>threshold_pot</code> must be set when either <code>'pot'</code> or <code>'pot_dng'</code> is specified.
-Default is <code>-1d0</code> (1 a.u.= 1.10d2 Å<sup>3</sup>eV<sup>2</sup>)
+Default is <code>-1d0</code> a.u. (1 a.u.= 1.10d2 Å<sup>3</sup>eV<sup>2</sup>)
 </dd>
 
 </dl>
@@ -864,6 +864,268 @@ Default is <code>0.5</code>.
 
 </dl>
 
+## &group_fundamental
+<dl>
 
+<dt>iditerybcg; <code>Integer</code>; 0d</dt>
+<dd>
+Iterations for which ybcg is calculated if <code>&scf/amin_routine</code> is 'cg-diis'</code>.
+Default is <code>20</code>.
+</dd>
+
+<dt>iditer_nosubspace_diag; <code>Integer</code>; 0d</dt>
+<dd>
+Iterations for which subspace diagonalization is not done if <code>&scf/subspace_diagonalization</code> is 'y'</code>.
+Default is <code>10</code>.
+</dd>
+
+<dt>ntmg; <code>Integer</code>; 0d</dt>
+<dd>
+Number of multigrid calculation for gs. At the moment, there is a malfunction in this variable, and recovery is needed.
+Default is <code>1</code>.
+</dd>
+
+<dt>idisnum(2); <code>Integer</code>; 0d</dt>
+<dd>
+Label numbers for two atoms which are measured the distance. 
+Default is <code>(/1,2/)</code>.
+</dd>
+
+<dt>iwrite_projection; <code>Integer</code>; 0d</dt>
+<dd>
+A variable for projection. 
+Default is <code>0</code>.
+</dd>
+
+<dt>itwproj; <code>Integer</code>; 0d</dt>
+<dd>
+The projection is calculated every <code>itwproj</code> time steps. 
+Default is <code>-1</code>.
+</dd>
+
+<dt>iwrite_projnum; <code>Integer</code>; 0d</dt>
+<dd>
+There is a malfunction in this variable.
+</dd>
+
+<dt>itcalc_ene; <code>Integer</code>; 0d</dt>
+<dd>
+Total energy is calculated every <code>itcalc_ene</code> time steps. There may be a malfunction in this variable.
+Default is <code>1</code>.
+</dd>
+
+</dl>
+
+## &group_parallel
+<dl>
+<dt>isequential; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to determine the way of assignment of processes.
+Default is <code>2</code>.
+</dd>
+
+<dt>imesh_s_all; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to determine how to use processes if total number of processes 
+and number of processes for Hartree/Exc calculation differ. 
+There may be a malfunction in this variable.
+Default is <code>1</code>.
+</dd>
+
+<dt>iflag_comm_rho; <code>Integer</code>; 0d</dt>
+<dd>
+This variable may be removed. 
+</dd>
+
+</dl>
+
+## &group_hartree
+<dl>
+<dt>hconv; <code>Real(8)</code>; 0d</dt>
+<dd>
+A convergence value for the Hartree-cg calculation. 
+The convergence is checked by ||tVh(i)-tVh(i-1)||<sup>2</sup>/(number of grids).
+Default is <code>1d-15</code> a.u. (= 1.10d-13 Å<sup>3</sup>eV<sup>2</sup>)
+</dd>
+
+<dt>lmax_meo; <code>Integer</code>; 0d</dt>
+<dd>
+A maximum angular momentum for multipole expansion in the Hartree-cg calculation. 
+Default is <code>4</code>.
+</dd>
+
+</dl>
+
+## &group_file
+<dl>
+<dt>ic; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to check whether reentrance is done or not in the ground state calculation. 
+Default is <code>0</code> 
+</dd>
+
+<dt>oc; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to check whether intermediate files are generated in the ground state calculation. 
+Default is <code>1</code>.
+</dd>
+
+<dt>ic_rt; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to check whether reentrance is done or not in the time propagation calculation. 
+Default is <code>0</code> 
+</dd>
+
+<dt>oc; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to check whether intermediate files are generated in the time propagation calculation. 
+Default is <code>0</code>.
+</dd>
+
+</dl>
+
+## &group_file
+<dl>
+<dt>iparaway_ob; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to determine the way of division for orbitals. 
+<code>1</code> is block division, and <code>2</code> is cyclic division.
+Default is <code>2</code> 
+</dd>
+
+<dt>iscf_order; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to determine the order of the calculation for the ground state one. 
+Default is <code>1</code>.
+</dd>
+
+<dt>iswitch_orbital_mesh; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to apply descending order for orbitals in the ground state calculation.
+Default is <code>0</code> 
+</dd>
+
+<dt>iflag_psicube; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to generate cube files for wave functions. This variable will be removed.
+</dd>
+
+<dt>lambda1_diis/lambda2_diis; <code>Real(8)</code>; 0d</dt>
+<dd>
+Parameters for the diis calculation.
+Default is <code>0.5/0.3</code>.
+</dd>
+
+<dt>file_ini; <code>Character</code>; 0d</dt>
+<dd>
+A input file to align wavefunctions. 
+Default is <code>'file_ini'</code>.
+</dd>
+
+<dt>num_projection; <code>Interger</code>; 0d</dt>
+<dd>
+Number of orbitals to write projections.
+Default is <code>1</code>.
+</dd>
+
+<dt>iwrite_projection_ob(200); <code>Interger</code>; 0d</dt>
+<dd>
+Orbital number to be written as projections.
+Default is <code>(1/2/3/.../200)</code>.
+</dd>
+
+<dt>iwrite_projection_k(200); <code>Interger</code>; 0d</dt>
+<dd>
+This variable will be removed.
+</dd>
+
+<dt>filename_pot; <code>Character</code>; 0d</dt>
+<dd>
+Name of file to be written local potentials. 
+Default is <code>'pot'</code>.
+</dd>
+
+<dt>iwrite_external; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to generate file to be written local potentials. 
+Default is <code>0</code>.
+</dd>
+
+<dt>iflag_dip2; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to determine whether dipole moments are calculated in divided area. 
+Default is <code>0</code>.
+</dd>
+
+<dt>iflag_intelectron; <code>Integer</code>; 0d</dt>
+<dd>
+A variable related to the quadrupole caluclation.
+Default is <code>0</code>.
+</dd>
+
+<dt>num_dip2; <code>Integer</code>; 0d</dt>
+<dd>
+Number of area where dipole moments are calculated.
+Default is <code>1</code>.
+</dd>
+
+<dt>dip2boundary(100); <code>Real(8)</code>; 0d</dt>
+<dd>
+Boundary position of area where dipole moments are calculated.
+Default is <code>0</code> a.u.
+</dd>
+
+<dt>dip2center(100); <code>Real(8)</code>; 0d</dt>
+<dd>
+Origin in the dipole moment calculation. 
+Default is <code>0</code> a.u.
+</dd>
+
+<dt>iflag_fourier_omega; <code>integer</code>; 0d</dt>
+<dd>
+A variable to determine whether Fourier transformation of 3d data for difference of density is calclated. 
+Default is <code>0</code>.
+</dd>
+
+<dt>num_fourier_omega; <code>Integer</code>; 0d</dt>
+<dd>
+Number of energies for which the Fourier transformation is calclated. 
+Default is <code>1</code>.
+</dd>
+
+<dt>fourier_omega(200); <code>Real(8)</code>; 0d</dt>
+<dd>
+Energies for which the Fourier transformation is calclated. 
+Default is <code>0</code> a.u.
+</dd>
+
+<dt>itotntime2; <code>Integer</code>; 0d</dt>
+<dd>
+Number of time steps in the reentrance for real-time calculation.
+There may be a malfunction in this variable.
+Default is <code>0</code>.
+</dd>
+
+<dt>iwdenoption; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to determine whether 3d output is generated in real-time calculation. 
+This variable will be removed.
+</dd>
+
+<dt>iwdenstep; <code>Integer</code>; 0d</dt>
+<dd>
+3d output is generated every <code>iwdenstep</code> time steps.
+This variable will be removed.
+</dd>
+
+<dt>iflag_estatic; <code>Integer</code>; 0d</dt>
+<dd>
+A variable to determine whether 3d output for the static electric field is generated in real-time calculation. 
+This variable will be removed.
+</dd>
+
+
+
+</dl>
 
 

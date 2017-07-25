@@ -194,6 +194,57 @@ module salmon_global
   integer        :: newald
   real(8)        :: aewald
 
+!! &group_fundamental
+  integer        :: iditerybcg
+  integer        :: iditer_nosubspace_diag
+  integer        :: ntmg
+  integer        :: idisnum(2)
+  integer        :: iwrite_projection
+  integer        :: itwproj
+  integer        :: iwrite_projnum
+  integer        :: itcalc_ene
+
+!! &group_parallel
+  integer        :: isequential
+  integer        :: imesh_s_all
+  integer        :: iflag_comm_rho
+
+!! &group_hartree
+  real(8)        :: hconv
+  integer        :: lmax_meo
+
+!! &group_file
+  integer        :: ic
+  integer        :: oc
+  integer        :: ic_rt
+  integer        :: oc_rt
+
+!! &group_others
+  integer        :: iparaway_ob
+  integer        :: iscf_order
+  integer        :: iswitch_orbital_mesh
+  integer        :: iflag_psicube
+  real(8)        :: lambda1_diis
+  real(8)        :: lambda2_diis
+  character(100) :: file_ini
+  integer        :: num_projection
+  integer        :: iwrite_projection_ob(200)
+  integer        :: iwrite_projection_k(200)
+  character(100) :: filename_pot
+  integer        :: iwrite_external
+  integer        :: iflag_dip2
+  integer        :: iflag_intelectron
+  integer        :: num_dip2
+  real(8)        :: dip2boundary(100)
+  real(8)        :: dip2center(100)
+  integer        :: iflag_fourier_omega
+  integer        :: num_fourier_omega
+  real(8)        :: fourier_omega(200)
+  integer        :: itotntime2
+  integer        :: iwdenoption
+  integer        :: iwdenstep
+  integer        :: iflag_estatic
+
 !! &atomic_coor
 !! &atomic_red_coor
 integer,allocatable :: Kion(:)    

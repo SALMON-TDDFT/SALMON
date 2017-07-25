@@ -44,7 +44,6 @@ use misc_routines, only: get_wtime
 use global_variables_rt
 implicit none
 
-INTEGER :: IC_rt, OC_rt
 real(8),allocatable :: alpha_R(:,:),alpha_I(:,:) 
 real(8),allocatable :: alphaq_R(:,:,:),alphaq_I(:,:,:) 
 real(8),allocatable :: alpha2_R(:,:,:),alpha2_I(:,:,:) 
@@ -80,7 +79,7 @@ inumcpu_check=0
 call setbN
 call setcN
 
-call read_input_rt(IC_rt,OC_rt,Ntime)
+call convert_input_rt(Ntime)
 
 call set_filename
 
@@ -274,7 +273,7 @@ if(IC_rt==0) then
   itotNtime=Ntime
   Miter_rt=0
 else if(IC_rt==1) then
-  call IN_data_rt(IC_rt,Ntime)
+  call IN_data_rt(Ntime)
 end if
 
 elp3(405)=get_wtime()
@@ -311,7 +310,7 @@ if(comm_is_root(nproc_id_global))then
   write(*, *) 
 end if
 
-call Time_Evolution(IC_rt)
+call Time_Evolution
 
 elp3(409)=get_wtime()
 
@@ -636,7 +635,7 @@ END subroutine Real_Time_DFT
 
 !=======================================================================
 
-SUBROUTINE Time_Evolution(IC_rt)
+SUBROUTINE Time_Evolution
 use salmon_parallel, only: nproc_id_global, nproc_group_grid, nproc_group_h
 use salmon_communication, only: comm_is_root, comm_summation
 use misc_routines, only: get_wtime
@@ -649,7 +648,6 @@ integer :: ii,iob,i1,i2,i3,ix,iy,iz,jj,mm
 real(8),allocatable :: R1(:,:,:)
 character(10):: fileLaser
 integer:: idensity, idiffDensity, ielf
-integer :: IC_rt
 integer :: iob_allob
 real(8) :: absr2
 
