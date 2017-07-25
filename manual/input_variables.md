@@ -759,6 +759,39 @@ If <code>'y'</code>, density of state is output.
 Default is <code>'n'</code>.
 </dd>
 
+<dt>out_dos_start; <code>Real(8)</code>; 3d</dt>
+<dd>
+Start point (energy) of the density of state spectra.
+Default value is <code>-3.0</code> eV.
+</dd>
+
+<dt>out_dos_end; <code>Real(8)</code>; 3d</dt>
+<dd>
+End point (energy) of the density of state spectra.
+Default value is <code>3.0</code> eV.
+</dd>
+
+<dt>out_dos_method; <code>Character</code>; 3d</dt>
+<dd>
+Choise of smearing method for the density of state spectra.
+<code>gaussian</code> and <code>lorentzian</code> function are available.
+Default is <code>gaussian</code>.
+</dd>
+
+<dt>out_dos_smearing; <code>Real(8)</code>; 3d</dt>
+<dd>
+Smearing width of the density of state spectra.
+Default is <code>0.1</code> eV.
+</dd>
+
+<dt>out_dos_fshift; <code>Character</code>; 3d</dt>
+<dd>
+If <code>'y'</code>, the electron energy is shifted to fix the Fermi energy as zero point.
+Default is <code>'n'</code>.
+</dd>
+
+
+
 <dt>out_pdos; <code>Character</code>; 0d</dt>
 <dd>
 If <code>'y'</code>, projected density of state is output.
@@ -863,7 +896,3 @@ Default is <code>0.5</code>.
 </dd>
 
 </dl>
-
-
-
-
