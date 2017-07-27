@@ -869,7 +869,7 @@ Default is <code>1</code>.
 <dd>
 Elapsed times are written in output file. 
 But if <code> timer_process</code> is <code>'y'</code>, 
-files of elapsed times for every process are generated. 
+files of elapsed times for every process are also generated. 
 This variable is effective only for the real-time caululation.
 Default is <code>'n'</code>.
 </dd>
