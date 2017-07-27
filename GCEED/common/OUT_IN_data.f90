@@ -564,6 +564,7 @@ allocate(inum_Mxin(3,0:nproc_size_global-1))
 
 call setmg(mg_sta,mg_end,mg_num,ista_Mxin,iend_Mxin,inum_Mxin,  &
            lg_sta,lg_end,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
+call check_mg
 
 if(ilsda == 0) then
   itotMST0=MST0(1)
@@ -576,6 +577,7 @@ else if(ilsda == 1) then
 end if
 
 call init_mesh_s
+call check_ng
 
 if(iflag_ps.eq.1)then
   call comm_bcast(MI_read,nproc_group_global)

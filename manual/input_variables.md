@@ -127,21 +127,25 @@ Default is <code>'a.u.'</code>.
 ## &parallel
 <dl>
 
-<dt>nproc_ob; <code>Integer</code>; 0d</dt>
-<dd>Number of MPI parallelization for orbitals.
-Default is <code>0</code>.
-</dd>
+<dt>nproc_ob/nproc_domain(3)/nproc_domain_s(3); <code>Integer</code>; 0d</dt>
+<dd> Followings are explanation of each variable.
 
-<dt>nproc_domain(3); <code>Integer</code>; 0d</dt>
-<dd>Number of MPI parallelization for each direction in 
-real-space.
-Default is <code>(0,0,0)</code>.
-</dd>
+<li>
+<code>nproc_ob</code>: Number of MPI parallelization for orbitals that related to wavefunction calculation.
+<code>nproc_domain(3)'</code>: Number of MPI parallelization for each direction in real-space that related to wavefunction calculation. 
+<code>nproc_domain_s(3)'</code>: Number of MPI parallelization for each direction in real-space that related to electron density calculation. 
+</li>
 
-<dt>nproc_domain_s(3); <code>Integer</code>; 0d</dt>
-<dd>Number of MPI parallelization for each direction in 
-real-space.
-Default is <code>(0,0,0)</code>.
+Defaults are <code>0</code> for <code>nproc_ob</code>, <code>(0/0/0)</code> for <code>nproc_domain</code>, and <code>(0/0/0)</code> for <code>nproc_domain_s</code>. If users use the defauls, automatic proccess assignment is done. Users can also specify <code>nproc_ob</code>, <code>nproc_domain</code>, and <code>nproc_domain_s</code> manually. In that case, followings must be satisfied. 
+
+<li>
+<code>nproc_ob</code> * <code>nproc_domain(1)</code> * <code>nproc_domain(2)</code>* <code>nproc_domain(3)</code>=total number of processors
+<code>nproc_domain_s(1)</code> * <code>nproc_domain_s(2)</code>* <code>nproc_domain_s(3)</code>=total number of processors
+<code>nproc_domain_s(1)</code> is a multiple of <code>nproc_domain(1)</code>
+<code>nproc_domain_s(2)</code> is a multiple of <code>nproc_domain(2)</code>
+<code>nproc_domain_s(3)</code> is a multiple of <code>nproc_domain(3)</code>
+</li>
+
 </dd>
 
 <dt>num_datafiles_in; <code>Integer</code></dt>
