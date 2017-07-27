@@ -154,7 +154,7 @@ Defaults are <code>0</code> for <code>nproc_ob</code>, <code>(0/0/0)</code> for 
 <li>
 <code>nproc_domain_s(2)</code> is a multiple of <code>nproc_domain(2)</code>
 </li>
-</li>
+<li>
 <code>nproc_domain_s(3)</code> is a multiple of <code>nproc_domain(3)</code>
 </li>
 
