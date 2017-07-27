@@ -103,6 +103,7 @@ if(istopt==1)then
     call init_mesh(itmg)
     call set_gridcoo
     call init_mesh_s
+    call check_ng
 
     call init_updown
     call init_itype
@@ -702,6 +703,7 @@ allocate(inum_Mxin(3,0:nproc_size_global-1))
 
 call setmg(mg_sta,mg_end,mg_num,ista_Mxin,iend_Mxin,inum_Mxin,  &
            lg_sta,lg_end,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
+call check_mg
 
 if(comm_is_root(nproc_id_global)) write(*,*) "Mx     =", iend_Mx_ori
 
