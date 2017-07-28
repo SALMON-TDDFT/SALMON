@@ -561,73 +561,146 @@ end if
 
 elp3(411)=get_wtime()
 
-write(fileNumber, '(i8)') nproc_id_global
-timeFile = "cputime"//adjustl(fileNumber)
-open(79,file=timeFile)
+if(comm_is_root(nproc_id_global))then
+  write(*,'(a)') "==================== elapsed time ===================="
+  write(*,'(a,f16.8)') "elapsed time bef. reading lda data [s] = ", elp3(402)-elp3(401)
+  write(*,'(a,f16.8)') "elapsed time for reading lda data [s]  = ", elp3(403)-elp3(402)
+  write(*,'(a,f16.8)') "elapsed time for allocating zpsi [s]   = ", elp3(404)-elp3(403)
+  write(*,'(a,f16.8)') "elapsed time for reading rt data [s]   = ", elp3(405)-elp3(404)
+  write(*,'(a,f16.8)') "elapsed time for rt initialization [s] = ", elp3(406)-elp3(405)
+  write(*,'(a,f16.8)') "elapsed time for prep. time prop. [s]  = ", elp3(407)-elp3(406)
+  write(*,'(a,f16.8)') "elapsed time for prev iterations [s]   = ", elp3(413)-elp3(412)
+  write(*,'(a,f16.8)') "elapsed time for rt iterations [s]     = ", elp3(414)-elp3(413)
+  write(*,'(a,f16.8)') "elapsed time for aft iterations [s]    = ", elp3(415)-elp3(414)
+  write(*,'(a,f16.8)') "elapsed time aft. rt iterations [s]    = ", elp3(409)-elp3(408)
+  write(*,'(a,f16.8)') "elapsed time for writing rt data [s]   = ", elp3(410)-elp3(409)
+  write(*,'(a,f16.8)') "elapsed time aft. writing rt data [s]  = ", elp3(411)-elp3(410)
+  write(*,'(a,f16.8)') "total time [s]                         = ", elp3(411)-elp3(401)
+  write(*,'(a)') "======================================================"
+  write(*,'(a)') "=========== elapsed time for rt iterations ==========="
+  write(*,'(a,f16.8)') "elapsed time for Vbox [s]              = ", elp5(532)
+  write(*,'(a,f16.8)') "elapsed time for time propagation [s]  = ", elp5(533)
+  write(*,'(a,f16.8)') "elapsed time for calculating rho [s]   = ", elp5(534)
+  write(*,'(a,f16.8)') "elapsed time for Allreduce rho [s]     = ", elp5(535)
+  write(*,'(a,f16.8)') "elapsed time for Hartree routine [s]   = ", elp5(536)
+  write(*,'(a,f16.8)') "elapsed time for Exc_Cor routine [s]   = ", elp5(537)
+  write(*,'(a,f16.8)') "elapsed time for bcast Vhxc [s]        = ", elp5(538)
+  write(*,'(a,f16.8)') "elapsed time for calculating Dp [s]    = ", elp5(539)
+  write(*,'(a,f16.8)') "elapsed time for calculating Etot [s]  = ", elp5(540)
+  write(*,'(a,f16.8)') "elapsed time for writing info etc. [s] = ", elp5(541)
+  write(*,'(a,f16.8)') "total time for rt iterations [s]       = ", elp5(542)
+  write(*,'(a)') "======================================================"
+  write(*,'(a)') "======================================================"
+  write(*,'(a)') "=========== communication time ======================="
+  write(*,'(a,f16.8)') "copy (1) [s]                           = ", elp5(731)
+  write(*,'(a,f16.8)') "copy (2) [s]                           = ", elp5(732)
+  write(*,'(a,f16.8)') "copy (3) [s]                           = ", elp5(733)
+  write(*,'(a,f16.8)') "copy (4) [s]                           = ", elp5(734)
+  write(*,'(a,f16.8)') "copy (5) [s]                           = ", elp5(735)
+  write(*,'(a,f16.8)') "copy (6) [s]                           = ", elp5(736)
+  write(*,'(a,f16.8)') "copy (7) [s]                           = ", elp5(737)
+  write(*,'(a,f16.8)') "copy (8) [s]                           = ", elp5(738)
+  write(*,'(a,f16.8)') "copy (9) [s]                           = ", elp5(739)
+  write(*,'(a,f16.8)') "copy (10) [s]                          = ", elp5(740)
+  write(*,'(a,f16.8)') "copy (11) [s]                          = ", elp5(741)
+  write(*,'(a,f16.8)') "copy (12) [s]                          = ", elp5(742)
+  write(*,'(a,f16.8)') "time for sendrecv [s]                  = ", elp5(743)
+  write(*,'(a,f16.8)') "Allreduce for nonlocal [s]             = ", elp5(744)
+  write(*,'(a,f16.8)') "Allreduce for rhobox [s]               = ", elp5(760)
+  write(*,'(a,f16.8)') "Allreduce in Hartree (1) [s]           = ", elp5(251)
+  write(*,'(a,f16.8)') "Allreduce in Hartree (2) [s]           = ", elp5(252)
+  write(*,'(a,f16.8)') "Allreduce in Hartree (3) [s]           = ", elp5(253)
+  write(*,'(a,f16.8)') "Allreduce in Hartree (4) [s]           = ", elp5(254)
+  write(*,'(a,f16.8)') "Allreduce in Hartree (5) [s]           = ", elp5(255)
+  write(*,'(a,f16.8)') "Allreduce in Hartree (6) [s]           = ", elp5(256)
+  write(*,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
+  write(*,'(a,f16.8)') "Allreduce in total_energy_ex (1) [s]   = ", elp5(782)
+  write(*,'(a,f16.8)') "Allreduce in total_energy_ex (2) [s]   = ", elp5(783)
+  write(*,'(a,f16.8)') "Allreduce in dipole calc. [s]          = ", elp5(784)
+  write(*,'(a)') "=========== analysis ================================="
+  write(*,'(a,f16.8)') "isend, irecv, wait [s]                 = ", elp5(743)-sum(elp5(731:742))
+  write(*,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
+  write(*,'(a,f16.8)') "Allreduce [s]                          = ", & 
+    elp5(744)+elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
+  write(*,'(a,f16.8)') "Allreduce (related to num of nodes )   = ", elp5(744)
+  write(*,'(a,f16.8)') "Allreduce (not related to num of nodes)= ", &
+    elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
+  write(*,'(a)') "======================================================"
+end if
 
-   write(79,'(a)') "==================== elapsed time ===================="
-   write(79,'(a,f16.8)') "elapsed time bef. reading lda data [s] = ", elp3(402)-elp3(401)
-   write(79,'(a,f16.8)') "elapsed time for reading lda data [s]  = ", elp3(403)-elp3(402)
-   write(79,'(a,f16.8)') "elapsed time for allocating zpsi [s]   = ", elp3(404)-elp3(403)
-   write(79,'(a,f16.8)') "elapsed time for reading rt data [s]   = ", elp3(405)-elp3(404)
-   write(79,'(a,f16.8)') "elapsed time for rt initialization [s] = ", elp3(406)-elp3(405)
-   write(79,'(a,f16.8)') "elapsed time for prep. time prop. [s]  = ", elp3(407)-elp3(406)
-   write(79,'(a,f16.8)') "elapsed time for prev iterations [s]   = ", elp3(413)-elp3(412)
-   write(79,'(a,f16.8)') "elapsed time for rt iterations [s]     = ", elp3(414)-elp3(413)
-   write(79,'(a,f16.8)') "elapsed time for aft iterations [s]    = ", elp3(415)-elp3(414)
-   write(79,'(a,f16.8)') "elapsed time aft. rt iterations [s]    = ", elp3(409)-elp3(408)
-   write(79,'(a,f16.8)') "elapsed time for writing rt data [s]   = ", elp3(410)-elp3(409)
-   write(79,'(a,f16.8)') "elapsed time aft. writing rt data [s]  = ", elp3(411)-elp3(410)
-   write(79,'(a,f16.8)') "total time [s]                         = ", elp3(411)-elp3(401)
-   write(79,'(a)') "======================================================"
-   write(79,'(a)') "=========== elapsed time for rt iterations ==========="
-   write(79,'(a,f16.8)') "elapsed time for Vbox [s]              = ", elp5(532)
-   write(79,'(a,f16.8)') "elapsed time for time propagation [s]  = ", elp5(533)
-   write(79,'(a,f16.8)') "elapsed time for calculating rho [s]   = ", elp5(534)
-   write(79,'(a,f16.8)') "elapsed time for Allreduce rho [s]     = ", elp5(535)
-   write(79,'(a,f16.8)') "elapsed time for Hartree routine [s]   = ", elp5(536)
-   write(79,'(a,f16.8)') "elapsed time for Exc_Cor routine [s]   = ", elp5(537)
-   write(79,'(a,f16.8)') "elapsed time for bcast Vhxc [s]        = ", elp5(538)
-   write(79,'(a,f16.8)') "elapsed time for calculating Dp [s]    = ", elp5(539)
-   write(79,'(a,f16.8)') "elapsed time for calculating Etot [s]  = ", elp5(540)
-   write(79,'(a,f16.8)') "elapsed time for writing info etc. [s] = ", elp5(541)
-   write(79,'(a,f16.8)') "total time for rt iterations [s]       = ", elp5(542)
-   write(79,'(a)') "======================================================"
-   write(79,'(a)') "======================================================"
-   write(79,'(a)') "=========== communication time ======================="
-   write(79,'(a,f16.8)') "copy (1) [s]                           = ", elp5(731)
-   write(79,'(a,f16.8)') "copy (2) [s]                           = ", elp5(732)
-   write(79,'(a,f16.8)') "copy (3) [s]                           = ", elp5(733)
-   write(79,'(a,f16.8)') "copy (4) [s]                           = ", elp5(734)
-   write(79,'(a,f16.8)') "copy (5) [s]                           = ", elp5(735)
-   write(79,'(a,f16.8)') "copy (6) [s]                           = ", elp5(736)
-   write(79,'(a,f16.8)') "copy (7) [s]                           = ", elp5(737)
-   write(79,'(a,f16.8)') "copy (8) [s]                           = ", elp5(738)
-   write(79,'(a,f16.8)') "copy (9) [s]                           = ", elp5(739)
-   write(79,'(a,f16.8)') "copy (10) [s]                          = ", elp5(740)
-   write(79,'(a,f16.8)') "copy (11) [s]                          = ", elp5(741)
-   write(79,'(a,f16.8)') "copy (12) [s]                          = ", elp5(742)
-   write(79,'(a,f16.8)') "time for sendrecv [s]                  = ", elp5(743)
-   write(79,'(a,f16.8)') "Allreduce for nonlocal [s]             = ", elp5(744)
-   write(79,'(a,f16.8)') "Allreduce for rhobox [s]               = ", elp5(760)
-   write(79,'(a,f16.8)') "Allreduce in Hartree (1) [s]           = ", elp5(251)
-   write(79,'(a,f16.8)') "Allreduce in Hartree (2) [s]           = ", elp5(252)
-   write(79,'(a,f16.8)') "Allreduce in Hartree (3) [s]           = ", elp5(253)
-   write(79,'(a,f16.8)') "Allreduce in Hartree (4) [s]           = ", elp5(254)
-   write(79,'(a,f16.8)') "Allreduce in Hartree (5) [s]           = ", elp5(255)
-   write(79,'(a,f16.8)') "Allreduce in Hartree (6) [s]           = ", elp5(256)
-   write(79,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
-   write(79,'(a,f16.8)') "Allreduce in total_energy_ex (1) [s]   = ", elp5(782)
-   write(79,'(a,f16.8)') "Allreduce in total_energy_ex (2) [s]   = ", elp5(783)
-   write(79,'(a,f16.8)') "Allreduce in dipole calc. [s]          = ", elp5(784)
-   write(79,'(a)') "=========== analysis ================================="
-   write(79,'(a,f16.8)') "isend, irecv, wait [s]                 = ", elp5(743)-sum(elp5(731:742))
-   write(79,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
-   write(79,'(a,f16.8)') "Allreduce [s]                          = ", & 
-     elp5(744)+elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
-   write(79,'(a,f16.8)') "Allreduce (related to num of nodes )   = ", elp5(744)
-   write(79,'(a,f16.8)') "Allreduce (not related to num of nodes)= ", &
-     elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
+if(timer_process=='y')then
+
+  write(fileNumber, '(i8)') nproc_id_global
+  timeFile = "timer_proc"//adjustl(fileNumber)
+  open(79,file=timeFile)
+
+! Just copied above timers. If above timers are modified, followings also must be modified.
+
+  write(79,'(a)') "==================== elapsed time ===================="
+  write(79,'(a,f16.8)') "elapsed time bef. reading lda data [s] = ", elp3(402)-elp3(401)
+  write(79,'(a,f16.8)') "elapsed time for reading lda data [s]  = ", elp3(403)-elp3(402)
+  write(79,'(a,f16.8)') "elapsed time for allocating zpsi [s]   = ", elp3(404)-elp3(403)
+  write(79,'(a,f16.8)') "elapsed time for reading rt data [s]   = ", elp3(405)-elp3(404)
+  write(79,'(a,f16.8)') "elapsed time for rt initialization [s] = ", elp3(406)-elp3(405)
+  write(79,'(a,f16.8)') "elapsed time for prep. time prop. [s]  = ", elp3(407)-elp3(406)
+  write(79,'(a,f16.8)') "elapsed time for prev iterations [s]   = ", elp3(413)-elp3(412)
+  write(79,'(a,f16.8)') "elapsed time for rt iterations [s]     = ", elp3(414)-elp3(413)
+  write(79,'(a,f16.8)') "elapsed time for aft iterations [s]    = ", elp3(415)-elp3(414)
+  write(79,'(a,f16.8)') "elapsed time aft. rt iterations [s]    = ", elp3(409)-elp3(408)
+  write(79,'(a,f16.8)') "elapsed time for writing rt data [s]   = ", elp3(410)-elp3(409)
+  write(79,'(a,f16.8)') "elapsed time aft. writing rt data [s]  = ", elp3(411)-elp3(410)
+  write(79,'(a,f16.8)') "total time [s]                         = ", elp3(411)-elp3(401)
+  write(79,'(a)') "======================================================"
+  write(79,'(a)') "=========== elapsed time for rt iterations ==========="
+  write(79,'(a,f16.8)') "elapsed time for Vbox [s]              = ", elp5(532)
+  write(79,'(a,f16.8)') "elapsed time for time propagation [s]  = ", elp5(533)
+  write(79,'(a,f16.8)') "elapsed time for calculating rho [s]   = ", elp5(534)
+  write(79,'(a,f16.8)') "elapsed time for Allreduce rho [s]     = ", elp5(535)
+  write(79,'(a,f16.8)') "elapsed time for Hartree routine [s]   = ", elp5(536)
+  write(79,'(a,f16.8)') "elapsed time for Exc_Cor routine [s]   = ", elp5(537)
+  write(79,'(a,f16.8)') "elapsed time for bcast Vhxc [s]        = ", elp5(538)
+  write(79,'(a,f16.8)') "elapsed time for calculating Dp [s]    = ", elp5(539)
+  write(79,'(a,f16.8)') "elapsed time for calculating Etot [s]  = ", elp5(540)
+  write(79,'(a,f16.8)') "elapsed time for writing info etc. [s] = ", elp5(541)
+  write(79,'(a,f16.8)') "total time for rt iterations [s]       = ", elp5(542)
+  write(79,'(a)') "======================================================"
+  write(79,'(a)') "======================================================"
+  write(79,'(a)') "=========== communication time ======================="
+  write(79,'(a,f16.8)') "copy (1) [s]                           = ", elp5(731)
+  write(79,'(a,f16.8)') "copy (2) [s]                           = ", elp5(732)
+  write(79,'(a,f16.8)') "copy (3) [s]                           = ", elp5(733)
+  write(79,'(a,f16.8)') "copy (4) [s]                           = ", elp5(734)
+  write(79,'(a,f16.8)') "copy (5) [s]                           = ", elp5(735)
+  write(79,'(a,f16.8)') "copy (6) [s]                           = ", elp5(736)
+  write(79,'(a,f16.8)') "copy (7) [s]                           = ", elp5(737)
+  write(79,'(a,f16.8)') "copy (8) [s]                           = ", elp5(738)
+  write(79,'(a,f16.8)') "copy (9) [s]                           = ", elp5(739)
+  write(79,'(a,f16.8)') "copy (10) [s]                          = ", elp5(740)
+  write(79,'(a,f16.8)') "copy (11) [s]                          = ", elp5(741)
+  write(79,'(a,f16.8)') "copy (12) [s]                          = ", elp5(742)
+  write(79,'(a,f16.8)') "time for sendrecv [s]                  = ", elp5(743)
+  write(79,'(a,f16.8)') "Allreduce for nonlocal [s]             = ", elp5(744)
+  write(79,'(a,f16.8)') "Allreduce for rhobox [s]               = ", elp5(760)
+  write(79,'(a,f16.8)') "Allreduce in Hartree (1) [s]           = ", elp5(251)
+  write(79,'(a,f16.8)') "Allreduce in Hartree (2) [s]           = ", elp5(252)
+  write(79,'(a,f16.8)') "Allreduce in Hartree (3) [s]           = ", elp5(253)
+  write(79,'(a,f16.8)') "Allreduce in Hartree (4) [s]           = ", elp5(254)
+  write(79,'(a,f16.8)') "Allreduce in Hartree (5) [s]           = ", elp5(255)
+  write(79,'(a,f16.8)') "Allreduce in Hartree (6) [s]           = ", elp5(256)
+  write(79,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
+  write(79,'(a,f16.8)') "Allreduce in total_energy_ex (1) [s]   = ", elp5(782)
+  write(79,'(a,f16.8)') "Allreduce in total_energy_ex (2) [s]   = ", elp5(783)
+  write(79,'(a,f16.8)') "Allreduce in dipole calc. [s]          = ", elp5(784)
+  write(79,'(a)') "=========== analysis ================================="
+  write(79,'(a,f16.8)') "isend, irecv, wait [s]                 = ", elp5(743)-sum(elp5(731:742))
+  write(79,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
+  write(79,'(a,f16.8)') "Allreduce [s]                          = ", & 
+    elp5(744)+elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
+  write(79,'(a,f16.8)') "Allreduce (related to num of nodes )   = ", elp5(744)
+  write(79,'(a,f16.8)') "Allreduce (not related to num of nodes)= ", &
+    elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
+  write(79,'(a)') "======================================================"
+end if
 
 call deallocate_mat
 

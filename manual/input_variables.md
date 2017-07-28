@@ -865,6 +865,15 @@ Effective only when <code>format3d</code> is <code>'avs'</code>.
 Default is <code>1</code>.
 </dd>
 
+<dt>timer_process; <code>Character</code>; 0d</dt>
+<dd>
+Basically, elapsed times are written in the output file. 
+But if <code>timer_process</code> is <code>'y'</code>, 
+files of elapsed times for every process are also generated. 
+This variable is effective only for the real-time caululation.
+Default is <code>'n'</code>.
+</dd>
+
 </dl>
 
 ## &hartree

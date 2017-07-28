@@ -191,6 +191,7 @@ module salmon_global
   integer        :: out_estatic_rt_step
   character(16)  :: format3d
   integer        :: numfiles_out_3d
+  character(1)   :: timer_process
 
 !! &hartree
   integer        :: meo
