@@ -579,7 +579,8 @@ Shape of the first/second pulse.
 <li>
 <code>'Ecos2'</code>: Envelope of cos<sup>2</sup> for a scalar potential.
 </li>
-
+</dd>
+<dd>
 If <code>&system/iperiodic</code> is <code>3</code>, following can also chosen. 
 <li>
 <code>'Acos3'</code>,
