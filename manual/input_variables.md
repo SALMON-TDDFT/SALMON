@@ -571,21 +571,26 @@ Shape of the first/second pulse.
 <li>
 <code>'impulse'</code>: Impulsive fields.
 </li>
+
 <li>
-<code>'Acos2'</code>: Envelope of cos<sup>2</sup> for a vector potential.
-</li>
-<li>
-<code>'Ecos2'</code>: Envelope of cos<sup>2</sup> for a scalar potential.
-</li>
-</ul>
-If <code>&system/iperiodic</code> is <code>3</code>, following can also chosen. 
-<ul>
-<li>
+<code>'Acos2'</code>,
 <code>'Acos3'</code>,
 <code>'Acos4'</code>,
 <code>'Acos6'</code>, and
-<code>Acos8'</code>: Envelopes of cos<sup>3</sup>,cos<sup>4</sup>
-cos<sup>6</sup>, and cos<sup>8</sup> for vector potentials.
+<code>Acos8'</code>: Envelope of cos<sup>2</sup>,cos<sup>3</sup>,cos<sup>4</sup>
+cos<sup>6</sup>, and cos<sup>8</sup> for a vector potential.
+</li>
+
+<li>
+<code>'Esin2cos'</code>:
+</li>
+
+<li>
+<code>'Asin2cos'</code>:
+</li>
+
+<li>
+<code>'Asin4cos'</code>:
 </li>
 
 </ul>
