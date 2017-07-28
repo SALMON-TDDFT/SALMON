@@ -160,16 +160,10 @@ Defaults are <code>0</code> for <code>nproc_ob</code>, <code>(0/0/0)</code> for 
 
 </dd>
 
-<dt>num_datafiles_in; <code>Integer</code></dt>
-<dd>Number of input files.
-Default is <code>0</code>.
+<dt>num_datafiles_in/num_datafiles_out; <code>Integer</code></dt>
+<dd>Number of input/output files for wavefunction.
+Defaults are <code>1</code>. If <code>num_datafiles_in</code>/<code>num_datafiles_out</code> are 1, wave functions are read from/ written in a regular intermediate file. If <code>num_datafiles_in</code>/<code>num_datafiles_out</code> are larger than or equal to 2, the wave functions are read from/ written in separated intermediate data files, and number of files are equal to <code>num_datafiles_in</code>/<code>num_datafiles_out</code>. These variables must be equal to nth power of 2. (n: 0 or positive integer)
 </dd>
-
-<dt>num_datafiles_out; <code>Integer</code></dt>
-<dd>Number of output files.
-Default is <code>0</code>.
-</dd>
-
 
 </dl>
 
@@ -579,26 +573,19 @@ Shape of the first/second pulse.
 <li>
 <code>'impulse'</code>: Impulsive fields.
 </li>
-
 <li>
-<code>'Acos2'</code>,
+<code>'Acos2'</code>: Envelope of cos<sup>2</sup> for a vector potential.
+</li>
+<li>
+<code>'Ecos2'</code>: Envelope of cos<sup>2</sup> for a scalar potential.
+</li>
+If <code>&system/iperiodic</code> is <code>3</code>, following can also chosen. 
+<li>
 <code>'Acos3'</code>,
 <code>'Acos4'</code>,
 <code>'Acos6'</code>, and
 <code>Acos8'</code>: Envelope of cos<sup>2</sup>,cos<sup>3</sup>,cos<sup>4</sup>
-cos<sup>6</sup>, and cos<sup>8</sup> for a vector potential.
-</li>
-
-<li>
-<code>'Esin2cos'</code>:
-</li>
-
-<li>
-<code>'Asin2cos'</code>:
-</li>
-
-<li>
-<code>'Asin4cos'</code>:
+cos<sup>6</sup>, and cos<sup>8</sup> for vector potentials.
 </li>
 
 </ul>
