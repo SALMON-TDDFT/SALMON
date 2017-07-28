@@ -158,7 +158,7 @@ Defaults are <code>0</code> for <code>nproc_ob</code>, <code>(0/0/0)</code> for 
 <code>nproc_domain_s(3)</code> is a multiple of <code>nproc_domain(3)</code>
 </li>
 </ul>
-<dt>num_datafiles_in/num_datafiles_out; <code>Integer</code></dt>
+<dt>num_datafiles_in/num_datafiles_out; <code>Integer</code>; 0d</dt>
 <dd>Number of input/output files for wavefunction.
 Defaults are <code>1</code>. If <code>num_datafiles_in</code>/<code>num_datafiles_out</code> are 1, wave functions are read from/ written in a regular intermediate file. If <code>num_datafiles_in</code>/<code>num_datafiles_out</code> are larger than or equal to 2, the wave functions are read from/ written in separated intermediate data files, and number of files are equal to <code>num_datafiles_in</code>/<code>num_datafiles_out</code>. These variables must be equal to nth power of 2. (n: 0 or positive integer)
 </dd>
