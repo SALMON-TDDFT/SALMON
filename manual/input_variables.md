@@ -129,7 +129,7 @@ Default is <code>'a.u.'</code>.
 
 <dt>nproc_ob/nproc_domain(3)/nproc_domain_s(3); <code>Integer</code>; 0d</dt>
 <dd> Followings are explanation of each variable.
-
+<ul>
 <li>
 <code>nproc_ob</code>: Number of MPI parallelization for orbitals that related to the wavefunction calculation.
 </li>
@@ -139,9 +139,9 @@ Default is <code>'a.u.'</code>.
 <li>
 <code>nproc_domain_s(3)'</code>: Number of MPI parallelization for each direction in real-space that related to the electron density calculation. 
 </li>
-
+</ul>
 Defaults are <code>0</code> for <code>nproc_ob</code>, <code>(0/0/0)</code> for <code>nproc_domain</code>, and <code>(0/0/0)</code> for <code>nproc_domain_s</code>. If users use the defauls, automatic proccess assignment is done. Users can also specify <code>nproc_ob</code>, <code>nproc_domain</code>, and <code>nproc_domain_s</code> manually. In that case, followings must be satisfied. 
-
+<ul>
 <li>
 <code>nproc_ob</code> * <code>nproc_domain(1)</code> * <code>nproc_domain(2)</code>* <code>nproc_domain(3)</code>=total number of processors
 </li>
@@ -157,19 +157,11 @@ Defaults are <code>0</code> for <code>nproc_ob</code>, <code>(0/0/0)</code> for 
 <li>
 <code>nproc_domain_s(3)</code> is a multiple of <code>nproc_domain(3)</code>
 </li>
-
+</ul>
+<dt>num_datafiles_in/num_datafiles_out; <code>Integer</code>; 0d</dt>
+<dd>Number of input/output files for wavefunction.
+Defaults are <code>1</code>. If <code>num_datafiles_in</code>/<code>num_datafiles_out</code> are 1, wave functions are read from/ written in a regular intermediate file. If <code>num_datafiles_in</code>/<code>num_datafiles_out</code> are larger than or equal to 2, the wave functions are read from/ written in separated intermediate data files, and number of files are equal to <code>num_datafiles_in</code>/<code>num_datafiles_out</code>. These variables must be equal to nth power of 2. (n: 0 or positive integer)
 </dd>
-
-<dt>num_datafiles_in; <code>Integer</code></dt>
-<dd>Number of input files.
-Default is <code>0</code>.
-</dd>
-
-<dt>num_datafiles_out; <code>Integer</code></dt>
-<dd>Number of output files.
-Default is <code>0</code>.
-</dd>
-
 
 </dl>
 
