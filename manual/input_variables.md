@@ -582,6 +582,7 @@ Shape of the first/second pulse.
 </dd>
 <dd>
 If <code>&system/iperiodic</code> is <code>3</code>, following can also chosen. 
+<ul>
 <li>
 <code>'Acos3'</code>,
 <code>'Acos4'</code>,
