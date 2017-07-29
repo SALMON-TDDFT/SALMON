@@ -5,11 +5,11 @@ set(SOURCES
     calcEstatic.f90
     calcVbox.f90
     check_ae_shape.f90
+    convert_input_rt.f90
     dip.f90
     gradient_ex.f90
     hpsi_groupob.f90
     projection.f90
-    read_input_rt.f90
     read_rt.f90
     real_time_dft.f90
     set_numcpu_rt.f90

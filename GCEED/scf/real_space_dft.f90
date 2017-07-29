@@ -32,8 +32,6 @@ use read_pslfile_sub
 use allocate_psl_sub
 implicit none
 
-integer :: iDiterYBCG
-
 END MODULE global_variables_scf
 
 !=======================================================================
@@ -67,7 +65,7 @@ inumcpu_check=0
 call setbN
 call setcN
 
-call read_input_scf(iDiterYBCG,file_atoms_coo)
+call convert_input_scf(file_atoms_coo)
 
 call set_filename
 
@@ -105,6 +103,7 @@ if(istopt==1)then
     call init_mesh(itmg)
     call set_gridcoo
     call init_mesh_s
+    call check_ng
 
     call init_updown
     call init_itype

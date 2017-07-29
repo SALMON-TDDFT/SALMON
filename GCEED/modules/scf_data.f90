@@ -124,16 +124,9 @@ integer :: Miter       ! Total number of Iteration for SCF calculation
 integer :: Miter_rt    ! Total number of Iteration for RT calculation
 
 integer :: iflag_diisjump
-real(8) :: lambda1_diis, lambda2_diis
 
-integer :: iwrite_external
 integer :: iflag_writepsi
-integer :: iflag_dip2
-integer :: iflag_intelectron
-integer :: num_dip2
 real(8),allocatable :: rto(:)
-real(8) :: dip2boundary(100)
-real(8) :: dip2center(100)
 integer ,allocatable:: idip2int(:)
 real(8),allocatable :: rto_ix(:,:)
 real(8),allocatable :: rbox_array_dip2(:,:)
@@ -148,8 +141,6 @@ integer :: ilsda
 integer :: iflag_stopt
 integer :: iter_stopt
 integer :: istopt
-
-integer :: ntmg
 
 integer :: MST(2),ifMST(2),itotMST
 integer :: itotfMST
@@ -167,7 +158,6 @@ real(8) :: Harray(3,maxntmg)  ! Grid spacing
 real(8) :: rLsize(3,maxntmg)    ! size of the box
 
 integer :: maxMps
-integer :: lmax_MEO
 
 ! Pseudopotential
 integer,allocatable :: Jxyz(:,:,:),Mps(:),Jxxyyzz(:,:,:)
@@ -223,7 +213,6 @@ integer :: iwksta(3),iwkend(3),iwknum(3)
 integer :: iwk2sta(3),iwk2end(3),iwk2num(3)
 integer :: iwk3sta(3),iwk3end(3),iwk3num(3)
 integer :: iwk_size
-integer :: imesh_s_all
 
 integer :: numcoo
 integer,allocatable :: jMps_l(:,:)
@@ -236,7 +225,6 @@ integer,allocatable :: max_jMps_l_s(:)
 integer :: maxlm
 
 integer :: imesh_oddeven(3)
-integer :: iswitch_orbital_mesh
 
 integer :: version_num(2)
 
@@ -249,10 +237,7 @@ real(8),allocatable :: vecDs2(:,:)
 real(8) :: vecQs(3,3)
 real(8),allocatable :: vecQs2(:,:,:)
 
-integer :: iflag_psicube
-
 integer :: num_pole
-
 
 integer :: itotNtime
 
@@ -291,7 +276,6 @@ real(8),allocatable :: Vlocal_stock(:,:,:,:)
 integer,parameter :: num_rho_stock=21
 
 integer :: iflag_subspace_diag
-integer :: iDiter_nosubspace_diag
 
 real(8),allocatable :: Vh_stock1(:,:,:)
 real(8),allocatable :: Vh_stock2(:,:,:)
@@ -301,19 +285,15 @@ real(8),allocatable :: Vlocal2(:,:,:,:)
 
 ! use for hartree routine
 integer :: iterVh
-real(8) :: Hconv
 
 real(8),allocatable :: rhobox(:,:,:)
 real(8),allocatable :: rhobox_s(:,:,:,:)
 
 integer :: lg_num_fmax(3)
 
-integer :: iflag_comm_rho
 real(8), allocatable :: rhobox1_all(:,:,:), rhobox2_all(:,:,:)
 
 integer :: iDiter(maxntmg)
-
-integer :: IC,OC
 
 character(LEN=100) :: file_OUT_ini
 integer :: num_mol
@@ -339,8 +319,6 @@ real(8) :: pulse_T, pulse_T2(2)
 real(8) :: rlaser_I, rlaser_I2(2) 
 real(8) :: tau, tau2(2), delay, rcycle
 
-integer       :: iwdenoption
-integer       :: iwdenstep ! step for writing density
 character(2)  :: denplane  ! plane for writing density (xy, yz, xz)
 integer       :: idensum   ! whether density is summed up along direction
                            ! perpendicular to the plane
@@ -349,12 +327,6 @@ real(8)       :: posplane  ! position of the plane
                            ! (only for idensum = 0)
 
 character(1) :: circular
-
-real(8) :: fourier_omega(200)
-integer :: num_fourier_omega
-integer :: iflag_fourier_omega
-
-integer :: itotNtime2
 
 character(100):: rtOutFile
 character(100):: rtDiffOutFile
@@ -379,7 +351,6 @@ integer,allocatable :: jja(:,:)
 integer :: MImax
 integer,allocatable :: numatom_ps_2nd(:)
 
-integer :: iflag_Estatic
 real(8), allocatable :: rho_n(:,:,:)
 real(8), allocatable :: Vh_n(:,:,:)
 real(8), allocatable :: Vh0(:,:,:)
@@ -389,8 +360,6 @@ complex(8), allocatable :: Ex_static(:,:,:),Ey_static(:,:,:),Ez_static(:,:,:)
 
 integer :: ilasbound_sta(3),ilasbound_end(3)
 real(8) :: rlaser_center(3)
-
-integer :: isequential
 
 complex(8) :: cumnum
 
@@ -419,7 +388,6 @@ real(8),parameter :: umass=1822.9d0
 real(8),allocatable :: Eeff_dip(:,:,:,:)  
 real(8),allocatable :: Eeff_dip0(:,:,:,:)  
 
-integer :: idisnum(2)
 integer :: wmaxMI
 
 real(8) :: rad_diele
@@ -430,20 +398,7 @@ real(8) :: fbN(0:12)
 
 integer,allocatable :: oblist(:)
 
-integer :: iwrite_projection
-integer :: iwrite_projnum
-integer :: itwproj
-
-integer :: iparaway_ob
-integer :: iscf_order
-
-integer :: num_projection
-integer :: iwrite_projection_ob(200)
-integer :: iwrite_projection_k(200)
-
 integer,allocatable::icoo1d(:,:)
-
-character(100) :: filename_pot
 
 integer :: MI_read
 
@@ -452,8 +407,6 @@ integer :: ik_oddeven
 ! variables for FFTE routine
 integer,dimension(3) :: LNPU
 integer :: NPUZ,NPUY
-
-integer :: itcalc_ene
 
 real(8) :: absorption(0:100000)
 real(8) :: absorption_d(0:100000)
@@ -479,7 +432,6 @@ character(100) :: file_RT_dip2_q
 character(100) :: file_alpha_dip2_q
 character(100) :: file_RT_dip2_e
 character(100) :: file_external
-character(100) :: file_ini
 character(100) :: file_OUT_rt
 character(100) :: file_IN_rt
 

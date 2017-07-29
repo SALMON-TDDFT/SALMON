@@ -576,6 +576,7 @@ else if(ilsda == 1) then
 end if
 
 call init_mesh_s
+call check_ng
 
 if(iflag_ps.eq.1)then
   call comm_bcast(MI_read,nproc_group_global)

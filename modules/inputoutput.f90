@@ -23,12 +23,12 @@ module inputoutput
   real(8),parameter :: au_length_aa = 0.52917721067d0
 
 
-  integer, parameter :: fh_variables_log = 801
-  integer, parameter :: fh_namelist = 901
-  integer, parameter :: fh_atomic_spiecies = 902
-  integer, parameter :: fh_atomic_coor = 903
-  integer, parameter :: fh_reentrance = 904
-  integer, parameter :: fh_atomic_red_coor = 905
+  integer :: fh_variables_log
+  integer :: fh_namelist
+!  integer, parameter :: fh_atomic_spiecies = 902
+  integer :: fh_atomic_coor
+  integer :: fh_reentrance
+  integer :: fh_atomic_red_coor
   logical :: if_nml_coor, if_nml_red_coor
 
   integer :: inml_calculation
@@ -48,7 +48,11 @@ module inputoutput
   integer :: inml_analysis
   integer :: inml_hartree
   integer :: inml_ewald
-
+  integer :: inml_group_fundamental
+  integer :: inml_group_parallel
+  integer :: inml_group_hartree
+  integer :: inml_group_file
+  integer :: inml_group_others
 
 !! === old variables: will be removed after some time
   integer :: inml_group_function
@@ -117,23 +121,28 @@ contains
   subroutine read_stdin
     use salmon_parallel, only: nproc_id_global
     use salmon_communication, only: comm_is_root
+    use salmon_file, only: get_filehandle
     implicit none
 
-    integer :: cur = fh_namelist
+    integer :: cur 
     integer :: ret = 0
     character(100) :: buff, text
+        
 
-
-    
     if (comm_is_root(nproc_id_global)) then
+      fh_namelist = get_filehandle()
       open(fh_namelist, file='.namelist.tmp', status='replace')
 !      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
-      if_nml_coor =.false. 
+      if_nml_coor =.false.
+      fh_atomic_coor = get_filehandle()
       open(fh_atomic_coor, file='.atomic_coor.tmp', status='replace')
       if_nml_red_coor = .false.
+      fh_atomic_red_coor = get_filehandle()
       open(fh_atomic_red_coor, file='.atomic_red_coor.tmp', status='replace')
+      fh_reentrance = get_filehandle()
       open(fh_reentrance, file='.reenetrance.tmp', status='replace')
       
+      cur = fh_namelist
       do while (.true.)
         read(*, '(a)', iostat=ret) buff
         if (ret < 0) then
@@ -188,7 +197,9 @@ contains
   subroutine read_input_common
     use salmon_parallel
     use salmon_communication
+    use salmon_file, only: get_filehandle
     implicit none
+    integer :: ii
 
     namelist/calculation/ &
       & calc_mode, &
@@ -218,7 +229,6 @@ contains
       & nproc_domain_s, &
       & num_datafiles_in, &
       & num_datafiles_out
-
 
     namelist/system/ &
       & iperiodic, &
@@ -345,7 +355,8 @@ contains
       & out_estatic_rt, &
       & out_estatic_rt_step, &
       & format3d, &
-      & numfiles_out_3d
+      & numfiles_out_3d, &
+      & timer_process
 
     namelist/hartree/ &
       & meo, &
@@ -354,6 +365,58 @@ contains
     namelist/ewald/ &
       & newald, &
       & aewald
+
+    namelist/group_fundamental/ &
+      & iditerybcg, &
+      & iditer_nosubspace_diag, &
+      & ntmg, &
+      & idisnum, &
+      & iwrite_projection, &
+      & itwproj, &
+      & iwrite_projnum, &
+      & itcalc_ene 
+
+    namelist/group_parallel/ &
+      & isequential, &
+      & imesh_s_all, &
+      & iflag_comm_rho
+
+    namelist/group_hartree/ &
+      & hconv, &
+      & lmax_meo
+
+    namelist/group_file/ &
+      & ic, &
+      & oc, &
+      & ic_rt, &
+      & oc_rt
+
+    namelist/group_others/ &
+      & iparaway_ob, &
+      & iscf_order, &
+      & iswitch_orbital_mesh, &
+      & iflag_psicube, &
+      & lambda1_diis, &
+      & lambda2_diis, &
+      & file_ini, &
+      & iparaway_ob, &
+      & num_projection, &
+      & iwrite_projection_ob, &
+      & iwrite_projection_k, &
+      & filename_pot, &
+      & iwrite_external, &
+      & iflag_dip2, &
+      & iflag_intelectron, &
+      & num_dip2, &
+      & dip2boundary, &
+      & dip2center, &
+      & iflag_fourier_omega, &
+      & num_fourier_omega, &
+      & fourier_omega, &
+      & itotntime2, &
+      & iwdenoption, &
+      & iwdenstep, &
+      & iflag_estatic
 
 
 !! == default for &unit ==
@@ -451,8 +514,8 @@ contains
     ngeometry_opt = 1
     subspace_diagonalization = 'y'
     convergence   = 'rho_dng'
-    threshold     = 1d-17*au_length_aa**3/ulength_from_au**3  ! default threshold for 'rho_dng', 1d-17 a.u. = 6.75d-17 AA**(-3)
-    threshold_pot = -1d0  ! 1 a.u. = 1.10d2 eV**2*AA**3
+    threshold     = 1d-17/ulength_from_au**3  ! a.u., 1d-17 a.u. = 6.75d-17 AA**(-3)
+    threshold_pot = -1d0*uenergy_from_au**2*uenergy_from_au**3  ! a.u., -1 a.u. = -1.10d2 eV**2*AA**3
 !! == default for &emfield
     trans_longi    = 'tr'
     ae_shape1      = 'none'
@@ -476,12 +539,12 @@ contains
     quadrupole     = 'n'
     quadrupole_pot = ''
     alocal_laser    = 'n'
-    rlaserbound_sta(1) = -1.d7/au_length_aa*ulength_from_au
-    rlaserbound_sta(2) = -1.d7/au_length_aa*ulength_from_au
-    rlaserbound_sta(3) = -1.d7/au_length_aa*ulength_from_au
-    rlaserbound_end(1) = 1.d7/au_length_aa*ulength_from_au
-    rlaserbound_end(2) = 1.d7/au_length_aa*ulength_from_au
-    rlaserbound_end(3) = 1.d7/au_length_aa*ulength_from_au
+    rlaserbound_sta(1) = -1.d7*ulength_from_au ! a.u.
+    rlaserbound_sta(2) = -1.d7*ulength_from_au ! a.u.
+    rlaserbound_sta(3) = -1.d7*ulength_from_au ! a.u.
+    rlaserbound_end(1) = 1.d7*ulength_from_au ! a.u.
+    rlaserbound_end(2) = 1.d7*ulength_from_au ! a.u.
+    rlaserbound_end(3) = 1.d7*ulength_from_au ! a.u.
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'
@@ -518,14 +581,65 @@ contains
     out_estatic_rt_step = 50
     format3d            = 'cube'
     numfiles_out_3d     = 1
+    timer_process       = 'n'
 !! == default for &hartree
     meo          = 3
     num_pole_xyz = 0
 !! == default for &ewald
     newald = 4
     aewald = 0.5d0
+!! == default for &group_fundamental
+    iditerybcg             = 20
+    iditer_nosubspace_diag = 10
+    ntmg                   = 1
+    idisnum                = (/1,2/)
+    iwrite_projection      = 0
+    itwproj                = -1
+    iwrite_projnum         = 0
+    itcalc_ene             = 1
+!! == default for &group_parallel
+    isequential    = 2
+    imesh_s_all    = 1
+    iflag_comm_rho = 1
+!! == default for &group_hartree
+    hconv    = 1.d-15*uenergy_from_au**2*ulength_from_au**3 ! a.u., 1.d-15 a.u. = ! 1.10d-13 eV**2*AA**3
+    lmax_meo = 4
+!! == default for &group_file
+    ic    = 0
+    oc    = 1
+    ic_rt = 0
+    oc_rt = 0
+!! == default for &group_others
+    iparaway_ob = 2
+    iscf_order  = 1
+    iswitch_orbital_mesh = 0
+    iflag_psicube        = 0
+    lambda1_diis         = 0.5d0
+    lambda2_diis         = 0.3d0
+    file_ini             = 'file_ini'
+    num_projection       = 1
+    do ii=1,200
+      iwrite_projection_ob(ii) = ii
+    end do
+    iwrite_projection_k(1:200) = 1
+    filename_pot               = 'pot'
+    iwrite_external            = 0
+    iflag_dip2                 = 0
+    iflag_intelectron          = 0
+    num_dip2                   = 1
+    dip2boundary(1:100)        = 0.d0*ulength_from_au ! a.u.
+    dip2center(1:100)          = 0.d0*ulength_from_au ! a.u.
+    iflag_fourier_omega        = 0
+    num_fourier_omega          = 1
+    fourier_omega(1:200)       = 0.d0*uenergy_from_au ! a.u.
+    itotntime2                 = 0
+    iwdenoption                = 0
+    iwdenstep                  = 0
+    iflag_estatic              = 0
+
 
     if (comm_is_root(nproc_id_global)) then
+      fh_namelist = get_filehandle()
       open(fh_namelist, file='.namelist.tmp', status='old')
 
       read(fh_namelist, nml=calculation, iostat=inml_calculation)
@@ -564,7 +678,6 @@ contains
       read(fh_namelist, nml=emfield, iostat=inml_emfield)
       rewind(fh_namelist)
 
-
       read(fh_namelist, nml=multiscale, iostat=inml_multiscale)
       rewind(fh_namelist)
 
@@ -575,6 +688,21 @@ contains
       rewind(fh_namelist)
 
       read(fh_namelist, nml=ewald, iostat=inml_ewald)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=group_fundamental, iostat=inml_group_fundamental)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=group_parallel, iostat=inml_group_parallel)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=group_hartree, iostat=inml_group_hartree)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=group_file, iostat=inml_group_file)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=group_others, iostat=inml_group_others)
       rewind(fh_namelist)
 
       close(fh_namelist)
@@ -658,7 +786,9 @@ contains
     call comm_bcast(subspace_diagonalization,nproc_group_global)
     call comm_bcast(convergence             ,nproc_group_global)
     call comm_bcast(threshold               ,nproc_group_global)
+    threshold = threshold / (ulength_to_au)**3
     call comm_bcast(threshold_pot           ,nproc_group_global)
+    threshold_pot = threshold_pot * (uenergy_to_au)**2 * (ulength_to_au)**3 
 !! == bcast for &emfield
     call comm_bcast(trans_longi,nproc_group_global)
     call comm_bcast(ae_shape1  ,nproc_group_global)
@@ -691,9 +821,9 @@ contains
     call comm_bcast(quadrupole_pot,nproc_group_global)
     call comm_bcast(alocal_laser  ,nproc_group_global)
     call comm_bcast(rlaserbound_sta,nproc_group_global)
+    rlaserbound_sta = rlaserbound_sta * ulength_to_au
     call comm_bcast(rlaserbound_end,nproc_group_global)
-
-
+    rlaserbound_end = rlaserbound_end * ulength_to_au
 !! == bcast for &multiscale
     call comm_bcast(fdtddim   ,nproc_group_global)
     call comm_bcast(twod_shape,nproc_group_global)
@@ -737,12 +867,64 @@ contains
     call comm_bcast(out_estatic_rt_step,nproc_group_global)
     call comm_bcast(format3d           ,nproc_group_global)
     call comm_bcast(numfiles_out_3d    ,nproc_group_global)
+    call comm_bcast(timer_process      ,nproc_group_global)
 !! == bcast for &hartree
     call comm_bcast(meo         ,nproc_group_global)
     call comm_bcast(num_pole_xyz,nproc_group_global)
 !! == bcast for &ewald
     call comm_bcast(newald,nproc_group_global)
     call comm_bcast(aewald,nproc_group_global)
+!! == bcast for &group_fundamental
+    call comm_bcast(iditerybcg            ,nproc_group_global)
+    call comm_bcast(iditer_nosubspace_diag,nproc_group_global)
+    call comm_bcast(ntmg                  ,nproc_group_global)
+    call comm_bcast(idisnum               ,nproc_group_global)
+    call comm_bcast(iwrite_projection     ,nproc_group_global)
+    call comm_bcast(itwproj               ,nproc_group_global)
+    call comm_bcast(iwrite_projnum        ,nproc_group_global)
+    call comm_bcast(itcalc_ene            ,nproc_group_global)
+!! == bcast for &group_parallel
+    call comm_bcast(isequential   ,nproc_group_global)
+    call comm_bcast(imesh_s_all   ,nproc_group_global)
+    call comm_bcast(iflag_comm_rho,nproc_group_global)
+!! == bcast for &group_hartree
+    call comm_bcast(hconv   ,nproc_group_global)
+    hconv = hconv * (uenergy_to_au)**2 * (ulength_to_au)**3 
+    call comm_bcast(lmax_meo,nproc_group_global)
+!! == bcast for &group_file
+    call comm_bcast(ic   ,nproc_group_global)
+    call comm_bcast(oc   ,nproc_group_global)
+    call comm_bcast(ic_rt,nproc_group_global)
+    call comm_bcast(oc_rt,nproc_group_global)
+!! == bcast for &group_others
+    call comm_bcast(iparaway_ob         ,nproc_group_global)
+    call comm_bcast(iscf_order          ,nproc_group_global)
+    call comm_bcast(iswitch_orbital_mesh,nproc_group_global)
+    call comm_bcast(iflag_psicube       ,nproc_group_global)
+    call comm_bcast(lambda1_diis        ,nproc_group_global)
+    call comm_bcast(lambda2_diis        ,nproc_group_global)
+    call comm_bcast(file_ini            ,nproc_group_global)
+    call comm_bcast(iparaway_ob         ,nproc_group_global)
+    call comm_bcast(num_projection      ,nproc_group_global)
+    call comm_bcast(iwrite_projection_ob,nproc_group_global)
+    call comm_bcast(iwrite_projection_k ,nproc_group_global)
+    call comm_bcast(filename_pot        ,nproc_group_global)
+    call comm_bcast(iwrite_external     ,nproc_group_global)
+    call comm_bcast(iflag_dip2          ,nproc_group_global)
+    call comm_bcast(iflag_intelectron   ,nproc_group_global)
+    call comm_bcast(num_dip2            ,nproc_group_global)
+    call comm_bcast(dip2boundary        ,nproc_group_global)
+    dip2boundary  = dip2boundary  * ulength_to_au
+    call comm_bcast(dip2center          ,nproc_group_global)
+    dip2center    = dip2center    * ulength_to_au
+    call comm_bcast(iflag_fourier_omega ,nproc_group_global)
+    call comm_bcast(num_fourier_omega   ,nproc_group_global)
+    call comm_bcast(fourier_omega       ,nproc_group_global)
+    fourier_omega = fourier_omega * uenergy_to_au
+    call comm_bcast(itotntime2          ,nproc_group_global)
+    call comm_bcast(iwdenoption         ,nproc_group_global)
+    call comm_bcast(iwdenstep           ,nproc_group_global)
+    call comm_bcast(iflag_estatic       ,nproc_group_global)
 
   end subroutine read_input_common
 
@@ -965,12 +1147,14 @@ contains
   subroutine dump_input_common
     use salmon_parallel
     use salmon_communication
+    use salmon_file, only: get_filehandle
     implicit none
     integer :: i,ierr_nml
     ierr_nml = 0
 
     if (comm_is_root(nproc_id_global)) then
 
+      fh_variables_log = get_filehandle()
       open(fh_variables_log,file='variables.log')
 
       if(inml_calculation >0)ierr_nml = ierr_nml +1
@@ -1033,8 +1217,8 @@ contains
       do i = 1,nelem
         write(fh_variables_log, '("#",4X,A,I2,A,"=",A)') 'pseudo_file(',i,')', trim(pseudo_file(i))
         write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'Lmax_ps(',i,')', Lmax_ps(i)
-        write(fh_variables_log, '("#",4X,A,I2,A"=",I4)') 'Lloc_ps(',i,')', Lloc_ps(i)
-        write(fh_variables_log, '("#",4X,A,I2,A"=",I4)') 'iZatom(',i,')', iZatom(i)
+        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'Lloc_ps(',i,')', Lloc_ps(i)
+        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'iZatom(',i,')', iZatom(i)
       end do
       write(fh_variables_log, '("#",4X,A,"=",A)') 'psmask_option', psmask_option
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'alpha_mask', alpha_mask
@@ -1162,6 +1346,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_estatic_rt_step', out_estatic_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'format3d', format3d
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'numfiles_out_3d', numfiles_out_3d
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'timer_process', timer_process
 
       if(inml_hartree >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'hartree', inml_hartree
@@ -1174,6 +1359,71 @@ contains
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'ewald', inml_ewald
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'newald', newald
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'aewald', aewald
+
+      if(inml_group_fundamental >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_fundamental', inml_group_fundamental
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iditerybcg', iditerybcg
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iditer_nosubspace_diag', iditer_nosubspace_diag
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'ntmg', ntmg
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'idisnum(1)', idisnum(1)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'idisnum(2)', idisnum(2)
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iwrite_projection', iwrite_projection
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'itwproj', itwproj
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwrite_projnum', iwrite_projnum
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'itcalc_ene', itcalc_ene
+
+      if(inml_group_parallel >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_parallel', inml_group_parallel
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'isequential', isequential
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'imesh_s_all', imesh_s_all
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_comm_rho', iflag_comm_rho
+
+      if(inml_group_hartree >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_hartree', inml_group_hartree
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'hconv', hconv
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'lmax_meo', lmax_meo
+
+      if(inml_group_file >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_file', inml_group_file
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'ic', ic
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'oc', oc
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'ic_rt', ic_rt
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'oc_rt', oc_rt
+
+      if(inml_group_others >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_others', inml_group_others
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iparaway_ob', iparaway_ob
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iscf_order', iscf_order
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iswitch_orbital_mesh', iswitch_orbital_mesh
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_psicube', iflag_psicube
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'lambda1_diis', lambda1_diis
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'lambda2_diis', lambda2_diis
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_ini', file_ini
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iparaway_ob', iparaway_ob
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'num_projection', num_projection
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'num_projection', num_projection
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwrite_projection_ob(1)', iwrite_projection_ob(1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwrite_projection_ob(2)', iwrite_projection_ob(2)
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwrite_projection_k(1)', iwrite_projection_k(1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwrite_projection_k(2)', iwrite_projection_k(2)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'filename_pot', filename_pot
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iwrite_external', iwrite_external
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_dip2', iflag_dip2
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_intelectron', iflag_intelectron
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'num_dip2', num_dip2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dip2boundary(1)', dip2boundary(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dip2boundary(2)', dip2boundary(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dip2center(1)', dip2center(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dip2center(2)', dip2center(2)
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_fourier_omega', iflag_fourier_omega
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'num_fourier_omega', num_fourier_omega
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'fourier_omega(1)', fourier_omega(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'fourier_omega(2)', fourier_omega(2)
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'itotntime2', itotntime2
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iwdenoption', iwdenoption
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwdenstep', iwdenstep
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_estatic', iflag_estatic
+
 
       select case(iflag_atom_coor)
       case(ntype_atom_coor_cartesian)

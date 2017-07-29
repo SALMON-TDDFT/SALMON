@@ -31,7 +31,6 @@
   dl = 0.25d0, 0.25d0, 0.25d0
 /
 &scf
-  rmixrate = 0.1d0
   ncg = 4
   nscf = 1000
 /
