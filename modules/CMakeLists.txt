@@ -1,4 +1,5 @@
 set(SOURCES
+    salmon_file.f90
     inputoutput.f90
     salmon_global.f90
     salmon_parallel.f90

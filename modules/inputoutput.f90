@@ -23,12 +23,12 @@ module inputoutput
   real(8),parameter :: au_length_aa = 0.52917721067d0
 
 
-  integer, parameter :: fh_variables_log = 801
-  integer, parameter :: fh_namelist = 901
-  integer, parameter :: fh_atomic_spiecies = 902
-  integer, parameter :: fh_atomic_coor = 903
-  integer, parameter :: fh_reentrance = 904
-  integer, parameter :: fh_atomic_red_coor = 905
+  integer :: fh_variables_log
+  integer :: fh_namelist
+!  integer, parameter :: fh_atomic_spiecies = 902
+  integer :: fh_atomic_coor
+  integer :: fh_reentrance
+  integer :: fh_atomic_red_coor
   logical :: if_nml_coor, if_nml_red_coor
 
   integer :: inml_calculation
@@ -121,23 +121,28 @@ contains
   subroutine read_stdin
     use salmon_parallel, only: nproc_id_global
     use salmon_communication, only: comm_is_root
+    use salmon_file, only: get_filehandle
     implicit none
 
-    integer :: cur = fh_namelist
+    integer :: cur 
     integer :: ret = 0
     character(100) :: buff, text
+        
 
-
-    
     if (comm_is_root(nproc_id_global)) then
+      fh_namelist = get_filehandle()
       open(fh_namelist, file='.namelist.tmp', status='replace')
 !      open(fh_atomic_spiecies, file='.atomic_spiecies.tmp', status='replace')
-      if_nml_coor =.false. 
+      if_nml_coor =.false.
+      fh_atomic_coor = get_filehandle()
       open(fh_atomic_coor, file='.atomic_coor.tmp', status='replace')
       if_nml_red_coor = .false.
+      fh_atomic_red_coor = get_filehandle()
       open(fh_atomic_red_coor, file='.atomic_red_coor.tmp', status='replace')
+      fh_reentrance = get_filehandle()
       open(fh_reentrance, file='.reenetrance.tmp', status='replace')
       
+      cur = fh_namelist
       do while (.true.)
         read(*, '(a)', iostat=ret) buff
         if (ret < 0) then
@@ -192,6 +197,7 @@ contains
   subroutine read_input_common
     use salmon_parallel
     use salmon_communication
+    use salmon_file, only: get_filehandle
     implicit none
     integer :: ii
 
@@ -633,6 +639,7 @@ contains
 
 
     if (comm_is_root(nproc_id_global)) then
+      fh_namelist = get_filehandle()
       open(fh_namelist, file='.namelist.tmp', status='old')
 
       read(fh_namelist, nml=calculation, iostat=inml_calculation)
@@ -1140,12 +1147,14 @@ contains
   subroutine dump_input_common
     use salmon_parallel
     use salmon_communication
+    use salmon_file, only: get_filehandle
     implicit none
     integer :: i,ierr_nml
     ierr_nml = 0
 
     if (comm_is_root(nproc_id_global)) then
 
+      fh_variables_log = get_filehandle()
       open(fh_variables_log,file='variables.log')
 
       if(inml_calculation >0)ierr_nml = ierr_nml +1
