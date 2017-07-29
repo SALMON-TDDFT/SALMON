@@ -274,7 +274,7 @@ if(IC_rt==0) then
   itotNtime=Ntime
   Miter_rt=0
 else if(IC_rt==1) then
-  call IN_data_rt(IC_rt,Ntime)
+  call IN_data_rt(Ntime)
 end if
 
 elp3(405)=get_wtime()

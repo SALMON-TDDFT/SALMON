@@ -294,7 +294,7 @@ DFT_Iteration : do iter=1,iDiter(img)
 
   Miter=Miter+1
 
-  call calc_occupation(iter)
+  call calc_occupation
 
   call copy_density
 
@@ -308,7 +308,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       elp3(183)=elp3(183)+elp3(182)-elp3(181)
     else if( amin_routine  == 'diis' .or. amin_routine == 'cg-diis' ) then
       elp3(181)=get_wtime()
-      call rmmdiis(psi,iflag)
+      call rmmdiis(psi)
       elp3(182)=get_wtime()
       elp3(184)=elp3(184)+elp3(182)-elp3(181)
     end if
@@ -388,7 +388,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     if( amin_routine == 'cg' .or. (amin_routine == 'cg-diis' .and. Miter <= iDiterYBCG) ) then
       call DTcg(psi,iflag)
     else if( amin_routine == 'diis' .or. amin_routine == 'cg-diis' ) then
-      call rmmdiis(psi,iflag)
+      call rmmdiis(psi)
     end if
 
     call Gram_Schmidt_ns
@@ -703,7 +703,7 @@ allocate(ista_Mxin(3,0:nproc_size_global-1),iend_Mxin(3,0:nproc_size_global-1))
 allocate(inum_Mxin(3,0:nproc_size_global-1))
 
 call setmg(mg_sta,mg_end,mg_num,ista_Mxin,iend_Mxin,inum_Mxin,  &
-           lg_sta,lg_end,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
+           lg_sta,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
 
 if(comm_is_root(nproc_id_global)) write(*,*) "Mx     =", iend_Mx_ori
 

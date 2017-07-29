@@ -796,7 +796,7 @@ do is=is_sta,is_end
 
       call copyVlocal(matbox12(idisp(ibox2):  &
                       (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),  &
-                      ibox,ibox2,is)
+                      ibox,is)
 
     end do
     end do
@@ -812,7 +812,7 @@ do is=is_sta,is_end
 
       call copyVlocal(matbox12(idisp(ibox2):  &
                       (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),  &
-                      ibox,ibox2,is)
+                      ibox,is)
 
     end do
     end do

@@ -252,7 +252,7 @@ end if
 END SUBROUTINE OUT_data_rt
 
 !---------------------------------------------------------------------------
-SUBROUTINE IN_data_rt(IC_rt,Ntime)
+SUBROUTINE IN_data_rt(Ntime)
 use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_size_global
 use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use scf_data
@@ -262,7 +262,6 @@ use allocate_mat_sub
 implicit none
 integer       :: i1,i2,i3,jj,iob,is,it2,kk
 integer       :: ix,iy,iz
-integer       :: IC_rt
 integer       :: Ntime
 character(100) :: file_IN_rt_data
 integer :: ibox

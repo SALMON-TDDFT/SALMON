@@ -164,7 +164,7 @@ do ak=1,MKI
       call read_psl_ABINIT(ak,ps_file)
     case(3) 
       call read_psl_fhi(ak,ps_file)
-      call setRps_fhi(ak,ps_file)
+      call setRps_fhi(ak)
   end select
 end do
 
@@ -428,10 +428,9 @@ End Subroutine read_psl_fhi
 
 !==================================================================================================
 !======================================================================
-Subroutine setRps_ABINIT_PBE(ak,ps_file)
+Subroutine setRps_ABINIT_PBE(ak)
 implicit none
 integer,intent(in) :: ak
-character(256),intent(in) :: ps_file(MKI)
 real(8) :: rcore(0:4,1:120)
 integer :: ll
 
@@ -735,10 +734,9 @@ End Subroutine set_Zps
 
 !==================================================================================================
 !======================================================================
-Subroutine setRps_fhi(ak,ps_file)
+Subroutine setRps_fhi(ak)
 implicit none
 integer,intent(in) :: ak
-character(256),intent(in) :: ps_file(MKI)
 real(8) :: rcore(0:4,1:120)
 integer :: ll
 

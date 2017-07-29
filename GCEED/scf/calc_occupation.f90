@@ -13,10 +13,9 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine calc_occupation(iter)
+subroutine calc_occupation
 use scf_data
 implicit none
-integer :: iter
 integer :: is_sta,is_end
 integer :: pstart(2),pend(2)
 
