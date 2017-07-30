@@ -366,11 +366,15 @@ Default is <code>'1.0'</code>.
 ## &rgrid
 <dl>
 
-<dt>dl(3); <code>Real(8)</code>; 0d</dt>
+<dt>dl(3); <code>Real(8)</code>; 0d/3d</dt>
 <dd>Spacing of real-space grids. Unit of length can be chosen by
 <code>&units/unit_length</code>.
 This valiable cannot be set with 
 <code>&rgrid/num_rgrid</code>.
+If <code>&system/iperiodic</code> is set to <code>3</code>,
+the actual grid spacing is automatically refined in calculations
+so that the size of the simulation box
+<code>&system/al(3)</code> becomes divisible by the spacing.
 </dd>
 
 
