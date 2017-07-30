@@ -14,14 +14,14 @@
 !  limitations under the License.
 !
 subroutine setng(ng_sta,ng_end,ng_num,ista_Mxin_s,iend_Mxin_s,inum_Mxin_s,   &
-                 nproc,nproc_id_global,nproc_Mxin,nproc_Mxin_s_dm,ista_Mxin,iend_Mxin,inum_Mxin,isequential)
+                 nproc,nproc_id_global,nproc_Mxin,nproc_Mxin_s_dm,ista_Mxin,iend_Mxin,isequential)
 implicit none
 integer :: ii,i1,i2,i3,i4
 integer :: ibox
 integer :: nproc,nproc_id_global
 integer :: ng_sta(3),ng_end(3),ng_num(3)
 integer :: ista_Mxin_s(3,0:nproc-1),iend_Mxin_s(3,0:nproc-1),inum_Mxin_s(3,0:nproc-1)
-integer :: ista_Mxin(3,0:nproc-1),iend_Mxin(3,0:nproc-1),inum_Mxin(3,0:nproc-1)
+integer :: ista_Mxin(3,0:nproc-1),iend_Mxin(3,0:nproc-1)
 integer :: nproc_Mxin_mul,nproc_Mxin_mul_s_dm
 integer :: isequential
 integer :: nproc_Mxin(3),nproc_Mxin_s_dm(3)

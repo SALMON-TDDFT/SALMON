@@ -13,10 +13,10 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine copyVlocal(matbox12,ibox,ibox2,is)
+subroutine copyVlocal(matbox12,ibox,is)
 use scf_data
 implicit none
-integer :: ibox,ibox2,is
+integer :: ibox,is
 real(8) :: matbox12(ista_Mxin_s(1,ibox):iend_Mxin_s(1,ibox),     &
                     ista_Mxin_s(2,ibox):iend_Mxin_s(2,ibox),     &
                     ista_Mxin_s(3,ibox):iend_Mxin_s(3,ibox))

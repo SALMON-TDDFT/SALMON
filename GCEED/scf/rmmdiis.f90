@@ -18,7 +18,7 @@
 ! This routine is RMM-DIIS
 ! J. Soc. Mat. Sci., Japan, vol.52 (3), p.260-265. (in Japanese)
 
-SUBROUTINE rmmdiis(psi_in,iflag)
+SUBROUTINE rmmdiis(psi_in)
 use salmon_parallel, only: nproc_group_global
 use salmon_communication, only: comm_summation
 use scf_data
@@ -30,7 +30,7 @@ implicit none
 
 real(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),   &
                   1:iobnum,1)
-integer :: iob,iter,ix,iy,iz,iflag
+integer :: iob,iter,ix,iy,iz
 integer,allocatable :: iflagdiis(:)
 integer,allocatable :: iobcheck(:,:)
 real(8),allocatable :: phi(:,:,:,:)

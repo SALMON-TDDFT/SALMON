@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine setmg(mg_sta,mg_end,mg_num,mg_sta_all,mg_end_all,mg_num_all,  &
-                 lg_sta,lg_end,lg_num,nproc,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
+                 lg_sta,lg_num,nproc,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
 implicit none
 integer :: i1,j1,j2,j3
 integer :: ibox
@@ -23,7 +23,7 @@ integer :: nproc,nproc_id_global
 integer :: nproc_Mxin(3)
 integer :: nproc_ob
 integer :: mg_sta(3),mg_end(3),mg_num(3)
-integer :: lg_sta(3),lg_end(3),lg_num(3)
+integer :: lg_sta(3),lg_num(3)
 integer :: mg_sta_all(3,0:nproc-1),mg_end_all(3,0:nproc-1),mg_num_all(3,0:nproc-1)
 integer :: nproc_Mxin_mul
 

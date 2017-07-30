@@ -563,8 +563,7 @@ allocate(ista_Mxin(3,0:nproc_size_global-1),iend_Mxin(3,0:nproc_size_global-1))
 allocate(inum_Mxin(3,0:nproc_size_global-1))
 
 call setmg(mg_sta,mg_end,mg_num,ista_Mxin,iend_Mxin,inum_Mxin,  &
-           lg_sta,lg_end,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
-call check_mg
+           lg_sta,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
 
 if(ilsda == 0) then
   itotMST0=MST0(1)
@@ -933,7 +932,7 @@ end do
 if(iSCFRT==1.and.itotMST>itotMST0) call init_wf_ns(2)
 
 if(IC<=2)then
-  call read_copy_pot(rho,matbox_read,ig_sta,ig_end,ig_num)
+  call read_copy_pot(rho,matbox_read,ig_sta,ig_end)
  
   if(version_num_box(1)<=29.or.(version_num_box(1)==30.and.version_num_box(2)<=18))then
     if(comm_is_root(nproc_id_global))then
@@ -1137,10 +1136,10 @@ if(comm_is_root(nproc_id_global))then
 end if
 
 if(IC<=2)then
-  call read_copy_pot(Vh,matbox_read,ig_sta,ig_end,ig_num)
+  call read_copy_pot(Vh,matbox_read,ig_sta,ig_end)
   
   if(ilsda == 0)then
-    call read_copy_pot(Vxc,matbox_read,ig_sta,ig_end,ig_num)
+    call read_copy_pot(Vxc,matbox_read,ig_sta,ig_end)
   else if(ilsda == 1)then
     do is=1,2
       if(comm_is_root(nproc_id_global))then
@@ -1157,7 +1156,7 @@ if(IC<=2)then
     end do
   end if
   
-  call read_copy_pot(Vpsl,matbox_read,ig_sta,ig_end,ig_num)
+  call read_copy_pot(Vpsl,matbox_read,ig_sta,ig_end)
 end if
 
 if(comm_is_root(nproc_id_global))then

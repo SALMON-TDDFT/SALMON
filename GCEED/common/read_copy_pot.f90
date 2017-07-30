@@ -13,12 +13,12 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine read_copy_pot(potbox,matbox_read,ig_sta,ig_end,ig_num)
+subroutine read_copy_pot(potbox,matbox_read,ig_sta,ig_end)
 use salmon_parallel, only: nproc_id_global, nproc_group_global
 use salmon_communication, only: comm_is_root, comm_bcast
 use scf_data
 implicit none
-integer :: ig_sta(3),ig_end(3),ig_num(3)
+integer :: ig_sta(3),ig_end(3)
 real(8) :: potbox(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
 real(8) :: matbox_read(ig_sta(1):ig_end(1),ig_sta(2):ig_end(2),ig_sta(3):ig_end(3))
 integer :: ix,iy,iz
