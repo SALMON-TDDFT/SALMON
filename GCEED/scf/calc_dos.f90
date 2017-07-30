@@ -16,28 +16,52 @@
 subroutine calc_dos
 use salmon_parallel, only: nproc_id_global, nproc_group_grid
 use salmon_communication, only: comm_is_root, comm_summation
-use inputoutput
+use inputoutput, only: out_dos_start, out_dos_end, out_dos_method, &
+                       out_dos_smearing, out_dos_nenergy, out_dos_fshift, uenergy_from_au
 use scf_data
 use allocate_psl_sub
 use new_world_sub
 implicit none
-integer :: iob,iobmax,iob_allob,iene
-real(8) :: rbox_dos(-300:300)
-real(8) :: dos(-300:300)
-real(8),parameter :: sigma_gd=0.01d0
+!integer :: iob,iobmax,iob_allob
+integer :: iob,iobmax,iob_allob
+real(8) :: dos_l_tmp(1:out_dos_nenergy)
+real(8) :: dos_l(1:out_dos_nenergy)
+real(8) :: fk,ww,dw
+integer :: iw
+real(8) :: ene_homo,ene_lumo,efermi,eshift
 
 call calc_pmax(iobmax)
 
-rbox_dos=0.d0
+if(out_dos_fshift=='y'.and.nstate>nelec/2) then 
+  ene_homo = esp(nelec/2,1)
+  ene_lumo = esp(nelec/2+1,1)
+  efermi = (ene_homo+ene_lumo)*0.5d0 
+  eshift = efermi 
+else 
+  eshift = 0.d0 
+endif 
+dw=(out_dos_end-out_dos_start)/dble(out_dos_nenergy-1) 
 
+dos_l_tmp=0.d0
+ 
 do iob=1,iobmax
   call calc_allob(iob,iob_allob)
-  do iene=-300,300
-    rbox_dos(iene)=rbox_dos(iene)  &
-              +exp(-(dble(iene)/10d0/au_energy_ev-esp(iob_allob,1))**2/(2.d0*sigma_gd**2))/sqrt(2.d0*Pi*sigma_gd**2)
-  end do
+  select case (out_dos_method)
+  case('lorentzian') 
+    fk=2.d0*out_dos_smearing/pi
+    do iw=1,out_dos_nenergy 
+      ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,1)  
+      dos_l_tmp(iw)=dos_l_tmp(iw)+fk/(ww**2+out_dos_smearing**2) 
+    end do 
+  case('gaussian')
+    fk=2.d0/(sqrt(2.d0*pi)*out_dos_smearing)
+    do iw=1,out_dos_nenergy 
+      ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,1)  
+      dos_l_tmp(iw)=dos_l_tmp(iw)+fk*exp(-(0.5d0/out_dos_smearing**2)*ww**2) 
+    end do
+  end select
 end do
-call comm_summation(rbox_dos,dos,601,nproc_group_grid) 
+call comm_summation(dos_l_tmp,dos_l,out_dos_nenergy,nproc_group_grid) 
 
 if(comm_is_root(nproc_id_global))then
   open(101,file="dos.data")
@@ -49,9 +73,9 @@ if(comm_is_root(nproc_id_global))then
     write(101,'("# Energy[eV]  DOS[1/eV]")') 
   end select
   write(101,'("#-----------------------")') 
-  do iene=-300,300
-    write(101,'(f10.5,f14.8)') dble(iene)/10.d0/au_energy_ev*uenergy_from_au,&
-                               dos(iene)*au_energy_ev/uenergy_from_au
+  do iw=1,out_dos_nenergy 
+    ww=out_dos_start+dble(iw-1)*dw+eshift
+    write(101,'(f10.5,f14.8)') ww*uenergy_from_au, dos_l(iw)/uenergy_from_au
   end do
   close(101)
 end if

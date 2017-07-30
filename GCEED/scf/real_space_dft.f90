@@ -65,6 +65,8 @@ inumcpu_check=0
 call setbN
 call setcN
 
+call check_dos_pdos
+
 call convert_input_scf(file_atoms_coo)
 
 call set_filename

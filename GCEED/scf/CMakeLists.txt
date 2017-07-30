@@ -5,6 +5,7 @@ set(SOURCES
     calc_occupation.f90
     calc_pdos.f90
     calc_rho_in.f90
+    check_dos_pdos.f90
     convert_input_scf.f90
     copy_density.f90
     deallocate_sendrecv.f90
