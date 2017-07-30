@@ -44,9 +44,9 @@ Subroutine init
   end do
 
   n=0
-  do ix=-NLx/2,NLx/2-1
-  do iy=-NLy/2,NLy/2-1
-  do iz=-NLz/2,NLz/2-1
+  do ix=-NLx/2,NLx-1-NLx/2
+  do iy=-NLy/2,NLy-1-NLy/2
+  do iz=-NLz/2,NLz-1-NLz/2
     n=n+1
     if(ix*ix+iy*iy+iz*iz == 0) nGzero=n
     Gx(n)=ix*bLx; Gy(n)=iy*bLy; Gz(n)=iz*bLz
@@ -55,9 +55,9 @@ Subroutine init
   enddo
 
   n=0
-  do nx=-NLx/2,NLx/2-1
-  do ny=-NLy/2,NLy/2-1
-  do nz=-NLz/2,NLz/2-1
+  do nx=-NLx/2,NLx-1-NLx/2
+  do ny=-NLy/2,NLy-1-NLy/2
+  do nz=-NLz/2,NLz-1-NLz/2
     n=n+1
     nxyz(nx,ny,nz)=n
   enddo
@@ -65,19 +65,19 @@ Subroutine init
   enddo
 
   do ix=0,NLx-1
-    do nx=-NLx/2,NLx/2-1
+    do nx=-NLx/2,NLx-1-NLx/2
       eGx(nx,ix)=exp(zI*(2*Pi*ix*nx/dble(NLx)))
       eGxc(nx,ix)=conjg(eGx(nx,ix))
     end do
   end do
   do iy=0,NLy-1
-    do ny=-NLy/2,NLy/2-1
+    do ny=-NLy/2,NLy-1-NLy/2
       eGy(ny,iy)=exp(zI*(2*Pi*iy*ny/dble(NLy)))
       eGyc(ny,iy)=conjg(eGy(ny,iy))
     end do
   end do
   do iz=0,NLz-1
-    do nz=-NLz/2,NLz/2-1
+    do nz=-NLz/2,NLz-1-NLz/2
       eGz(nz,iz)=exp(zI*(2*Pi*iz*nz/dble(NLz)))
       eGzc(nz,iz)=conjg(eGz(nz,iz))
     end do
