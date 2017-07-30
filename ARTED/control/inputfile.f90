@@ -64,29 +64,29 @@ contains
 !    namelist/rgrid/ &
 !            Nd,   ! Removed from input
     if(sum(abs(num_rgrid)) /= 0 .and. sum(abs(dl)) /= 0d0)then
-      call err_finalize('num_rgrid and dl are incompatible input parameters.')
-    else if(sum(abs(dl)) == 0d0)then
+      call err_finalize('Error: [num_rgrid] and [dl] are incompatible input parameters.')
+    else if(sum(abs(num_rgrid)) /= 0 .and. sum(abs(dl)) == 0d0)then
       NLx = num_rgrid(1)
       NLy = num_rgrid(2)
       NLz = num_rgrid(3)
-    else if(sum(abs(num_rgrid)) == 0d0)then
+    else if(sum(abs(num_rgrid)) == 0d0 .and. sum(abs(dl)) /= 0d0)then
       NLx = nint(al(1)/dl(1))
       NLy = nint(al(2)/dl(2))
       NLz = nint(al(3)/dl(3))
       if(comm_is_root(nproc_id_global))then
         write(*,"(A)")"Grid number [num_rgrid(3)] is computed from Grid spacing [dl(3)]."
-        write(*,"(A,2x,I7)")"num_rgrid(1)=",num_rgrid(1)
-        write(*,"(A,2x,I7)")"num_rgrid(2)=",num_rgrid(2)
-        write(*,"(A,2x,I7)")"num_rgrid(3)=",num_rgrid(3)
+        write(*,"(A,2x,I7)")"num_rgrid(1)=",NLx
+        write(*,"(A,2x,I7)")"num_rgrid(2)=",NLy
+        write(*,"(A,2x,I7)")"num_rgrid(3)=",NLz
         write(*,"(A)")"Actual grid spacing becomes:"
-        write(*,"(A,2x,e16.6e3)")"dl(1))=",al(1)/NLx
-        write(*,"(A,2x,e16.6e3)")"dl(1))=",al(2)/NLy
-        write(*,"(A,2x,e16.6e3)")"dl(1))=",al(3)/NLz
+        write(*,"(A,2x,e16.6e3,A)")"dl(1)=",al(1)/NLx," [Bohr]"
+        write(*,"(A,2x,e16.6e3,A)")"dl(2)=",al(2)/NLy," [Bohr]"
+        write(*,"(A,2x,e16.6e3,A)")"dl(3)=",al(3)/NLz," [Bohr]"
         write(*,"(A)")"Warning: actual grid spacing can be different from input"
         write(*,"(A)")"so that the lattice parameter is divisible by the spacing."
       end if
     else
-      call err_finalize('num_rgrid or dl should be specified in input.')
+      call err_finalize('Error: [num_rgrid] or [dl] should be specified in input.')
     end if
 
 !! Comment: S.A.S 2017/06/04
