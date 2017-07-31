@@ -1,0 +1,10 @@
+TARGET = salmon.cpu
+FC = mpiifort
+CC = mpiicc
+FFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std03 -warn all
+CFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -Wall -restrict
+FILE_MATHLIB = lapack
+LIBLAPACK = -mkl=cluster
+LIBSCALAPACK = -mkl=cluster
+MODULE_SWITCH = -module
+COMM_SET =

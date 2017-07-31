@@ -1,0 +1,17 @@
+TARGET = salmon.cpu
+FC = mpiifort
+CC = mpiicc
+FLAGS = -xMIC-AVX512 -qopenmp -qopt-ra-region-strategy=block -ansi-alias -fno-alias \
+        -DARTED_STENCIL_OPTIMIZED \
+        -DARTED_STENCIL_WITH_C \
+        -DARTED_EXPLICIT_VECTORIZATION \
+        -DARTED_REDUCE_FOR_MANYCORE \
+        -DARTED_ENABLE_SOFTWARE_PREFETCH
+FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std03 -warn all -diag-disable 6187,6477,6916,7025,7416
+CFLAGS = $(FLAGS) -O3 -Wall -diag-disable=10388 -restrict
+FILE_MATHLIB = lapack
+LIBLAPACK = -mkl=cluster
+LIBSCALAPACK = -mkl=cluster
+SIMD_SET = IMCI
+MODULE_SWITCH = -module
+COMM_SET =
