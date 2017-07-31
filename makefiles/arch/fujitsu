@@ -1,0 +1,10 @@
+TARGET = salmon.cpu
+FC = mpifrtpx
+CC = mpifccpx
+FFLAGS = -O3 -Kfast,openmp,simd=1 -Cpp -Kocl,nooptmsg
+CFLAGS = -O3 -Kfast,openmp,simd=1 -Kocl,nooptmsg
+FILE_MATHLIB = lapack
+LIBLAPACK = -SSL2BLAMP
+LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
+MODULE_SWITCH = -M
+COMM_SET =

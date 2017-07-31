@@ -1,0 +1,13 @@
+TARGET = salmon.cpu
+FC = mpiifort
+CC = mpiicc
+FLAGS = -xCORE-AVX2 -qopenmp -ansi-alias -fno-alias \
+        -DARTED_REDUCE_FOR_MANYCORE 
+FFLAGS = $(FLAGS) -O3 -fpp -nogen-interface -std90 -warn all -diag-disable 6187,6477,6916,7025,7416,7893
+CFLAGS = $(FLAGS) -O3 -Wall -restrict
+FILE_MATHLIB = lapack
+LIBLAPACK = -mkl=cluster
+LIBSCALAPACK = -mkl=cluster
+SIMD_SET = AVX
+MODULE_SWITCH = -module
+COMM_SET =
