@@ -224,7 +224,6 @@ contains
     !sym ---
     
     if(mod(NKx,2)+mod(NKy,2)+mod(NKz,2) /= 0) call err_finalize('NKx,NKy,NKz /= even')
-    if(mod(NLx,2)+mod(NLy,2)+mod(NLz,2) /= 0) call err_finalize('NLx,NLy,NLz /= even')
     
     call comm_sync_all
     
@@ -349,13 +348,13 @@ contains
     
     allocate(work(-Nd:NLx+Nd-1,-Nd:NLy+Nd-1,-Nd:NLz+Nd-1))
     allocate(zwork(-Nd:NLx+Nd-1,-Nd:NLy+Nd-1,-Nd:NLz+Nd-1))
-    allocate(nxyz(-NLx/2:NLx/2-1,-NLy/2:NLy/2-1,-NLz/2:NLz/2-1)) !Hartree
+    allocate(nxyz(0-NLx/2:NLx-1-NLx/2,0-NLy/2:NLy-1-NLy/2,0-NLz/2:NLz-1-NLz/2)) !Hartree
     allocate(rho_3D(0:NLx-1,0:NLy-1,0:NLz-1),Vh_3D(0:NLx-1,0:NLy-1,0:NLz-1))!Hartree
-    allocate(rhoe_G_temp(1:NG),rhoe_G_3D(-NLx/2:NLx/2-1,-NLy/2:NLy/2-1,-NLz/2:NLz/2-1))!Hartree
-    allocate(f1(0:NLx-1,0:NLy-1,-NLz/2:NLz/2-1),f2(0:NLx-1,-NLy/2:NLy/2-1,-NLz/2:NLz/2-1))!Hartree
-    allocate(f3(-NLx/2:NLx/2-1,-NLy/2:NLy/2-1,0:NLz-1),f4(-NLx/2:NLx/2-1,0:NLy-1,0:NLz-1))!Hartree
-    allocate(eGx(-NLx/2:NLx/2-1,0:NLx-1),eGy(-NLy/2:NLy/2-1,0:NLy-1),eGz(-NLz/2:NLz/2-1,0:NLz-1))!Hartree
-    allocate(eGxc(-NLx/2:NLx/2-1,0:NLx-1),eGyc(-NLy/2:NLy/2-1,0:NLy-1),eGzc(-NLz/2:NLz/2-1,0:NLz-1))!Hartree
+    allocate(rhoe_G_temp(1:NG),rhoe_G_3D(-NLx/2:NLx-1-NLx/2,-NLy/2:NLy-1-NLy/2,-NLz/2:NLz-1-NLz/2))!Hartree
+    allocate(f1(0:NLx-1,0:NLy-1,-NLz/2:NLz-1-NLz/2),f2(0:NLx-1,-NLy/2:NLy-1-NLy/2,-NLz/2:NLz-1-NLz/2))!Hartree
+    allocate(f3(-NLx/2:NLx-1-NLx/2,-NLy/2:NLy-1-NLy/2,0:NLz-1),f4(-NLx/2:Nlx-1-NLx/2,0:NLy-1,0:NLz-1))!Hartree
+    allocate(eGx(-NLx/2:NLx-1-NLx/2,0:NLx-1),eGy(-NLy/2:NLy-1-NLy/2,0:NLy-1),eGz(-NLz/2:NLz-1-NLz/2,0:NLz-1))!Hartree
+    allocate(eGxc(-NLx/2:NLx-1-NLx/2,0:NLx-1),eGyc(-NLy/2:NLy-1-NLy/2,0:NLy-1),eGzc(-NLz/2:NLz-1-NLz/2,0:NLz-1))!Hartree
     allocate(itable_sym(Sym,NL)) ! sym
     allocate(rho_l(NL),rho_tmp1(NL),rho_tmp2(NL)) !sym
     

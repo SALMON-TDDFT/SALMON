@@ -35,7 +35,7 @@ Subroutine Hartree
 !$omp end do
 
 !$omp do private(ix,iy,nz) collapse(3)
-  do nz = -NLz/2,NLz/2-1
+  do nz = -NLz/2,NLz-1-NLz/2
   do iy = 0,NLy-1
   do ix = 0,NLx-1
     f1(ix,iy,nz)=sum(eGzc(nz,:)*rho_3D(ix,iy,:))
@@ -45,8 +45,8 @@ Subroutine Hartree
 !$omp end do
 
 !$omp do private(ix,ny,nz) collapse(3)
-  do nz = -NLz/2,NLz/2-1
-  do ny = -NLy/2,NLy/2-1
+  do nz = -NLz/2,NLz-1-NLz/2
+  do ny = -NLy/2,NLy-1-NLy/2
   do ix = 0,NLx-1
     f2(ix,ny,nz)=sum(eGyc(ny,:)*f1(ix,:,nz))
   end do
@@ -55,9 +55,9 @@ Subroutine Hartree
 !$omp end do
 
 !$omp do private(nx,ny,nz) collapse(3)
-  do nz = -NLz/2,NLz/2-1
-  do ny = -NLy/2,NLy/2-1
-  do nx = -NLx/2,NLx/2-1
+  do nz = -NLz/2,NLz-1-NLz/2
+  do ny = -NLy/2,NLy-1-NLy/2
+  do nx = -NLx/2,NLx-1-NLx/2
     rhoe_G_3D(nx,ny,nz)=sum(eGxc(nx,:)*f2(:,ny,nz))/dble(NL)
   end do
   end do
@@ -65,9 +65,9 @@ Subroutine Hartree
 !$omp end do
 
 !$omp do private(nx,ny,nz,G2) collapse(3)
-  do nz = -NLz/2,NLz/2-1
-  do ny = -NLy/2,NLy/2-1
-  do nx = -NLx/2,NLx/2-1
+  do nz = -NLz/2,NLz-1-NLz/2
+  do ny = -NLy/2,NLy-1-NLy/2
+  do nx = -NLx/2,NLx-1-NLx/2
     rhoe_G_temp(nxyz(nx,ny,nz))=rhoe_G_3D(nx,ny,nz)
     G2=Gx(nxyz(nx,ny,nz))**2+Gy(nxyz(nx,ny,nz))**2+Gz(nxyz(nx,ny,nz))**2
     rhoe_G_3D(nx,ny,nz)=4*Pi/G2*rhoe_G_3D(nx,ny,nz)
@@ -86,8 +86,8 @@ Subroutine Hartree
 
 !$omp do private(nx,ny,iz) collapse(3)
   do iz = 0,NLz-1
-  do ny = -NLy/2,NLy/2-1
-  do nx = -NLx/2,NLx/2-1
+  do ny = -NLy/2,NLy-1-NLy/2
+  do nx = -NLx/2,NLx-1-NLx/2
     f3(nx,ny,iz)=sum(eGz(:,iz)*rhoe_G_3D(nx,ny,:))
   end do
   end do
@@ -97,7 +97,7 @@ Subroutine Hartree
 !$omp do private(nx,iy,iz) collapse(3)
   do iz = 0,NLz-1
   do iy = 0,NLy-1
-  do nx = -NLx/2,NLx/2-1
+  do nx = -NLx/2,NLx-1-NLx/2
     f4(nx,iy,iz)=sum(eGy(:,iy)*f3(nx,:,iz))
   end do
   end do
