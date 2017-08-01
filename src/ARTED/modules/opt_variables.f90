@@ -32,6 +32,10 @@ module opt_variables
 
   real(8),allocatable :: zcx(:,:),zcy(:,:),zcz(:,:)
 
+  integer                :: NP                  ! # of projector
+  integer                :: NPI                 ! size of pseudo-vector (packed vector)
+  integer,allocatable    :: pseudo_start_idx(:) ! start index of pseudo-vector
+
 #ifdef ARTED_STENCIL_ORIGIN
   integer,allocatable :: zifdx(:,:),zifdy(:,:),zifdz(:,:)
 #endif
@@ -163,6 +167,8 @@ contains
 #ifdef ARTED_STENCIL_ENABLE_LOOP_BLOCKING
     call auto_blocking
 #endif
+
+    call init_projector
   end subroutine
 
   subroutine init_for_padding
@@ -203,6 +209,21 @@ contains
       end do
     end do
   end subroutine
+
+  subroutine init_projector
+    use global_variables
+    implicit none
+    integer :: i
+
+    NP = Nlma / NI
+    NPI = Nps * NI
+
+    allocate(pseudo_start_idx(NI))
+    do i=1,NI
+      pseudo_start_idx(i) = Nps*(i-1)
+    end do
+  end subroutine
+
 
 #ifdef ARTED_LBLK
   subroutine opt_vars_init_t4ppt
