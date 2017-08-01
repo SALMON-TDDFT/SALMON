@@ -1,14 +1,11 @@
 # gnu
 
 TARGET = salmon.cpu
-FC = mpifc
+FC = mpif90
 CC = mpicc
 FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-form -ffree-line-length-none
 CFLAGS = -O3 -fopenmp -Wall
-FILE_MATHLIB = lapack
-LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 -lm
-LIBSCALAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 \
-    -lmkl_blacs_intelmpi_lp64 -lmkl_scalapack_lp64 -lm
+LIBLAPACK = -llapack -lblas
 MODULE_SWITCH = -J
 COMM_SET =
 OBJDIR = build_temp
