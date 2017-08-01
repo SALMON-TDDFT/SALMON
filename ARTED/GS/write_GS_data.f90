@@ -23,8 +23,8 @@ Subroutine write_GS_data
                          & out_dos_smearing, &
                          & out_dos_method, &
                          & out_dos_fshift
-  use salmon_parallel, only: nproc_id_global, nproc_group_tdks
-  use salmon_communication, only: comm_is_root,comm_summation
+  use salmon_parallel, only: nproc_group_global, nproc_id_global, nproc_group_tdks
+  use salmon_communication, only: comm_is_root,comm_summation, comm_bcast
   implicit none
   integer ik,ib,ia,iter,j
 
@@ -114,21 +114,31 @@ Subroutine write_GS_data
     subroutine dos_write
       use inputoutput, only: t_unit_energy_inv, t_unit_energy
       implicit none
-      real(8) :: vbmax, cbmin, efermi, eshift
+      real(8) :: vbmax, cbmin, emax, emin, efermi, eshift
       real(8) :: ww, fk, dw
       integer :: iw
-      real(8), allocatable :: dos(:), dos_l(:)  
+      real(8) :: dos(out_dos_nenergy), dos_l(out_dos_nenergy)  
+    
+      if (comm_is_root(nproc_id_global)) then
+
+        emin = minval(esp(:,:))
+        emax = maxval(esp(:,:))
+        cbmin = minval(esp_cb_min(:))
+        vbmax = maxval(esp_vb_max(:))
       
-      allocate(dos(out_dos_nenergy), dos_l(out_dos_nenergy))
+        if (out_dos_fshift == 'y') then
+          efermi = (vbmax + cbmin) * 0.5d0
+          eshift = efermi
+        else
+          eshift = 0d0
+        endif
+      end if
+      call comm_bcast(emin,nproc_group_global)
+      call comm_bcast(emax,nproc_group_global)
+      call comm_bcast(eshift,nproc_group_global)
       
-      if (out_dos_fshift == 'y') then
-        vbmax = maxval(esp_vb_max)
-        cbmin = minval(esp_cb_min)
-        efermi = (vbmax + cbmin) * 0.5d0
-        eshift = efermi
-      else
-        eshift = 0d0
-      endif
+      out_dos_start = max(out_dos_start, emin-eshift-out_dos_smearing*2)
+      out_dos_end = min(out_dos_end, emax-eshift+out_dos_smearing*2)
       
       dos_l = 0d0
       dw = (out_dos_end - out_dos_start) / (out_dos_nenergy - 1)
