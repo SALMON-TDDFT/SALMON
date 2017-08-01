@@ -114,21 +114,25 @@ Subroutine write_GS_data
     subroutine dos_write
       use inputoutput, only: t_unit_energy_inv, t_unit_energy
       implicit none
-      real(8) :: vbmax, cbmin, efermi, eshift
+      real(8) :: vbmax, vbmin, cbmax, cbmin, efermi, eshift
       real(8) :: ww, fk, dw
       integer :: iw
-      real(8), allocatable :: dos(:), dos_l(:)  
-      
-      allocate(dos(out_dos_nenergy), dos_l(out_dos_nenergy))
-      
+      real(8) :: dos(out_dos_nenergy), dos_l(out_dos_nenergy)  
+    
+      vbmin = minval(esp_vb_min)
+      vbmax = maxval(esp_vb_max)
+      cbmin = minval(esp_cb_min)
+      cbmax = maxval(esp_cb_max)
+    
       if (out_dos_fshift == 'y') then
-        vbmax = maxval(esp_vb_max)
-        cbmin = minval(esp_cb_min)
         efermi = (vbmax + cbmin) * 0.5d0
         eshift = efermi
       else
         eshift = 0d0
       endif
+      
+      out_dos_start = max(out_dos_start, vbmin-eshift-out_dos_smearing*2)
+      out_dos_end = min(out_dos_end, cbmax-eshift+out_dos_smearing*2)
       
       dos_l = 0d0
       dw = (out_dos_end - out_dos_start) / (out_dos_nenergy - 1)

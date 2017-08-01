@@ -564,8 +564,8 @@ contains
     de                  = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
     out_psi             = 'n'
     out_dos             = 'n'
-    out_dos_start       = -3.00d0 / au_energy_ev * uenergy_from_au
-    out_dos_end         = +3.00d0 / au_energy_ev * uenergy_from_au
+    out_dos_start       = -1.d10 / au_energy_ev * uenergy_from_au
+    out_dos_end         = +1.d10 / au_energy_ev * uenergy_from_au
     out_dos_nenergy     = 601
     out_dos_smearing    = 0.1d0 / au_energy_ev * uenergy_from_au
     out_dos_method      = 'gaussian'

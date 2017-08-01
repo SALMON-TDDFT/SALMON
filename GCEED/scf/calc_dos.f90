@@ -28,18 +28,21 @@ real(8) :: dos_l_tmp(1:out_dos_nenergy)
 real(8) :: dos_l(1:out_dos_nenergy)
 real(8) :: fk,ww,dw
 integer :: iw
-real(8) :: ene_homo,ene_lumo,efermi,eshift
+real(8) :: ene_homo,ene_lumo,ene_min,ene_max,efermi,eshift
 
 call calc_pmax(iobmax)
-
+ene_min = minval(esp(:,1))
+ene_max = maxval(esp(:,1))
+ene_homo = esp(nelec/2,1)
+ene_lumo = esp(nelec/2+1,1)
 if(out_dos_fshift=='y'.and.nstate>nelec/2) then 
-  ene_homo = esp(nelec/2,1)
-  ene_lumo = esp(nelec/2+1,1)
   efermi = (ene_homo+ene_lumo)*0.5d0 
   eshift = efermi 
 else 
   eshift = 0.d0 
 endif 
+out_dos_start = max(out_dos_start, ene_min-eshift-out_dos_smearing*2)
+out_dos_end = min(out_dos_end, ene_max-eshift+out_dos_smearing*2)
 dw=(out_dos_end-out_dos_start)/dble(out_dos_nenergy-1) 
 
 dos_l_tmp=0.d0
