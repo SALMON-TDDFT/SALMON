@@ -174,7 +174,7 @@ contains
     end select
 
     select case(propagator)
-      case('default')
+      case('middlepoint')
         ncalls_in_loop = ncalls_in_loop - 1
     end select
 
