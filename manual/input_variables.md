@@ -769,38 +769,32 @@ If <code>'y'</code>, density of state is output.
 Default is <code>'n'</code>.
 </dd>
 
-<dt>out_dos_start; <code>Real(8)</code>; 3d</dt>
+<dt>iout_dos_nenergy; <code>Integer</code>; 0d/3d</dt>
 <dd>
-Start point (energy) of the density of state spectra.
-Default value is <code>-3.0</code> eV.
+Number of energies which are calculated in DOS part. 
+Default is <code>601</code>.
 </dd>
 
-<dt>out_dos_end; <code>Real(8)</code>; 3d</dt>
-<dd>
-End point (energy) of the density of state spectra.
-Default value is <code>3.0</code> eV.
-</dd>
-
-<dt>out_dos_method; <code>Character</code>; 3d</dt>
+<dt>out_dos_method; <code>Character</code>; 0d/3d</dt>
 <dd>
 Choise of smearing method for the density of state spectra.
 <code>gaussian</code> and <code>lorentzian</code> function are available.
 Default is <code>gaussian</code>.
 </dd>
 
-<dt>out_dos_smearing; <code>Real(8)</code>; 3d</dt>
+<dt>out_dos_smearing; <code>Real(8)</code>; 0d/3d</dt>
 <dd>
 Smearing width of the density of state spectra.
 Default is <code>0.1</code> eV.
 </dd>
 
-<dt>out_dos_fshift; <code>Character</code>; 3d</dt>
+<dt>out_dos_fshift; <code>Character</code>; 0d/3d</dt>
 <dd>
 If <code>'y'</code>, the electron energy is shifted to fix the Fermi energy as zero point.
+For <code>&system/iperiodic</code> is <code>0</code>, <code> out_dos_fshift</code> is not used 
+if <code>&system/nstate</code> is equal to <code>&system/nelec</code>/2.
 Default is <code>'n'</code>.
 </dd>
-
-
 
 <dt>out_pdos; <code>Character</code>; 0d</dt>
 <dd>
