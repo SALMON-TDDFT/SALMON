@@ -19,7 +19,7 @@ Subroutine write_GS_data
   use salmon_global, only: out_dos, &
                          & out_dos_start, &
                          & out_dos_end, &
-                         & out_dos_nenergy, &
+                         & iout_dos_nenergy, &
                          & out_dos_smearing, &
                          & out_dos_method, &
                          & out_dos_fshift
@@ -117,7 +117,7 @@ Subroutine write_GS_data
       real(8) :: vbmax, cbmin, emax, emin, efermi, eshift
       real(8) :: ww, fk, dw
       integer :: iw
-      real(8) :: dos(out_dos_nenergy), dos_l(out_dos_nenergy)  
+      real(8) :: dos(iout_dos_nenergy), dos_l(iout_dos_nenergy)  
     
       if (comm_is_root(nproc_id_global)) then
 
@@ -137,11 +137,11 @@ Subroutine write_GS_data
       call comm_bcast(emax,nproc_group_global)
       call comm_bcast(eshift,nproc_group_global)
       
-      out_dos_start = max(out_dos_start, emin-eshift-out_dos_smearing*2)
-      out_dos_end = min(out_dos_end, emax-eshift+out_dos_smearing*2)
+      out_dos_start = max(out_dos_start, emin - 0.25d0 * (emax - emin))
+      out_dos_end = min(out_dos_end, emax + 0.25d0 * (emax - emin))
       
       dos_l = 0d0
-      dw = (out_dos_end - out_dos_start) / (out_dos_nenergy - 1)
+      dw = (out_dos_end - out_dos_start) / (iout_dos_nenergy - 1)
       
       select case (out_dos_method)
       case('lorentzian')
@@ -149,7 +149,7 @@ Subroutine write_GS_data
         do ik = NK_s,NK_e
           do ib = 1,NB
             fk = 2.d0/(NKxyz)*wk(ik)*(out_dos_smearing/pi)          
-            do iw = 1, out_dos_nenergy
+            do iw = 1, iout_dos_nenergy
               ww =  out_dos_start + (iw-1) * dw + eshift - esp(ib,ik) 
               dos_l(iw) = dos_l(iw) + fk/(ww**2 + out_dos_smearing**2)
             end do
@@ -161,7 +161,7 @@ Subroutine write_GS_data
         do ik = NK_s,NK_e
           do ib = 1,NB
             fk = (2.d0 / (NKxyz * sqrt(2.d0*pi) * out_dos_smearing)) * wk(ik)
-            do iw = 1, out_dos_nenergy
+            do iw = 1, iout_dos_nenergy
               ww =  out_dos_start + (iw-1) * dw + eshift - esp(ib,ik) 
               dos_l(iw) = dos_l(iw) + fk * exp(-(0.5/out_dos_smearing**2)*ww**2)
             end do
@@ -169,14 +169,14 @@ Subroutine write_GS_data
         end do
       end select
       
-      call comm_summation(dos_l,dos,out_dos_nenergy,nproc_group_tdks)
+      call comm_summation(dos_l,dos,iout_dos_nenergy,nproc_group_tdks)
 
       if (comm_is_root(nproc_id_global)) then
         open(404,file=file_DoS)
         write(404,"(A)") '#Density of states'
         write(404,"(6A)") '# energy (', trim(t_unit_energy%name) ,'),', &
                         & ' dos (',  trim(t_unit_energy_inv%name)  ,')'
-        do iw = 1, out_dos_nenergy
+        do iw = 1, iout_dos_nenergy
           ww =  out_dos_start + (iw-1) * dw 
           write(404,"(2e26.16e3)") ww * t_unit_energy%conv, &
                                  & dos(iw) * t_unit_energy_inv%conv
