@@ -137,8 +137,8 @@ Subroutine write_GS_data
       call comm_bcast(emax,nproc_group_global)
       call comm_bcast(eshift,nproc_group_global)
       
-      out_dos_start = emin - 0.25d0 * (emax - emin)
-      out_dos_end = emax + 0.25d0 * (emax - emin)
+      out_dos_start = max(out_dos_start, emin - 0.25d0 * (emax - emin))
+      out_dos_end = min(out_dos_end, emax + 0.25d0 * (emax - emin))
       
       dos_l = 0d0
       dw = (out_dos_end - out_dos_start) / (iout_dos_nenergy - 1)

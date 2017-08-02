@@ -52,8 +52,8 @@ if(out_dos_fshift=='y'.and.nstate>nelec/2) then
 else 
   eshift = 0d0 
 endif 
-out_dos_start = ene_min-0.25d0*(ene_max-ene_min)
-out_dos_end = ene_max+0.25d0*(ene_max-ene_min)
+out_dos_start = max(out_dos_start,ene_min-0.25d0*(ene_max-ene_min))
+out_dos_end = min(out_dos_end,ene_max+0.25d0*(ene_max-ene_min))
 dw=(out_dos_end-out_dos_start)/dble(iout_dos_nenergy-1) 
 
 pdos_l_tmp=0.d0

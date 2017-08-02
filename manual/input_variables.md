@@ -769,10 +769,32 @@ If <code>'y'</code>, density of state is output.
 Default is <code>'n'</code>.
 </dd>
 
+<dt>out_dos_start; <code>Real(8)</code>; 0d/3d</dt>
+<dd>
+Start point (energy) of the density of state spectra.
+If this value is lower than a specific value near the lowest energy level, 
+this value is overwrited by that value. 
+Default value is <code>-1.d10</code> eV.
+</dd>
+
+<dt>out_dos_end; <code>Real(8)</code>; 0d/3d</dt>
+<dd>
+End point (energy) of the density of state spectra.
+If this value is higher than a specific value near the highest energy level, 
+this value is overwrited by that value. 
+Default value is <code>1.d10</code> eV.
+</dd>
+
 <dt>iout_dos_nenergy; <code>Integer</code>; 0d/3d</dt>
 <dd>
 Number of energies which are calculated in DOS part. 
 Default is <code>601</code>.
+</dd>
+
+<dt>out_dos_smearing; <code>Real(8)</code>; 0d/3d</dt>
+<dd>
+Smearing width of the density of state spectra.
+Default is <code>0.1</code> eV.
 </dd>
 
 <dt>out_dos_method; <code>Character</code>; 0d/3d</dt>
@@ -780,12 +802,6 @@ Default is <code>601</code>.
 Choise of smearing method for the density of state spectra.
 <code>gaussian</code> and <code>lorentzian</code> function are available.
 Default is <code>gaussian</code>.
-</dd>
-
-<dt>out_dos_smearing; <code>Real(8)</code>; 0d/3d</dt>
-<dd>
-Smearing width of the density of state spectra.
-Default is <code>0.1</code> eV.
 </dd>
 
 <dt>out_dos_fshift; <code>Character</code>; 0d/3d</dt>
