@@ -22,6 +22,7 @@ subroutine writeelf
   character(30) :: suffix
   character(30) :: phys_quantity
   character(10) :: filenum
+  character(20) :: header_unit
 
   if(iSCFRT==1)then 
     suffix = "elf"
@@ -31,7 +32,8 @@ subroutine writeelf
   end if
   phys_quantity = "elf"
   if(format3d=='avs')then
-    call writeavs(103,suffix,elf)
+    header_unit = "none"
+    call writeavs(103,suffix,header_unit,elf)
   else if(format3d=='cube')then
     call writecube(103,suffix,phys_quantity,elf)
   end if

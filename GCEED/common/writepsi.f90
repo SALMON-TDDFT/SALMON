@@ -16,6 +16,7 @@
 !======================================================================
 !======================================================================
 subroutine writepsi
+  use inputoutput, only: au_length_aa
   use salmon_parallel, only: nproc_group_global
   use salmon_communication, only: comm_summation
   use scf_data
@@ -26,13 +27,14 @@ subroutine writepsi
   character(30) :: suffix
   character(30) :: phys_quantity
   character(10) :: filenum
+  character(20) :: header_unit
  
   if(iSCFRT==1)then
     do p0=1,itotMST
       call conv_p0(p0,iob)
       call calc_myob(iob,iob_myob)
       call check_corrkob(iob,icheck_corrkob)
-  !OMP parallel do
+  !OMP parallel do private(iz,iy,ix)
       do iz=lg_sta(3),lg_end(3)
       do iy=lg_sta(2),lg_end(2)
       do ix=lg_sta(1),lg_end(1)
@@ -41,7 +43,7 @@ subroutine writepsi
       end do
       end do
       if(icheck_corrkob==1)then
-  !OMP parallel do
+  !OMP parallel do private(iz,iy,ix)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
@@ -50,13 +52,26 @@ subroutine writepsi
         end do
         end do
       end if
+
+      if(format3d=='avs')then
+  !OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          matbox_l(ix,iy,iz)=matbox_l(ix,iy,iz)/sqrt(au_length_aa)**3
+        end do
+        end do
+        end do
+      end if
+
       call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
       write(filenum, '(i5)') p0
       suffix = "psi"//trim(adjustl(filenum))
       phys_quantity = "psi"
       if(format3d=='avs')then
-        call writeavs(103,suffix,matbox_l2)
+        header_unit = "A**(-3/2)"
+        call writeavs(103,suffix,header_unit,matbox_l2)
       else if(format3d=='cube')then
         call writecube(103,suffix,phys_quantity,matbox_l2)
       end if
