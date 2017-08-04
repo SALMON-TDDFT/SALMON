@@ -586,38 +586,61 @@ if(comm_is_root(nproc_id_global)) then
 
   write(1,*) "Total number of iteration = ", Miter
   write(1,*)
-  if(ilsda == 0) then
-     write(1,*) "Number of orbitals = ", MST(1)
-     write(1,*) "Number of filled orbitals = ", ifMST(1)
-  else if(ilsda == 1) then
-     write(1,*) "Number of orbitals = ", (MST(is),is=1,2)
-     write(1,*) "Number of filled orbitals = ", (ifMST(is),is=1,2)
-  end if
+  select case (ilsda)
+  case(0)
+    write(1,*) "Number of states = ", nstate
+    write(1,*) "Number of electrons = ", ifMST(1)
+  case(1)
+    write(1,*) "Number of states = ", (nstate_spin(is),is=1,2)
+    write(1,*) "Number of electrons = ", (nelec_spin(is),is=1,2)
+  end select
   write(1,*)
-  write(1,*) "Total energy = ", Etot*2d0*Ry
-  write(1,*) "1-particle energies"
-  do p5=1,(itotMST+3)/4
-    p1=4*(p5-1)+1
-    p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
-    write(1,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,1)*2d0*Ry,iob=p1,p2)
-  end do
+  write(1,*) "Total energy (eV) = ", Etot*2d0*Ry
+  write(1,*) "1-particle energies (eV)"
+  select case (ilsda)
+  case(0)
+    do p5=1,(nstate+3)/4
+      p1=4*(p5-1)+1
+      p2=4*p5 ; if ( p2 > nstate ) p2=nstate
+      write(1,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,1)*2d0*Ry,iob=p1,p2)
+    end do
+  case(1)
+    do is=1,2
+      select case(is)
+      case(1)
+        write(1,*) "for up-spin"
+        do p5=1,(nstate_spin(is)+3)/4
+          p1=4*(p5-1)+1
+          p2=4*p5 ; if ( p2 > nstate_spin(1) ) p2=nstate_spin(1)
+          write(1,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,1)*2d0*Ry,iob=p1,p2)
+        end do
+      case(2)
+        write(1,*) "for down-spin"
+        do p5=1,(nstate_spin(is)+3)/4
+          p1=4*(p5-1)+1+nstate_spin(1)
+          p2=4*p5+nstate_spin(1) ; if ( p2 > nstate_spin(1)+nstate_spin(2) ) p2=nstate_spin(1)+nstate_spin(2)
+          write(1,'(1x,4(i5,f15.4,2x))') (iob-nstate_spin(1),esp(iob,1)*2d0*Ry,iob=p1,p2)
+        end do
+      end select
+    end do
+  end select
   write(1,*)
 
   do ii=1,ntmg
-     write(1,*) "Size of the box     = ", rLsize(:,ii)*a_B
+    write(1,'(1x,a,3f14.8)') "Size of the box (A) = ", rLsize(:,ii)*a_B
   end do
 
-  write(1,*) "Grid spacing          = ", (Hgs(jj)*a_B,jj=1,3)
+  write(1,'(1x,a,3f14.8)')   "Grid spacing (A)    = ", (Hgs(jj)*a_B,jj=1,3)
   write(1,*)
-  write(1,*) "Number of atoms = ", MI
+  write(1,'(1x,"Number of atoms = ",i8)') MI
   do ik=1,MKI
-    write(1,'(1x,"iZatom(",i2,")       = ",i12)') ik, iZatom(ik)
+    write(1,'(1x,"iZatom(",i3,")     = ",i8)') ik, iZatom(ik)
   end do
   write(1,*)
   write(1,*) "Ref. and max angular momentum",      &
-        " and pseudo-core radius of PP"
+        " and pseudo-core radius of PP (A)"
   do ikoa=1,MKI
-     write(1,'(1x,"(",i2,")  "," Ref, Max, Rps =",2i4,f8.3)')      &
+     write(1,'(1x,"(",i3,")  "," Ref, Max, Rps =",2i4,f8.3)')      &
                               ikoa,Lref(ikoa),Mlps(ikoa),Rps(ikoa)*a_B
   end do
 
