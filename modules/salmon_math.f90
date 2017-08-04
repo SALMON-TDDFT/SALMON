@@ -165,22 +165,73 @@ contains
   
 !--------------------------------------------------------------------------------
   !! 1st order Bessel function
+  ! The algorithm and numerical table are implemented based on the reference:
+  ! Methods and Programs for Mathematical Functions, Prentice-Hall, 1989
   real(8) function bessel_j1_salmon(x) result(y)
     implicit none
-    real(8), intent(in) :: x
-    integer, parameter :: order = 30
-    real(8) :: c, s
-    integer :: m
+    real(8), intent(in) :: x;
+    real(8), parameter :: &
+      &  rp(0:3) = (/ &
+      & -8.999712d+08, +4.522283d+11, -7.274942d+13, +3.682957d+15  &
+      & /), &
+      & rq(0:8) = (/ &
+      & +1.000000d+00, +6.208365d+02, +2.569873d+05, +8.351468d+07,  &
+      & +2.215116d+10, +4.749141d+12, +7.843696d+14, +8.952223d+16,  &
+      & +5.322786d+18 /), &
+      & pp(0:6) = (/ &
+      & +7.621256d-04, +7.313971d-02, +1.127196d+00, +5.112080d+00,  &
+      & +8.424046d+00, +5.214516d+00, +1.000000d+00 /), &
+      & pq(0:6) = (/ &
+      & +5.713231d-04, +6.884559d-02, +1.105142d+00, +5.073864d+00,  &
+      & +8.399856d+00, +5.209828d+00, +1.000000d+00 /), &
+      & qp(0:7) = (/ &
+      & +5.108626d-02, +4.982139d+00, +7.582383d+01, +3.667796d+02,  &
+      & +7.108563d+02, +5.974896d+02, +2.116888d+02, +2.520702d+01  &
+      & /), &
+      & qq(0:7) = (/ &
+      & +1.000000d+00, +7.423733d+01, +1.056449d+03, +4.986411d+03,  &
+      & +9.562319d+03, +7.997042d+03, +2.826193d+03, +3.360936d+02  &
+      & /)
+    real(8), parameter :: z1 = +1.468197d+01
+    real(8), parameter :: z2 = +4.921846d+01
+    real(8), parameter :: thpio4 =  +2.356194d+00
+    real(8), parameter :: sq2opi =  +7.978846d-01
+    real(8) :: w, z, p, q, xn;
+    real(8) :: rpz, rqz, ppz, pqz, qpz, qqz
 
-    c = 0.5 * x
-    s = c
-    do m = 1, 30
-      c = -0.25d0 * x * x / (m * (m + 1)) * c
-      s = s + c
-    end do
-    y = s
+    if (x < 0) then
+      w = -x
+    else
+      w = +x
+    end if
+
+    if( w <= 5.0 ) then
+      z = x * x;
+      rpz = ((rp(0)*z+rp(1))*z+rp(2))*z+rp(3)
+      rqz = (((((((rq(0)*z+rq(1))*z+rq(2))*z+rq(3))*z+rq(4))*z &
+        & +rq(5))*z+rq(6))*z+rq(7))*z+rq(8)
+      w = rpz / rqz;
+      w = w * x * (z - z1) * (z - z2)
+      y = w
+      return
+    end if
+
+    w = 5.0 / x
+    z = w * w
+    ppz = (((((pp(0)*z+pp(1))*z+pp(2))*z+pp(3))*z+pp(4))*z+pp(5))*z+pp(6)
+    pqz = (((((pq(0)*z+pq(1))*z+pq(2))*z+pq(3))*z+pq(4))*z+pq(5))*z+pq(6)
+    qpz = ((((((qp(0)*z+qp(1))*z+qp(2))*z+qp(3))*z &
+    & +qp(4))*z+qp(5))*z+qp(6))*z+qp(7)
+    qqz = ((((((qq(0)*z+qq(1))*z+qq(2))*z+qq(3))*z &
+    & +qq(4))*z+qq(5))*z+qq(6))*z+qq(7)
+    p = ppz/pqz
+    q = qpz/qqz
+    xn = x - thpio4
+    p = p * cos(xn) - w * q * sin(xn)
+    y = p * sq2opi / sqrt(x)
     return
   end function bessel_j1_salmon
+
   
 end module salmon_math
 !--------------------------------------------------------------------------------
