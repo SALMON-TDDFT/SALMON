@@ -15,6 +15,7 @@
 !
 !=======================================================================
 subroutine writedns
+  use inputoutput, only: au_length_aa
   use salmon_parallel, only: nproc_group_global
   use salmon_communication, only: comm_summation
   use scf_data
@@ -24,6 +25,7 @@ subroutine writedns
   character(30) :: suffix
   character(30) :: phys_quantity
   character(10) :: filenum
+  character(20) :: header_unit
 
   !$OMP parallel do collapse(2) private(iz,iy,ix)
   do iz=lg_sta(3),lg_end(3)
@@ -42,6 +44,17 @@ subroutine writedns
   end do
   end do
   end do
+
+  if(format3d=='avs')then
+    !$OMP parallel do collapse(2) private(iz,iy,ix)
+    do iz=ng_sta(3),ng_end(3)
+    do iy=ng_sta(2),ng_end(2)
+    do ix=ng_sta(1),ng_end(1)
+      matbox_l(ix,iy,iz)=matbox_l(ix,iy,iz)/(au_length_aa**3)
+    end do
+    end do
+    end do
+  end if
   
   call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
@@ -53,7 +66,8 @@ subroutine writedns
   end if
   phys_quantity = "dns"
   if(format3d=='avs')then
-    call writeavs(103,suffix,matbox_l2)
+    header_unit='A**(-3)'
+    call writeavs(103,suffix,header_unit,matbox_l2)
   else if(format3d=='cube')then
     call writecube(103,suffix,phys_quantity,matbox_l2)
   end if
@@ -77,13 +91,25 @@ subroutine writedns
     end do
     end do
   
+    if(format3d=='avs')then
+      !$OMP parallel do collapse(2) private(iz,iy,ix)
+      do iz=ng_sta(3),ng_end(3)
+      do iy=ng_sta(2),ng_end(2)
+      do ix=ng_sta(1),ng_end(1)
+        matbox_l(ix,iy,iz)=matbox_l(ix,iy,iz)/(au_length_aa**3)
+      end do
+      end do
+      end do
+    end if
+
     call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
     write(filenum, '(i8)') itt
     suffix = "dnsdiff"//adjustl(filenum)
     phys_quantity = "dnsdiff"
     if(format3d=='avs')then
-      call writeavs(103,suffix,matbox_l2)
+      header_unit='A**(-3)'
+      call writeavs(103,suffix,header_unit,matbox_l2)
     else if(format3d=='cube')then
       call writecube(103,suffix,phys_quantity,matbox_l2)
     end if
