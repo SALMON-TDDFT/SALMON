@@ -21,6 +21,7 @@ module salmon_file
   integer, parameter :: fh_start = 1000
 
   public :: get_filehandle
+  public :: open_filehandle
 contains
 !--------------------------------------------------------------------------------
 !! Return a unit number available to open file
@@ -36,6 +37,26 @@ contains
     end do
     return
   end function get_filehandle
+  
+!--------------------------------------------------------------------------------
+!! Open file and Return the unit number 
+  integer function open_filehandle(file, status) result(fh)
+    implicit none
+    character(*), intent(in) :: file
+    character(*), optional, intent(in) :: status
+    character(256) :: my_status
+    
+    if (present(status)) then
+      my_status = status
+    else
+      my_status = "unknown"
+    endif
+    
+    fh = get_filehandle()
+    open(unit=fh, file=trim(file), status=trim(my_status))
+    
+    return
+  end function open_filehandle
   
 end module salmon_file
 !--------------------------------------------------------------------------------

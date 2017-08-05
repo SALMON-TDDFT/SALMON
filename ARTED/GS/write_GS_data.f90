@@ -23,8 +23,11 @@ Subroutine write_GS_data
                          & out_dos_smearing, &
                          & out_dos_method, &
                          & out_dos_fshift
+  use inputoutput, only: unit_length, ulength_from_au, &
+                        & t_unit_energy_inv, t_unit_energy
   use salmon_parallel, only: nproc_group_global, nproc_id_global, nproc_group_tdks
   use salmon_communication, only: comm_is_root,comm_summation, comm_bcast
+  use salmon_file, only: open_filehandle
   implicit none
   integer ik,ib,ia,iter,j
 
@@ -105,6 +108,8 @@ Subroutine write_GS_data
 
   
   if(out_dos == 'y')call dos_write
+  call write_k_data
+  call write_eigen_data
 
   return
 
@@ -112,7 +117,6 @@ Subroutine write_GS_data
 
 
     subroutine dos_write
-      use inputoutput, only: t_unit_energy_inv, t_unit_energy
       implicit none
       real(8) :: vbmax, cbmin, emax, emin, efermi, eshift
       real(8) :: ww, fk, dw
@@ -185,5 +189,51 @@ Subroutine write_GS_data
       end if
     end subroutine dos_write
 
+!--------------------------------------------------------------------------------
+!! export SYSNAME_k.data file
+    subroutine write_k_data()
+      implicit none
+      integer :: fh_k_data
+      integer :: ik
+      
+      file_k_data = trim(directory) // trim(SYSname) // '_eigen.data'
+      
+      fh_k_data = open_filehandle(file_k_data, status="replace")
+      write(fh_k_data, '(a)') "# k-point coordinates"
+      write(fh_k_data, '(a)') "# k-index" // & 
+        & " kx(1/" // trim(unit_length) // ")" // & 
+        & " ky(1/" // trim(unit_length) // ")" // & 
+        & " kz(1/" // trim(unit_length) // ")" // & 
+        & " weight"
+      do ik = 1, NK
+        write(fh_k_data, '(I6,4(1X,E26.16E3))') &
+          & ik, kAc0(ik,1:3)*(1/ulength_from_au), wk(ik)
+      end do !ik
+      close(fh_k_data)
+    end subroutine write_k_data
+
+  !--------------------------------------------------------------------------------
+  !! export SYSNAME_eigen.data file
+    subroutine write_eigen_data()
+      implicit none
+      integer :: fh_eigen_data
+      integer :: ik, ib
+      
+      file_eigen_data = trim(directory) // trim(SYSname) // '_eigen.data'
+      
+      fh_eigen_data = open_filehandle(file_eigen_data, status="replace")
+      write(fh_eigen_data, '(a)') "# Eigenenergies"
+      write(fh_eigen_data, '(a)') "# k-index state-index" // & 
+        & " energy(" // trim(t_unit_energy%name) // ")" // & 
+        & " occup" 
+      do ik = 1, NK
+        do ib = 1, NB
+          write(fh_eigen_data, '(I6,1X,I6,2(1X,E26.16E3))') &
+            & ik, ib, esp(ib,ik)*t_unit_energy%conv, occ(ib,ik)/wk(ik)*NKxyz
+        end do !ib
+      end do !ik
+      close(fh_eigen_data)
+    end subroutine write_eigen_data
+    
 End Subroutine write_GS_data
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
