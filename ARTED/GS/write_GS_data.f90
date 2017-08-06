@@ -198,7 +198,7 @@ Subroutine write_GS_data
       integer :: fh_k_data
       integer :: ik
       
-      file_k_data = trim(directory) // trim(SYSname) // '_eigen.data'
+      file_k_data = trim(directory) // trim(SYSname) // '_k.data'
       
       fh_k_data = open_filehandle(file_k_data, status="replace")
       write(fh_k_data, '(a)') "# k-point coordinates"
