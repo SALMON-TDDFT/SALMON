@@ -108,9 +108,11 @@ Subroutine write_GS_data
 
   
   if(out_dos == 'y')call dos_write
-  call write_k_data
-  call write_eigen_data
 
+  if (comm_is_root(nproc_id_global)) then
+    call write_k_data
+    call write_eigen_data
+  end if
   return
 
   contains
