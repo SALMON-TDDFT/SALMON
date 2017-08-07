@@ -134,6 +134,7 @@ Module Global_Variables
   character(256) :: file_ac_init         ! 902
   character(256) :: file_k_data
   character(256) :: file_eigen_data
+  character(256) :: file_rt_data
   character(256) :: process_directory
 
 !  character(2) :: ext_field ! this variable is removed

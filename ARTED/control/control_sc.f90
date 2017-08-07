@@ -29,10 +29,12 @@ subroutine tddft_sc
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
   use misc_routines, only: get_wtime
   use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
-  use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac
+  use salmon_file, only: open_filehandle
+  use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac,  t_unit_eac
   use restart, only: prep_restart_write
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
+  integer :: fh_rt_data
 
 
 #ifdef ARTED_LBLK
@@ -268,11 +270,35 @@ subroutine tddft_sc
                                      Ac_tot(i,2)*t_unit_ac%conv, &
                                      Ac_tot(i,3)*t_unit_ac%conv
         end do
-!        write(407,'(100e26.16E3)') (Nt+1)*dt,javt(Nt,1),javt(Nt,2),javt(Nt,3),&
-!          &Ac_ext(Nt+1,1),Ac_ext(Nt+1,2),Ac_ext(Nt+1,3),Ac_tot(Nt+1,1),Ac_tot(Nt+1,2),Ac_tot(Nt+1,3)
         close(407)
+        
+        ! Exporting SYSNAME_rt.data file
+        fh_rt_data = open_filehandle(file_rt_data)
+        write(fh_rt_data,'(A)')'# J   : Matter current density'
+        write(fh_rt_data,'(A)')'# E   : Total Electric Field'
+        write(fh_rt_data,'(A)')'# eAc : Total Vector-potential'
+        write(fh_rt_data,'(A)')'#' // &
+          & ' Time ['//trim(t_unit_time%name)//']' // &
+          & ' Ex ['//trim(t_unit_ac%name)//']' // &
+          & ' Ey ['//trim(t_unit_ac%name)//']' // &
+          & ' Ez ['//trim(t_unit_ac%name)//']' // &
+          & ' Jx ['//trim(t_unit_current%name)//']' // &
+          & ' Jy ['//trim(t_unit_current%name)//']' // &
+          & ' Jz ['//trim(t_unit_current%name)//']' // &
+          & ' eAcx ['//trim(t_unit_ac%name)//']' // &
+          & ' eAcy ['//trim(t_unit_ac%name)//']' // &
+          & ' eAcz ['//trim(t_unit_ac%name)//']'
+        do i=0,Nt
+          write(fh_rt_data,'(100e26.16E3)') &
+            & i*dt*t_unit_time%conv, &
+            & E_tot(iter,1:3), &
+            & javt(i,1:3)*t_unit_current%conv, &
+            & Ac_tot(i,1:3)*t_unit_eac%conv
+        end do
+        close(fh_rt_data)
       end if
     end if
+  
 !Adiabatic evolution
     if (projection_option /= 'no' .and. iter/100*100 == iter) then
       call k_shift_wf(Rion_update_rt,5,zu_t)
