@@ -169,7 +169,7 @@ contains
   ! Methods and Programs for Mathematical Functions, Prentice-Hall, 1989
   real(8) function bessel_j1_salmon(x) result(y)
     implicit none
-    real(8), intent(in) :: x;
+    real(8), intent(in) :: x
     real(8), parameter :: &
       &  rp(0:3) = (/ &
       & -8.999712d+08, +4.522283d+11, -7.274942d+13, +3.682957d+15  &
@@ -196,7 +196,7 @@ contains
     real(8), parameter :: z2 = +4.921846d+01
     real(8), parameter :: thpio4 =  +2.356194d+00
     real(8), parameter :: sq2opi =  +7.978846d-01
-    real(8) :: w, z, p, q, xn;
+    real(8) :: w, z, p, q, xn
     real(8) :: rpz, rqz, ppz, pqz, qpz, qqz
 
     if (x < 0) then
@@ -206,11 +206,11 @@ contains
     end if
 
     if( w <= 5.0 ) then
-      z = x * x;
+      z = x * x
       rpz = ((rp(0)*z+rp(1))*z+rp(2))*z+rp(3)
       rqz = (((((((rq(0)*z+rq(1))*z+rq(2))*z+rq(3))*z+rq(4))*z &
         & +rq(5))*z+rq(6))*z+rq(7))*z+rq(8)
-      w = rpz / rqz;
+      w = rpz / rqz
       w = w * x * (z - z1) * (z - z2)
       y = w
       return
