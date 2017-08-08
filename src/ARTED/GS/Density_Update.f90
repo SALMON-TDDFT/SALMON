@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2017 SALMON developers 
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 !  limitations under the License.
 !
 !This file is "Density_Update.f"
-!This file contain two subroutines.
+!This file contain one subroutine.
 !Subroutine Density_Update(iter)
-!Subroutine Matrix_Inverse(a,n)
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Density_Update(iter)
+  use salmon_math
   use Global_Variables
   implicit none
   integer,parameter :: iter_MB=0
@@ -65,7 +65,7 @@ Subroutine Density_Update(iter)
         end if
       end do
     end do
-    call Matrix_Inverse(a,iter_e-iter_s+1)
+    call matrix_inverse(A,iter_e-iter_s+1)
     beta(iter_s:iter_e,iter_s:iter_e)=A(1:iter_e-iter_s+1,1:iter_e-iter_s+1)
     rho_temp(1:NL)=0.d0
     do i=iter_s,iter_e
@@ -92,41 +92,3 @@ Subroutine Density_Update(iter)
 
   return
 End Subroutine Density_Update
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-!Reference
-!D.D. Johnson, Phys. Rev. B 38 12807 (1988)
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-Subroutine Matrix_Inverse(a,n)
-  implicit none
-  integer :: n
-  real(8) :: a(n,n)
-  integer :: i,j,k,l
-  real(8) :: b(n,n),work(n),x(n,n)
-
-  b(1:N,1:N)=0.d0
-  do i=1,N
-    b(i,i)=1.d0
-  end do
-
-!Transforming to Upper triangular matrix
-  do k=1,n-1
-    do i=k+1,n
-      do j=k+1,n
-        a(i,j)=a(i,j)/a(i,k)-a(k,j)/a(k,k)
-      end do
-      b(i,:)=b(i,:)/a(i,k)-b(k,:)/a(k,k)
-    end do
-  end do
-!Back substitution
-  do k=n,1,-1
-    work(1:n)=0.d0
-    do l=k+1,n
-      work(1:n)=work(1:n)+a(k,l)*x(l,1:n)
-    end do
-    x(k,1:n)=(b(k,1:n)-work(1:n))/a(k,k)
-  end do
-
-  a(1:n,1:n)=x(1:n,1:n)
-
-  return
-End Subroutine Matrix_Inverse
