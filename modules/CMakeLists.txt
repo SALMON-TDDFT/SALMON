@@ -4,6 +4,7 @@ set(SOURCES
     salmon_global.f90
     salmon_parallel.f90
     salmon_math.f90
+    misc_routines.f90
 )
 
 if (USE_MPI)
