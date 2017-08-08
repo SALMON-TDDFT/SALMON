@@ -42,13 +42,8 @@ contains
     integer :: nproc_id_kpoint_ms
     integer :: nproc_size_kpoint_ms
 
-#ifdef ARTED_USE_FORTRAN2008
     write (gs_wfn_directory,'(A,A)') trim(directory),'/gs_wfn_k/'
     if(iflag_read_write == iflag_write)call create_directory(gs_wfn_directory)
-#else
-    gs_wfn_directory = trim(directory)
-#endif
-
 
     if(comm_is_root(nproc_id_global))then
       occ_file = trim(gs_wfn_directory)//'occupation'
@@ -69,7 +64,7 @@ contains
     if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. NXY_s == 0))then
       do ik=NK_s,NK_e
         
-        write (gs_wfn_file,'(A,A,I7.7,A)') trim(directory),'/wfn_gs_k',ik,'.wfn'
+        write (gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
         open(nfile_gs_wfn,file=trim(gs_wfn_file),form='unformatted')
         select case(iflag_read_write)
         case(iflag_write); write(nfile_gs_wfn)zu_GS(:,:,ik)
