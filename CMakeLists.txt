@@ -86,9 +86,7 @@ endif ()
 message(STATUS "user-defined FFLAGS = ${CMAKE_Fortran_FLAGS}")
 message(STATUS "user-defined CFLAGS = ${CMAKE_C_FLAGS}")
 
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}")
 set(TARGET_NAME            "salmon${TARGET_SUFFIX}")
-
 set(CMAKE_Fortran_FLAGS    "${ARCH} ${OPENMP_FLAGS} ${Fortran_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_Fortran_FLAGS}")
 set(CMAKE_C_FLAGS          "${ARCH} ${OPENMP_FLAGS} ${C_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_C_FLAGS}")
 set(EXTERNAL_LIBS          "")
