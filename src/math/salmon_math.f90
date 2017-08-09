@@ -22,7 +22,8 @@ module salmon_math
 
   public :: erf_salmon, &
             erfc_salmon, &
-            bessel_j1_salmon
+            bessel_j1_salmon, &
+            matrix_inverse
 contains
 !--------------------------------------------------------------------------------
 !! Error function and its complement are implemented based on the reference
@@ -231,7 +232,40 @@ contains
     y = p * sq2opi / sqrt(x)
     return
   end function bessel_j1_salmon
-
+!--------------------------------------------------------------------------------
+  subroutine matrix_inverse(amat,nn)
+    implicit none
+    integer,intent(in)    :: nn
+    real(8),intent(inout) :: amat(nn,nn)
+    integer :: i,j
+    real(8) :: emat(nn,nn)
+    integer :: nrhs,lda,ldb,info
+    integer :: ipiv(nn)
   
+    nrhs=nn
+    lda=nn
+    ldb=nn
+  
+    do j=1,nn
+      do i=1,nn
+        emat(i,j)=0.d0
+      end do
+    end do
+  
+    do i=1,nn
+      emat(i,i)=1.d0
+    end do
+  
+    call dgesv(nn,nrhs,amat,lda,ipiv,emat,ldb,info)
+  
+    do j=1,nn
+      do i=1,nn
+        amat(i,j)=emat(i,j)
+      end do
+    end do
+  
+  end subroutine matrix_inverse
+
 end module salmon_math
 !--------------------------------------------------------------------------------
+  
