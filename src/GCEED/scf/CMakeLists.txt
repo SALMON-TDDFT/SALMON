@@ -24,4 +24,4 @@ set(SOURCES
     )
 
 add_library(${GCEED_SCF_LIB} ${SOURCES})
-add_dependencies(${GCEED_SCF_LIB} ${SALMON_MODULE_LIB} ${GCEED_MODULE_LIB})
+add_dependencies(${GCEED_SCF_LIB} ${GCEED_MODULE_LIB})

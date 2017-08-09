@@ -16,4 +16,4 @@ if (ENABLE_OPENACC)
 endif ()
 
 add_library(${ARTED_COMMON_LIB} STATIC ${SOURCES})
-add_dependencies(${ARTED_COMMON_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB})
+add_dependencies(${ARTED_COMMON_LIB} ${SALMON_MATH_LIB} ${ARTED_MODULE_LIB})

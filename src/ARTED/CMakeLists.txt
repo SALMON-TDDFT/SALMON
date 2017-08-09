@@ -29,7 +29,7 @@ add_subdirectory(${ARTED_CONTROL_LIB_DIR})
 add_subdirectory(${ARTED_PERFCHECK_EXT_DIR})
 
 add_library(${ARTED_LIB} STATIC main.f90)
-add_dependencies(${ARTED_LIB} ${SALMON_MODULE_LIB} ${ARTED_CONTROL_LIB})
+add_dependencies(${ARTED_LIB} ${ARTED_CONTROL_LIB})
 
 list(APPEND SALMON_LINK_LIBRARIES
     ${ARTED_LIB}
