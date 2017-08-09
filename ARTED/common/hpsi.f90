@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2016 ARTED developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -96,6 +96,7 @@ contains
   end subroutine
 
   subroutine hpsi_omp_KB_base(ik,tpsi,htpsi,ttpsi)
+    use hpsi_sub
     use timer
     use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,uV,iuV,Hxyz,ekr_omp,Nlma,a_tbl
     use opt_variables, only: lapt,PNLx,PNLy,PNLz,PNL
@@ -110,7 +111,15 @@ contains
     real(8) :: k2,k2lap0_2
     real(8) :: nabt(12)
 
-    NVTX_BEG('hpsi1()',3)
+!-------------------------------------------------------------------------------------
+    integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+              ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+              ,ix,iy,iz,Nd
+    real(8),allocatable :: V_wrk(:,:,:,:)
+    complex(8),dimension(:,:,:,:,:,:),allocatable :: tpsi_wrk,htpsi_wrk,ttpsi_wrk
+!-------------------------------------------------------------------------------------
+
+!    NVTX_BEG('hpsi1()',3)
 
     k2=sum(kAc(ik,:)**2)
     k2lap0_2=(k2-(lapx(0)+lapy(0)+lapz(0)))*0.5d0
@@ -118,20 +127,98 @@ contains
     nabt( 5: 8)=kAc(ik,2)*naby(1:4)
     nabt( 9:12)=kAc(ik,3)*nabz(1:4)
 
-    LOG_BEG(LOG_HPSI_STENCIL)
-      call hpsi1_RT_stencil(k2lap0_2,Vloc,lapt,nabt,tpsi,htpsi)
-      if (present(ttpsi)) then
-        call subtraction(Vloc,tpsi,htpsi,ttpsi)
-      end if
-    LOG_END(LOG_HPSI_STENCIL)
+!    LOG_BEG(LOG_HPSI_STENCIL)
 
-    LOG_BEG(LOG_HPSI_PSEUDO)
-      call pseudo_pt(ik,tpsi,htpsi)
-    LOG_END(LOG_HPSI_PSEUDO)
+!-------------------------------------------------------------------------------------
+    Nd = 4
 
-    NVTX_END()
+    ix_sta = 0
+    ix_end = NLx-1
+    iy_sta = 0
+    iy_end = NLy-1
+    iz_sta = 0
+    iz_end = NLz-1
+
+    ipx_sta = ix_sta - Nd
+    ipx_end = ix_end + Nd
+    ipy_sta = iy_sta - Nd
+    ipy_end = iy_end + Nd
+    ipz_sta = iz_sta - Nd
+    ipz_end = iz_end + Nd
+
+    allocate(tpsi_wrk(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1,1,1) &
+           ,htpsi_wrk(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1,1,1) &
+           ,ttpsi_wrk(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1,1,1) &
+           ,V_wrk(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1))
+    tpsi_wrk = 0d0
+    htpsi_wrk = 0d0
+    V_wrk = 0d0
+
+    do iz=iz_sta,iz_end
+      do iy=iy_sta,iy_end
+        do ix=ix_sta,ix_end
+          tpsi_wrk(ix,iy,iz,1,1,1) = tpsi(iz,iy,ix)
+        end do
+      end do
+    end do
+
+    call copyV(Vloc,V_wrk)
+
+    if(present(ttpsi)) then
+      call hpsi(tpsi_wrk,htpsi_wrk,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,1,1,1,Nd &
+                 ,V_wrk, ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,1,kAc(ik:ik,1:3),ekr_omp(:,:,ik:ik),ttpsi_wrk)
+      do iz=iz_sta,iz_end
+        do iy=iy_sta,iy_end
+          do ix=ix_sta,ix_end
+            ttpsi(iz,iy,ix) = ttpsi_wrk(ix,iy,iz,1,1,1)
+          end do
+        end do
+      end do
+    else
+      call hpsi(tpsi_wrk,htpsi_wrk,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,1,1,1,Nd &
+                 ,V_wrk, ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,1,kAc(ik:ik,1:3),ekr_omp(:,:,ik:ik))
+    end if
+
+    do iz=iz_sta,iz_end
+      do iy=iy_sta,iy_end
+        do ix=ix_sta,ix_end
+          htpsi(iz,iy,ix) = htpsi_wrk(ix,iy,iz,1,1,1)
+        end do
+      end do
+    end do
+    deallocate(tpsi_wrk,htpsi_wrk,V_wrk,ttpsi_wrk)
+!-------------------------------------------------------------------------------------
+
+!      call hpsi1_RT_stencil(k2lap0_2,Vloc,lapt,nabt,tpsi,htpsi)
+!      if (present(ttpsi)) then
+!        call subtraction(Vloc,tpsi,htpsi,ttpsi)
+!      end if
+!    LOG_END(LOG_HPSI_STENCIL)
+
+!    LOG_BEG(LOG_HPSI_PSEUDO)
+!      call pseudo_pt(ik,tpsi,htpsi)
+!    LOG_END(LOG_HPSI_PSEUDO)
+
+!    NVTX_END()
 
   contains
+
+!-------------------------------------------------------------------------------------
+    subroutine copyV(Vloc,V)
+      implicit none
+      real(8),    intent(in)  :: Vloc(0:NLz-1,0:NLy-1,0:NLx-1)
+      real(8) :: V(0:NLx-1,0:NLy-1,0:NLz-1)
+      integer :: x,y,z
+      do iz=0,NLz-1
+        do iy=0,NLy-1
+          do ix=0,NLx-1
+            V(ix,iy,iz) = Vloc(iz,iy,ix)
+          end do
+        end do
+      end do
+    end subroutine copyV
+!-------------------------------------------------------------------------------------
+
     subroutine subtraction(Vloc,tpsi,htpsi,ttpsi)
       implicit none
       real(8),    intent(in)  :: Vloc(0:NLz-1,0:NLy-1,0:NLx-1)
@@ -180,4 +267,5 @@ contains
       end do
     end subroutine
   end subroutine
+
 end module
