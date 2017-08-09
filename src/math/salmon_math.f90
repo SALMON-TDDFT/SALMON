@@ -24,6 +24,11 @@ module salmon_math
             erfc_salmon, &
             bessel_j1_salmon, &
             matrix_inverse
+
+  interface matrix_inverse
+     module procedure matrix_inverse_double
+     module procedure matrix_inverse_complex
+  end interface
 contains
 !--------------------------------------------------------------------------------
 !! Error function and its complement are implemented based on the reference
@@ -233,38 +238,49 @@ contains
     return
   end function bessel_j1_salmon
 !--------------------------------------------------------------------------------
-  subroutine matrix_inverse(amat,nn)
+  subroutine matrix_inverse_double(rmat)
     implicit none
-    integer,intent(in)    :: nn
-    real(8),intent(inout) :: amat(nn,nn)
-    integer :: i,j
-    real(8) :: emat(nn,nn)
-    integer :: nrhs,lda,ldb,info
-    integer :: ipiv(nn)
-  
-    nrhs=nn
-    lda=nn
-    ldb=nn
-  
-    do j=1,nn
-      do i=1,nn
-        emat(i,j)=0.d0
-      end do
-    end do
-  
-    do i=1,nn
-      emat(i,i)=1.d0
-    end do
-  
-    call dgesv(nn,nrhs,amat,lda,ipiv,emat,ldb,info)
-  
-    do j=1,nn
-      do i=1,nn
-        amat(i,j)=emat(i,j)
-      end do
-    end do
-  
-  end subroutine matrix_inverse
+    real(8),intent(inout) :: rmat(:,:)
+    integer :: nn
+! for lapack
+    integer :: lwork, info
+    integer, allocatable :: ipiv(:) ! dimension N
+    real(8), allocatable :: work(:) ! dimension LWORK  
+
+
+    nn = size(rmat,dim=1)
+    lwork = nn * max(nn, 64)
+    
+    allocate(ipiv(nn),work(lwork))
+
+    call dgetrf(nn, nn, rmat, nn, ipiv, info)  ! factorize
+    call dgetri(nn, rmat, nn, ipiv, work, lwork, info)  ! inverse
+
+    deallocate(ipiv,work)
+
+  end subroutine matrix_inverse_double
+!--------------------------------------------------------------------------------
+  subroutine matrix_inverse_complex(zmat)
+    implicit none
+    complex(8),intent(inout) :: zmat(:,:)
+    integer :: nn
+! for lapack
+    integer :: lwork, info
+    integer, allocatable :: ipiv(:) ! dimension N
+    complex(8), allocatable :: zwork(:) ! dimension LWORK  
+
+
+    nn = size(zmat,dim=1)
+    lwork = nn * max(nn, 64)
+    
+    allocate(ipiv(nn),zwork(lwork))
+
+    call zgetrf(nn, nn, zmat, nn, ipiv, info)  ! factorize
+    call zgetri(nn, zmat, nn, ipiv, zwork, lwork, info)  ! inverse
+
+    deallocate(ipiv,zwork)
+
+  end subroutine matrix_inverse_complex
 
 end module salmon_math
 !--------------------------------------------------------------------------------
