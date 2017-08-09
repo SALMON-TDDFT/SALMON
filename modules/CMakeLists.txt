@@ -1,9 +1,10 @@
 set(SOURCES
-    salmon_file.f90
     inputoutput.f90
     salmon_global.f90
     salmon_parallel.f90
     salmon_math.f90
+    hpsi.f90
+    update_overlap.f90
 )
 
 if (USE_MPI)
