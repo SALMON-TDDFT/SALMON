@@ -109,10 +109,8 @@ Subroutine write_GS_data
   
   if(out_dos == 'y')call dos_write
 
-  if (comm_is_root(nproc_id_global)) then
-    call write_k_data
-    call write_eigen_data
-  end if
+  call write_k_data
+  call write_eigen_data
   return
 
   contains
@@ -197,21 +195,28 @@ Subroutine write_GS_data
       implicit none
       integer :: fh_k_data
       integer :: ik
-      
-      file_k_data = trim(directory) // trim(SYSname) // '_k.data'
-      
-      fh_k_data = open_filehandle(file_k_data, status="replace")
-      write(fh_k_data, '(a)') "# k-point coordinates"
-      write(fh_k_data, '(a)') "# k-index" // & 
-        & " kx(1/" // trim(unit_length) // ")" // & 
-        & " ky(1/" // trim(unit_length) // ")" // & 
-        & " kz(1/" // trim(unit_length) // ")" // & 
-        & " weight"
-      do ik = 1, NK
-        write(fh_k_data, '(I6,4(1X,E26.16E3))') &
-          & ik, kAc0(ik,1:3)*(1/ulength_from_au), wk(ik)
-      end do !ik
-      close(fh_k_data)
+
+      if (comm_is_root(nproc_id_global)) then
+        fh_k_data = open_filehandle(file_k_data, status="replace")
+        write(fh_k_data,'(A)')'# ik           : k-point index'
+        write(fh_k_data,'(A)')'# (kx, ky, kz) : Reduced coordinate of k-point'
+        write(fh_k_data,'(A)')'# kw           : Weight of k-point'
+        write(fh_k_data, '(a)') "#" // & 
+          & " ik" // & 
+          & " kx" // & 
+          & " ky" // & 
+          & " kz" // & 
+          & " kw"
+        do ik = 1, NK
+          write(fh_k_data, '(I6,4(1X,E26.16E3))') &
+            & ik, & 
+            & kAc0(ik,1) / bLx, &
+            & kAc0(ik,2) / bLy, &
+            & kAc0(ik,3) / bLz, &
+            & wk(ik)
+        end do !ik
+        close(fh_k_data)
+      end if
     end subroutine write_k_data
 
   !--------------------------------------------------------------------------------
@@ -220,21 +225,26 @@ Subroutine write_GS_data
       implicit none
       integer :: fh_eigen_data
       integer :: ik, ib
-      
-      file_eigen_data = trim(directory) // trim(SYSname) // '_eigen.data'
-      
-      fh_eigen_data = open_filehandle(file_eigen_data, status="replace")
-      write(fh_eigen_data, '(a)') "# Eigenenergies"
-      write(fh_eigen_data, '(a)') "# k-index state-index" // & 
-        & " energy(" // trim(t_unit_energy%name) // ")" // & 
-        & " occup" 
-      do ik = 1, NK
-        do ib = 1, NB
-          write(fh_eigen_data, '(I6,1X,I6,2(1X,E26.16E3))') &
-            & ik, ib, esp(ib,ik)*t_unit_energy%conv, occ(ib,ik)/wk(ik)*NKxyz
-        end do !ib
-      end do !ik
-      close(fh_eigen_data)
+    
+      if (comm_is_root(nproc_id_global)) then
+        fh_eigen_data = open_filehandle(file_eigen_data, status="replace")
+        write(fh_eigen_data,'(A)')'# ik           : k-point index'
+        write(fh_eigen_data,'(A)')'# ib           : band index'
+        write(fh_eigen_data,'(A)')'# energy       : electron eigenenergy'
+        write(fh_eigen_data,'(A)')'# occup        : electron occupation'
+        write(fh_eigen_data, '(a)') "#" // & 
+          & " ik" // & 
+          & " kx" // & 
+          & " energy [" // trim(t_unit_energy%name) // "]" // & 
+          & " occup" 
+        do ik = 1, NK
+          do ib = 1, NB
+            write(fh_eigen_data, '(I6,1X,I6,2(1X,E26.16E3))') &
+              & ik, ib, esp(ib,ik)*t_unit_energy%conv, occ(ib,ik)/wk(ik)*NKxyz
+          end do !ib
+        end do !ik
+        close(fh_eigen_data)
+      end if
     end subroutine write_eigen_data
     
 End Subroutine write_GS_data
