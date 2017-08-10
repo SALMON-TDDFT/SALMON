@@ -1,0 +1,2 @@
+character(*), parameter :: GIT_BRANCH      = '@GIT_BRANCH@'
+character(*), parameter :: GIT_COMMIT_HASH = '@GIT_COMMIT_HASH@'
