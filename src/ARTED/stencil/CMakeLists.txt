@@ -48,4 +48,4 @@ else ()
 endif ()
 
 add_library(${ARTED_STENCIL_LIB} STATIC ${SOURCES})
-add_dependencies(${ARTED_STENCIL_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB})
+add_dependencies(${ARTED_STENCIL_LIB} ${ARTED_MODULE_LIB})

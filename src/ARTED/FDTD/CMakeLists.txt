@@ -4,4 +4,4 @@ set(SOURCES
     )
 
 add_library(${ARTED_FDTD_LIB} ${SOURCES})
-add_dependencies(${ARTED_FDTD_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB})
+add_dependencies(${ARTED_FDTD_LIB} ${ARTED_MODULE_LIB} ${SALMON_MATH_LIB})

@@ -17,7 +17,7 @@ add_subdirectory(${GCEED_SCF_LIB_DIR})
 add_subdirectory(${GCEED_RT_LIB_DIR})
 
 add_library(${GCEED_LIB} STATIC gceed.f90 read_input_gceed.f90)
-add_dependencies(${GCEED_LIB} ${SALMON_MODULE_LIB} ${GCEED_MODULE_LIB} ${GCEED_COMMON_LIB} ${GCEED_SCF_LIB} ${GCEED_RT_LIB})
+add_dependencies(${GCEED_LIB} ${GCEED_MODULE_LIB} ${GCEED_COMMON_LIB} ${GCEED_SCF_LIB} ${GCEED_RT_LIB})
 
 list(APPEND SALMON_LINK_LIBRARIES
     ${GCEED_LIB}

@@ -7,4 +7,4 @@ set(SOURCES
     )
 
 add_library(${ARTED_PREP_LIB} STATIC ${SOURCES})
-add_dependencies(${ARTED_PREP_LIB} ${SALMON_MODULE_LIB} ${ARTED_MODULE_LIB})
+add_dependencies(${ARTED_PREP_LIB} ${ARTED_MODULE_LIB})

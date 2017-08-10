@@ -2,6 +2,7 @@ subroutine broyden(iter)
   use inputoutput
   use salmon_parallel, only: nproc_group_global,nproc_group_orbital
   use salmon_communication, only: comm_summation
+  use salmon_math
   use scf_data
   implicit none
   integer,parameter :: iter_mb=0
@@ -102,7 +103,7 @@ subroutine broyden(iter)
           end if
         end do
       end do
-      call matrix_inverse_ns(aa,iter_e-iter_s+1)
+      call matrix_inverse(aa,iter_e-iter_s+1)
       beta(iter_s:iter_e,iter_s:iter_e)=aa(1:iter_e-iter_s+1,1:iter_e-iter_s+1)
       rho_temp(:,:,:)=0.d0
       do i=iter_s,iter_e
@@ -139,41 +140,3 @@ subroutine broyden(iter)
   
   return
 end subroutine broyden
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120----------
-!Reference
-!D.D. Johnson, Phys. Rev. B 38 12807 (1988)
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120----------
-subroutine matrix_inverse_ns(aa,nn)
-  implicit none
-  integer :: nn
-  real(8) :: aa(nn,nn)
-  integer :: ii,jj,kk,ll
-  real(8) :: bb(nn,nn),work(nn),xx(nn,nn)
-  
-  bb(1:nn,1:nn)=0.d0
-  do ii=1,nn
-    bb(ii,ii)=1.d0
-  end do
-  
-  !Transforming to Upper triangular matrix
-  do kk=1,nn-1
-    do ii=kk+1,nn
-      do jj=kk+1,nn
-        aa(ii,jj)=aa(ii,jj)/aa(ii,kk)-aa(kk,jj)/aa(kk,kk)
-      end do
-      bb(ii,:)=bb(ii,:)/aa(ii,kk)-bb(kk,:)/aa(kk,kk)
-    end do
-  end do
-  !Back substitution
-  do kk=nn,1,-1
-    work(1:nn)=0.d0
-    do ll=kk+1,nn
-      work(1:nn)=work(1:nn)+aa(kk,ll)*xx(ll,1:nn)
-    end do
-    xx(kk,1:nn)=(bb(kk,1:nn)-work(1:nn))/aa(kk,kk)
-  end do
-  
-  aa(1:nn,1:nn)=xx(1:nn,1:nn)
-  
-  return
-end Subroutine matrix_inverse_ns
