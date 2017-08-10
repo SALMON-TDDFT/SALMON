@@ -217,10 +217,7 @@ contains
       & dump_filename
 
     namelist/units/ &
-      & unit_time, &
-      & unit_length, &
-      & unit_energy, &
-      & unit_charge
+      & unit_system
 
     namelist/parallel/ &
       & domain_parallel, &
@@ -420,10 +417,7 @@ contains
 
 
 !! == default for &unit ==
-    unit_time='au'
-    unit_length='au'
-    unit_energy='au'
-    unit_charge='au'
+    unit_system='au'
 !! =======================
 
     if (comm_is_root(nproc_id_global)) then
@@ -433,13 +427,29 @@ contains
       close(fh_namelist)
     end if
 
-    call comm_bcast(unit_time,  nproc_group_global)
-    call comm_bcast(unit_length,nproc_group_global)
-    call comm_bcast(unit_energy,nproc_group_global)
-    call comm_bcast(unit_charge,nproc_group_global)
+    call comm_bcast(unit_system,nproc_group_global)
+    
+    select case(unit_system)
+    case('au','a.u.','A_eV_fs')
+      continue
+    case default
+      stop 'invalid unit_system'
+    end select
+
+    select case(unit_system)
+    case('au','a.u.')
+      unit_time='au'
+      unit_length='au'
+      unit_energy='au'
+      unit_charge='au'
+    case('A_eV_fs')
+      unit_time='fs'
+      unit_length='AA'
+      unit_energy='eV'
+      unit_charge='au'
+    end select
 
     call initialize_inputoutput_units
-
 
 !! == default for &calculation 
     calc_mode        = 'none'
@@ -1175,10 +1185,7 @@ contains
 
       if(inml_units >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'units', inml_units
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_time', unit_time
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_length', unit_length
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_energy', unit_energy
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_charge', unit_charge
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'unit_system', unit_system
 
       if(inml_parallel >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'parallel', inml_parallel

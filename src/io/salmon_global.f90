@@ -52,6 +52,7 @@ module salmon_global
   character(256) :: dump_filename
                  
 !! &units
+  character(16)  :: unit_system
   character(16)  :: unit_time
   character(16)  :: unit_length
   character(16)  :: unit_energy
