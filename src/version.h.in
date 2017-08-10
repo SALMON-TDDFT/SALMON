@@ -1,6 +1,7 @@
 #ifndef SALMON_VERSION_H
 #define SALMON_VERSION_H
 
+#cmakedefine GIT_FOUND
 #define GIT_BRANCH      "@GIT_BRANCH@"
 #define GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"
 
