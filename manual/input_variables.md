@@ -107,20 +107,6 @@ If <code>'au'</code> or <code>'a.u.'</code>, atomic unit system is used.
 If <code>'A_eV_fs'</code>, Angstrom-eV-fs unit system is used. 
 </dd>
 
-<dt>unit_length; <code>Character</code>; 0d/3d</dt>
-<dd>Unit of length for input variables. 
-Atomic unit <code>'a.u.'</code> and 
-Aungstrom <code>angstrom</code> can be chosen.
-Default is <code>'a.u.'</code>.
-</dd>
-
-<dt>unit_energy; <code>Character</code>; 0d/3d</dt>
-<dd>Unit of energy for input variables. 
-Atomic unit <code>'a.u.'</code> and 
-electron-volt <code>'ev'</code> can be chosen.
-Default is <code>'a.u.'</code>.
-</dd>
-
 </dl>
 
 ## &parallel
