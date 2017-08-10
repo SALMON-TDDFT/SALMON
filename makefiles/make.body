@@ -21,6 +21,8 @@ else
 F_SRC_COMM_FILE=salmon_communication.f90
 endif
 
+H_IN_VERSION_FILE=version.h.in versionf.h.in
+
 
 
 
@@ -258,6 +260,9 @@ C_SRCS=$(addprefix src/ARTED/, \
 F_OBJS = $(addprefix $(OBJDIR)/,$(F_SRCS:.f90=.o))
 C_OBJS = $(addprefix $(OBJDIR)/,$(C_SRCS:.c=.o))
 
+H_IN_VERSION=$(addprefix src/, $(H_IN_VERSION_FILE))
+H_VERSION=$(addprefix $(OBJDIR)/, $(H_IN_VERSION_FILE:.h.in=.h))
+
 .PHONY: all clean
 
 
@@ -266,21 +271,26 @@ $(TARGET): $(F_OBJS) $(C_OBJS)
 
 $(F_OBJS): $(F_SRCS) 
 $(C_OBJS): $(C_SRCS)
+$(H_VERSION): $(H_IN_VERSION)
 
-$(OBJDIR)/%.o: %.f90 $(OBJDIR)/versionf.h 
+$(OBJDIR)/%.o: %.f90 $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) 
 
-$(OBJDIR)/%.o: %.c $(OBJDIR)/version.h 
+$(OBJDIR)/%.o: %.c $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR)  
 
-$(OBJDIR)/versionf.h: src/versionf.h.in
-	cp src/versionf.h.in $(OBJDIR)/versionf.h
-
-$(OBJDIR)/version.h: src/version.h.in
-	cp src/version.h.in $(OBJDIR)/version.h
+$(OBJDIR)/%.h: src/%.h.in
+	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	cat $< \
+	| sed  -e "/cmakedefine/d" \
+	| sed  -e "~s/@GIT_FOUND@/false/" \
+	| sed  -e "~s/@GIT_BRANCH@//" \
+	| sed  -e "~s/@GIT_COMMIT_HASH@//" \
+	> $@
+	
 
 clean:
 	rm -f $(TARGET)
-	rm -rf $(OBJDIR)/*
+	rm -rf $(OBJDIR)
