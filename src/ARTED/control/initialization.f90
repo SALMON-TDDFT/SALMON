@@ -131,6 +131,13 @@ contains
        file_dns=trim(directory)//trim(SYSname)//'_dns.out'
        file_ovlp=trim(directory)//trim(SYSname)//'_ovlp.out'
        file_nex=trim(directory)//trim(SYSname)//'_nex.out'
+       file_k_data=trim(directory) // trim(SYSname) // '_k.data'
+       file_eigen_data=trim(directory) // trim(SYSname) // '_eigen.data'
+       file_rt_data=trim(directory) // trim(SYSname) // '_rt.data'
+
+       
+       
+       
        write(*,*) 'al(1),al(2),al(3)=',al(1),al(2),al(3)
        write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym
        write(*,*) 'Nd,NLx,NLy,NLz,NKx,NKy,NKz=',Nd,NLx,NLy,NLz,NKx,NKy,NKz
@@ -163,6 +170,9 @@ contains
     call comm_bcast(file_dns,nproc_group_global)
     call comm_bcast(file_ovlp,nproc_group_global)
     call comm_bcast(file_nex,nproc_group_global)
+    call comm_bcast(file_k_data,nproc_group_global)
+    call comm_bcast(file_eigen_data,nproc_group_global)
+    call comm_bcast(file_rt_data,nproc_group_global)
     call comm_bcast(file_kw,nproc_group_global)
 
     if(use_ms_maxwell == 'y')then

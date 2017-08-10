@@ -1,7 +1,5 @@
 &units
-  unit_length='Angstrom'
-  unit_energy='eV'
-  unit_time='fs'
+  unit_system='A_eV_fs'
 /
 &calculation
   calc_mode = 'GS'

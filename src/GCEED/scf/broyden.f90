@@ -103,7 +103,7 @@ subroutine broyden(iter)
           end if
         end do
       end do
-      call matrix_inverse(aa,iter_e-iter_s+1)
+      call matrix_inverse(aa)
       beta(iter_s:iter_e,iter_s:iter_e)=aa(1:iter_e-iter_s+1,1:iter_e-iter_s+1)
       rho_temp(:,:,:)=0.d0
       do i=iter_s,iter_e

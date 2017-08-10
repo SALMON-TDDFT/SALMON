@@ -59,14 +59,14 @@ Subroutine Density_Update(iter)
     end do
     do i=1,iter_e-iter_s+1
       do j=1,iter_e-iter_s+1
-        A(i,j)=omega_MB(iter_s-1+i)*omega_MB(iter_s-1+j)*sum(del_F(:,iter_s-1+i)*del_F(:,iter_s-1+j))
+        a(i,j)=omega_MB(iter_s-1+i)*omega_MB(iter_s-1+j)*sum(del_F(:,iter_s-1+i)*del_F(:,iter_s-1+j))
         if (i == j) then
-          A(i,j)=A(i,j)+omega0**2
+          a(i,j)=a(i,j)+omega0**2
         end if
       end do
     end do
-    call matrix_inverse(A,iter_e-iter_s+1)
-    beta(iter_s:iter_e,iter_s:iter_e)=A(1:iter_e-iter_s+1,1:iter_e-iter_s+1)
+    call matrix_inverse(a)
+    beta(iter_s:iter_e,iter_s:iter_e)=a(1:iter_e-iter_s+1,1:iter_e-iter_s+1)
     rho_temp(1:NL)=0.d0
     do i=iter_s,iter_e
       do j=iter_s,iter_e
