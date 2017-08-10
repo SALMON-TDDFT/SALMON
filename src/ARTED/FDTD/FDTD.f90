@@ -155,19 +155,19 @@ subroutine init_Ac_ms
 
 !  BC_my='isolated'
 !  BC_my='periodic'
-  if(rlaser_int1 < 0d0)then
+  if(rlaser_int_wcm2_1 < 0d0)then
     f0_1 = amplitude1
   else
-    f0_1=5.338d-9*sqrt(rlaser_int1)      ! electric field in a.u.
+    f0_1=5.338d-9*sqrt(rlaser_int_wcm2_1)      ! electric field in a.u.
   end if
 !  omega_1=omegaeV_1/(2d0*13.6058d0)  ! frequency in a.u.
 !  tpulse_1=tpulsefs_1/0.02418d0 ! pulse_duration in a.u.
   Xstart=5*HX_m
   wpulse_1=2*pi/pulse_tw1
-  if(rlaser_int1 < 0d0)then
+  if(rlaser_int_wcm2_1 < 0d0)then
     f0_2 = amplitude2
   else
-    f0_2=5.338d-9*sqrt(rlaser_int2)      ! electric field in a.u.
+    f0_2=5.338d-9*sqrt(rlaser_int_wcm2_2)      ! electric field in a.u.
   end if
 !  omega_2=omegaeV_2/(2d0*13.6058d0)  ! frequency in a.u.
 !  tpulse_2=tpulsefs_2/0.02418d0 ! pulse_duration in a.u.

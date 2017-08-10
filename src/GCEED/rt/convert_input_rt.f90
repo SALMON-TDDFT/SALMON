@@ -124,7 +124,7 @@ end if
 Fst = e_impulse
 romega = omega1
 pulse_T = pulse_tw1
-rlaser_I = rlaser_int1
+rlaser_I = rlaser_int_wcm2_1
 
 if(epdir_im1(1)**2+epdir_im1(2)**2+epdir_im1(3)**2+ &
    epdir_im2(1)**2+epdir_im2(2)**2+epdir_im2(3)**2>=1.d-12)then

@@ -134,7 +134,7 @@ module salmon_global
   character(16)  :: ae_shape1
   real(8)        :: e_impulse
   real(8)        :: amplitude1
-  real(8)        :: rlaser_int1
+  real(8)        :: rlaser_int_wcm2_1
   real(8)        :: pulse_tw1
   real(8)        :: omega1
   real(8)        :: epdir_re1(3)
@@ -142,7 +142,7 @@ module salmon_global
   real(8)        :: phi_cep1
   character(16)  :: ae_shape2
   real(8)        :: amplitude2
-  real(8)        :: rlaser_int2
+  real(8)        :: rlaser_int_wcm2_2
   real(8)        :: pulse_tw2
   real(8)        :: omega2
   real(8)        :: epdir_re2(3)

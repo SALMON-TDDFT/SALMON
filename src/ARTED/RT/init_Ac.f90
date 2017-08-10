@@ -27,15 +27,15 @@ Subroutine init_Ac
   Ac_ind = 0d0
 
 
-  if(rlaser_int1 < 0d0)then
+  if(rlaser_int_wcm2_1 < 0d0)then
     f0_1 = amplitude1
   else
-    f0_1=5.338d-9*sqrt(rlaser_int1)      ! electric field in a.u.
+    f0_1=5.338d-9*sqrt(rlaser_int_wcm2_1)      ! electric field in a.u.
   end if
-  if(rlaser_int2 < 0d0)then
+  if(rlaser_int_wcm2_2 < 0d0)then
     f0_2 = amplitude2
   else
-    f0_2=5.338d-9*sqrt(rlaser_int2)      ! electric field in a.u.
+    f0_2=5.338d-9*sqrt(rlaser_int_wcm2_2)      ! electric field in a.u.
   end if
 
 
