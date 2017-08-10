@@ -1,10 +1,11 @@
 OBJDIR = build_temp
 
+
 ifdef SIMD_SET
 C_SRC_STENCIL_FILE=\
-	ARTED/stencil/C/$(SIMD_SET)/current.c \
-	ARTED/stencil/C/$(SIMD_SET)/hpsi.c \
-	ARTED/stencil/C/$(SIMD_SET)/total_energy.c
+	stencil/C/$(SIMD_SET)/current.c \
+	stencil/C/$(SIMD_SET)/hpsi.c \
+	stencil/C/$(SIMD_SET)/total_energy.c
 F_SRC_STENCIL_FILE=
 else
 C_SRC_STENCIL_FILE=
@@ -19,7 +20,6 @@ F_SRC_COMM_FILE=salmon_communication_$(COMM_SET).f90
 else
 F_SRC_COMM_FILE=salmon_communication.f90
 endif
-
 
 
 
@@ -245,39 +245,41 @@ F_SRC=$(addprefix src/, \
 	main.f90 \
 )
 
-
-
 F_SRCS=\
 	$(F_SRC_PARALLEL) $(F_SRC_IO) $(F_SRC_MATH) $(F_SRC_RT) $(F_SRC_ATOM) \
 	$(F_SRC_MAXWELL) $(F_SRC_GS) $(F_SRC_XC) $(F_SRC_POISSON) $(F_SRC_MISC) \
 	$(F_SRC_ARTED) $(F_SRC_GCEED) $(F_SRC)
 
-C_SRCS=\
+C_SRCS=$(addprefix src/ARTED/, \
 	$(C_SRC_STENCIL_FILE) \
-	ARTED/modules/env_variables_internal.c
-
-
+	modules/env_variables_internal.c \
+)
 
 F_OBJS = $(addprefix $(OBJDIR)/,$(F_SRCS:.f90=.o))
 C_OBJS = $(addprefix $(OBJDIR)/,$(C_SRCS:.c=.o))
 
 .PHONY: all clean
 
-all: $(TARGET)
 
 $(TARGET): $(F_OBJS) $(C_OBJS)
 	$(FC) $(FFLAGS) -o $@ $(F_OBJS) $(C_OBJS) -I $(OBJDIR)  $(LIBLAPACK)
 
-$(F_OBJS): $(F_SRCS)
+$(F_OBJS): $(F_SRCS) 
 $(C_OBJS): $(C_SRCS)
 
-$(OBJDIR)/%.o: %.f90
+$(OBJDIR)/%.o: %.f90 $(OBJDIR)/versionf.h 
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $<
+	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) 
 
-$(OBJDIR)/%.o: %.c
+$(OBJDIR)/%.o: %.c $(OBJDIR)/version.h 
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR)  
+
+$(OBJDIR)/versionf.h: src/versionf.h.in
+	cp src/versionf.h.in $(OBJDIR)/versionf.h
+
+$(OBJDIR)/version.h: src/version.h.in
+	cp src/version.h.in $(OBJDIR)/version.h
 
 clean:
 	rm -f $(TARGET)
