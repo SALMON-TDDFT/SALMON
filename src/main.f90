@@ -5,6 +5,11 @@ program main
   implicit none
 
   call setup_parallel
+
+  if (nproc_id_global == 0) then
+    call print_software_version
+  endif
+
   call read_input
 
   select case(iperiodic)
@@ -18,4 +23,14 @@ program main
 
   call end_parallel
 
+contains
+  subroutine print_software_version
+    implicit none
+    include 'versionf.h'
+    print '(A)',       '##############################################################################'
+    print '(A)',       '# SALMON: Scalable Ab-initio Light-Matter simulator for Optics and Nanoscience'
+    print '(A)',       '#'
+    print '(A,A,A,A)', '#   [Git revision] ', GIT_COMMIT_HASH, ' in ', GIT_BRANCH
+    print '(A)',       '##############################################################################'
+  end subroutine
 end program main
