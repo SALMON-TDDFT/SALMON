@@ -32,7 +32,7 @@ real(8) function sin2cos(t, tw, omega, cep)
 end function sin2cos
 !===============================================================
 subroutine incident_bessel_beam()
-  use Global_Variables, only: amplitude1, rlaser_int1, omega1, pulse_tw1, &
+  use Global_Variables, only: amplitude1, rlaser_int_wcm2_1, omega1, pulse_tw1, &
                             & Epdir_re1, phi_CEP1, &
                             & NXvacL_m, NXvacR_m, NYvacB_m, NYvacT_m, &
                             & HX_m, HY_m, Ac_m, Ac_new_m, dt, &
@@ -47,10 +47,10 @@ subroutine incident_bessel_beam()
   real(8) sin2cos
   
   ! First pulse
-  if(rlaser_int1 < 0d0)then
+  if(rlaser_int_wcm2_1 < 0d0)then
     f0_1 = amplitude1
   else
-    f0_1=5.338d-9*sqrt(rlaser_int1)      ! electric field in a.u.
+    f0_1=5.338d-9*sqrt(rlaser_int_wcm2_1)      ! electric field in a.u.
   end if
 !  omega_1 = omegaeV_1 / (2d0*13.6058d0)  ! frequency in a.u.
 !  tpulse_1 = tpulsefs_1 / 0.02418d0 ! pulse_duration in a.u.

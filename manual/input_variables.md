@@ -596,7 +596,7 @@ Amplitude of electric fields for the first/second pulse.
 This valiable has the dimension of electric field, energy/(length*charge).
 </dd>
 
-<dt>rlaser_int1/rlaser_int2; <code>Real(8)</code>; 0d/3d</dt>
+<dt>rlaser_int_wcm2_1/rlaser_int_wcm2_2; <code>Real(8)</code>; 0d/3d</dt>
 <dd>
 Peak laser intensity (W/cm<sup>2</sup>) the first/second pulse.
 </dd>

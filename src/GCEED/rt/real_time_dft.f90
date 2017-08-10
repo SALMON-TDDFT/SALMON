@@ -150,11 +150,11 @@ if(idensum==0) posplane=posplane/a_B
 
 select case (ikind_eext)
   case(1)
-    if(rlaser_int1>=1.d-12)then
-      amplitude1=sqrt(rlaser_int1)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
+    if(rlaser_int_wcm2_1>=1.d-12)then
+      amplitude1=sqrt(rlaser_int_wcm2_1)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
     end if
-    if(rlaser_int2>=1.d-12)then
-      amplitude2=sqrt(rlaser_int2)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
+    if(rlaser_int_wcm2_2>=1.d-12)then
+      amplitude2=sqrt(rlaser_int_wcm2_2)*1.0d2*2.74492d1/(5.14223d11)!I[W/cm^2]->E[a.u.]
     else
       if(abs(amplitude2)<=1.d-12)then
         amplitude2=0.d0

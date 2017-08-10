@@ -54,7 +54,7 @@
 &emfield
   trans_longi = 'tr'
   ae_shape1 = 'Acos2'
-  rlaser_int1 = 1d14
+  rlaser_int_wcm2_1 = 1d14
   pulse_tw1 = 441.195136248d0
   omega1 = 0.05696145187d0
   epdir_re1 = 0.,0.,1.

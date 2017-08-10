@@ -296,7 +296,7 @@ contains
       & ae_shape1, &
       & e_impulse, &
       & amplitude1, &
-      & rlaser_int1, &
+      & rlaser_int_wcm2_1, &
       & pulse_tw1, &
       & omega1, &
       & epdir_re1, &
@@ -304,7 +304,7 @@ contains
       & phi_cep1, &
       & ae_shape2, &
       & amplitude2, &
-      & rlaser_int2, &
+      & rlaser_int_wcm2_2, &
       & pulse_tw2, &
       & omega2, &
       & epdir_re2, &
@@ -532,7 +532,7 @@ contains
     ae_shape1      = 'none'
     e_impulse = 1d-2*uenergy_from_au/ulength_from_au*utime_from_au ! a.u.
     amplitude1     = 0d0
-    rlaser_int1    = -1d0
+    rlaser_int_wcm2_1 = -1d0
     pulse_tw1      = 0d0
     omega1         = 0d0
     epdir_re1      = (/1d0,0d0,0d0/)
@@ -540,7 +540,7 @@ contains
     phi_cep1       = 0d0
     ae_shape2      = 'none'
     amplitude2     = 0d0
-    rlaser_int2    = -1d0
+    rlaser_int_wcm2_2 = -1d0
     pulse_tw2      = 0d0
     omega2         = 0d0
     epdir_re2      = (/1d0,0d0,0d0/)
@@ -807,7 +807,7 @@ contains
     e_impulse = e_impulse *uenergy_to_au/ulength_to_au*utime_to_au
     call comm_bcast(amplitude1 ,nproc_group_global)
     amplitude1 = amplitude1*(uenergy_to_au/ulength_to_au/ucharge_to_au)
-    call comm_bcast(rlaser_int1,nproc_group_global)
+    call comm_bcast(rlaser_int_wcm2_1,nproc_group_global)
     call comm_bcast(pulse_tw1  ,nproc_group_global)
     pulse_tw1 = pulse_tw1 * utime_to_au
     call comm_bcast(omega1,nproc_group_global)
@@ -818,7 +818,7 @@ contains
     call comm_bcast(ae_shape2 ,nproc_group_global)
     call comm_bcast(amplitude2,nproc_group_global)
     amplitude2 = amplitude2*(uenergy_to_au/ulength_to_au/ucharge_to_au)
-    call comm_bcast(rlaser_int2,nproc_group_global)
+    call comm_bcast(rlaser_int_wcm2_2,nproc_group_global)
     call comm_bcast(pulse_tw2  ,nproc_group_global)
     pulse_tw2 = pulse_tw2 * utime_to_au
     call comm_bcast(omega2,nproc_group_global)
@@ -1291,7 +1291,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'ae_shape1', ae_shape1
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'e_impulse', e_impulse
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'amplitude1', amplitude1
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaser_int1', rlaser_int1
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaser_int_wcm2_1', rlaser_int_wcm2_1
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'pulse_tw1', pulse_tw1
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'omega1', omega1
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re1(1)', epdir_re1(1)
@@ -1303,7 +1303,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'phi_cep1', phi_cep1
       write(fh_variables_log, '("#",4X,A,"=",A)') 'ae_shape2', ae_shape2
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'amplitude2', amplitude2
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaser_int2', rlaser_int2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaser_int_wcm2_2', rlaser_int_wcm2_2
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'pulse_tw2', pulse_tw2
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'omega2', omega2
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_re2(1)', epdir_re2(1)
