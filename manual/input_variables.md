@@ -101,11 +101,10 @@ Default is the current directoy, <code>./</code>.
 ## &units
 <dl>
 
-<dt>unit_time; <code>Character</code>; 0d/3d</dt>
-<dd>Unit of time for input variables. 
-Atomic unit <code>'a.u.'</code> and 
-femtosecond <code>'fs'</code> can be chosen.
-Default is <code>'a.u.'</code>.
+<dt>unit_system; <code>Character</code>; 0d/3d</dt>
+<dd>Unit for input variables. 
+If <code>'au'</code> or <code>'a.u.'</code>, atomic unit system is used. 
+If <code>'A_eV_fs'</code>, Angstrom-eV-fs unit system is used. 
 </dd>
 
 <dt>unit_length; <code>Character</code>; 0d/3d</dt>
