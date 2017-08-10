@@ -425,16 +425,16 @@ contains
       read(fh_namelist, nml=units, iostat=inml_units)
       rewind(fh_namelist)
       close(fh_namelist)
-
-      select case(unit_system)
-      case('au','a.u.','A_eV_fs')
-        continue
-      case default
-        stop 'invalid unit_system'
-      end select
     end if
 
     call comm_bcast(unit_system,nproc_group_global)
+    
+    select case(unit_system)
+    case('au','a.u.','A_eV_fs')
+      continue
+    case default
+      stop 'invalid unit_system'
+    end select
 
     select case(unit_system)
     case('au','a.u.')
