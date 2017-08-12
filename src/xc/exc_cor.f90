@@ -34,8 +34,14 @@ subroutine core_exc_cor(xc, ispin, cval, nx, ny, nz, dv, rho, rho_s, tau, rj, gr
     call core_exc_cor_tpss()
   end select
 
-  ! FIXME: vxc_s is unused, it suppressed warning.
-#define UNUSED_VARIABLE(x) if (.false.) vxc_s = vxc_s
+#define UNUSED_VARIABLE(VAR) if(.false.) call salmon_unusedvar(VAR)
+  UNUSED_VARIABLE(cval)
+  UNUSED_VARIABLE(rho_s)
+  UNUSED_VARIABLE(tau)
+  UNUSED_VARIABLE(rj)
+  UNUSED_VARIABLE(grho)
+  UNUSED_VARIABLE(rlrho)
+  UNUSED_VARIABLE(rho_nlcc)
   UNUSED_VARIABLE(vxc_s)
   
   return

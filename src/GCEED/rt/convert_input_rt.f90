@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine convert_input_rt(Ntime)
-use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_size_global
+use salmon_parallel, only: nproc_id_global, nproc_size_global
 use salmon_communication, only: comm_is_root, comm_bcast
 use inputoutput
 use scf_data

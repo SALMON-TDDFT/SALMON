@@ -14,7 +14,7 @@ program main
 
   select case(iperiodic)
   case(0)
-    call gceed(nproc_size_global, nproc_id_global)
+    call gceed
   case(3)
     call arted
   case default

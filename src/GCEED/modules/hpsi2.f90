@@ -58,6 +58,10 @@ real(8) :: wk2(iwk2sta(1):iwk2end(1),  &
 
 integer :: ispin
 
+#define UNUSED_VARIABLE(VAR) if(.false.) call salmon_unusedvar(VAR)
+UNUSED_VARIABLE(nn)
+UNUSED_VARIABLE(isub)
+
 call set_ispin(iob,ispin)
 
 if(iflag_ps==1) then

@@ -23,8 +23,7 @@ Subroutine write_GS_data
                          & out_dos_smearing, &
                          & out_dos_method, &
                          & out_dos_fshift
-  use inputoutput, only: unit_length, ulength_from_au, &
-                        & t_unit_energy_inv, t_unit_energy
+  use inputoutput, only: unit_length, t_unit_energy_inv, t_unit_energy
   use salmon_parallel, only: nproc_group_global, nproc_id_global, nproc_group_tdks
   use salmon_communication, only: comm_is_root,comm_summation, comm_bcast
   use salmon_file, only: open_filehandle
