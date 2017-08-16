@@ -21,7 +21,7 @@ This script helps to translates the ordinally ARTED input files to
 SALMON-TDDFT (v.1.0.0) input file formats.
 """
 
-Usage = """%prog -t sc|ms < ARTEDfile > salmon_inputfile"""
+Usage = """%prog -t sc|ms < ARTED_file > SALMON_file"""
 
 import sys
 from optparse import OptionParser
@@ -102,9 +102,9 @@ parser.add_option("-t", "--type", metavar="type_calc", dest="type_calc",
                   default="", type=str, help="calculation type: 'sc' or 'ms'")
 opts, args = parser.parse_args()
 
-if opts.type_calc.lower() == "sc":
+if opts.type_calc == "sc":
     param_q = deque(param_list_sc)
-elif opts.type_calc.lower() == "ms":
+elif opts.type_calc == "ms":
     param_q = deque(param_list_ms)
 else:
     parser.print_help(sys.stderr)
@@ -185,9 +185,13 @@ SALMON['system']['isym'] = int_f(ARTED['Sym'])
 SALMON['system']['crystal_structure'] = str_f(ARTED['crystal_structure'])
 SALMON['system']['nstate'] = int_f(ARTED['NB'])
 SALMON['system']['nelec'] = int_f(ARTED['Nelec'])
-SALMON['system']['temperature'] = float_f(ARTED['KbTev']) / au_ev
 SALMON['system']['nelem'] = NE
 SALMON['system']['natom'] = NI
+temperature = float_f(ARTED['KbTev']) / au_ev
+if 0.0 <= temperature:
+    SALMON['system']['temperature'] = temperature
+else:
+    SALMON['system']['temperature'] = -1.0
 
 SALMON['pseudo']['pseudo_file'] = pseudo_file_list
 #SALMON['pseudo']['Lmax_ps']
@@ -196,6 +200,7 @@ SALMON['pseudo']['iZatom'] = izatom_list
 SALMON['pseudo']['psmask_option'] = str_f(ARTED['PSmask_option'])
 SALMON['pseudo']['alpha_mask'] = float_f(ARTED['alpha_mask'])
 SALMON['pseudo']['gamma_mask'] = float_f(ARTED['gamma_mask'])
+SALMON['pseudo']['eta_mask'] = float_f(ARTED['eta_mask'])
 
 SALMON['functional']['xc'] = str_f(ARTED['functional'])
 SALMON['functional']['cval'] = float_f(ARTED['cval'])
@@ -224,26 +229,30 @@ SALMON['scf']['nfsset_start'] = int_f(ARTED['NFSset_start'])
 SALMON['scf']['nfsset_every'] = int_f(ARTED['NFSset_every'])
 SALMON['scf']['nscf'] = int_f(ARTED['Nscf'])
 
-#SALMON['emfield']['amplitude1']
-#SALMON['emfield']['amplitude2']
-SALMON['emfield']['rlaser_int_wcm2_1'] = float_f(ARTED['IWcm2_1'])
-SALMON['emfield']['rlaser_int_wcm2_2'] = float_f(ARTED['IWcm2_2'])
+if opts.type_calc == "ms" or str_f(ARTED["ext_field"]).lower() == "lf":
+    aeshape = aeshape_tbl[str_f(ARTED['AE_shape']).lower()]
+    tw1 = float_f(ARTED['tpulsefs_1']) / au_fs
+    tw2 = float_f(ARTED['tpulsefs_2']) / au_fs
+    omega1 = float_f(ARTED['omegaev_1']) / au_ev
+    omega2 = float_f(ARTED['omegaev_2']) / au_ev
+    old_cep1 = float_f(ARTED['phi_CEP_1'])
+    old_cep2 = float_f(ARTED['phi_CEP_2'])
+    new_cep1 = (old_cep1 + omega1 * tw1 / (4.0 * pi)) % 1
+    new_cep2 = (old_cep2 + omega2 * tw2 / (4.0 * pi)) % 1
+    SALMON['emfield']['ae_shape1'] = aeshape
+    SALMON['emfield']['ae_shape2'] = aeshape
+    SALMON['emfield']['pulse_tw1'] = tw1
+    SALMON['emfield']['pulse_tw2'] = tw2
+    SALMON['emfield']['omega1'] = omega1
+    SALMON['emfield']['omega2'] = omega2
+    SALMON['emfield']['phi_cep1'] = new_cep1
+    SALMON['emfield']['phi_cep2'] = new_cep2
+    #SALMON['emfield']['amplitude1']
+    #SALMON['emfield']['amplitude2']
+    SALMON['emfield']['rlaser_int_wcm2_1'] = float_f(ARTED['IWcm2_1'])
+    SALMON['emfield']['rlaser_int_wcm2_2'] = float_f(ARTED['IWcm2_2'])
+    SALMON['emfield']['t1_t2'] = float_f(ARTED['T1_T2fs']) / au_fs
 
-tw1 = float_f(ARTED['tpulsefs_1']) / au_fs
-tw2 = float_f(ARTED['tpulsefs_2']) / au_fs
-omega1 = float_f(ARTED['omegaev_1']) / au_ev
-omega2 = float_f(ARTED['omegaev_2']) / au_ev
-old_cep1 = float_f(ARTED['phi_CEP_1'])
-old_cep2 = float_f(ARTED['phi_CEP_2'])
-new_cep1 = (old_cep1 + omega1 * tw1 / (4.0 * pi)) % 1
-new_cep2 = (old_cep2 + omega2 * tw2 / (4.0 * pi)) % 1
-
-SALMON['emfield']['pulse_tw1'] = tw1
-SALMON['emfield']['pulse_tw2'] = tw2
-SALMON['emfield']['omega1'] = omega1
-SALMON['emfield']['omega2'] = omega2
-SALMON['emfield']['phi_cep1'] = new_cep1
-SALMON['emfield']['phi_cep2'] = new_cep2
 SALMON['emfield']['epdir_re1'] = [
     float_f(ARTED['Epdir_1_x']),
     float_f(ARTED['Epdir_1_y']),
@@ -256,7 +265,6 @@ SALMON['emfield']['epdir_re2'] = [
 ]
 #SALMON['emfield']['epdir_im1'] 
 #SALMON['emfield']['epdir_im2'] 
-SALMON['emfield']['t1_t2'] = float_f(ARTED['T1_T2fs']) / au_fs
 
 SALMON['analysis']['projection_option'] = str_f(ARTED['AD_RHO']).lower()
 #SALMON['analysis']['out_dos']
@@ -275,7 +283,7 @@ SALMON['analysis']['projection_option'] = str_f(ARTED['AD_RHO']).lower()
 SALMON['ewald']['newald'] = int_f(ARTED['NEwald'])
 SALMON['ewald']['aewald'] = float_f(ARTED['aEwald'])
 
-if opts.type_calc.lower() == "ms":
+if opts.type_calc == "ms":
     SALMON['calculation']['use_ms_maxwell'] = 'y'
     SALMON['multiscale']['fdtddim'] = str_f(ARTED['FDTDdim'])
     SALMON['multiscale']['twod_shape'] = str_f(ARTED['TwoD_shape'])
@@ -289,19 +297,14 @@ if opts.type_calc.lower() == "ms":
     SALMON['multiscale']['nxysplit'] = int_f(ARTED['NXYsplit'])
     SALMON['multiscale']['nxvacl_m'] = int_f(ARTED['NXvacL_m'])
     SALMON['multiscale']['nxvacr_m'] = int_f(ARTED['NXvacR_m'])
-elif opts.type_calc.lower() == "sc":
+elif opts.type_calc == "sc":
     SALMON['calculation']['use_ms_maxwell'] = 'n'
-    SALMON['emfield']['trans_longi'] = str_f(ARTED['Longi_Trans'])
-    if str_f(ARTED["ext_field"]).lower() == "lf":
-        aeshape = aeshape_tbl[str_f(ARTED['AE_shape']).lower()]
-        SALMON['emfield']['ae_shape1'] = aeshape
-        SALMON['emfield']['ae_shape2'] = aeshape
-    elif str_f(ARTED["ext_field"]).lower() == "lr":
+    SALMON['emfield']['trans_longi'] = str_f(ARTED['Longi_Trans']).lower()
+    if str_f(ARTED["ext_field"]).lower() == "lr":
         SALMON['emfield']['ae_shape1'] = 'impulse'
         SALMON['emfield']['e_impulse'] = float_f(ARTED['dAc'])
         SALMON['analysis']['nenergy'] = int_f(ARTED['Nomega'])
         SALMON['analysis']['de'] = float_f(ARTED['domega'])
-
 
 ##########################################################################
 
