@@ -38,6 +38,11 @@ subroutine hamiltonian(zu,flag_current)
   complex(8), intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
   logical, intent(in)       :: flag_current
 
+#ifndef ARTED_CURRENT_PREPROCESSING
+#define UNUSED_VARIABLE(VAR) if(.false.) call salmon_unusedvar(VAR)
+  UNUSED_VARIABLE(flag_current)
+#endif
+
   zfac(1)=(-zI*dt)
   do i=2,4
     zfac(i)=zfac(i-1)*(-zI*dt)/i

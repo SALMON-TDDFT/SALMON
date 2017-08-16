@@ -1,5 +1,6 @@
 set(SOURCES
     misc_routines.f90
+    unusedvar.f90
    )
 
 add_library(${SALMON_MISC_LIB} STATIC ${SOURCES})
