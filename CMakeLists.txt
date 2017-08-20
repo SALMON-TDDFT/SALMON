@@ -1,8 +1,10 @@
 # recommended version : 3.0.2
 cmake_minimum_required(VERSION 2.8)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/misc.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/setup.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_git_info.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/Platforms)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/Modules)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/misc.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/setup.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/get_git_info.cmake)
 
 ### Project settings
 project(SALMON Fortran C)
@@ -135,7 +137,7 @@ endif ()
 
 add_definitions("${ADDITIONAL_MACRO}")
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/workaround.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/workaround.cmake)
 
 
 # Generate configure header
