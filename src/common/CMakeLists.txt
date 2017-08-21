@@ -1,9 +1,13 @@
 set(SOURCES
    hpsi.f90
    update_overlap.f90
+   global_variables.f90
+   scf_data.f90
+   new_world.f90
+   init_sendrecv.f90
    )
 
 add_library(${SALMON_COMMON_LIB} STATIC ${SOURCES})
-add_dependencies(${SALMON_COMMON_LIB} ${SALMON_MATH_LIB})
+add_dependencies(${SALMON_COMMON_LIB} ${SALMON_MATH_LIB} ${SALMON_IO_LIB} ${SALMON_PARALLEL_LIB} ${SALMON_MISC_LIB})
 list(APPEND SALMON_LINK_LIBRARIES ${SALMON_COMMON_LIB})
 set(SALMON_LINK_LIBRARIES ${SALMON_LINK_LIBRARIES} PARENT_SCOPE)

@@ -9,7 +9,7 @@ add_subdirectory("./math")
 add_subdirectory("./xc")
 #add_subdirectory("./poisson")
 #add_subdirectory("./maxwell")
-#add_subdirectory("./common")
+add_subdirectory("./common")
 add_subdirectory("./misc")
 
 # Executable binary
