@@ -36,9 +36,9 @@ module salmon_communication
   public :: comm_wait_all
 
   ! p2p persistent communication
-  !public :: comm_send_init
-  !public :: comm_recv_init
-  !public :: comm_start_all
+  public :: comm_send_init
+  public :: comm_recv_init
+  public :: comm_start_all
 
   ! collective communication
   public :: comm_sync_all
@@ -102,6 +102,18 @@ module salmon_communication
     ! 5-D array
     module procedure comm_irecv_array5d_double
     module procedure comm_irecv_array5d_dcomplex
+  end interface
+
+  interface comm_send_init
+    ! 5-D array
+    module procedure comm_send_init_array5d_double
+    module procedure comm_send_init_array5d_dcomplex
+  end interface
+
+  interface comm_recv_init
+    ! 5-D array
+    module procedure comm_recv_init_array5d_double
+    module procedure comm_recv_init_array5d_dcomplex
   end interface
 
   interface comm_summation
@@ -426,6 +438,50 @@ contains
     integer, intent(in) :: reqs(:)
     integer :: ierr
     MPI_ERROR_CHECK(call MPI_Waitall(size(reqs), reqs, MPI_STATUSES_IGNORE, ierr))
+  end subroutine
+
+
+  function comm_send_init_array5d_double(invalue, ndest, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_PRECISION
+    implicit none
+    real(8), intent(in) :: invalue(:,:,:,:,:)
+    integer, intent(in) :: ndest, ntag, ngroup
+    integer :: ierr, req
+    MPI_ERROR_CHECK(call MPI_Send_init(invalue, size(invalue), MPI_DOUBLE_PRECISION, ndest, ntag, ngroup, req, ierr))
+  end function
+
+  function comm_send_init_array5d_dcomplex(invalue, ndest, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_COMPLEX
+    implicit none
+    complex(8), intent(in) :: invalue(:,:,:,:,:)
+    integer, intent(in)    :: ndest, ntag, ngroup
+    integer :: ierr, req
+    MPI_ERROR_CHECK(call MPI_Send_init(invalue, size(invalue), MPI_DOUBLE_COMPLEX, ndest, ntag, ngroup, req, ierr))
+  end function
+
+  function comm_recv_init_array5d_double(outvalue, nsrc, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_PRECISION
+    implicit none
+    real(8), intent(out) :: outvalue(:,:,:,:,:)
+    integer, intent(in)  :: nsrc, ntag, ngroup
+    integer :: ierr, req
+    MPI_ERROR_CHECK(call MPI_Recv_init(outvalue, size(outvalue), MPI_DOUBLE_PRECISION, nsrc, ntag, ngroup, req, ierr))
+  end function
+
+  function comm_recv_init_array5d_dcomplex(outvalue, nsrc, ntag, ngroup) result(req)
+    use mpi, only: MPI_DOUBLE_COMPLEX
+    implicit none
+    complex(8), intent(out) :: outvalue(:,:,:,:,:)
+    integer, intent(in)     :: nsrc, ntag, ngroup
+    integer :: ierr, req
+    MPI_ERROR_CHECK(call MPI_Recv_init(outvalue, size(outvalue), MPI_DOUBLE_COMPLEX, nsrc, ntag, ngroup, req, ierr))
+  end function
+
+  subroutine comm_start_all(reqs)
+    implicit none
+    integer, intent(in) :: reqs(:)
+    integer :: ierr
+    MPI_ERROR_CHECK(call MPI_Startall(size(reqs), reqs, ierr))
   end subroutine
 
 
