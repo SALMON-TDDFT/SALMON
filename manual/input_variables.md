@@ -101,25 +101,10 @@ Default is the current directoy, <code>./</code>.
 ## &units
 <dl>
 
-<dt>unit_time; <code>Character</code>; 0d/3d</dt>
-<dd>Unit of time for input variables. 
-Atomic unit <code>'a.u.'</code> and 
-femtosecond <code>'fs'</code> can be chosen.
-Default is <code>'a.u.'</code>.
-</dd>
-
-<dt>unit_length; <code>Character</code>; 0d/3d</dt>
-<dd>Unit of length for input variables. 
-Atomic unit <code>'a.u.'</code> and 
-Aungstrom <code>angstrom</code> can be chosen.
-Default is <code>'a.u.'</code>.
-</dd>
-
-<dt>unit_energy; <code>Character</code>; 0d/3d</dt>
-<dd>Unit of energy for input variables. 
-Atomic unit <code>'a.u.'</code> and 
-electron-volt <code>'ev'</code> can be chosen.
-Default is <code>'a.u.'</code>.
+<dt>unit_system; <code>Character</code>; 0d/3d</dt>
+<dd>Unit for input variables. 
+If <code>'au'</code> or <code>'a.u.'</code>, atomic unit system is used. 
+If <code>'A_eV_fs'</code>, Angstrom-eV-fs unit system is used. 
 </dd>
 
 </dl>
@@ -611,7 +596,7 @@ Amplitude of electric fields for the first/second pulse.
 This valiable has the dimension of electric field, energy/(length*charge).
 </dd>
 
-<dt>rlaser_int1/rlaser_int2; <code>Real(8)</code>; 0d/3d</dt>
+<dt>rlaser_int_wcm2_1/rlaser_int_wcm2_2; <code>Real(8)</code>; 0d/3d</dt>
 <dd>
 Peak laser intensity (W/cm<sup>2</sup>) the first/second pulse.
 </dd>

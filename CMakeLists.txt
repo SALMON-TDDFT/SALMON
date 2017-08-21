@@ -1,8 +1,10 @@
 # recommended version : 3.0.2
 cmake_minimum_required(VERSION 2.8)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/misc.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/setup.cmake)
-
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/Platforms)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/Modules)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/misc.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/setup.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/get_git_info.cmake)
 
 ### Project settings
 project(SALMON Fortran C)
@@ -86,13 +88,12 @@ endif ()
 message(STATUS "user-defined FFLAGS = ${CMAKE_Fortran_FLAGS}")
 message(STATUS "user-defined CFLAGS = ${CMAKE_C_FLAGS}")
 
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}")
 set(TARGET_NAME            "salmon${TARGET_SUFFIX}")
-
 set(CMAKE_Fortran_FLAGS    "${ARCH} ${OPENMP_FLAGS} ${Fortran_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_Fortran_FLAGS}")
 set(CMAKE_C_FLAGS          "${ARCH} ${OPENMP_FLAGS} ${C_FLAGS_General} ${ADDITIONAL_OPTIMIZE_FLAGS} ${CMAKE_C_FLAGS}")
 set(EXTERNAL_LIBS          "")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR})
 
 ### Performance API from ICL, Univ. TENNESSEE
@@ -136,33 +137,41 @@ endif ()
 
 add_definitions("${ADDITIONAL_MACRO}")
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/workaround.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/workaround.cmake)
+
+
+# Generate configure header
+configure_file(
+  ${CMAKE_SOURCE_DIR}/src/version.h.in
+  ${CMAKE_BINARY_DIR}/version.h
+)
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/src/versionf.h.in
+  ${CMAKE_BINARY_DIR}/versionf.h
+)
+
+include_directories(${CMAKE_BINARY_DIR})
 
 
 ### Build target
-set(SALMON_CORE_LIB   "salmon_core")
-set(SALMON_MODULE_LIB "salmon_module")
-set(ARTED_LIB         "arted_rtl")
-set(GCEED_LIB         "gceed_rtl")
+set(ARTED_LIB            "arted_rtl")
+set(GCEED_LIB            "gceed_rtl")
 
-### Build target directories
-set(SALMON_CORE_LIB_DIR   "./src/core")
-set(SALMON_MODULE_LIB_DIR "./modules/")
-set(ARTED_LIB_DIR         "./ARTED/")
-set(GCEED_LIB_DIR         "./GCEED/")
+set(SALMON_PARALLEL_LIB  "parallel_rtl")
+set(SALMON_IO_LIB        "io_rtl")
+set(SALMON_MATH_LIB      "math_rtl")
+set(SALMON_GS_LIB        "gs_rtl")
+set(SALMON_RT_LIB        "rt_rtl")
+set(SALMON_ATOM_LIB      "atom_rtl")
+set(SALMON_XC_LIB        "xc_rtl")
+set(SALMON_POISSON_LIB   "poisson_rtl")
+set(SALMON_MAXWELL_LIB   "maxwell_rtl")
+set(SALMON_COMMON_LIB    "common_rtl")
+set(SALMON_MISC_LIB      "misc_rtl")
 
-
-add_subdirectory(${ARTED_LIB_DIR})
-add_subdirectory(${GCEED_LIB_DIR})
-add_subdirectory(${SALMON_CORE_LIB_DIR})
-add_subdirectory(${SALMON_MODULE_LIB_DIR})
-
-
-# Executable binary
-add_executable(${TARGET_NAME} main/main.f90)
-target_link_libraries(${TARGET_NAME} ${SALMON_LINK_LIBRARIES} ${EXTERNAL_LIBS})
-add_dependencies(${TARGET_NAME} ${SALMON_LINK_LIBRARIES})
-
+set(SALMON_SRC_DIR "./src")
+add_subdirectory(${SALMON_SRC_DIR})
 
 message(STATUS "Enabled macro")
 get_directory_property(MACRO_LOG COMPILE_DEFINITIONS)

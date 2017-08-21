@@ -1,12 +1,12 @@
-# gnu
+# gnu-without-mpi
 
 TARGET = salmon.cpu
-FC = mpif90
-CC = mpicc
+FC = gfortran
+CC = gcc
 FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-form -ffree-line-length-none
 CFLAGS = -O3 -fopenmp -Wall
 LIBLAPACK = -llapack -lblas
 MODULE_SWITCH = -J
-COMM_SET =
+COMM_SET = dummy
 
 include $(dir $(abspath $(lastword $(MAKEFILE_LIST))))/make.body

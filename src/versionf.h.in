@@ -1,0 +1,3 @@
+logical, parameter      :: GIT_FOUND       = .@GIT_FOUND@.
+character(*), parameter :: GIT_BRANCH      = '@GIT_BRANCH@'
+character(*), parameter :: GIT_COMMIT_HASH = '@GIT_COMMIT_HASH@'
