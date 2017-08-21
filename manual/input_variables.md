@@ -422,7 +422,7 @@ Choice of Propagator.
 <code>middlepoint</code> is an propagator
 with the Hamiltoinan at midpoint of two-times.
 
-<code>etrs</code> is Enforced time-reversal symmetry propagator.
+<code>etrs</code> is enforced time-reversal symmetry propagator.
 [M.A.L. Marques, A. Castro, G.F. Bertsch, and A. Rubio, 
 Comput. Phys. Commun., 151 60 (2003)].
 Default is <code>middlepoint</code>.
