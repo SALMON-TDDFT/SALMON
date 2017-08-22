@@ -24,80 +24,41 @@ contains
 
 !==================================================================================================
 
-SUBROUTINE hpsi_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin,Norb,Nk,Nd &
-               ,V_local, ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul)
-  use scf_data, only: cNmat,Hgs,iflag_ps ! GCEED
+SUBROUTINE hpsi_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+                 ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
+                 ,lap0,lapt,is_table,Nd,nproc_Mxin_mul)
+  use scf_data, only: iflag_ps ! GCEED
   use update_overlap_sub, only: update_overlap_R
   implicit none
-  integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin,Norb,Nk,Nd &
-                       ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-                       ,nproc_Mxin_mul
-  real(8),dimension(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Nspin,1:Norb,1:Nk) :: tpsi,htpsi
-  real(8),intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin)
+  integer ,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+                        ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
+                        ,is_table(Norb),Nd,nproc_Mxin_mul
+  real(8) ,intent(in) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
+                        ,V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin) &
+                        ,lap0,lapt(4,3)
+  real(8),intent(out) :: htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
   !
-  integer :: is,iorb,ik,ist,ix,iy,iz,j,ind
-  real(8) :: fdN0,lapt(0:12,3)
+  integer :: is,iorb
 
-  call update_overlap_R(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Nspin,1:Norb,1:Nk) &
-                       ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin*Norb*Nk,Nd &
+  call update_overlap_R(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
+                       ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
                        ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul)
 
 ! stencil
 
-  fdN0 = 0.5d0*( -cNmat(0,Nd)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2) )
-  do j=1,3
-    do ind=1,Nd
-      lapt (ind,j) = cNmat(ind,Nd)/Hgs(j)**2
-    end do
+  do iorb=1,Norb
+    is = is_table(iorb)
+    call stencil_R(tpsi(:,:,:,iorb),htpsi(:,:,:,iorb) &
+                ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                ,lap0,lapt &
+                ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+
   end do
-
-  if(Nd==4)then
-
-    do ik=1,Nk
-      do iorb=1,Norb
-        do is=1,Nspin
-
-          call stencil_R(tpsi(:,:,:,is,iorb,ik),htpsi(:,:,:,is,iorb,ik) &
-                      ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
-                      ,fdN0,lapt(1:4,1:3) &
-                      ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
-
-        end do
-      end do
-    end do
-
-  else
-
-    do ik=1,Nk
-      do iorb=1,Norb
-        do is=1,Nspin
-!$OMP parallel private(iz,ist)
-          do iz=iz_sta,iz_end
-!$OMP do private(iy,ix)
-            do iy=iy_sta,iy_end
-            do ix=ix_sta,ix_end
-              htpsi(ix,iy,iz,is,iorb,ik) = (V_local(ix,iy,iz,is)+fdN0) *tpsi(ix,iy,iz,is,iorb,ik)
-              do ist=1,Nd  
-                htpsi(ix,iy,iz,is,iorb,ik) = htpsi(ix,iy,iz,is,iorb,ik) &
-                - 0.5d0* (lapt(ist,1)* (tpsi(ix+ist,iy,iz,is,iorb,ik) + tpsi(ix-ist,iy,iz,is,iorb,ik))  &
-                         +lapt(ist,2)* (tpsi(ix,iy+ist,iz,is,iorb,ik) + tpsi(ix,iy-ist,iz,is,iorb,ik))  &
-                         +lapt(ist,3)* (tpsi(ix,iy,iz+ist,is,iorb,ik) + tpsi(ix,iy,iz-ist,is,iorb,ik)))
-              end do
-            end do
-            end do
-!$OMP end do nowait
-          end do
-!$OMP end parallel
-        end do
-      end do
-    end do
-
-  end if
 
 ! pseudopotential
 
   if(iflag_ps.eq.1)then
-    call pseudo_GCEED_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin*Norb*Nk,nproc_Mxin_mul)
+    call pseudo_GCEED_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,nproc_Mxin_mul)
   end if
 
   return
@@ -105,136 +66,70 @@ end subroutine hpsi_R
 
 !==================================================================================================
 
-SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin,Norb,Nk,Nd &
-               ,V_local, ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul,kAc,exp_ikr,ttpsi)
-  use scf_data, only: cNmat,bNmat,Hgs,iflag_ps ! GCEED
-  use Global_Variables, only: lapx,lapy,lapz,nabx,naby,nabz,Nps,NI ! ARTED
+SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+                 ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
+                 ,lap0,lapt,is_table,Nk,Nd,nproc_Mxin_mul &
+                 ,ik_table,nabt,kAc,exp_ikr,ttpsi)
+  use scf_data, only: iflag_ps ! GCEED
+  use Global_Variables, only: Nps,NI ! ARTED
   use update_overlap_sub, only: update_overlap_C
   implicit none
-  integer ,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin,Norb,Nk,Nd &
-                        ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-                        ,nproc_Mxin_mul
-  complex(8),dimension(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Nspin,1:Norb,1:Nk) :: tpsi,htpsi
-  real(8) ,intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin)
-  real(8)   ,optional,intent(in)  :: kAc(Nk,3)
-  complex(8),optional,intent(in)  :: exp_ikr(Nps,NI,Nk)
-  complex(8),optional,intent(out) :: ttpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Nspin,1:Norb,1:Nk)
+  integer    ,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+                           ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
+                           ,is_table(Norb),Nk,Nd,nproc_Mxin_mul
+  complex(8) ,intent(in) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
+  real(8)    ,intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin) &
+                           ,lap0,lapt(4,3)
+  complex(8),intent(out) :: htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
   !
-  integer :: is,iorb,ik,ist,ix,iy,iz,j,ind
-  real(8) :: fdN0,k2,lapt(0:12,3),nabt(12,3),nabt0(12,3)
-  logical :: if_ARTED
+  integer   ,optional,intent(in)  :: ik_table(Norb)
+  real(8)   ,optional,intent(in)  :: nabt(4,3),kAc(Nk,3)
+  complex(8),optional,intent(in)  :: exp_ikr(Nps,NI,Nk)
+  complex(8),optional,intent(out) :: ttpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
+  !
+  integer :: is,iorb,ik,ix,iy,iz
+  real(8) :: k_nabt(4,3),k2
+  logical :: if_kAc
 
-  if_ARTED = present(kAc)
+  if_kAc = present(kAc)
 
-  call update_overlap_C(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Nspin,1:Norb,1:Nk) &
-                     ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin*Norb*Nk,Nd &
+  call update_overlap_C(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
+                     ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
                      ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul)
 
 ! stencil
 
-  if(if_ARTED) then
-  ! ARTED
-    fdN0 = - (lapx(0)+lapy(0)+lapz(0))*0.5d0
-    do ind=1,Nd
-      lapt (ind,1) = lapx(ind)
-      lapt (ind,2) = lapy(ind)
-      lapt (ind,3) = lapz(ind)
-      nabt0(ind,1) = nabx(ind)
-      nabt0(ind,2) = naby(ind)
-      nabt0(ind,3) = nabz(ind)
-    end do
-  else
-  ! GCEED
-    fdN0 = 0.5d0*( -cNmat(0,Nd)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2) )
-    do j=1,3
-      do ind=1,Nd
-        lapt (ind,j) = cNmat(ind,Nd)/Hgs(j)**2
-        nabt0(ind,j) = bNmat(ind,Nd)/Hgs(j)
-      end do
-    end do
-  end if
+  do iorb=1,Norb
+    is = is_table(iorb)
 
-  if(Nd==4)then
+    if(if_kAc) then
+      ik = ik_table(iorb)
+      k2 = 0.5d0* sum(kAc(ik,:)**2)
+      k_nabt(:,1) = kAc(ik,1) * nabt(:,1)
+      k_nabt(:,2) = kAc(ik,2) * nabt(:,2)
+      k_nabt(:,3) = kAc(ik,3) * nabt(:,3)
+    else
+      k2 = 0d0
+      k_nabt = 0d0
+    end if
 
-    do ik=1,NK
-      if(if_ARTED) then
-        k2 = 0.5d0* sum(kAc(ik,:)**2)
-        nabt(:,1) = kAc(ik,1) * nabt0(:,1)
-        nabt(:,2) = kAc(ik,2) * nabt0(:,2)
-        nabt(:,3) = kAc(ik,3) * nabt0(:,3)
-      else
-        k2 = 0d0
-        nabt = 0d0
-      end if
+    call stencil_C(tpsi(:,:,:,iorb),htpsi(:,:,:,iorb) &
+                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                  ,lap0+k2,lapt,k_nabt &
+                  ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
 
-      do iorb=1,Norb
-        do is=1,Nspin
+  end do
 
-          call stencil_C(tpsi(:,:,:,is,iorb,ik),htpsi(:,:,:,is,iorb,ik) &
-                      ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
-                      ,fdN0+k2,lapt(1:4,1:3),nabt(1:4,1:3) &
-                      ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
-
-        end do
-      end do
-
-    end do
-
-  else
-
-    do ik=1,NK
-      if(if_ARTED) then
-        k2 = 0.5d0* sum(kAc(ik,:)**2)
-        nabt(:,1) = kAc(ik,1) * nabt0(:,1)
-        nabt(:,2) = kAc(ik,2) * nabt0(:,2)
-        nabt(:,3) = kAc(ik,3) * nabt0(:,3)
-      else
-        k2 = 0d0
-        nabt = 0d0
-      end if
-
-      do iorb=1,Norb
-        do is=1,Nspin
-!$OMP parallel private(iz,ist)
-          do iz=iz_sta,iz_end
-!$OMP do private(iy,ix)
-            do iy=iy_sta,iy_end
-            do ix=ix_sta,ix_end
-              htpsi(ix,iy,iz,is,iorb,ik) = (V_local(ix,iy,iz,is)+fdN0+k2) *tpsi(ix,iy,iz,is,iorb,ik)
-              do ist=1,Nd  
-                htpsi(ix,iy,iz,is,iorb,ik) = htpsi(ix,iy,iz,is,iorb,ik) &
-                - 0.5d0* (lapt(ist,1)* (tpsi(ix+ist,iy,iz,is,iorb,ik) + tpsi(ix-ist,iy,iz,is,iorb,ik))  &
-                         +lapt(ist,2)* (tpsi(ix,iy+ist,iz,is,iorb,ik) + tpsi(ix,iy-ist,iz,is,iorb,ik))  &
-                         +lapt(ist,3)* (tpsi(ix,iy,iz+ist,is,iorb,ik) + tpsi(ix,iy,iz-ist,is,iorb,ik))) &
-                - zI*    (nabt(ist,1)* (tpsi(ix+ist,iy,iz,is,iorb,ik) - tpsi(ix-ist,iy,iz,is,iorb,ik))  &
-                         +nabt(ist,2)* (tpsi(ix,iy+ist,iz,is,iorb,ik) - tpsi(ix,iy-ist,iz,is,iorb,ik))  &
-                         +nabt(ist,3)* (tpsi(ix,iy,iz+ist,is,iorb,ik) - tpsi(ix,iy,iz-ist,is,iorb,ik)))
-              end do 
-            end do
-            end do
-!$OMP end do nowait
-          end do
-!$OMP end parallel
-        end do
-
-      end do
-    end do
-
-  end if
 
 ! subtraction
 
   if(present(ttpsi)) then
-    do ik=1,Nk
-      do iorb=1,Norb
-        do is=1,Nspin
-          do iz=iz_sta,iz_end
-            do iy=iy_sta,iy_end
-              do ix=ix_sta,ix_end
-                ttpsi(ix,iy,iz,is,iorb,ik) = htpsi(ix,iy,iz,is,iorb,ik) &
-                                             - V_local(ix,iy,iz,is) * tpsi(iz,iy,iz,is,iorb,ik)
-              end do
-            end do
+    do iorb=1,Norb
+      is = is_table(iorb)
+      do iz=iz_sta,iz_end
+        do iy=iy_sta,iy_end
+          do ix=ix_sta,ix_end
+            ttpsi(ix,iy,iz,iorb) = htpsi(ix,iy,iz,iorb) - V_local(ix,iy,iz,is) * tpsi(iz,iy,iz,iorb)
           end do
         end do
       end do
@@ -243,19 +138,16 @@ SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nsp
 
 ! pseudopotential
 
-  if(if_ARTED) then
-    do ik=1,Nk
-      do iorb=1,Norb
-        do is=1,Nspin
-          call pseudo_ARTED(tpsi(:,:,:,is,iorb,ik),htpsi(:,:,:,is,iorb,ik) &
-                           ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
-                           ,exp_ikr(:,:,ik),Nps,NI)
-        end do
-      end do
+  if(if_kAc) then
+    do iorb=1,Norb
+      ik = ik_table(iorb)
+      call pseudo_ARTED(tpsi(:,:,:,iorb),htpsi(:,:,:,iorb) &
+                       ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                       ,exp_ikr(:,:,ik),Nps,NI)
     end do
   else
     if(iflag_ps.eq.1)then
-      call pseudo_GCEED_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin*Norb*Nk,nproc_Mxin_mul)
+      call pseudo_GCEED_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,nproc_Mxin_mul)
     end if
   end if
 
@@ -265,13 +157,13 @@ end subroutine hpsi_C
 !==================================================================================================
 
 subroutine stencil_R(tpsi,htpsi &
-                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,fdN0,lapt &
+                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,lap0,lapt &
                   ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
   implicit none
   integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
                        ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
   real(8),dimension(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) :: tpsi,htpsi
-  real(8),intent(in) :: fdN0,lapt(4,3)
+  real(8),intent(in) :: lap0,lapt(4,3)
   real(8),intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end)
   !
   integer :: iz,iy,ix
@@ -298,7 +190,7 @@ subroutine stencil_R(tpsi,htpsi &
         +lapt(3,3)*(tpsi(ix,iy,iz+3) + tpsi(ix,iy,iz-3))  &
         +lapt(4,3)*(tpsi(ix,iy,iz+4) + tpsi(ix,iy,iz-4)) + v
 
-    htpsi(ix,iy,iz) = ( V_local(ix,iy,iz) + fdN0 )*tpsi(ix,iy,iz) - 0.5d0 * v
+    htpsi(ix,iy,iz) = ( V_local(ix,iy,iz) + lap0 )*tpsi(ix,iy,iz) - 0.5d0 * v
   end do
   end do
   end do
@@ -311,13 +203,13 @@ end subroutine stencil_R
 !==================================================================================================
 
 subroutine stencil_C(tpsi,htpsi &
-                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,fdN0,lapt,nabt &
+                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,lap0,lapt,nabt &
                   ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
   implicit none
   integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
                        ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
   complex(8),dimension(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) :: tpsi,htpsi
-  real(8),intent(in) :: fdN0,lapt(4,3),nabt(4,3)
+  real(8),intent(in) :: lap0,lapt(4,3),nabt(4,3)
   real(8),intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end)
   !
   integer :: iz,iy,ix
@@ -359,7 +251,7 @@ subroutine stencil_C(tpsi,htpsi &
         +nabt(3,3)*(tpsi(ix,iy,iz+3) - tpsi(ix,iy,iz-3))  &
         +nabt(4,3)*(tpsi(ix,iy,iz+4) - tpsi(ix,iy,iz-4)) + w
 
-    htpsi(ix,iy,iz) = ( V_local(ix,iy,iz) + fdN0 )*tpsi(ix,iy,iz) - 0.5d0 * v - zI * w
+    htpsi(ix,iy,iz) = ( V_local(ix,iy,iz) + lap0 )*tpsi(ix,iy,iz) - 0.5d0 * v - zI * w
   end do
   end do
   end do
@@ -372,7 +264,7 @@ end subroutine stencil_C
 !==================================================================================================
 
 subroutine pseudo_ARTED(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,exp_ikr,Nps,NI)
-  use Global_Variables, only: Mps,uV,iuV,Hxyz,Nlma,a_tbl,Jxyz,NLx,NLy,NLz ! ARTED
+  use Global_Variables, only: Mps,uV,iuV,Hxyz,Nlma,a_tbl,Jxyz,NLy,NLz ! ARTED
   implicit none
   integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nps,NI
   complex(8),dimension(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) :: tpsi,htpsi

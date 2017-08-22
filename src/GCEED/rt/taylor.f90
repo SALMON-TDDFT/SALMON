@@ -103,20 +103,29 @@ deallocate(V_wrk)
 contains
 
 !-------------------------------------------------------------------------------------
-subroutine hpsi_test1(tpsi0,htpsi0,V)
+subroutine hpsi_test1(tpsi,htpsi,V)
   use hpsi_sub
   implicit none
-  complex(8) :: tpsi0(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
+  complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                      mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                     mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
-  complex(8) :: htpsi0(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
+                     mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum)
+  complex(8) :: htpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                       mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                      mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                      mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum)
   real(8) :: V(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),numspin)
   !
-  integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end
-  integer :: ispin,i_all,Norb,i,iobmax,Nspin,Nk
-  complex(8),allocatable :: tpsi(:,:,:,:,:,:),htpsi(:,:,:,:,:,:)
+  integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+            ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+            ,ispin,i_all,Norb,i,iobmax,Nspin,Nk,ind,j
+  real(8) :: lap0,lapt(4,3)
+  integer, allocatable :: is_table(:)
+
+  lap0 = -0.5d0*cNmat(0,Nd)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
+  do j=1,3
+    do ind=1,4
+      lapt(ind,j) = cNmat(ind,Nd)/Hgs(j)**2
+    end do
+  end do
 
   call calc_pmax(iobmax)
   Norb = iobnum
@@ -130,27 +139,25 @@ subroutine hpsi_test1(tpsi0,htpsi0,V)
   ipz_sta = mg_sta(3)-Nd
   ipz_end = mg_end(3)+Nd
 
-  allocate( tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Nspin,1:Norb,1:Nk) &
-          ,htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Nspin,1:Norb,1:Nk))
-  tpsi = 0d0
-  htpsi = 0d0
+  ix_sta = mg_sta(1)
+  ix_end = mg_end(1)
+  iy_sta = mg_sta(2)
+  iy_end = mg_end(2)
+  iz_sta = mg_sta(3)
+  iz_end = mg_end(3)
 
+  allocate(is_table(Norb))
   do i=1,iobmax
     call calc_allob(i,i_all)
     call set_ispin(i_all,ispin)
-    tpsi(:,:,:,ispin,i,1) = tpsi0(:,:,:,i,1)
+    is_table(i) = ispin
   end do
 
-  call hpsi(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nspin,Norb,Nk,Nd &
-            ,V,mg_sta(1),mg_end(1),mg_sta(2),mg_end(2),mg_sta(3),mg_end(3),nproc_Mxin_mul)
+  call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+                 ,V,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
+                 ,lap0,lapt,is_table,Nk,Nd,nproc_Mxin_mul)
 
-  do i=1,iobmax
-    call calc_allob(i,i_all)
-    call set_ispin(i_all,ispin)
-    htpsi0(:,:,:,i,1) = htpsi(:,:,:,ispin,i,1)
-  end do
-
-  deallocate(tpsi,htpsi)
+  deallocate(is_table)
   return
 end subroutine hpsi_test1
 !-------------------------------------------------------------------------------------
