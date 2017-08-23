@@ -16,3 +16,6 @@ add_subdirectory("./misc")
 add_executable(${TARGET_NAME} main.f90)
 target_link_libraries(${TARGET_NAME} ${SALMON_LINK_LIBRARIES} ${EXTERNAL_LIBS})
 add_dependencies(${TARGET_NAME} ${SALMON_LINK_LIBRARIES})
+
+# Install binary
+install(TARGETS ${TARGET_NAME} DESTINATION "bin")

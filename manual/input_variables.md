@@ -85,7 +85,7 @@ Default is <code>-1</code> sec.
 Default is <code>default</code>.
 </dd>
 
-<dt>sysname; <code>Character</code>; 0d/3d</dt>
+<dt>directory; <code>Character</code>; 0d/3d</dt>
 <dd>Name of a default directory, where the basic results will be written down.
 Default is the current directoy, <code>./</code>.
 </dd>
@@ -383,7 +383,7 @@ the Brillouin zone.
 <dd>
 Name of a file for flexible k-point sampling.
 This file will be read if <code>num_kgrid</code> are
-all negative.
+smaller than 1.
 </dd>
 
 
@@ -422,8 +422,7 @@ Choice of Propagator.
 <code>middlepoint</code> is an propagator
 with the Hamiltoinan at midpoint of two-times.
 
-<code>middlepoint</code> is Enforced time-reversal symmetry propagator.
-Midpoint Order of Taylor expansion of a propagation operator 
+<code>etrs</code> is enforced time-reversal symmetry propagator.
 [M.A.L. Marques, A. Castro, G.F. Bertsch, and A. Rubio, 
 Comput. Phys. Commun., 151 60 (2003)].
 Default is <code>middlepoint</code>.
@@ -1178,5 +1177,3 @@ This variable will be removed.
 
 
 </dl>
-
-
