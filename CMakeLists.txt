@@ -9,21 +9,27 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/get_git_info.cmake)
 ### Project settings
 project(SALMON Fortran C)
 
-# optimization options
-option_set(USE_MPI                        "Use MPI parallelization"                                  OFF)
-option_set(USE_TLOG                       "Use TLOG library"                                         OFF)
-option_set(USE_PAPI                       "Use Performance API"                                      OFF)
-option_set(USE_NVTX                       "Use NVIDIA Tools Extension Library"                       OFF)
-option_set(USE_SCALAPACK                  "Use ScaLAPACK Library"                                    OFF)
-option_set(OPT_STENCIL                    "Optimize stencil code"                                    ON)
-option_set(DOMAIN_IS_POW2                 "Stencil domain is power of two"                           OFF)
-option_set(ENABLE_CURRENT_PREPROCESSING   "Enable preprocessing of the current computation in RT"    OFF)
-option_set(ENABLE_ARRAY_PADDING           "Enable array padding for the stencil"                     ON)
-option_set(ENABLE_EXPLICIT_VEC            "Enable explicit vectorization for the stencil"            OFF)
-option_set(ENABLE_LOOP_BLOCKING           "Enable loop blocking at the stencil"                      OFF)
-option_set(ENABLE_SWPREFETCH              "Enable software prefetch in the explicit vec of stencil"  OFF)
-option_set(ENABLE_REDUCE_FOR_MANYCORE     "Enable optimized reduction code for many-core processor"  OFF)
-option_set(ENABLE_LARGE_BLOCKING          "Enable large blocking for accelerator"                    OFF)
+# Bulid options
+## Library
+option_set(USE_MPI                 "Use MPI parallelization" OFF)
+option_set(USE_SCALAPACK           "Use ScaLAPACK Library"   OFF)
+
+## Optimization
+option_set(REDUCE_FOR_MANYCORE     "Enable optimization of reduction for many-core processor" OFF)
+option_set(CURRENT_PREPROCESSING   "Enable preprocessing of the current computation in RT"    OFF)
+option_set(LARGE_BLOCKING          "Enable large blocking for accelerator"                    OFF)
+
+## Optimization for stencil compitations
+option_set(OPT_STENCIL             "Enable optimization of the stencil"                                                ON)
+option_set(DOMAIN_IS_POW2          "Enable whether the opimization assumes that a stencil domain size is power of two" OFF)
+option_set(ARRAY_PADDING           "Enable array padding for the stencil"                                              ON)
+option_set(EXPLICIT_VEC            "Enable explicit vectorization for the stencil"                                     OFF)
+option_set(LOOP_BLOCKING           "Enable loop blocking at the stencil"                                               OFF)
+option_set(SW_PREFETCH             "Enable software prefetch in the explicit vec of the stencil"                       OFF)
+
+## Debug
+option_set(USE_PAPI                "Use Performance API"                OFF)
+option_set(USE_NVTX                "Use NVIDIA Tools Extension Library" OFF)
 
 
 # cross-compile or native-compile
@@ -119,18 +125,18 @@ else ()
   set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${LAPACK_FLAGS})
 endif ()
 
-add_definitions_if(ENABLE_CURRENT_PREPROCESSING -DARTED_CURRENT_PREPROCESSING)
-add_definitions_if(ENABLE_REDUCE_FOR_MANYCORE   -DARTED_REDUCE_FOR_MANYCORE)
-add_definitions_if(ENABLE_LARGE_BLOCKING        -DARTED_LBLK)
+add_definitions_if(CURRENT_PREPROCESSING -DARTED_CURRENT_PREPROCESSING)
+add_definitions_if(REDUCE_FOR_MANYCORE   -DARTED_REDUCE_FOR_MANYCORE)
+add_definitions_if(LARGE_BLOCKING        -DARTED_LBLK)
 
 if (OPT_STENCIL)
   add_definitions(-DARTED_STENCIL_OPTIMIZED)
 
-  add_definitions_if(DOMAIN_IS_POW2       -DARTED_DOMAIN_POWER_OF_TWO)
-  add_definitions_if(ENABLE_EXPLICIT_VEC  -DARTED_EXPLICIT_VECTORIZATION)
-  add_definitions_if(ENABLE_SWPREFETCH    -DARTED_ENABLE_SOFTWARE_PREFETCH)
-  add_definitions_if(ENABLE_ARRAY_PADDING -DARTED_STENCIL_PADDING)
-  add_definitions_if(ENABLE_LOOP_BLOCKING -DARTED_STENCIL_ENABLE_LOOP_BLOCKING)
+  add_definitions_if(DOMAIN_IS_POW2  -DARTED_DOMAIN_POWER_OF_TWO)
+  add_definitions_if(EXPLICIT_VEC    -DARTED_EXPLICIT_VECTORIZATION)
+  add_definitions_if(SW_PREFETCH     -DARTED_ENABLE_SOFTWARE_PREFETCH)
+  add_definitions_if(ARRAY_PADDING   -DARTED_STENCIL_PADDING)
+  add_definitions_if(LOOP_BLOCKING   -DARTED_STENCIL_ENABLE_LOOP_BLOCKING)
 else ()
   add_definitions(-DARTED_STENCIL_ORIGIN)
 endif ()
