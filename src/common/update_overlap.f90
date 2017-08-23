@@ -29,11 +29,10 @@ contains
 !==================================================================================================
 
 subroutine update_overlap_R(tpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul)
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
 implicit none
 integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-                     ,nproc_Mxin_mul
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
 real(8) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
 !
 integer :: ix,iy,iz,iorb
@@ -42,39 +41,6 @@ integer :: icomm
 integer :: ireq(12)
 
 real(8),allocatable :: commbuf_x(:,:,:,:,:),commbuf_y(:,:,:,:,:),commbuf_z(:,:,:,:,:)
-
-if(nproc_Mxin_mul==1) then
-
-  if(iperiodic==3) then
-    do iorb=1,Norb
-      do iz=1,Nd
-        do iy=iy_sta,iy_end
-          do ix=ix_sta,ix_end
-            tpsi(ix,iy,iz_end+iz,iorb) = tpsi(ix,iy,iz_sta+iz-1,iorb)
-            tpsi(ix,iy,iz_sta-iz,iorb) = tpsi(ix,iy,iz_end-iz+1,iorb)
-          end do
-        end do
-      end do
-      do iz=iz_sta,iz_end
-        do iy=1,Nd
-          do ix=ix_sta,ix_end
-            tpsi(ix,iy_end+iy,iz,iorb) = tpsi(ix,iy_sta+iy-1,iz,iorb)
-            tpsi(ix,iy_sta-iy,iz,iorb) = tpsi(ix,iy_end-iy+1,iz,iorb)
-          end do
-        end do
-        do iy=iy_sta,iy_end
-          do ix=1,Nd
-            tpsi(ix_end+ix,iy,iz,iorb) = tpsi(ix_sta+ix-1,iy,iz,iorb)
-            tpsi(ix_sta-ix,iy,iz,iorb) = tpsi(ix_end-ix+1,iy,iz,iorb)
-          end do
-        end do
-      end do
-    end do
-  end if
-
-  return
-end if
-
 
 iup=iup_array(1)
 idw=idw_array(1)
@@ -284,11 +250,10 @@ end subroutine update_overlap_R
 !==================================================================================================
 
 subroutine update_overlap_C(tpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul)
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
 implicit none
 integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-                     ,nproc_Mxin_mul
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
 complex(8) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
 !
 integer :: ix,iy,iz,iorb
@@ -297,38 +262,6 @@ integer :: icomm
 integer :: ireq(12)
 
 complex(8),allocatable :: commbuf_x(:,:,:,:,:),commbuf_y(:,:,:,:,:),commbuf_z(:,:,:,:,:)
-
-if(nproc_Mxin_mul==1) then
-
-  if(iperiodic==3) then
-    do iorb=1,Norb
-      do iz=1,Nd
-        do iy=iy_sta,iy_end
-          do ix=ix_sta,ix_end
-            tpsi(ix,iy,iz_end+iz,iorb) = tpsi(ix,iy,iz_sta+iz-1,iorb)
-            tpsi(ix,iy,iz_sta-iz,iorb) = tpsi(ix,iy,iz_end-iz+1,iorb)
-          end do
-        end do
-      end do
-      do iz=iz_sta,iz_end
-        do iy=1,Nd
-          do ix=ix_sta,ix_end
-            tpsi(ix,iy_end+iy,iz,iorb) = tpsi(ix,iy_sta+iy-1,iz,iorb)
-            tpsi(ix,iy_sta-iy,iz,iorb) = tpsi(ix,iy_end-iy+1,iz,iorb)
-          end do
-        end do
-        do iy=iy_sta,iy_end
-          do ix=1,Nd
-            tpsi(ix_end+ix,iy,iz,iorb) = tpsi(ix_sta+ix-1,iy,iz,iorb)
-            tpsi(ix_sta-ix,iy,iz,iorb) = tpsi(ix_end-ix+1,iy,iz,iorb)
-          end do
-        end do
-      end do
-    end do
-  end if
-
-  return
-end if
 
 iup=iup_array(1)
 idw=idw_array(1)

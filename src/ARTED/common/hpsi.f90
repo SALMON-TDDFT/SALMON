@@ -114,10 +114,58 @@ contains
 !-------------------------------------------------------------------------------------
     integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
               ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-              ,ix,iy,iz,Nd,is_table(1),ik_table(1)
-    real(8) :: lap0
-    real(8),allocatable :: V_wrk(:,:,:)
-    complex(8),dimension(:,:,:),allocatable :: tpsi_wrk,htpsi_wrk,ttpsi_wrk
+              ,is_table(1),ik_table(1),i
+    real(8) :: lap0,lapt_wrk(4,3),nabt_wrk(4,3),kAc_wrk(1,3)
+    integer,allocatable :: idx(:),idy(:),idz(:)
+
+    lap0 = -(lapx(0)+lapy(0)+lapz(0))*0.5d0
+
+    lapt_wrk(1:4,1) = lapz(1:4) ! x <--> z
+    lapt_wrk(1:4,2) = lapy(1:4)
+    lapt_wrk(1:4,3) = lapx(1:4) ! x <--> z
+
+    nabt_wrk(1:4,1) = nabz(1:4) ! x <--> z
+    nabt_wrk(1:4,2) = naby(1:4)
+    nabt_wrk(1:4,3) = nabx(1:4) ! x <--> z
+
+    kAc_wrk(1,1) = kAc(ik,3) ! x <--> z
+    kAc_wrk(1,2) = kAc(ik,2)
+    kAc_wrk(1,3) = kAc(ik,1) ! x <--> z
+
+    ix_sta = 0
+    ix_end = NLz-1 ! x <--> z
+    iy_sta = 0
+    iy_end = NLy-1
+    iz_sta = 0
+    iz_end = NLx-1 ! x <--> z
+
+    ipx_sta = 0
+    ipx_end = PNLz-1 ! x <--> z
+    ipy_sta = 0
+    ipy_end = PNLy-1
+    ipz_sta = 0
+    ipz_end = PNLx-1 ! x <--> z
+
+    is_table(1) = 1
+    ik_table(1) = 1
+
+    allocate(idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4))
+    do i=ix_sta-4,ix_end+4
+      idx(i) = mod(NLz+i,NLz) ! x <--> z
+    end do
+    do i=iy_sta-4,iy_end+4
+      idy(i) = mod(NLy+i,NLy)
+    end do
+    do i=iz_sta-4,iz_end+4
+      idz(i) = mod(NLx+i,NLx) ! x <--> z
+    end do
+
+    call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,1 &
+           ,Vloc,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,1 &
+           ,idx,idy,idz,lap0,lapt_wrk,is_table,1,1 &
+           ,ik_table,nabt_wrk,kAc_wrk,ekr_omp(:,:,ik:ik),ttpsi)
+
+    deallocate(idx,idy,idz)
 !-------------------------------------------------------------------------------------
 
 !    NVTX_BEG('hpsi1()',3)
@@ -128,102 +176,17 @@ contains
 !    nabt( 9:12)=kAc(ik,3)*nabz(1:4)
 !    LOG_BEG(LOG_HPSI_STENCIL)
 
-!-------------------------------------------------------------------------------------
-    Nd = 4
-
-    lap0 = -(lapx(0)+lapy(0)+lapz(0))*0.5d0
-
-    nabt( 1: 4) = nabx(1:4)
-    nabt( 5: 8) = naby(1:4)
-    nabt( 9:12) = nabz(1:4)
-
-    ix_sta = 0
-    ix_end = NLx-1
-    iy_sta = 0
-    iy_end = NLy-1
-    iz_sta = 0
-    iz_end = NLz-1
-
-    ipx_sta = ix_sta - Nd
-    ipx_end = ix_end + Nd
-    ipy_sta = iy_sta - Nd
-    ipy_end = iy_end + Nd
-    ipz_sta = iz_sta - Nd
-    ipz_end = iz_end + Nd
-
-    is_table(1) = 1
-    ik_table(1) = 1
-
-    allocate(tpsi_wrk(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) &
-           ,htpsi_wrk(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) &
-           ,ttpsi_wrk(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) &
-           ,V_wrk(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end))
-    tpsi_wrk = 0d0
-    htpsi_wrk = 0d0
-    do iz=iz_sta,iz_end
-      do iy=iy_sta,iy_end
-        do ix=ix_sta,ix_end
-          tpsi_wrk(ix,iy,iz) = tpsi(iz,iy,ix)
-        end do
-      end do
-    end do
-    call copyV(Vloc,V_wrk)
-    if(present(ttpsi)) then
-      call hpsi_C(tpsi_wrk,htpsi_wrk,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,1 &
-             ,V_wrk,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,1 &
-             ,lap0,lapt,is_table,1,Nd,1 &
-             ,ik_table,nabt,kAc(ik:ik,1:3),ekr_omp(:,:,ik:ik),ttpsi_wrk)
-      do iz=iz_sta,iz_end
-        do iy=iy_sta,iy_end
-          do ix=ix_sta,ix_end
-            ttpsi(iz,iy,ix) = ttpsi_wrk(ix,iy,iz)
-          end do
-        end do
-      end do
-    else
-      call hpsi_C(tpsi_wrk,htpsi_wrk,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,1 &
-             ,V_wrk,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,1 &
-             ,lap0,lapt,is_table,1,Nd,1 &
-             ,ik_table,nabt,kAc(ik:ik,1:3),ekr_omp(:,:,ik:ik))
-    end if
-    do iz=iz_sta,iz_end
-      do iy=iy_sta,iy_end
-        do ix=ix_sta,ix_end
-          htpsi(iz,iy,ix) = htpsi_wrk(ix,iy,iz)
-        end do
-      end do
-    end do
-    deallocate(tpsi_wrk,htpsi_wrk,ttpsi_wrk,V_wrk)
-
-!-------------------------------------------------------------------------------------
-
-!      call hpsi1_RT_stencil(k2lap0_2,Vloc,lapt,nabt,tpsi,htpsi)
-!      if (present(ttpsi)) then
-!        call subtraction(Vloc,tpsi,htpsi,ttpsi)
-!      end if
+!    call hpsi1_RT_stencil(k2lap0_2,Vloc,lapt,nabt,tpsi,htpsi)
+!    if (present(ttpsi)) then
+!      call subtraction(Vloc,tpsi,htpsi,ttpsi)
+!    end if
 !    LOG_END(LOG_HPSI_STENCIL)
 !    LOG_BEG(LOG_HPSI_PSEUDO)
-!      call pseudo_pt(ik,tpsi,htpsi)
+!    call pseudo_pt(ik,tpsi,htpsi)
 !    LOG_END(LOG_HPSI_PSEUDO)
 !    NVTX_END()
 
   contains
-
-!-------------------------------------------------------------------------------------
-    subroutine copyV(Vloc,V)
-      implicit none
-      real(8),    intent(in)  :: Vloc(0:NLz-1,0:NLy-1,0:NLx-1)
-      real(8) :: V(0:NLx-1,0:NLy-1,0:NLz-1)
-      integer :: x,y,z
-      do iz=0,NLz-1
-        do iy=0,NLy-1
-          do ix=0,NLx-1
-            V(ix,iy,iz) = Vloc(iz,iy,ix)
-          end do
-        end do
-      end do
-    end subroutine copyV
-!-------------------------------------------------------------------------------------
 
     subroutine subtraction(Vloc,tpsi,htpsi,ttpsi)
       implicit none

@@ -30,10 +30,6 @@ complex(8) :: tzpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                    mg_sta(2)-Nd:mg_end(2)+Nd,    &
                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
 
-!-------------------------------------------------------------------------------------
-real(8),allocatable :: V_wrk(:,:,:,:)
-!-------------------------------------------------------------------------------------
-
 iwk_size=2
 call make_iwksta_iwkend
 
@@ -82,22 +78,23 @@ if(ihpsieff==1)then
 end if
 
 !-------------------------------------------------------------------------------------
-allocate(V_wrk(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),numspin))
-if(ihpsieff==1)then
-  V_wrk = Vlocal2
-else
-  V_wrk = Vlocal
-end if
 do nn=1,N_hamil
-  if(mod(nn,2)==1)then
-    call hpsi_test1(tzpsi_in,htpsi,V_wrk)
+  if(mod(nn,2)==1) then
+    if(ihpsieff==1) then
+      call hpsi_test1(tzpsi_in,htpsi,Vlocal2)
+    else
+      call hpsi_test1(tzpsi_in,htpsi,Vlocal)
+    end if
     call mode_add_polynomial(tzpsi_in,htpsi,tzpsi_out,nn)
   else
-    call hpsi_test1(htpsi,tzpsi_in,V_wrk)
+    if(ihpsieff==1) then
+      call hpsi_test1(htpsi,tzpsi_in,Vlocal2)
+    else
+      call hpsi_test1(htpsi,tzpsi_in,Vlocal)
+    end if
     call mode_add_polynomial(htpsi,tzpsi_in,tzpsi_out,nn)
   end if
 end do
-deallocate(V_wrk)
 !-------------------------------------------------------------------------------------
 
 contains
@@ -118,7 +115,7 @@ subroutine hpsi_test1(tpsi,htpsi,V)
             ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
             ,ispin,i_all,Norb,i,iobmax,Nspin,Nk,ind,j
   real(8) :: lap0,lapt(4,3)
-  integer, allocatable :: is_table(:)
+  integer, allocatable :: is_table(:),idx(:),idy(:),idz(:)
 
   lap0 = -0.5d0*cNmat(0,Nd)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
   do j=1,3
@@ -153,11 +150,22 @@ subroutine hpsi_test1(tpsi,htpsi,V)
     is_table(i) = ispin
   end do
 
+  allocate(idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4))
+  do j=ix_sta-4,ix_end+4
+    idx(j) = j
+  end do
+  do j=iy_sta-4,iy_end+4
+    idy(j) = j
+  end do
+  do j=iz_sta-4,iz_end+4
+    idz(j) = j
+  end do
+
   call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,lap0,lapt,is_table,Nk,Nd,nproc_Mxin_mul)
+                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul)
 
-  deallocate(is_table)
+  deallocate(is_table,idx,idy,idz)
   return
 end subroutine hpsi_test1
 !-------------------------------------------------------------------------------------

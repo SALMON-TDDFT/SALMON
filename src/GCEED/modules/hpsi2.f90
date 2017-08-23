@@ -41,12 +41,13 @@ integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
           ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
           ,ispin,Norb,Nspin,is_table(1),ind,j
 real(8) :: lap0,lapt(4,3)
-real(8),allocatable :: tpsi(:,:,:,:),htpsi(:,:,:,:)
+integer,allocatable :: idx(:),idy(:),idz(:)
+real(8),allocatable :: htpsi(:,:,:,:)
 
-lap0 = -0.5d0*cNmat(0,Nd)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
+lap0 = -0.5d0*cNmat(0,4)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
 do j=1,3
   do ind=1,4
-    lapt(ind,j) = cNmat(ind,Nd)/Hgs(j)**2
+    lapt(ind,j) = cNmat(ind,4)/Hgs(j)**2
   end do
 end do
 
@@ -56,12 +57,12 @@ Nspin = numspin
 call set_ispin(iob,ispin)
 is_table(1) = ispin
 
-ipx_sta = mg_sta(1)-Nd
-ipx_end = mg_end(1)+Nd
-ipy_sta = mg_sta(2)-Nd
-ipy_end = mg_end(2)+Nd
-ipz_sta = mg_sta(3)-Nd
-ipz_end = mg_end(3)+Nd
+ipx_sta = iwksta(1)
+ipx_end = iwkend(1)
+ipy_sta = iwksta(2)
+ipy_end = iwkend(2)
+ipz_sta = iwksta(3)
+ipz_end = iwkend(3)
 
 ix_sta = mg_sta(1)
 ix_end = mg_end(1)
@@ -70,22 +71,28 @@ iy_end = mg_end(2)
 iz_sta = mg_sta(3)
 iz_end = mg_end(3)
 
-allocate( tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
-        ,htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb))
-tpsi = 0d0
+allocate(idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4))
+do j=ix_sta-4,ix_end+4
+  idx(j) = j
+end do
+do j=iy_sta-4,iy_end+4
+  idy(j) = j
+end do
+do j=iz_sta-4,iz_end+4
+  idz(j) = j
+end do
+
+allocate(htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb))
 htpsi = 0d0
 
-tpsi(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3),1) &
-  = tpsi0(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
-
-call hpsi_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+call hpsi_R(tpsi0,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,Vlocal,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,lap0,lapt,is_table,Nd,nproc_Mxin_mul)
+                 ,idx,idy,idz,lap0,lapt,is_table,nproc_Mxin_mul)
 
 htpsi0(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3)) &
   = htpsi(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3),1)
 
-deallocate(tpsi,htpsi)
+deallocate(idx,idy,idz,htpsi)
 end subroutine hpsi_test2_R
 !-------------------------------------------------------------------------------------
 
@@ -101,12 +108,13 @@ integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
           ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
           ,ispin,Norb,Nspin,Nk,is_table(1),ind,j
 real(8) :: lap0,lapt(4,3)
-complex(8),allocatable :: tpsi(:,:,:,:),htpsi(:,:,:,:)
+integer,allocatable :: idx(:),idy(:),idz(:)
+complex(8),allocatable :: htpsi(:,:,:,:)
 
-lap0 = -0.5d0*cNmat(0,Nd)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
+lap0 = -0.5d0*cNmat(0,4)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
 do j=1,3
   do ind=1,4
-    lapt(ind,j) = cNmat(ind,Nd)/Hgs(j)**2
+    lapt(ind,j) = cNmat(ind,4)/Hgs(j)**2
   end do
 end do
 
@@ -117,12 +125,12 @@ Nk = 1
 call set_ispin(iob,ispin)
 is_table(1) = ispin
 
-ipx_sta = mg_sta(1)-Nd
-ipx_end = mg_end(1)+Nd
-ipy_sta = mg_sta(2)-Nd
-ipy_end = mg_end(2)+Nd
-ipz_sta = mg_sta(3)-Nd
-ipz_end = mg_end(3)+Nd
+ipx_sta = iwksta(1)
+ipx_end = iwkend(1)
+ipy_sta = iwksta(2)
+ipy_end = iwkend(2)
+ipz_sta = iwksta(3)
+ipz_end = iwkend(3)
 
 ix_sta = mg_sta(1)
 ix_end = mg_end(1)
@@ -131,22 +139,28 @@ iy_end = mg_end(2)
 iz_sta = mg_sta(3)
 iz_end = mg_end(3)
 
-allocate( tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
-        ,htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb))
-tpsi = 0d0
+allocate(idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4))
+do j=ix_sta-4,ix_end+4
+  idx(j) = j
+end do
+do j=iy_sta-4,iy_end+4
+  idy(j) = j
+end do
+do j=iz_sta-4,iz_end+4
+  idz(j) = j
+end do
+
+allocate(htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb))
 htpsi = 0d0
 
-tpsi(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3),1) &
-  = tpsi0(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
-
-call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+call hpsi_C(tpsi0,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,Vlocal,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,lap0,lapt,is_table,Nk,Nd,nproc_Mxin_mul)
+                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul)
 
 htpsi0(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3)) &
   = htpsi(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3),1)
 
-deallocate(tpsi,htpsi)
+deallocate(idx,idy,idz,htpsi)
 end subroutine hpsi_test2_C
 !-------------------------------------------------------------------------------------
 

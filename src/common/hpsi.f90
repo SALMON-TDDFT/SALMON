@@ -26,32 +26,34 @@ contains
 
 SUBROUTINE hpsi_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,lap0,lapt,is_table,Nd,nproc_Mxin_mul)
+                 ,idx,idy,idz,lap0,lapt,is_table,nproc_Mxin_mul)
   use scf_data, only: iflag_ps ! GCEED
   use update_overlap_sub, only: update_overlap_R
   implicit none
-  integer ,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+  integer,intent(in)  :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                         ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                        ,is_table(Norb),Nd,nproc_Mxin_mul
-  real(8) ,intent(in) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
+                        ,idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4) &
+                        ,is_table(Norb),nproc_Mxin_mul
+  real(8),intent(in)  :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
                         ,V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin) &
                         ,lap0,lapt(4,3)
   real(8),intent(out) :: htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
   !
   integer :: is,iorb
 
-  call update_overlap_R(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
-                       ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                       ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul)
+  if(nproc_Mxin_mul.ne.1) then
+    call update_overlap_R(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
+                         ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,4 &
+                         ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+  end if
 
 ! stencil
 
   do iorb=1,Norb
     is = is_table(iorb)
-    call stencil_R(tpsi(:,:,:,iorb),htpsi(:,:,:,iorb) &
-                ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
-                ,lap0,lapt &
-                ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+    call stencil_R(tpsi(:,:,:,iorb),htpsi(:,:,:,iorb),ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                  ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+                  ,idx,idy,idz,lap0,lapt)
 
   end do
 
@@ -68,17 +70,18 @@ end subroutine hpsi_R
 
 SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,lap0,lapt,is_table,Nk,Nd,nproc_Mxin_mul &
+                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul &
                  ,ik_table,nabt,kAc,exp_ikr,ttpsi)
   use scf_data, only: iflag_ps ! GCEED
   use Global_Variables, only: Nps,NI ! ARTED
   use update_overlap_sub, only: update_overlap_C
   implicit none
-  integer    ,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
+  integer   ,intent(in)  :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                            ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                           ,is_table(Norb),Nk,Nd,nproc_Mxin_mul
-  complex(8) ,intent(in) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
-  real(8)    ,intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin) &
+                           ,idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4) &
+                           ,is_table(Norb),Nk,nproc_Mxin_mul
+  complex(8),intent(in)  :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
+  real(8)   ,intent(in)  :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin) &
                            ,lap0,lapt(4,3)
   complex(8),intent(out) :: htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
   !
@@ -93,9 +96,11 @@ SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nor
 
   if_kAc = present(kAc)
 
-  call update_overlap_C(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
-                     ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,nproc_Mxin_mul)
+  if(nproc_Mxin_mul.ne.1) then
+    call update_overlap_C(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
+                       ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,4 &
+                       ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+  end if
 
 ! stencil
 
@@ -113,10 +118,9 @@ SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nor
       k_nabt = 0d0
     end if
 
-    call stencil_C(tpsi(:,:,:,iorb),htpsi(:,:,:,iorb) &
-                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
-                  ,lap0+k2,lapt,k_nabt &
-                  ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+    call stencil_C(tpsi(:,:,:,iorb),htpsi(:,:,:,iorb),ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                  ,V_local(:,:,:,is),ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+                  ,idx,idy,idz,lap0+k2,lapt,k_nabt)
 
   end do
 
@@ -156,15 +160,20 @@ end subroutine hpsi_C
 
 !==================================================================================================
 
-subroutine stencil_R(tpsi,htpsi &
-                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,lap0,lapt &
-                  ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+# define DX(dt) idx(ix+(dt)),iy,iz
+# define DY(dt) ix,idy(iy+(dt)),iz
+# define DZ(dt) ix,iy,idz(iz+(dt))
+
+subroutine stencil_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                    ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+                    ,idx,idy,idz,lap0,lapt)
   implicit none
-  integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
-                       ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
-  real(8),dimension(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) :: tpsi,htpsi
-  real(8),intent(in) :: lap0,lapt(4,3)
-  real(8),intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end)
+  integer,intent(in)  :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                        ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+                        ,idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4)
+  real(8),intent(in)  :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) &
+                        ,V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end),lap0,lapt(4,3)
+  real(8),intent(out) :: htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end)
   !
   integer :: iz,iy,ix
   real(8) :: v
@@ -175,20 +184,20 @@ subroutine stencil_R(tpsi,htpsi &
   do iy=iy_sta,iy_end
   do ix=ix_sta,ix_end
 
-    v =  lapt(1,1)*(tpsi(ix+1,iy,iz) + tpsi(ix-1,iy,iz))  &
-        +lapt(2,1)*(tpsi(ix+2,iy,iz) + tpsi(ix-2,iy,iz))  &
-        +lapt(3,1)*(tpsi(ix+3,iy,iz) + tpsi(ix-3,iy,iz))  &
-        +lapt(4,1)*(tpsi(ix+4,iy,iz) + tpsi(ix-4,iy,iz))
+    v =  lapt(1,1)*(tpsi(DX(1)) + tpsi(DX(-1))) &
+        +lapt(2,1)*(tpsi(DX(2)) + tpsi(DX(-2))) &
+        +lapt(3,1)*(tpsi(DX(3)) + tpsi(DX(-3))) &
+        +lapt(4,1)*(tpsi(DX(4)) + tpsi(DX(-4)))
 
-    v =  lapt(1,2)*(tpsi(ix,iy+1,iz) + tpsi(ix,iy-1,iz))  &
-        +lapt(2,2)*(tpsi(ix,iy+2,iz) + tpsi(ix,iy-2,iz))  &
-        +lapt(3,2)*(tpsi(ix,iy+3,iz) + tpsi(ix,iy-3,iz))  &
-        +lapt(4,2)*(tpsi(ix,iy+4,iz) + tpsi(ix,iy-4,iz)) + v
+    v =  lapt(1,2)*(tpsi(DY(1)) + tpsi(DY(-1))) &
+        +lapt(2,2)*(tpsi(DY(2)) + tpsi(DY(-2))) &
+        +lapt(3,2)*(tpsi(DY(3)) + tpsi(DY(-3))) &
+        +lapt(4,2)*(tpsi(DY(4)) + tpsi(DY(-4))) + v
 
-    v =  lapt(1,3)*(tpsi(ix,iy,iz+1) + tpsi(ix,iy,iz-1))  &
-        +lapt(2,3)*(tpsi(ix,iy,iz+2) + tpsi(ix,iy,iz-2))  &
-        +lapt(3,3)*(tpsi(ix,iy,iz+3) + tpsi(ix,iy,iz-3))  &
-        +lapt(4,3)*(tpsi(ix,iy,iz+4) + tpsi(ix,iy,iz-4)) + v
+    v =  lapt(1,3)*(tpsi(DZ(1)) + tpsi(DZ(-1))) &
+        +lapt(2,3)*(tpsi(DZ(2)) + tpsi(DZ(-2))) &
+        +lapt(3,3)*(tpsi(DZ(3)) + tpsi(DZ(-3))) &
+        +lapt(4,3)*(tpsi(DZ(4)) + tpsi(DZ(-4))) + v
 
     htpsi(ix,iy,iz) = ( V_local(ix,iy,iz) + lap0 )*tpsi(ix,iy,iz) - 0.5d0 * v
   end do
@@ -200,17 +209,16 @@ subroutine stencil_R(tpsi,htpsi &
   return
 end subroutine stencil_R
 
-!==================================================================================================
-
-subroutine stencil_C(tpsi,htpsi &
-                  ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,lap0,lapt,nabt &
-                  ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+subroutine stencil_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                    ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+                    ,idx,idy,idz,lap0,lapt,nabt)
   implicit none
-  integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
-                       ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
-  complex(8),dimension(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end) :: tpsi,htpsi
-  real(8),intent(in) :: lap0,lapt(4,3),nabt(4,3)
-  real(8),intent(in) :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end)
+  integer   ,intent(in)  :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
+                           ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
+                           ,idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4)
+  complex(8),intent(in)  :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end)
+  real(8)   ,intent(in)  :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end),lap0,lapt(4,3),nabt(4,3)
+  complex(8),intent(out) :: htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end)
   !
   integer :: iz,iy,ix
   complex(8) :: v,w
@@ -221,35 +229,35 @@ subroutine stencil_C(tpsi,htpsi &
   do iy=iy_sta,iy_end
   do ix=ix_sta,ix_end
 
-    v =  lapt(1,1)*(tpsi(ix+1,iy,iz) + tpsi(ix-1,iy,iz))  &
-        +lapt(2,1)*(tpsi(ix+2,iy,iz) + tpsi(ix-2,iy,iz))  &
-        +lapt(3,1)*(tpsi(ix+3,iy,iz) + tpsi(ix-3,iy,iz))  &
-        +lapt(4,1)*(tpsi(ix+4,iy,iz) + tpsi(ix-4,iy,iz))
+    v =  lapt(1,1)*(tpsi(DX(1)) + tpsi(DX(-1))) &
+        +lapt(2,1)*(tpsi(DX(2)) + tpsi(DX(-2))) &
+        +lapt(3,1)*(tpsi(DX(3)) + tpsi(DX(-3))) &
+        +lapt(4,1)*(tpsi(DX(4)) + tpsi(DX(-4)))
 
-    v =  lapt(1,2)*(tpsi(ix,iy+1,iz) + tpsi(ix,iy-1,iz))  &
-        +lapt(2,2)*(tpsi(ix,iy+2,iz) + tpsi(ix,iy-2,iz))  &
-        +lapt(3,2)*(tpsi(ix,iy+3,iz) + tpsi(ix,iy-3,iz))  &
-        +lapt(4,2)*(tpsi(ix,iy+4,iz) + tpsi(ix,iy-4,iz)) + v
+    v =  lapt(1,2)*(tpsi(DY(1)) + tpsi(DY(-1))) &
+        +lapt(2,2)*(tpsi(DY(2)) + tpsi(DY(-2))) &
+        +lapt(3,2)*(tpsi(DY(3)) + tpsi(DY(-3))) &
+        +lapt(4,2)*(tpsi(DY(4)) + tpsi(DY(-4))) + v
 
-    v =  lapt(1,3)*(tpsi(ix,iy,iz+1) + tpsi(ix,iy,iz-1))  &
-        +lapt(2,3)*(tpsi(ix,iy,iz+2) + tpsi(ix,iy,iz-2))  &
-        +lapt(3,3)*(tpsi(ix,iy,iz+3) + tpsi(ix,iy,iz-3))  &
-        +lapt(4,3)*(tpsi(ix,iy,iz+4) + tpsi(ix,iy,iz-4)) + v
+    v =  lapt(1,3)*(tpsi(DZ(1)) + tpsi(DZ(-1))) &
+        +lapt(2,3)*(tpsi(DZ(2)) + tpsi(DZ(-2))) &
+        +lapt(3,3)*(tpsi(DZ(3)) + tpsi(DZ(-3))) &
+        +lapt(4,3)*(tpsi(DZ(4)) + tpsi(DZ(-4))) + v
 
-    w =  nabt(1,1)*(tpsi(ix+1,iy,iz) - tpsi(ix-1,iy,iz))  &
-        +nabt(2,1)*(tpsi(ix+2,iy,iz) - tpsi(ix-2,iy,iz))  &
-        +nabt(3,1)*(tpsi(ix+3,iy,iz) - tpsi(ix-3,iy,iz))  &
-        +nabt(4,1)*(tpsi(ix+4,iy,iz) - tpsi(ix-4,iy,iz))
+    w =  nabt(1,1)*(tpsi(DX(1)) - tpsi(DX(-1))) &
+        +nabt(2,1)*(tpsi(DX(2)) - tpsi(DX(-2))) &
+        +nabt(3,1)*(tpsi(DX(3)) - tpsi(DX(-3))) &
+        +nabt(4,1)*(tpsi(DX(4)) - tpsi(DX(-4)))
 
-    w =  nabt(1,2)*(tpsi(ix,iy+1,iz) - tpsi(ix,iy-1,iz))  &
-        +nabt(2,2)*(tpsi(ix,iy+2,iz) - tpsi(ix,iy-2,iz))  &
-        +nabt(3,2)*(tpsi(ix,iy+3,iz) - tpsi(ix,iy-3,iz))  &
-        +nabt(4,2)*(tpsi(ix,iy+4,iz) - tpsi(ix,iy-4,iz)) + w
+    w =  nabt(1,2)*(tpsi(DY(1)) - tpsi(DY(-1))) &
+        +nabt(2,2)*(tpsi(DY(2)) - tpsi(DY(-2))) &
+        +nabt(3,2)*(tpsi(DY(3)) - tpsi(DY(-3))) &
+        +nabt(4,2)*(tpsi(DY(4)) - tpsi(DY(-4))) + w
 
-    w =  nabt(1,3)*(tpsi(ix,iy,iz+1) - tpsi(ix,iy,iz-1))  &
-        +nabt(2,3)*(tpsi(ix,iy,iz+2) - tpsi(ix,iy,iz-2))  &
-        +nabt(3,3)*(tpsi(ix,iy,iz+3) - tpsi(ix,iy,iz-3))  &
-        +nabt(4,3)*(tpsi(ix,iy,iz+4) - tpsi(ix,iy,iz-4)) + w
+    w =  nabt(1,3)*(tpsi(DZ(1)) - tpsi(DZ(-1))) &
+        +nabt(2,3)*(tpsi(DZ(2)) - tpsi(DZ(-2))) &
+        +nabt(3,3)*(tpsi(DZ(3)) - tpsi(DZ(-3))) &
+        +nabt(4,3)*(tpsi(DZ(4)) - tpsi(DZ(-4))) + w
 
     htpsi(ix,iy,iz) = ( V_local(ix,iy,iz) + lap0 )*tpsi(ix,iy,iz) - 0.5d0 * v - zI * w
   end do
@@ -280,7 +288,7 @@ subroutine pseudo_ARTED(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_e
       iz = mod(i-1,NLz)
       iy = mod((i-1-iz)/NLz,NLy)
       ix = (i-1-iz-iy*NLy)/(NLy*NLz)
-      uVpsi = uVpsi + uV(j,ilma) * exp_ikr(j,ia) * tpsi(ix,iy,iz) ! tpsi(0:NLx-1,0:NLy-1,0:NLz-1)
+      uVpsi = uVpsi + uV(j,ilma) * exp_ikr(j,ia) * tpsi(iz,iy,ix) ! tpsi(0:NLz-1,0:NLy-1,0:NLx-1) ! x <--> z
     end do
     uVpsi=uVpsi*Hxyz*iuV(ilma)
     do j=1,Mps(ia)
@@ -289,7 +297,7 @@ subroutine pseudo_ARTED(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_e
       iy = mod((i-1-iz)/NLz,NLy)
       ix = (i-1-iz-iy*NLy)/(NLy*NLz)
       wrk = conjg(exp_ikr(j,ia)) * uVpsi * uV(j,ilma)
-      htpsi(ix,iy,iz) = htpsi(ix,iy,iz) + wrk
+      htpsi(iz,iy,ix) = htpsi(iz,iy,ix) + wrk ! x <--> z
     end do
   end do
 end subroutine pseudo_ARTED
