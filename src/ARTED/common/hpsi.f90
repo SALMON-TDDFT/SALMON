@@ -114,7 +114,7 @@ contains
 !-------------------------------------------------------------------------------------
     integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
               ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-              ,is_table(1),ik_table(1),i,icomm_overlap(6)
+              ,is_table(1),ik_table(1),i,irank_overlap(6)
     real(8) :: lap0,lapt_wrk(4,3),nabt_wrk(4,3),kAc_wrk(1,3)
     integer,allocatable :: idx(:),idy(:),idz(:)
 
@@ -162,7 +162,7 @@ contains
 
     call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,1 &
            ,Vloc,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,1 &
-           ,idx,idy,idz,lap0,lapt_wrk,is_table,1,1,icomm_overlap &
+           ,idx,idy,idz,lap0,lapt_wrk,is_table,1,1,irank_overlap &
            ,ik_table,nabt_wrk,kAc_wrk,ekr_omp(:,:,ik:ik),ttpsi)
 
     deallocate(idx,idy,idz)

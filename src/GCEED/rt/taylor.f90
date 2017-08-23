@@ -114,16 +114,16 @@ subroutine hpsi_test1(tpsi,htpsi,V)
   !
   integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
             ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-            ,ispin,i_all,Norb,i,iobmax,Nspin,Nk,ind,j,icomm_overlap(6)
+            ,ispin,i_all,Norb,i,iobmax,Nspin,Nk,ind,j,irank_overlap(6)
   real(8) :: lap0,lapt(4,3)
   integer, allocatable :: is_table(:),idx(:),idy(:),idz(:)
 
-  icomm_overlap(1) = iup_array(1)
-  icomm_overlap(2) = idw_array(1)
-  icomm_overlap(3) = jup_array(1)
-  icomm_overlap(4) = jdw_array(1)
-  icomm_overlap(5) = kup_array(1)
-  icomm_overlap(6) = kdw_array(1)
+  irank_overlap(1) = iup_array(1)
+  irank_overlap(2) = idw_array(1)
+  irank_overlap(3) = jup_array(1)
+  irank_overlap(4) = jdw_array(1)
+  irank_overlap(5) = kup_array(1)
+  irank_overlap(6) = kdw_array(1)
 
   lap0 = -0.5d0*cNmat(0,Nd)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
   do j=1,3
@@ -171,7 +171,7 @@ subroutine hpsi_test1(tpsi,htpsi,V)
 
   call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul,icomm_overlap)
+                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul,irank_overlap)
 
   deallocate(is_table,idx,idy,idz)
   return
