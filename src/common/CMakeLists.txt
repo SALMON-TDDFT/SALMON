@@ -3,8 +3,6 @@ set(SOURCES
    update_overlap.f90
    global_variables.f90
    scf_data.f90
-   new_world.f90
-   init_sendrecv.f90
    )
 
 add_library(${SALMON_COMMON_LIB} STATIC ${SOURCES})

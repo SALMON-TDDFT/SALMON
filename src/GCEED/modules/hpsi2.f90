@@ -31,6 +31,7 @@ CONTAINS
 
 !-------------------------------------------------------------------------------------
 subroutine hpsi_test2_R(tpsi0,htpsi0,iob,nn,isub)
+use init_sendrecv_sub
 use hpsi_sub
 implicit none
 real(8) :: tpsi0(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
@@ -39,10 +40,17 @@ integer :: iob,nn,isub
 
 integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
           ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-          ,ispin,Norb,Nspin,is_table(1),ind,j
+          ,ispin,Norb,Nspin,is_table(1),ind,j,icomm_overlap(6)
 real(8) :: lap0,lapt(4,3)
 integer,allocatable :: idx(:),idy(:),idz(:)
 real(8),allocatable :: htpsi(:,:,:,:)
+
+icomm_overlap(1) = iup_array(1)
+icomm_overlap(2) = idw_array(1)
+icomm_overlap(3) = jup_array(1)
+icomm_overlap(4) = jdw_array(1)
+icomm_overlap(5) = kup_array(1)
+icomm_overlap(6) = kdw_array(1)
 
 lap0 = -0.5d0*cNmat(0,4)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
 do j=1,3
@@ -87,7 +95,7 @@ htpsi = 0d0
 
 call hpsi_R(tpsi0,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,Vlocal,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,idx,idy,idz,lap0,lapt,is_table,nproc_Mxin_mul)
+                 ,idx,idy,idz,lap0,lapt,is_table,nproc_Mxin_mul,icomm_overlap)
 
 htpsi0(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3)) &
   = htpsi(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3),1)
@@ -98,6 +106,7 @@ end subroutine hpsi_test2_R
 
 !-------------------------------------------------------------------------------------
 subroutine hpsi_test2_C(tpsi0,htpsi0,iob,nn,isub)
+use init_sendrecv_sub
 use hpsi_sub
 implicit none
 complex(8) :: tpsi0(iwksta(1):iwkend(1),iwksta(2):iwkend(2),iwksta(3):iwkend(3))
@@ -106,10 +115,17 @@ integer :: iob,nn,isub
 
 integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
           ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-          ,ispin,Norb,Nspin,Nk,is_table(1),ind,j
+          ,ispin,Norb,Nspin,Nk,is_table(1),ind,j,icomm_overlap(6)
 real(8) :: lap0,lapt(4,3)
 integer,allocatable :: idx(:),idy(:),idz(:)
 complex(8),allocatable :: htpsi(:,:,:,:)
+
+icomm_overlap(1) = iup_array(1)
+icomm_overlap(2) = idw_array(1)
+icomm_overlap(3) = jup_array(1)
+icomm_overlap(4) = jdw_array(1)
+icomm_overlap(5) = kup_array(1)
+icomm_overlap(6) = kdw_array(1)
 
 lap0 = -0.5d0*cNmat(0,4)*(1.d0/Hgs(1)**2+1.d0/Hgs(2)**2+1.d0/Hgs(3)**2)
 do j=1,3
@@ -155,7 +171,7 @@ htpsi = 0d0
 
 call hpsi_C(tpsi0,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,Vlocal,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul)
+                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul,icomm_overlap)
 
 htpsi0(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3)) &
   = htpsi(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3),1)

@@ -15,24 +15,17 @@
 !
 module update_overlap_sub
 
-! GCEED
-!-------------------------------------------------------------------------------------
-use init_sendrecv_sub, only: iup_array,idw_array,jup_array,jdw_array,kup_array,kdw_array
-!-------------------------------------------------------------------------------------
-
-use salmon_global, only: iperiodic
-use salmon_parallel, only: nproc_group_orbital
-use salmon_communication, only: comm_proc_null, comm_isend, comm_irecv, comm_wait_all
-
 contains
 
 !==================================================================================================
 
 subroutine update_overlap_R(tpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,icomm_overlap)
+use salmon_parallel, only: nproc_group_orbital
+use salmon_communication, only: comm_proc_null, comm_isend, comm_irecv, comm_wait_all
 implicit none
 integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,icomm_overlap(6)
 real(8) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
 !
 integer :: ix,iy,iz,iorb
@@ -42,12 +35,12 @@ integer :: ireq(12)
 
 real(8),allocatable :: commbuf_x(:,:,:,:,:),commbuf_y(:,:,:,:,:),commbuf_z(:,:,:,:,:)
 
-iup=iup_array(1)
-idw=idw_array(1)
-jup=jup_array(1)
-jdw=jdw_array(1)
-kup=kup_array(1)
-kdw=kdw_array(1)
+iup = icomm_overlap(1)
+idw = icomm_overlap(2)
+jup = icomm_overlap(3)
+jdw = icomm_overlap(4)
+kup = icomm_overlap(5)
+kdw = icomm_overlap(6)
 
 icomm=nproc_group_orbital
 
@@ -250,10 +243,12 @@ end subroutine update_overlap_R
 !==================================================================================================
 
 subroutine update_overlap_C(tpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,icomm_overlap)
+use salmon_parallel, only: nproc_group_orbital
+use salmon_communication, only: comm_proc_null, comm_isend, comm_irecv, comm_wait_all                     
 implicit none
 integer,intent(in) :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,Nd &
-                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end
+                     ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,icomm_overlap(6)
 complex(8) :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
 !
 integer :: ix,iy,iz,iorb
@@ -263,12 +258,12 @@ integer :: ireq(12)
 
 complex(8),allocatable :: commbuf_x(:,:,:,:,:),commbuf_y(:,:,:,:,:),commbuf_z(:,:,:,:,:)
 
-iup=iup_array(1)
-idw=idw_array(1)
-jup=jup_array(1)
-jdw=jdw_array(1)
-kup=kup_array(1)
-kdw=kdw_array(1)
+iup = icomm_overlap(1)
+idw = icomm_overlap(2)
+jup = icomm_overlap(3)
+jdw = icomm_overlap(4)
+kup = icomm_overlap(5)
+kdw = icomm_overlap(6)
 
 icomm=nproc_group_orbital
 

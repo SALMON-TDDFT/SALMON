@@ -26,14 +26,14 @@ contains
 
 SUBROUTINE hpsi_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,idx,idy,idz,lap0,lapt,is_table,nproc_Mxin_mul)
+                 ,idx,idy,idz,lap0,lapt,is_table,nproc_Mxin_mul,icomm_overlap)
   use scf_data, only: iflag_ps ! GCEED
   use update_overlap_sub, only: update_overlap_R
   implicit none
   integer,intent(in)  :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                         ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
                         ,idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4) &
-                        ,is_table(Norb),nproc_Mxin_mul
+                        ,is_table(Norb),nproc_Mxin_mul,icomm_overlap(6)
   real(8),intent(in)  :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
                         ,V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin) &
                         ,lap0,lapt(4,3)
@@ -44,7 +44,7 @@ SUBROUTINE hpsi_R(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nor
   if(nproc_Mxin_mul.ne.1) then
     call update_overlap_R(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
                          ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,4 &
-                         ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+                         ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,icomm_overlap)
   end if
 
 ! stencil
@@ -70,7 +70,7 @@ end subroutine hpsi_R
 
 SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V_local,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul &
+                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul,icomm_overlap &
                  ,ik_table,nabt,kAc,exp_ikr,ttpsi)
   use scf_data, only: iflag_ps ! GCEED
   use Global_Variables, only: Nps,NI ! ARTED
@@ -79,7 +79,7 @@ SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nor
   integer   ,intent(in)  :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                            ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
                            ,idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4) &
-                           ,is_table(Norb),Nk,nproc_Mxin_mul
+                           ,is_table(Norb),Nk,nproc_Mxin_mul,icomm_overlap(6)
   complex(8),intent(in)  :: tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb)
   real(8)   ,intent(in)  :: V_local(ix_sta:ix_end,iy_sta:iy_end,iz_sta:iz_end,1:Nspin) &
                            ,lap0,lapt(4,3)
@@ -99,7 +99,7 @@ SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nor
   if(nproc_Mxin_mul.ne.1) then
     call update_overlap_C(tpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb) &
                        ,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb,4 &
-                       ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end)
+                       ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,icomm_overlap)
   end if
 
 ! stencil

@@ -912,26 +912,5 @@ end if
 
 end subroutine mpibcast_mesh_s_kxc
 
-!======================================================================
-
-subroutine copyVlocal(matbox12,ibox,is)
-use scf_data
-implicit none
-integer :: ibox,is
-real(8) :: matbox12(ista_Mxin_s(1,ibox):iend_Mxin_s(1,ibox),     &
-                    ista_Mxin_s(2,ibox):iend_Mxin_s(2,ibox),     &
-                    ista_Mxin_s(3,ibox):iend_Mxin_s(3,ibox))
-
-  Vlocal( ista_Mxin_s(1,ibox):iend_Mxin_s(1,ibox),     &
-          ista_Mxin_s(2,ibox):iend_Mxin_s(2,ibox),     &
-          ista_Mxin_s(3,ibox):iend_Mxin_s(3,ibox),is) = &
-           matbox12(ista_Mxin_s(1,ibox):iend_Mxin_s(1,ibox),     &
-                    ista_Mxin_s(2,ibox):iend_Mxin_s(2,ibox),     &
-                    ista_Mxin_s(3,ibox):iend_Mxin_s(3,ibox))
-
-return
-
-end subroutine copyVlocal
-
 END MODULE new_world_sub
 
