@@ -1,10 +1,10 @@
 # recommended version : 3.0.2
 cmake_minimum_required(VERSION 2.8)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/Platforms)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/Modules)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/misc.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/setup.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/get_git_info.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmakefiles/Platforms)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmakefiles/Modules)
+include(${CMAKE_SOURCE_DIR}/cmakefiles/misc.cmake)
+include(${CMAKE_SOURCE_DIR}/cmakefiles/setup.cmake)
+include(${CMAKE_SOURCE_DIR}/cmakefiles/get_git_info.cmake)
 
 ### Project settings
 project(SALMON Fortran C)
@@ -137,7 +137,7 @@ endif ()
 
 add_definitions("${ADDITIONAL_MACRO}")
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmakefiles/workaround.cmake)
+include(${CMAKE_SOURCE_DIR}/cmakefiles/workaround.cmake)
 
 
 # Generate configure header
@@ -170,7 +170,7 @@ set(SALMON_MAXWELL_LIB   "maxwell_rtl")
 set(SALMON_COMMON_LIB    "common_rtl")
 set(SALMON_MISC_LIB      "misc_rtl")
 
-set(SALMON_SRC_DIR "./src")
+set(SALMON_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 add_subdirectory(${SALMON_SRC_DIR})
 
 message(STATUS "Enabled macro")
