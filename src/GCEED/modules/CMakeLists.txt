@@ -9,7 +9,7 @@ set(SOURCES
     deallocate_mat.f90
     gradient2.f90
     gradient.f90
-    hpsi2.f90
+    hpsi2${HPSI_TEST_SUFFIX}.f90
     init_sendrecv.f90
     inner_product.f90
     laplacian2.f90
