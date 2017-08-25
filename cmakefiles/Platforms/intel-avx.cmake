@@ -19,10 +19,9 @@ set(CMAKE_C_COMPILER            "mpiicc")
 set(CMAKE_C_FLAGS_DEBUG         "-O2 -g")
 set(CMAKE_C_FLAGS_RELEASE       "-ansi-alias -fno-alias -O3")
 
-set(USE_MPI                    ON)
-set(STENCIL_WITH_C             ON)
-set(ENABLE_EXPLICIT_VEC        ON)
-set(ENABLE_REDUCE_FOR_MANYCORE ON)
+set(USE_MPI             ON)
+set(EXPLICIT_VEC        ON)
+set(REDUCE_FOR_MANYCORE ON)
 
 
 ########

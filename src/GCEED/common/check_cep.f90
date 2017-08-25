@@ -21,14 +21,14 @@ subroutine check_cep
 
   round_phi=int((phi_cep1-0.25d0)*2.d0)
   udp_phi=(phi_cep1-0.25d0)*2.d0-round_phi  
-  if(ae_shape1=="esin2cos".and.abs(udp_phi)>=1.d-12)then
-    stop "phi_cep1 must be equal to 0.25+0.5*i when esin2cos is specified for ae_shape1."
+  if(ae_shape1=="Ecos2".and.abs(udp_phi)>=1.d-12)then
+    stop "phi_cep1 must be equal to 0.25+0.5*i when Ecos2 is specified for ae_shape1."
   end if
   
   round_phi=int((phi_cep2-0.25d0)*2.d0)
   udp_phi=(phi_cep2-0.25d0)*2.d0-round_phi
-  if(ae_shape2=="esin2cos".and.abs(udp_phi)>=1.d-12)then
-    stop "phi_cep2 must be equal to 0.25+0.5*i when esin2cos is specified for ae_shape2."
+  if(ae_shape2=="Ecos2".and.abs(udp_phi)>=1.d-12)then
+    stop "phi_cep2 must be equal to 0.25+0.5*i when Ecos2 is specified for ae_shape2."
   end if
 
   return
