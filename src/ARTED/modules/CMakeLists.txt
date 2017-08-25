@@ -2,6 +2,7 @@
 ### Compile fortran module sources
 ###
 set(SOURCES
+    global_variables.f90
     timer.f90
     env_variables.f90
     opt_variables.f90

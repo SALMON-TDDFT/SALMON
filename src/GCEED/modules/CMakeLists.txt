@@ -17,6 +17,7 @@ set(SOURCES
     readbox_rt.f90
     read_pslfile.f90
     rmmdiis_eigen_lapack.f90
+    scf_data.f90
     sendrecv.f90
     sendrecv_groupob.f90
     sendrecv_groupob_ngp.f90

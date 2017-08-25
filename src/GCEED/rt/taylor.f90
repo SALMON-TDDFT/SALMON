@@ -30,6 +30,7 @@ complex(8) :: tzpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                    mg_sta(2)-Nd:mg_end(2)+Nd,    &
                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
 
+
 iwk_size=2
 call make_iwksta_iwkend
 
@@ -77,7 +78,23 @@ if(ihpsieff==1)then
   end if
 end if
 
-!-------------------------------------------------------------------------------------
+!do nn=1,N_hamil
+!  if(ihpsieff==1)then
+!    if(mod(nn,2)==1)then
+!      call hpsi_groupob(tzpsi_in,htpsi,tzpsi_out,Vlocal2,nn,1)
+!    else
+!      call hpsi_groupob(htpsi,tzpsi_in,tzpsi_out,Vlocal2,nn,1)
+!    end if
+!  else
+!    if(mod(nn,2)==1)then
+!      call hpsi_groupob(tzpsi_in,htpsi,tzpsi_out,Vlocal,nn,1)
+!    else
+!      call hpsi_groupob(htpsi,tzpsi_in,tzpsi_out,Vlocal,nn,1)
+!    end if
+!  end if
+!end do
+
+!-----------------------------------------------------------------------------------------------------------------------------------
 do nn=1,N_hamil
   if(mod(nn,2)==1) then
     if(ihpsieff==1) then
@@ -95,14 +112,16 @@ do nn=1,N_hamil
     call mode_add_polynomial(htpsi,tzpsi_in,tzpsi_out,nn)
   end if
 end do
-!-------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------------------------------
 
 contains
 
-!-------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------------------------------
 subroutine hpsi_test1(tpsi,htpsi,V)
+  use salmon_parallel, only: nproc_group_orbital
   use hpsi_sub
   use init_sendrecv_sub
+  use hpsi2_sub, only: convert_pseudo_GCEED
   implicit none
   complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                      mg_sta(2)-Nd:mg_end(2)+Nd,    &
@@ -114,9 +133,12 @@ subroutine hpsi_test1(tpsi,htpsi,V)
   !
   integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
             ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-            ,ispin,i_all,Norb,i,iobmax,Nspin,Nk,ind,j,irank_overlap(6)
+            ,ispin,i_all,Norb,i,iobmax,Nspin,Nk,ind,j,irank_overlap(6),icomm_pseudo,icomm_overlap,NI,Nps,Nlma
   real(8) :: lap0,lapt(4,3)
   integer, allocatable :: is_table(:),idx(:),idy(:),idz(:)
+
+  integer,allocatable :: ia_table(:),Mps(:),Jxyz_wrk(:,:,:)
+  real(8),allocatable :: uV_wrk(:,:),uVu_wrk(:)
 
   irank_overlap(1) = iup_array(1)
   irank_overlap(2) = idw_array(1)
@@ -169,17 +191,20 @@ subroutine hpsi_test1(tpsi,htpsi,V)
     idz(j) = j
   end do
 
+  icomm_overlap = nproc_group_orbital
+  call convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_wrk,uVu_wrk,Jxyz_wrk,icomm_pseudo)
+
   call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
-                 ,idx,idy,idz,lap0,lapt,is_table,Nk,nproc_Mxin_mul,irank_overlap)
+                 ,idx,idy,idz,lap0,lapt,is_table,Nk &
+                 ,NI,Nps,Nlma,ia_table,Mps,Jxyz_wrk,uV_wrk,uVu_wrk &
+                 ,nproc_Mxin_mul,irank_overlap,icomm_overlap,icomm_pseudo)
 
-  deallocate(is_table,idx,idy,idz)
+  deallocate(is_table,idx,idy,idz,Mps,Jxyz_wrk,uV_wrk,uVu_wrk,ia_table)
   return
 end subroutine hpsi_test1
-!-------------------------------------------------------------------------------------
 
 ! hpsi_groupob.f90 --> taylor.f90
-!-------------------------------------------------------------------------------------
 subroutine mode_add_polynomial(tpsi,htpsi,tpsi_out,nn)
   implicit none
   complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
@@ -230,7 +255,7 @@ subroutine mode_add_polynomial(tpsi,htpsi,tpsi_out,nn)
 
   return
 end subroutine
-!-------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------------------------------------------
 
 end subroutine taylor
 

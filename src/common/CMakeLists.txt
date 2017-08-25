@@ -1,8 +1,7 @@
 set(SOURCES
    hpsi.f90
+   stencil.f90
    update_overlap.f90
-   global_variables.f90
-   scf_data.f90
    )
 
 add_library(${SALMON_COMMON_LIB} STATIC ${SOURCES})
