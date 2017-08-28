@@ -41,13 +41,13 @@ subroutine hpsi_test2_R(tpsi0,htpsi0,iob,nn,isub)
 
   integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
             ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-            ,ispin,Norb,Nspin,is_table(1),ind,j,irank_overlap(6),icomm_overlap,icomm_pseudo &
+            ,is,Norb,Nspin,is_table(1),ind,j,irank_overlap(6),icomm_overlap,icomm_pseudo &
             ,NI,Nps,Nlma
   real(8) :: lap0,lapt(4,3)
   integer,allocatable :: idx(:),idy(:),idz(:)
   real(8),allocatable :: htpsi(:,:,:,:)
 
-  integer,allocatable :: ia_table(:),Mps(:),Jxyz_wrk(:,:,:)
+  integer,allocatable :: ia_table(:),Mps_wrk(:),Jxyz_wrk(:,:,:)
   real(8),allocatable :: uV_wrk(:,:),uVu_wrk(:)
 
   irank_overlap(1) = iup_array(1)
@@ -67,8 +67,8 @@ subroutine hpsi_test2_R(tpsi0,htpsi0,iob,nn,isub)
   Norb = 1
   Nspin = numspin
 
-  call set_ispin(iob,ispin)
-  is_table(1) = ispin
+  call set_ispin(iob,is)
+  is_table(1) = is
 
   ipx_sta = iwksta(1)
   ipx_end = iwkend(1)
@@ -96,7 +96,7 @@ subroutine hpsi_test2_R(tpsi0,htpsi0,iob,nn,isub)
   end do
 
   icomm_overlap = nproc_group_orbital
-  call convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_wrk,uVu_wrk,Jxyz_wrk,icomm_pseudo)
+  call convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps_wrk,uV_wrk,uVu_wrk,Jxyz_wrk,icomm_pseudo)
 
   allocate(htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb))
   htpsi = 0d0
@@ -104,13 +104,13 @@ subroutine hpsi_test2_R(tpsi0,htpsi0,iob,nn,isub)
   call hpsi_R(tpsi0,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                    ,Vlocal,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
                    ,idx,idy,idz,lap0,lapt,is_table &
-                   ,NI,Nps,Nlma,ia_table,Mps,Jxyz_wrk,uV_wrk,uVu_wrk &
+                   ,NI,Nps,Nlma,ia_table,Mps_wrk,Jxyz_wrk,uV_wrk,uVu_wrk &
                    ,nproc_Mxin_mul,irank_overlap,icomm_overlap,icomm_pseudo)
 
   htpsi0(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3)) &
     = htpsi(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3),1)
 
-  deallocate(idx,idy,idz,htpsi,uV_wrk,Jxyz_wrk,Mps,ia_table,uVu_wrk)
+  deallocate(idx,idy,idz,htpsi,uV_wrk,Jxyz_wrk,Mps_wrk,ia_table,uVu_wrk)
 end subroutine hpsi_test2_R
 
 subroutine hpsi_test2_C(tpsi0,htpsi0,iob,nn,isub)
@@ -124,13 +124,13 @@ subroutine hpsi_test2_C(tpsi0,htpsi0,iob,nn,isub)
 
   integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
             ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-            ,ispin,Norb,Nspin,Nk,is_table(1),ind,j,irank_overlap(6),icomm_overlap,icomm_pseudo &
+            ,is,Norb,Nspin,Nk,is_table(1),ind,j,irank_overlap(6),icomm_overlap,icomm_pseudo &
             ,NI,Nps,Nlma
   real(8) :: lap0,lapt(4,3)
   integer,allocatable :: idx(:),idy(:),idz(:)
   complex(8),allocatable :: htpsi(:,:,:,:)
 
-  integer,allocatable :: ia_table(:),Mps(:),Jxyz_wrk(:,:,:)
+  integer,allocatable :: ia_table(:),Mps_wrk(:),Jxyz_wrk(:,:,:)
   real(8),allocatable :: uV_wrk(:,:),uVu_wrk(:)
 
   irank_overlap(1) = iup_array(1)
@@ -151,8 +151,8 @@ subroutine hpsi_test2_C(tpsi0,htpsi0,iob,nn,isub)
   Nspin = numspin
   Nk = 1
 
-  call set_ispin(iob,ispin)
-  is_table(1) = ispin
+  call set_ispin(iob,is)
+  is_table(1) = is
 
   ipx_sta = iwksta(1)
   ipx_end = iwkend(1)
@@ -180,7 +180,7 @@ subroutine hpsi_test2_C(tpsi0,htpsi0,iob,nn,isub)
   end do
 
   icomm_overlap = nproc_group_orbital
-  call convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_wrk,uVu_wrk,Jxyz_wrk,icomm_pseudo)
+  call convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps_wrk,uV_wrk,uVu_wrk,Jxyz_wrk,icomm_pseudo)
 
   allocate(htpsi(ipx_sta:ipx_end,ipy_sta:ipy_end,ipz_sta:ipz_end,1:Norb))
   htpsi = 0d0
@@ -188,20 +188,20 @@ subroutine hpsi_test2_C(tpsi0,htpsi0,iob,nn,isub)
   call hpsi_C(tpsi0,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                    ,Vlocal,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
                    ,idx,idy,idz,lap0,lapt,is_table,Nk &
-                   ,NI,Nps,Nlma,ia_table,Mps,Jxyz_wrk,uV_wrk,uVu_wrk &
+                   ,NI,Nps,Nlma,ia_table,Mps_wrk,Jxyz_wrk,uV_wrk,uVu_wrk &
                    ,nproc_Mxin_mul,irank_overlap,icomm_overlap,icomm_pseudo)
 
   htpsi0(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3)) &
     = htpsi(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3),1)
 
-  deallocate(idx,idy,idz,htpsi,uV_wrk,uVu_wrk,Jxyz_wrk,Mps,ia_table)
+  deallocate(idx,idy,idz,htpsi,uV_wrk,uVu_wrk,Jxyz_wrk,Mps_wrk,ia_table)
 end subroutine hpsi_test2_C
 
-subroutine convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_new,uVu_new,Jxyz_new,icomm_pseudo)
+subroutine convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps_new,uV_new,uVu_new,Jxyz_new,icomm_pseudo)
   use scf_data, only: MI,Kion,Mlps,uVu,iwk_size,max_jMps_l,uV,Jxyz,jMps_l,max_jMps_l_s,jMps_l_s,uVu,Hvol ! GCEED
   use salmon_parallel, only: nproc_group_orbital, nproc_group_h
   integer :: NI,Nps,Nlma,icomm_pseudo
-  integer,allocatable :: ia_table(:),Mps(:),Jxyz_new(:,:,:)
+  integer,allocatable :: ia_table(:),Mps_new(:),Jxyz_new(:,:,:)
   real(8),allocatable :: uV_new(:,:),uVu_new(:)
   !
   integer :: jj,iatom,ik,lm,ilma,jm
@@ -209,17 +209,18 @@ subroutine convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_new,uVu_new,Jxyz_new
 
   NI = MI
 
-  allocate(Mps(NI))
+  allocate(Mps_new(NI))
 
   if(iwk_size>=1.and.iwk_size<=2)then
-    Mps = max_jMps_l
+    Mps_new = max_jMps_l
     icomm_pseudo = nproc_group_orbital
   else if(iwk_size>=11.and.iwk_size<=12)then
-    Mps = max_jMps_l_s
+    Mps_new = max_jMps_l_s
     icomm_pseudo = nproc_group_h
   end if
 
-  allocate(jMps(maxval(Mps),NI))
+  Nps = maxval(Mps_new)
+  allocate(jMps(Nps,NI))
 
   if(iwk_size>=1.and.iwk_size<=2)then
     jMps = jMps_l
@@ -227,11 +228,10 @@ subroutine convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_new,uVu_new,Jxyz_new
     jMps = jMps_l_s
   end if
 
-  Nps = maxval(Mps)
   allocate(Jxyz_new(3,Nps,NI))
 
   do iatom=1,MI
-    do jj=1,Mps(iatom)
+    do jj=1,Mps_new(iatom)
       jm = jMps(jj,iatom)
 
       Jxyz_new(:,jj,iatom) = Jxyz(:,jm,iatom)
@@ -259,7 +259,7 @@ subroutine convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_new,uVu_new,Jxyz_new
       ilma = ilma + 1
 
       ia_table(ilma) = iatom
-      do jj=1,Mps(iatom)
+      do jj=1,Mps_new(iatom)
         jm = jMps(jj,iatom)
 
         uV_new(jj,ilma) = uV(jm,lm,iatom)

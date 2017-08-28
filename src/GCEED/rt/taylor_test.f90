@@ -133,11 +133,11 @@ subroutine hpsi_test1(tpsi,htpsi,V)
   !
   integer :: ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end &
             ,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end &
-            ,ispin,i_all,Norb,i,iobmax,Nspin,Nk,ind,j,irank_overlap(6),icomm_pseudo,icomm_overlap,NI,Nps,Nlma
+            ,is,i_all,Norb,i,iobmax,Nspin,Nk,ind,j,irank_overlap(6),icomm_pseudo,icomm_overlap,NI,Nps,Nlma
   real(8) :: lap0,lapt(4,3)
   integer, allocatable :: is_table(:),idx(:),idy(:),idz(:)
 
-  integer,allocatable :: ia_table(:),Mps(:),Jxyz_wrk(:,:,:)
+  integer,allocatable :: ia_table(:),Mps_wrk(:),Jxyz_wrk(:,:,:)
   real(8),allocatable :: uV_wrk(:,:),uVu_wrk(:)
 
   irank_overlap(1) = iup_array(1)
@@ -176,8 +176,8 @@ subroutine hpsi_test1(tpsi,htpsi,V)
   allocate(is_table(Norb))
   do i=1,iobmax
     call calc_allob(i,i_all)
-    call set_ispin(i_all,ispin)
-    is_table(i) = ispin
+    call set_ispin(i_all,is)
+    is_table(i) = is
   end do
 
   allocate(idx(ix_sta-4:ix_end+4),idy(iy_sta-4:iy_end+4),idz(iz_sta-4:iz_end+4))
@@ -192,15 +192,15 @@ subroutine hpsi_test1(tpsi,htpsi,V)
   end do
 
   icomm_overlap = nproc_group_orbital
-  call convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps,uV_wrk,uVu_wrk,Jxyz_wrk,icomm_pseudo)
+  call convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps_wrk,uV_wrk,uVu_wrk,Jxyz_wrk,icomm_pseudo)
 
   call hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Norb &
                  ,V,ix_sta,ix_end,iy_sta,iy_end,iz_sta,iz_end,Nspin &
                  ,idx,idy,idz,lap0,lapt,is_table,Nk &
-                 ,NI,Nps,Nlma,ia_table,Mps,Jxyz_wrk,uV_wrk,uVu_wrk &
+                 ,NI,Nps,Nlma,ia_table,Mps_wrk,Jxyz_wrk,uV_wrk,uVu_wrk &
                  ,nproc_Mxin_mul,irank_overlap,icomm_overlap,icomm_pseudo)
 
-  deallocate(is_table,idx,idy,idz,Mps,Jxyz_wrk,uV_wrk,uVu_wrk,ia_table)
+  deallocate(is_table,idx,idy,idz,Mps_wrk,Jxyz_wrk,uV_wrk,uVu_wrk,ia_table)
   return
 end subroutine hpsi_test1
 

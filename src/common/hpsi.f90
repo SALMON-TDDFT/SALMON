@@ -139,7 +139,7 @@ SUBROUTINE hpsi_C(tpsi,htpsi,ipx_sta,ipx_end,ipy_sta,ipy_end,ipz_sta,ipz_end,Nor
       do iz=iz_sta,iz_end
         do iy=iy_sta,iy_end
           do ix=ix_sta,ix_end
-            ttpsi(ix,iy,iz,iorb) = htpsi(ix,iy,iz,iorb) - V_local(ix,iy,iz,is) * tpsi(iz,iy,iz,iorb)
+            ttpsi(ix,iy,iz,iorb) = htpsi(ix,iy,iz,iorb) - V_local(ix,iy,iz,is) * tpsi(ix,iy,iz,iorb)
           end do
         end do
       end do
