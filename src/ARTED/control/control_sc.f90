@@ -867,12 +867,16 @@ end subroutine calc_opt_ground_state
 subroutine write_xyz(NI,Rion,comment,action)
   use inputoutput, only: au_length_aa
   use salmon_global, only: iflag_atom_coor,ntype_atom_coor_cartesian,ntype_atom_coor_reduced
+  use salmon_parallel, only: nproc_id_global
+  use salmon_communication, only: comm_is_root
   implicit none
   integer :: ia,NI,unit_xyz=200,unit_atomic_coor_tmp=201
   real(8) :: Rion(3,NI)
   character(3) :: action
   character(100) :: char_atom,atom_name
   character(*) :: comment
+
+  if(.not. comm_is_root(nproc_id_global)) return
 
   select case(iflag_atom_coor)
   case(ntype_atom_coor_cartesian)
