@@ -31,6 +31,12 @@ option_set(SW_PREFETCH             "Enable software prefetch in the explicit vec
 option_set(USE_PAPI                "Use Performance API"                OFF)
 option_set(USE_NVTX                "Use NVIDIA Tools Extension Library" OFF)
 
+## test: joint hpsi subroutine
+option_set(HPSI_TEST               "Use joint hpsi subroutine (test)"   OFF)
+set(HPSI_TEST_SUFFIX "")
+if (HPSI_TEST)
+  set(HPSI_TEST_SUFFIX "_test")
+endif()
 
 # cross-compile or native-compile
 if (${CMAKE_CROSSCOMPILING})

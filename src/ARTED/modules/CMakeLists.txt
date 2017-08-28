@@ -16,4 +16,4 @@ set(SOURCES
 #   set(SOURCES ${SOURCES} nvtx.f90)
 #endif ()
 add_library(${ARTED_MODULE_LIB} STATIC ${SOURCES})
-add_dependencies(${ARTED_MODULE_LIB} ${SALMON_IO_LIB})
+add_dependencies(${ARTED_MODULE_LIB} ${SALMON_IO_LIB} ${SALMON_COMMON_LIB})
