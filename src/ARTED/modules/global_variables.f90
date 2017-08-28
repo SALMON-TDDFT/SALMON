@@ -96,6 +96,7 @@ Module Global_Variables
   complex(8),allocatable :: tpsi(:),htpsi(:),zwork(:,:,:),ttpsi(:)
   real(8),allocatable :: work(:,:,:)
   real(8),allocatable :: esp_var(:,:)
+  integer :: iflag_gs_init_wf=0   !use random number(=0), don't use it(=1)
 
 ! variables for 4-times loop in Fourier transportation
   integer,allocatable :: nxyz(:,:,:)
@@ -224,6 +225,10 @@ Module Global_Variables
   ! calculation mode 
   integer, parameter :: calc_mode_gs = 1000
   integer, parameter :: calc_mode_rt = 1100
+
+  ! scf
+  integer :: PrLv_scf = 3          !(no print=0, all print=3)
+  real(8) :: convrg_scf_ene= -1d0
 
   ! Rion update flag
   logical :: Rion_update_rt
