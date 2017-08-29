@@ -469,7 +469,7 @@ subroutine calc_opt_ground_state
   real(8) :: StepLen_LineSearch_Up,StepLen_LineSearch_Dw
   real(8) :: SearchDirection(3,NI), Rion_save(3,NI)
   real(8) :: Eall_prev,Eall_save,Eall_3points(3),Eall_min,Eall_new,Eall_prev_line
-  real(8) :: dEall,dE_conv,dE_conv_LineSearch
+  real(8) :: dEall,dE_conv,dE_conv_LineSearch, fave_conv
   real(8) :: force_prev(3,NI), force_1d(3*NI), force_prev_1d(3*NI)
   character(100) :: comment_line
 
@@ -478,13 +478,14 @@ subroutine calc_opt_ground_state
   !(check)
   do i=1,NI
      if(flag_geo_opt_atom(i)/='y')then
-        write(*,*)'ERROR: flag of geometry opt of all atoms must be y'
+        if(comm_is_root(nproc_id_global)) &
+        &  write(*,*)'ERROR: flag of geometry opt of all atoms must be y'
         stop
      endif
   enddo
 
-
-  write(*,*) "===== Grand State Optimization Start ====="
+  if(comm_is_root(nproc_id_global)) &
+  &  write(*,*) "===== Grand State Optimization Start ====="
   PrLv_scf = 0
   convrg_scf_ene  =1d-6
   iflag_gs_init_wf=1   !flag to skip giving randam number initial guess
@@ -497,12 +498,15 @@ subroutine calc_opt_ground_state
   StepLen_LineSearch_Dw = 0.5d0
   dE_conv_LineSearch    = 1d-6   !--i dont know good number
   dE_conv               = 1d-6   !--i dont know good number
+  fave_conv             = 1d-5   !--i dont know good number
 
-  write(*,*) "  [Set following in optimization]"
-  !write(*,*) "  Nscf in each optimize step =",Nscf
-  write(*,*) "  SCF convergence threshold(E)=",real(convrg_scf_ene)
-  write(*,*) "  Max optimization CG step    =",Nopt_perp
-  write(*,*) "  Max line search opt step    =",Nopt_line
+  if(comm_is_root(nproc_id_global)) then
+     write(*,*) "  [Set following in optimization]"
+    !write(*,*) "  Nscf in each optimize step =",Nscf
+     write(*,*) "  SCF convergence threshold(E)=",real(convrg_scf_ene)
+     write(*,*) "  Max optimization CG step    =",Nopt_perp
+     write(*,*) "  Max line search opt step    =",Nopt_line
+  endif
 
   !if (comm_is_root(nproc_id_global)) then
   !  open(7,file=file_epst,    position = position_option)
@@ -517,15 +521,24 @@ subroutine calc_opt_ground_state
   write(comment_line,110) 0, 0
   call write_xyz(NI,Rion,comment_line,"new")
   call cal_mean_max_forces(NI,force,fave,fmax)
-  write(*,135) 0, 0, Eall, 0d0
-  write(*,120) " Max-force=", fmax, "  Mean-force=", fave
-
+  if(comm_is_root(nproc_id_global)) then
+     write(*,135) 0, 0, Eall, 0d0
+     write(*,120) " Max-force=", fmax, "  Mean-force=", fave
+  endif
+  !(initial check of convergence: if force is enough small, exit before opt)
+  if(fave .le. fave_conv) then
+    if(comm_is_root(nproc_id_global)) &
+    &  write(*,*) " Mean force is enough small: stop calculation"
+    stop
+  endif
 
   !--- Main Loop ----
   do iter_perp =1,Nopt_perp     !iteration for perpendicular direction
 
-    write(*,*) "==================================================="
-    write(*,*) "CG Optimization Step = ", iter_perp
+    if(comm_is_root(nproc_id_global)) then
+       write(*,*) "==================================================="
+       write(*,*) "CG Optimization Step = ", iter_perp
+    endif
 
     !previous value
     force_prev(:,:) = force(:,:)
@@ -560,11 +573,13 @@ subroutine calc_opt_ground_state
     !(adjust initial step length so that middle point has lowest energy)
     if(      Eall_3points(2).gt.Eall_3points(1) ) then
        StepLen_LineSearch(:) = StepLen_LineSearch(:) * StepLen_LineSearch_Dw
-       write(*,*) "alpha: adjusting initial (down)--> ", real(StepLen_LineSearch(3))
+       if(comm_is_root(nproc_id_global)) &
+       & write(*,*) "alpha: adjusting initial (down)--> ",real(StepLen_LineSearch(3))
        goto 1
     else if( Eall_3points(2).gt.Eall_3points(3) )then
        StepLen_LineSearch(:) = StepLen_LineSearch(:) * StepLen_LineSearch_Up
-       write(*,*) "alpha: adjusting initial ( up )--> ", real(StepLen_LineSearch(3))
+       if(comm_is_root(nproc_id_global)) &
+       & write(*,*) "alpha: adjusting initial ( up )--> ",real(StepLen_LineSearch(3))
        goto 1
     endif
 
@@ -616,24 +631,30 @@ subroutine calc_opt_ground_state
        Eall_min = Eall
 
        !(log)
-       write(*,100) " alpha: 3-points=",(StepLen_LineSearch(i),i=1,3),&
-                  & " | min(parabola)=", StepLen_LineSearch_min
-       write(*,100) " Eall:  3-points=",(Eall_3points(i),i=1,3), &
-                  & " | min(parabola)=", Eall_min
+       if(comm_is_root(nproc_id_global)) then
+          write(*,100) " alpha: 3-points=",(StepLen_LineSearch(i),i=1,3),&
+                     & " | min(parabola)=", StepLen_LineSearch_min
+          write(*,100) " Eall:  3-points=",(Eall_3points(i),i=1,3), &
+                     & " | min(parabola)=", Eall_min
+       endif
 
        !Judge Convergence for line search opt
        dEall = Eall_min - Eall_prev_line
-       write(*,130) iter_perp, iter_line, Eall, dEall
+       if(comm_is_root(nproc_id_global)) &
+       & write(*,130) iter_perp, iter_line, Eall, dEall
 
        if(abs(dEall) .le. dE_conv_LineSearch)then
-          write(*,*) "Converged line search optimization in perpendicular-step",iter_perp
+          if(comm_is_root(nproc_id_global)) &
+          & write(*,*) "Converged line search optimization in perpendicular-step",iter_perp
           call read_write_gs_wfn_k(iflag_write)
           call read_write_gs_wfn_k(iflag_read)
           call manipulate_wfn_data('save')
           exit
        else if(iter_line==Nopt_line) then
-          write(*,*) "Not Converged(line search opt) in perpendicular-step",iter_perp
-          write(*,*) "==================================================="
+          if(comm_is_root(nproc_id_global)) then
+             write(*,*) "Not Converged(line search opt) in perpendicular-step",iter_perp
+             write(*,*) "==================================================="
+          endif
           exit
        endif
 
@@ -652,18 +673,24 @@ subroutine calc_opt_ground_state
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     !call Total_Energy_omp(rion_update_on,calc_mode_gs)
     call cal_mean_max_forces(NI,force,fave,fmax)
-    write(*,120) " Max-force=", fmax, "  Mean-force=", fave
+    if(comm_is_root(nproc_id_global)) &
+    &  write(*,120) " Max-force=", fmax, "  Mean-force=", fave
 
     !Judge Convergence
     dEall = Eall - Eall_prev
-    write(*,135) iter_perp, iter_line, Eall, dEall
+    if(comm_is_root(nproc_id_global)) &
+    &  write(*,135) iter_perp, iter_line, Eall, dEall
     if(abs(dEall) .le. dE_conv) then
-       write(*,*) "Optimization Converged",iter_perp,real(Eall),real(dEall)
-       write(*,*) "==================================================="
+       if(comm_is_root(nproc_id_global)) then
+          write(*,*) "Optimization Converged",iter_perp,real(Eall),real(dEall)
+          write(*,*) "==================================================="
+       endif
        exit
     else if(iter_perp==Nopt_perp) then
-       write(*,*) "Optimization Did Not Converged",iter_perp,real(Eall),real(dEall)
-       write(*,*) "==================================================="
+       if(comm_is_root(nproc_id_global)) then
+          write(*,*) "Optimization Did Not Converged",iter_perp,real(Eall),real(dEall)
+          write(*,*) "==================================================="
+       endif
     endif
 
 
@@ -866,14 +893,15 @@ end subroutine calc_opt_ground_state
 
 subroutine write_xyz(NI,Rion,comment,action)
   use inputoutput, only: au_length_aa
-  use salmon_global, only: iflag_atom_coor,ntype_atom_coor_cartesian,ntype_atom_coor_reduced
+  use salmon_global, only: SYSname,iflag_atom_coor,ntype_atom_coor_cartesian,ntype_atom_coor_reduced
   use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root
   implicit none
   integer :: ia,NI,unit_xyz=200,unit_atomic_coor_tmp=201
   real(8) :: Rion(3,NI)
   character(3) :: action
-  character(100) :: char_atom,atom_name
+  character(100)  :: char_atom,atom_name
+  character(1024) :: file_trj
   character(*) :: comment
 
   if(.not. comm_is_root(nproc_id_global)) return
@@ -885,7 +913,8 @@ subroutine write_xyz(NI,Rion,comment,action)
      open(unit_atomic_coor_tmp,file='.atomic_red_coor.tmp',status='old')
   end select
 
-  open(unit_xyz,file="opt_trj.xyz",status="unknown")
+  file_trj=trim(SYSname)//'_trj.xyz'
+  open(unit_xyz,file=trim(file_trj),status="unknown")
 
   if(action=='new') goto 1
   if(action=='add') then
