@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Test preprocess script
+#
+# The preprocess script is automatically executed before starting SALMON. 
+# If necessary, this script file can utilized for the preparation of 
+# the input data for the calculations.
+
+cp ../pseudo/Si_rps.dat ./

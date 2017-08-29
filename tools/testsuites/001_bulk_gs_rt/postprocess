@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+# This postprocess script file is automatically executed after the SALMON.
+# If necessary, this script file can used for the verification of the result.
+# The script MUST indicate a "return-code 0", if the calculation is successful.
+# If a negative value is returned, it is treated as a test failure.
+
+import os
+import sys
+import re
+
+filelist = [
+    "Si_eigen.data",
+    "Si_k.data",
+    "Si_rt.data",
+]
+
+for item in filelist:
+    if not os.path.exists(item):
+        print("File not found: %s" % item)
+        sys.exit(-1) # Failure
+
+# Name, Regular Expression, Reference Value
+checklist = [
+    ("Eall", r"^\s*Eall\s*=\s*([E\+\-\.\d]+)\s*$", -31.1739726751449),
+    ("Bandgap", r"^\s*The Bandgap\s+([E\+\-\.\d]+)\s*$", 5.686255746897059E-002),
+]
+
+data = {}
+with open("outputfile") as fh_out:
+    for line in fh_out:
+        # Detect Eall
+        for name, pattern, _ in checklist:
+            result = re.match(pattern, line)
+            if result:
+                data[name] = float(result.group(1))
+
+for name, _, refval in checklist:
+    if abs((data[name] - refval) / refval) > 0.01:
+        print("Mismatch(%s): %f - %f" % (name, output[name], refval))
+        sys.exit(-1) # Failure
+
+sys.exit(0) # Success
