@@ -144,7 +144,10 @@ contains
 
        !(exit if energy difference is below threshold: only if set convrg_scf_Eall>0)
        if( abs(Eall_GS(iter)-Eall_GS(iter-1)) .le. convrg_scf_ene ) then
-          if(kbTev >= 0d0) write(*,*) "sorry, occ.out was not generated" !(fix if need)
+          if(kbTev >= 0d0) then
+             if(comm_is_root(nproc_id_global)) &
+             & write(*,*) "sorry, occ.out was not generated" !(fix if need)
+          endif
           !if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
           if(comm_is_root(nproc_id_global)) then
              write(*,'(a,i4,a,e18.10)') " GS converged at",iter," : dEall_GS=", &

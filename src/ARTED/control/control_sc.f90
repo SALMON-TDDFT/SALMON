@@ -480,6 +480,7 @@ subroutine calc_opt_ground_state
      if(flag_geo_opt_atom(i)/='y')then
         if(comm_is_root(nproc_id_global)) &
         &  write(*,*)'ERROR: flag of geometry opt of all atoms must be y'
+        call end_parallel
         stop
      endif
   enddo
@@ -529,6 +530,7 @@ subroutine calc_opt_ground_state
   if(fave .le. fave_conv) then
     if(comm_is_root(nproc_id_global)) &
     &  write(*,*) " Mean force is enough small: stop calculation"
+    call end_parallel
     stop
   endif
 
