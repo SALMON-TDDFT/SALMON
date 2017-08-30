@@ -15,7 +15,7 @@
 !
 
 subroutine write_density_cube(fh, write_difference)
-  use Global_Variables, only: NLx, NLy, NLz, aLx, aLy, aLz, NI, Kion, Rion, Zatom, Lxyz, Rho, Rho_gs 
+  use Global_Variables, only: NLx, NLy, NLz,  Hx, Hy, Hz,  NI, Kion, Rion, Zatom, Lxyz, Rho, Rho_gs 
   implicit none
   integer, intent(in) :: fh
   logical, intent(in) :: write_difference
@@ -26,9 +26,9 @@ subroutine write_density_cube(fh, write_difference)
   write(fh, '(A)') "# SALMON"
   write(fh, '(A)') "# COMMENT"
   write(fh, '(I5,3(F12.6))') NI, 0.00, 0.00, 0.00
-  write(fh, '(I5,3(F12.6))') NLx, aLx, 0.00, 0.00
-  write(fh, '(I5,3(F12.6))') NLy, 0.00, aLy, 0.00
-  write(fh, '(I5,3(F12.6))') NLz, 0.00, 0.00, aLz
+  write(fh, '(I5,3(F12.6))') NLx, Hx, 0.00, 0.00
+  write(fh, '(I5,3(F12.6))') NLy, 0.00, Hy, 0.00
+  write(fh, '(I5,3(F12.6))') NLz, 0.00, 0.00, Hz
   
   do i=1, NI
     write(fh, '(I5,4(F12.6))') Zatom(Kion(i)), 0.00, Rion(1,i), Rion(2,i), Rion(3,i) 
