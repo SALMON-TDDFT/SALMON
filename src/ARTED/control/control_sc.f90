@@ -35,7 +35,10 @@ subroutine tddft_sc
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
   integer :: fh_rt_data
-
+  real(8) :: Temperature_R,kB,hartree2J
+  parameter( kB = 1.38064852d-23 ) ![J/K]
+  parameter( hartree2J = 4.359744650d-18 )
+  character(100) :: comment_line
 
 #ifdef ARTED_LBLK
   call opt_vars_init_t4ppt()
@@ -50,6 +53,8 @@ subroutine tddft_sc
     select case(use_ehrenfest_md)
     case('y')
       Rion_update_rt = rion_update_on
+      write(comment_line,110) 0, 0
+      call write_xyz(NI,Rion,comment_line,"new")
     case('n')
       Rion_update_rt = rion_update_off
     end select
@@ -100,12 +105,12 @@ subroutine tddft_sc
 
 
   if (comm_is_root(nproc_id_global)) then
-    open(7,file=file_epst,position = position_option)
-    open(8,file=file_dns,position = position_option)
+    open(7,file=file_epst,    position = position_option)
+    open(8,file=file_dns,     position = position_option)
     open(9,file=file_force_dR,position = position_option)
     if (projection_option /= 'no') then 
       open(404,file=file_ovlp,position = position_option) 
-      open(408,file=file_nex,position = position_option) 
+      open(408,file=file_nex, position = position_option) 
     end if
     
   endif
@@ -185,6 +190,7 @@ subroutine tddft_sc
         Rion(:,ia)=Rion_eq(:,ia)+dRion(:,ia,iter+1)
         Tion=Tion+0.5d0*umass*Mass(Kion(ia))*sum((dRion(:,ia,iter+1)-dRion(:,ia,iter-1))**2)/(2*dt)**2
       enddo
+      Temperature_R = Tion * 2d0 / (3d0*NI) / (kB/hartree2J)
       call prep_ps_periodic('not_initial')
     else
       dRion(:,:,iter+1)=0.d0
@@ -193,16 +199,27 @@ subroutine tddft_sc
     Eall=Eall+Tion
 !write section
     if (iter/10*10 == iter.and.comm_is_root(nproc_id_global)) then
-      write(*,'(1x,f10.4,8f12.6,f22.14)') iter*dt,&
-           &E_ext(iter,1),E_tot(iter,1),&
-           &E_ext(iter,2),E_tot(iter,2),&
-           &E_ext(iter,3),E_tot(iter,3),&
-           &Eall,Eall-Eall0,Tion
+    if (use_ehrenfest_md == 'y') then
+      write(*,'(1x,f10.4,8f12.6,f22.14,f18.5)') iter*dt,&
+           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+           &  Eall, Eall-Eall0, Tion, Temperature_R
       write(7,'(1x,100e16.6E3)') iter*dt,&
-           &E_ext(iter,1),E_tot(iter,1),&
-           &E_ext(iter,2),E_tot(iter,2),&
-           &E_ext(iter,3),E_tot(iter,3),&
-           &Eall,Eall-Eall0,Tion
+           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+           &  Eall, Eall-Eall0, Tion, Temperature_R
+      write(comment_line,110) iter, iter*dt
+110   format("#md   step=",i4,"   time",e16.6)
+      call write_xyz(NI,Rion,comment_line,"add")
+    else
+      write(*,'(1x,f10.4,8f12.6,f22.14)') iter*dt,&
+           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+           &  Eall, Eall-Eall0, Tion
+      write(7,'(1x,100e16.6E3)') iter*dt,&
+           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+           &  Eall, Eall-Eall0, Tion
+           !&E_ext(iter,1),E_tot(iter,1),&
+           !&E_ext(iter,2),E_tot(iter,2),&
+           !&E_ext(iter,3),E_tot(iter,3),&
+    endif
       write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI),((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
     endif
 !Dynamical Density
@@ -426,4 +443,501 @@ contains
     end do
   end subroutine
 end subroutine tddft_sc
+
+!-----------------------------------------------------------------
+! Optimization in the ground state by conjugate gradient method
+!-----------------------------------------------------------------
+subroutine calc_opt_ground_state
+
+  use Global_Variables
+  use timer
+  use opt_variables
+  use environment
+  use performance_analyzer
+  use salmon_parallel, only: nproc_group_global, nproc_id_global
+  use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
+  use misc_routines, only: get_wtime
+  use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
+  use ground_state
+  use io_gs_wfn_k
+
+  implicit none
+  integer :: i,j,k,iter_perp,iter_line, Nopt_perp,Nopt_line
+  real(8) :: fmax,fave, gm, tmp1,tmp2,tmp3, dsl12,dsl23,ratio_too_much
+  real(8) :: StepLen_LineSearch0, StepLen_LineSearch(3)
+  real(8) :: StepLen_LineSearch_min, StepLen_LineSearch_new
+  real(8) :: StepLen_LineSearch_Up,StepLen_LineSearch_Dw
+  real(8) :: SearchDirection(3,NI), Rion_save(3,NI)
+  real(8) :: Eall_prev,Eall_save,Eall_3points(3),Eall_min,Eall_new,Eall_prev_line
+  real(8) :: dEall,dE_conv,dE_conv_LineSearch, fave_conv
+  real(8) :: force_prev(3,NI), force_1d(3*NI), force_prev_1d(3*NI)
+  character(100) :: comment_line
+
+  position_option='rewind'
+
+  !(check)
+  do i=1,NI
+     if(flag_geo_opt_atom(i)/='y')then
+        if(comm_is_root(nproc_id_global)) &
+        &  write(*,*)'ERROR: flag of geometry opt of all atoms must be y'
+        call end_parallel
+        stop
+     endif
+  enddo
+
+  if(comm_is_root(nproc_id_global)) &
+  &  write(*,*) "===== Grand State Optimization Start ====="
+  PrLv_scf = 0
+  convrg_scf_ene  =1d-6
+  iflag_gs_init_wf=1   !flag to skip giving randam number initial guess
+  !Nscf = 50
+  Nopt_perp = 100
+  Nopt_line = 40
+  !StepLen_LineSearch0   = 0.05d0
+  StepLen_LineSearch0   = 0.5d0  !--i dont know efficient number
+  StepLen_LineSearch_Up = 1.2d0
+  StepLen_LineSearch_Dw = 0.5d0
+  dE_conv_LineSearch    = 1d-6   !--i dont know good number
+  dE_conv               = 1d-6   !--i dont know good number
+  fave_conv             = 1d-5   !--i dont know good number
+
+  if(comm_is_root(nproc_id_global)) then
+     write(*,*) "  [Set following in optimization]"
+    !write(*,*) "  Nscf in each optimize step =",Nscf
+     write(*,*) "  SCF convergence threshold(E)=",real(convrg_scf_ene)
+     write(*,*) "  Max optimization CG step    =",Nopt_perp
+     write(*,*) "  Max line search opt step    =",Nopt_line
+  endif
+
+  !if (comm_is_root(nproc_id_global)) then
+  !  open(7,file=file_epst,    position = position_option)
+  !  open(8,file=file_dns,     position = position_option)
+  !  open(9,file=file_force_dR,position = position_option)
+  !endif
+
+  call comm_sync_all
+
+  !Initial Step Procedure
+  SearchDirection(:,:) = force(:,:)
+  write(comment_line,110) 0, 0
+  call write_xyz(NI,Rion,comment_line,"new")
+  call cal_mean_max_forces(NI,force,fave,fmax)
+  if(comm_is_root(nproc_id_global)) then
+     write(*,135) 0, 0, Eall, 0d0
+     write(*,120) " Max-force=", fmax, "  Mean-force=", fave
+  endif
+  !(initial check of convergence: if force is enough small, exit before opt)
+  if(fave .le. fave_conv) then
+    if(comm_is_root(nproc_id_global)) &
+    &  write(*,*) " Mean force is enough small: stop calculation"
+    call end_parallel
+    stop
+  endif
+
+  !--- Main Loop ----
+  do iter_perp =1,Nopt_perp     !iteration for perpendicular direction
+
+    if(comm_is_root(nproc_id_global)) then
+       write(*,*) "==================================================="
+       write(*,*) "CG Optimization Step = ", iter_perp
+    endif
+
+    !previous value
+    force_prev(:,:) = force(:,:)
+    Eall_prev = Eall
+
+    !Line search minimization along search vector direction
+    Eall_prev_line = Eall
+
+    !(store)
+    Eall_save = Eall
+    Rion_save(:,:)= Rion(:,:)
+    call manipulate_wfn_data('save')
+
+    !Set initial region to be searched (=> set initial three points)
+    !(calculate energy at 3 points and adjust initial step length)
+    StepLen_LineSearch(1) = 0d0
+    StepLen_LineSearch(2) = StepLen_LineSearch0 * 0.5d0
+    StepLen_LineSearch(3) = StepLen_LineSearch0
+    Eall_3points(1) = Eall
+1   continue
+    !! stop if StepLen_LineSearch is too small or too large(add later)
+    !! write(*,*) "Initial structure is bad"
+    do i= 2,3
+       call manipulate_wfn_data('load')
+       call read_write_gs_wfn_k(iflag_read)
+       Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch(i)* SearchDirection(:,:)
+       Rion_eq(:,:)= Rion(:,:)
+       call prep_ps_periodic('not_initial')
+       call calc_ground_state
+       Eall_3points(i) = Eall
+    enddo
+    !(adjust initial step length so that middle point has lowest energy)
+    if(      Eall_3points(2).gt.Eall_3points(1) ) then
+       StepLen_LineSearch(:) = StepLen_LineSearch(:) * StepLen_LineSearch_Dw
+       if(comm_is_root(nproc_id_global)) &
+       & write(*,*) "alpha: adjusting initial (down)--> ",real(StepLen_LineSearch(3))
+       goto 1
+    else if( Eall_3points(2).gt.Eall_3points(3) )then
+       StepLen_LineSearch(:) = StepLen_LineSearch(:) * StepLen_LineSearch_Up
+       if(comm_is_root(nproc_id_global)) &
+       & write(*,*) "alpha: adjusting initial ( up )--> ",real(StepLen_LineSearch(3))
+       goto 1
+    endif
+
+    do iter_line= 1,Nopt_line      !iteration for lise search minimize
+
+       !(narrow search range if the three points are too unbalanced)
+       do
+          !(check and make new point)
+          ratio_too_much = 5d0
+          dsl12 = abs(StepLen_LineSearch(1)-StepLen_LineSearch(2))
+          dsl23 = abs(StepLen_LineSearch(3)-StepLen_LineSearch(2))
+          if( dsl12/dsl23 .gt. ratio_too_much ) then
+             StepLen_LineSearch_new= 0.5d0*( StepLen_LineSearch(1) + StepLen_LineSearch(2))
+          else if( dsl23/dsl12 .gt. ratio_too_much ) then
+             StepLen_LineSearch_new= 0.5d0*( StepLen_LineSearch(2) + StepLen_LineSearch(3))
+          else
+             exit
+          endif
+
+          !(calculate electronic state at the new point)
+          call manipulate_wfn_data('load')
+          call read_write_gs_wfn_k(iflag_read)
+          Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch_new* SearchDirection(:,:)
+          Rion_eq(:,:)= Rion(:,:)
+          write(comment_line,110) iter_perp, iter_line
+          call write_xyz(NI,Rion,comment_line,"add")
+          call prep_ps_periodic('not_initial')
+          call calc_ground_state
+          Eall_new = Eall
+
+          !(update three points: current min and two closest points)
+          call update_three_points_for_line_min(StepLen_LineSearch,    Eall_3points,&
+                                             &  StepLen_LineSearch_new,Eall_new)
+       enddo
+
+          
+       !(get minimum coordinate by 3 points interpolation)
+       call get_minimum_by_interpolation(StepLen_LineSearch,Eall_3points,StepLen_LineSearch_min)
+
+       !(calculate electronic state at the minimum)
+       call manipulate_wfn_data('load')
+       call read_write_gs_wfn_k(iflag_read)
+       Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch_min* SearchDirection(:,:)
+       Rion_eq(:,:)= Rion(:,:)
+       write(comment_line,110) iter_perp, iter_line
+       call write_xyz(NI,Rion,comment_line,"add")
+       call prep_ps_periodic('not_initial')
+       call calc_ground_state
+       Eall_min = Eall
+
+       !(log)
+       if(comm_is_root(nproc_id_global)) then
+          write(*,100) " alpha: 3-points=",(StepLen_LineSearch(i),i=1,3),&
+                     & " | min(parabola)=", StepLen_LineSearch_min
+          write(*,100) " Eall:  3-points=",(Eall_3points(i),i=1,3), &
+                     & " | min(parabola)=", Eall_min
+       endif
+
+       !Judge Convergence for line search opt
+       dEall = Eall_min - Eall_prev_line
+       if(comm_is_root(nproc_id_global)) &
+       & write(*,130) iter_perp, iter_line, Eall, dEall
+
+       if(abs(dEall) .le. dE_conv_LineSearch)then
+          if(comm_is_root(nproc_id_global)) &
+          & write(*,*) "Converged line search optimization in perpendicular-step",iter_perp
+          call read_write_gs_wfn_k(iflag_write)
+          call read_write_gs_wfn_k(iflag_read)
+          call manipulate_wfn_data('save')
+          exit
+       else if(iter_line==Nopt_line) then
+          if(comm_is_root(nproc_id_global)) then
+             write(*,*) "Not Converged(line search opt) in perpendicular-step",iter_perp
+             write(*,*) "==================================================="
+          endif
+          exit
+       endif
+
+       !(update three points: current min and two closest points)
+       call update_three_points_for_line_min(StepLen_LineSearch,    Eall_3points, &
+                                          &  StepLen_LineSearch_min,Eall_min)
+
+       !(preparation for next cycle)
+       call manipulate_wfn_data('load')
+       Eall_prev_line = Eall_min
+
+    enddo
+
+    !Force calculation
+    ! Note: force by field is zero now, i.e. E_tot=0 and force_ion=0
+    call Ion_Force_omp(rion_update_on,calc_mode_gs)
+    !call Total_Energy_omp(rion_update_on,calc_mode_gs)
+    call cal_mean_max_forces(NI,force,fave,fmax)
+    if(comm_is_root(nproc_id_global)) &
+    &  write(*,120) " Max-force=", fmax, "  Mean-force=", fave
+
+    !Judge Convergence
+    dEall = Eall - Eall_prev
+    if(comm_is_root(nproc_id_global)) &
+    &  write(*,135) iter_perp, iter_line, Eall, dEall
+    if(abs(dEall) .le. dE_conv) then
+       if(comm_is_root(nproc_id_global)) then
+          write(*,*) "Optimization Converged",iter_perp,real(Eall),real(dEall)
+          write(*,*) "==================================================="
+       endif
+       exit
+    else if(iter_perp==Nopt_perp) then
+       if(comm_is_root(nproc_id_global)) then
+          write(*,*) "Optimization Did Not Converged",iter_perp,real(Eall),real(dEall)
+          write(*,*) "==================================================="
+       endif
+    endif
+
+
+    !Update search direction vector for perpendicular step
+    do i=1,NI
+    do j=1,3
+       k=3*(i-1)+j
+       force_1d(k)      = force(j,i)
+       force_prev_1d(k) = force_prev(j,i)
+    enddo
+    enddo
+    call cal_inner_product(3*NI,force_1d,force_1d,tmp1)
+    call cal_inner_product(3*NI,force_prev_1d,force_prev_1d,tmp2)
+    call cal_inner_product(3*NI,force_1d,force_prev_1d,tmp3)
+    !gm = tmp1/tmp2         !(by Fletcher-Reeves)
+    gm = (tmp1-tmp3)/tmp2   !(by Polak-Ribiere)
+    SearchDirection(:,:) = force(:,:) + gm * SearchDirection(:,:)
+
+  enddo !end of opt iteraction========================
+
+  !if(comm_is_root(nproc_id_global)) then
+  !  close(7)
+  !  close(8)
+  !  close(9)
+  !endif
+
+100 format(a17,3e16.8,a17,e16.8)
+110 format("#opt   step-perp=",i4,"   step-line",i4)
+120 format(a,e14.6,a,e14.6)
+130 format(" step-perp=",i4,"  step-line=",i4,"  E=",e16.8,"  dE-line=",e16.8)
+135 format(" step-perp=",i4,"  step-line=",i4,"  E=",e16.8,"  dE-perp=",e16.8)
+
+contains
+    
+  subroutine manipulate_wfn_data(action)
+    implicit none
+    character(4)   :: action
+    character(256) :: gs_wfn_directory, gs_wfn_file, occ_file
+    character(256) :: gs_wfn_file_save, occ_file_save
+    integer,parameter :: nfile_gs_wfn      =  41
+    integer,parameter :: nfile_gs_wfn_save = 141
+    integer,parameter :: nfile_occ      =  42
+    integer,parameter :: nfile_occ_save = 142
+    integer :: ik
+    integer :: nproc_group_kpoint_ms
+    integer :: nproc_id_kpoint_ms
+    integer :: nproc_size_kpoint_ms
+
+    write (gs_wfn_directory,'(A,A)') trim(directory),'/gs_wfn_k/'
+
+    if(comm_is_root(nproc_id_global))then
+       occ_file      = trim(gs_wfn_directory)//'occupation'
+       occ_file_save = trim(gs_wfn_directory)//'occupation_save'
+       open(nfile_occ,     file=trim(occ_file),     form='unformatted')
+       open(nfile_occ_save,file=trim(occ_file_save),form='unformatted')
+       if(action=='save') then
+          read(nfile_occ)occ
+          call comm_bcast(occ,nproc_group_global)
+          write(nfile_occ_save)occ
+       else if(action=='load') then
+          read(nfile_occ_save)occ
+          call comm_bcast(occ,nproc_group_global)
+          write(nfile_occ)occ
+       endif
+       close(nfile_occ)
+       close(nfile_occ_save)
+    end if
+
+    do ik=NK_s,NK_e
+       write(gs_wfn_file,     '(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
+       write(gs_wfn_file_save,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn_save'
+       open(nfile_gs_wfn,     file=trim(gs_wfn_file),     form='unformatted')
+       open(nfile_gs_wfn_save,file=trim(gs_wfn_file_save),form='unformatted')
+       if(action=='save') then
+          read( nfile_gs_wfn)     zu_GS(:,:,ik)
+          write(nfile_gs_wfn_save)zu_GS(:,:,ik)
+       else if(action=='load') then
+          read( nfile_gs_wfn_save)zu_GS(:,:,ik)
+          write(nfile_gs_wfn)     zu_GS(:,:,ik)
+       endif
+       close(nfile_gs_wfn)
+       close(nfile_gs_wfn_save)
+     end do
+
+
+    if(action=='save')return
+
+    zu_GS0(:,:,:)=zu_GS(:,:,:)
+    zu_t(:,:,:)=zu_GS(:,1:NBoccmax,:)
+    Rion_eq=Rion
+    dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
+    call psi_rho_GS
+    call Hartree
+    call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
+
+    Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
+    Vloc_GS(:)=Vloc(:)
+    call Total_Energy_omp(rion_update_on,calc_mode_gs)
+    call Ion_Force_omp(rion_update_on,calc_mode_gs)
+    Eall0=Eall
+
+  end subroutine
+
+  subroutine get_minimum_by_interpolation(sl,ene,sl_min)
+    implicit none
+    real(8) :: sl(3),ene(3),sl_min,tmpA,tmpB,tmp21,tmp23,tmp21e,tmp23e
+
+    tmp21  = sl(2)-sl(1) 
+    tmp21e = ene(2) - ene(1)
+    tmp23  = sl(2)-sl(3)
+    tmp23e = ene(2) - ene(3)
+    tmpA   = (tmp21**2)*tmp23e - (tmp23**2)*tmp21e
+    tmpB   = tmp21*tmp23e - tmp23*tmp21e
+    sl_min = sl(2) - 0.5d0 * tmpA / tmpB
+
+    return
+  end subroutine
+
+  subroutine update_three_points_for_line_min(sl,ene,sl_add,ene_add)
+    implicit none
+    integer i,i1,i3,imin
+    real(8) :: sl_old(3),ene_old(3), sl_add,ene_add, sl_new(3),ene_new(3)
+    real(8) :: sl(3),ene(3),sl4(4),ene4(4), dsl,dsl_min1, dsl_min3, ene_lowest
+
+    sl_old(:)  = sl(:)
+    ene_old(:) = ene(:)
+ 
+    !(pick up lowest energy point among four(3points+min) as new middle point)
+    sl4(1:3)  = sl_old(1:3)
+    sl4(4)    = sl_add
+    ene4(1:3) = ene_old(1:3)
+    ene4(4)   = ene_add
+
+    ene_lowest=1d99
+    do i=1,4
+       if(ene4(i).le.ene_lowest)then
+          imin=i
+          ene_lowest=ene4(imin)
+       endif
+    enddo
+    sl_new(2)  = sl4(imin)
+    ene_new(2) = ene4(imin)
+
+    dsl_min1=1d99
+    dsl_min3=1d99
+    do i=1,4
+       if(i==imin) cycle
+       dsl = sl4(i)-sl4(imin)
+       if(dsl.lt.0d0)then
+          if(abs(dsl).le.dsl_min1)then
+             dsl_min1 = abs(dsl)
+             i1 = i
+          endif
+       endif
+       if(dsl.gt.0d0)then
+          if(abs(dsl).le.dsl_min3)then
+             dsl_min3 = abs(dsl)
+             i3 = i
+          endif
+       endif
+    enddo
+    sl_new(1)  = sl4(i1)
+    ene_new(1) = ene4(i1)
+    sl_new(3)  = sl4(i3)
+    ene_new(3) = ene4(i3)
+
+    sl(:)  = sl_new(:)
+    ene(:) = ene_new(:)
+
+    return
+  end subroutine
+
+  subroutine cal_inner_product(n,vec1,vec2,inner_product)
+    implicit none
+    integer :: i,n
+    real(8) :: vec1(n),vec2(n),inner_product
+    inner_product=0d0
+    do i=1,n
+       inner_product = inner_product + vec1(i)*vec2(i)
+    enddo
+    return
+  end subroutine
+
+  subroutine cal_mean_max_forces(NI,f,fave,fmax)
+    implicit none
+    integer ia,NI
+    real(8) :: f(3,NI),fave,fmax,fabs
+    fmax = 0d0
+    fave = 0d0
+    do ia=1,NI
+       fabs = f(1,ia)**2 + f(2,ia)**2 + f(3,ia)**2
+       fave = fave + fabs
+       if(fabs .ge. fmax) fmax = fabs
+    enddo
+    fmax = sqrt(fmax)
+    fave = sqrt(fave/NI)
+  end subroutine
+
+end subroutine calc_opt_ground_state
+
+subroutine write_xyz(NI,Rion,comment,action)
+  use inputoutput, only: au_length_aa
+  use salmon_global, only: SYSname,iflag_atom_coor,ntype_atom_coor_cartesian,ntype_atom_coor_reduced
+  use salmon_parallel, only: nproc_id_global
+  use salmon_communication, only: comm_is_root
+  implicit none
+  integer :: ia,NI,unit_xyz=200,unit_atomic_coor_tmp=201
+  real(8) :: Rion(3,NI)
+  character(3) :: action
+  character(100)  :: char_atom,atom_name
+  character(1024) :: file_trj
+  character(*) :: comment
+
+  if(.not. comm_is_root(nproc_id_global)) return
+
+  select case(iflag_atom_coor)
+  case(ntype_atom_coor_cartesian)
+     open(unit_atomic_coor_tmp,file='.atomic_coor.tmp',status='old')
+  case(ntype_atom_coor_reduced)
+     open(unit_atomic_coor_tmp,file='.atomic_red_coor.tmp',status='old')
+  end select
+
+  file_trj=trim(SYSname)//'_trj.xyz'
+  open(unit_xyz,file=trim(file_trj),status="unknown")
+
+  if(action=='new') goto 1
+  if(action=='add') then
+     do
+        read(unit_xyz,*,end=1)
+     enddo
+  endif
+
+1 write(unit_xyz,*) NI
+  write(unit_xyz,*) trim(comment)
+  do ia=1,NI
+     read(unit_atomic_coor_tmp,*) char_atom
+     atom_name = char_atom(1:len_trim(char_atom))
+     write(unit_xyz,100) trim(atom_name), Rion(1:3,ia)*au_length_aa
+  enddo
+
+  close(unit_xyz) 
+  close(unit_atomic_coor_tmp)
+
+100 format(a2,3f18.10)
+
+end subroutine write_xyz
+
 end module control_sc

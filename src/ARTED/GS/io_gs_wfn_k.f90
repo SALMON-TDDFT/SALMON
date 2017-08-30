@@ -99,7 +99,7 @@ contains
     call Total_Energy_omp(rion_update_on,calc_mode_gs)
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     Eall0=Eall
-    if(comm_is_root(nproc_id_global)) write(*,*) 'Eall =',Eall
+    if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'Eall =',Eall
 
 
   end subroutine read_write_gs_wfn_k

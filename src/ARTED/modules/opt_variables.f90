@@ -137,7 +137,8 @@ contains
     zifdz(-4:4,0:NL-1) = ifdz(-4:4,1:NL) - 1
 #endif
 
-    allocate(zJxyz(Nps,NI))
+    if(.not. allocated(zJxyz)) allocate(zJxyz(Nps,NI))  !AY see subroutine prep_ps_periodic
+    !allocate(zJxyz(Nps,NI))
 
     zJxyz(1:Nps,1:NI) = Jxyz(1:Nps,1:NI) - 1
 

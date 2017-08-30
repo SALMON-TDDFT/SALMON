@@ -32,14 +32,20 @@ contains
     rho_in(1:NL,1:Nscf+1)=0.d0; rho_out(1:NL,1:Nscf+1)=0.d0
     allocate(Eall_GS(0:Nscf),esp_var_ave(1:Nscf),esp_var_max(1:Nscf),dns_diff(1:Nscf))
     
-    call init_wf
-    call Gram_Schmidt
-    rho=0.d0; Vh=0.d0
+    if(iflag_gs_init_wf==0) then  !case that initial guess is generated with random number
+      call init_wf
+      call Gram_Schmidt
+      rho=0.d0; Vh=0.d0
     
-    call psi_rho_GS !sym
-    rho_in(1:NL,1)=rho(1:NL)
+      call psi_rho_GS !sym
+      rho_in(1:NL,1)=rho(1:NL)
+
+      call Hartree
     
-    call Hartree
+    else if(iflag_gs_init_wf==1) then  !case that initial guess is already read from files
+      rho_in(1:NL,1)=rho(1:NL)
+    endif
+
     functional_t = functional
     if(functional_t == 'TBmBJ' .or. functional_t == 'BJ_PW') functional = 'PZM'
     call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
@@ -51,7 +57,7 @@ contains
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     Eall_GS(0)=Eall
 
-    if(comm_is_root(nproc_id_global)) then
+    if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
        write(*,*) 'This is the end of preparation for ground state calculation'
        call timer_show_current_hour('elapse time=',LOG_ALL)
        write(*,*) '-----------------------------------------------------------'
@@ -60,7 +66,7 @@ contains
     call reset_gs_timer
     call timer_begin(LOG_GROUND_STATE)
     do iter=1,Nscf
-       if (comm_is_root(nproc_id_global))  write(*,*) 'iter = ',iter
+       if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'iter = ',iter
        if( kbTev < 0d0 )then ! sato
           if (FSset_option == 'Y') then
              if (iter/NFSset_every*NFSset_every == iter .and. iter >= NFSset_start) then
@@ -73,7 +79,7 @@ contains
                 if (minval(esp_cb_min(:))-maxval(esp_vb_max(:))<0.d0) then
                    call Occupation_Redistribution
                 else
-                   if (comm_is_root(nproc_id_global)) then
+                   if (PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
                       write(*,*) '======================================='
                       write(*,*) 'occupation redistribution is not needed'
                       write(*,*) '======================================='
@@ -119,8 +125,8 @@ contains
        esp_var_ave(iter)=sum(esp_var(:,:))/(NK*Nelec/2)
        esp_var_max(iter)=maxval(esp_var(:,:))
        dns_diff(iter)=sqrt(sum((rho_out(:,iter)-rho_in(:,iter))**2))*Hxyz
-       
-       if (comm_is_root(nproc_id_global)) then
+
+       if (PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
           write(*,*) 'Total Energy = ',Eall_GS(iter),Eall_GS(iter)-Eall_GS(iter-1)
           write(*,'(a28,3e15.6)') 'jav(1),jav(2),jav(3)= ',jav(1),jav(2),jav(3)
           write(*,'(4(i3,f12.6,2x))') (ib,esp(ib,1),ib=1,NB)
@@ -135,10 +141,25 @@ contains
           end if
           write(*,*) '-----------------------------------------------'
        end if
+
+       !(exit if energy difference is below threshold: only if set convrg_scf_Eall>0)
+       if( abs(Eall_GS(iter)-Eall_GS(iter-1)) .le. convrg_scf_ene ) then
+          if(kbTev >= 0d0) then
+             if(comm_is_root(nproc_id_global)) &
+             & write(*,*) "sorry, occ.out was not generated" !(fix if need)
+          endif
+          !if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
+          if(comm_is_root(nproc_id_global)) then
+             write(*,'(a,i4,a,e18.10)') " GS converged at",iter," : dEall_GS=", &
+                                      & abs(Eall_GS(iter)-Eall_GS(iter-1))
+          endif
+          exit
+       endif
+
     end do
     call timer_end(LOG_GROUND_STATE)
-    
-    if(comm_is_root(nproc_id_global)) then
+
+    if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
        call timer_show_hour('Ground State time  :', LOG_GROUND_STATE)
        call timer_show_min ('CG time            :', LOG_CG)
        call timer_show_min ('Gram Schmidt time  :', LOG_GRAM_SCHMIDT)
@@ -154,7 +175,7 @@ contains
        call timer_show_min ('Total_Energy time  :', LOG_TOTAL_ENERGY)
        call timer_show_min ('Ion_Force time     :', LOG_ION_FORCE)
     end if
-    if(comm_is_root(nproc_id_global)) then
+    if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
        write(*,*) 'This is the end of GS calculation'
        call timer_show_current_hour('elapse time=',LOG_ALL)
        write(*,*) '-----------------------------------------------------------'
@@ -174,15 +195,16 @@ contains
     Vloc_GS(:)=Vloc(:)
     call Total_Energy_omp(rion_update_off,calc_mode_gs)
     Eall0=Eall
-    if(comm_is_root(nproc_id_global)) write(*,*) 'Eall =',Eall
-    
+    if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*) 'Eall =',Eall
+
     call timer_end(LOG_STATIC)
-    if (comm_is_root(nproc_id_global)) then
+    if (PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
        write(*,*) '-----------------------------------------------'
        call timer_show_min('static time=',LOG_STATIC)
        write(*,*) '-----------------------------------------------'
     end if
-    
+
+    if(PrLv_scf==3) then
     if (comm_is_root(nproc_id_global)) then
        write(*,*) '-----------------------------------------------'
        write(*,*) '----some information for Band map--------------'
@@ -203,8 +225,8 @@ contains
        write(*,*) '-----------------------------------------------'
        write(*,*) '-----------------------------------------------'
     end if
-    
     call write_GS_data
+    endif
     
     deallocate(rho_in,rho_out)
     deallocate(Eall_GS,esp_var_ave,esp_var_max,dns_diff)

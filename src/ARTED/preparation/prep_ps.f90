@@ -21,6 +21,7 @@ Subroutine prep_ps_periodic(property)
   use Global_Variables
   use salmon_parallel, only: nproc_id_global, nproc_group_tdks
   use salmon_communication, only: comm_summation, comm_is_root
+  use opt_variables, only: zJxyz,zKxyz,init_for_padding
   implicit none
   character(11) :: property
   integer :: ik,n,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
@@ -39,6 +40,7 @@ Subroutine prep_ps_periodic(property)
   real(8) :: ratio1,ratio2,rc
   if(property == 'not_initial') then
     deallocate(a_tbl,uV,duV,iuV,Jxyz,Jxx,Jyy,Jzz)
+    deallocate(zJxyz) ! AY
     deallocate(ekr) ! sato
     deallocate(ekr_omp)
   end if
@@ -142,6 +144,9 @@ Subroutine prep_ps_periodic(property)
   allocate(Jxyz(Nps,NI),Jxx(Nps,NI),Jyy(Nps,NI),Jzz(Nps,NI))
   allocate(ekr(Nps,NI)) ! sato
   allocate(ekr_omp(Nps,NI,NK_s:NK_e))
+!  if(property == 'not_initial') allocate(zJxyz(Nps,NI))   !AY
+  allocate(zJxyz(Nps,NI))  !AY (NOTE: zJxyz is allocated in opt_var... I don't know if this fix is good way)
+
 
   do a=1,NI
     ik=Kion(a)
@@ -168,6 +173,14 @@ Subroutine prep_ps_periodic(property)
     enddo
     enddo
   end do
+  !AY
+  if(property == 'not_initial') then
+     zJxyz(1:Nps,1:NI) = Jxyz(1:Nps,1:NI) - 1
+#ifdef ARTED_STENCIL_PADDING
+     deallocate(zKxyz)
+     call init_for_padding
+#endif
+  endif
 
   lma=0
   do a=1,NI
