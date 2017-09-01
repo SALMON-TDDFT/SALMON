@@ -33,9 +33,9 @@ module salmon_communication
   public :: comm_irecv
   public :: comm_wait
   public :: comm_wait_all
-  !public :: comm_send_init
-  !public :: comm_recv_init
-  !public :: comm_start_all
+  public :: comm_send_init
+  public :: comm_recv_init
+  public :: comm_start_all
 
   ! collective communication
   public :: comm_sync_all
@@ -99,6 +99,18 @@ module salmon_communication
     ! 5-D array
     module procedure comm_irecv_array5d_double
     module procedure comm_irecv_array5d_dcomplex
+  end interface
+
+  interface comm_send_init
+    ! 5-D array
+    module procedure comm_send_init_array5d_double
+    module procedure comm_send_init_array5d_dcomplex
+  end interface
+
+  interface comm_recv_init
+    ! 5-D array
+    module procedure comm_recv_init_array5d_double
+    module procedure comm_recv_init_array5d_dcomplex
   end interface
 
   interface comm_summation
@@ -426,6 +438,61 @@ contains
     integer, intent(in) :: reqs(:)
     UNUSED_VARIABLE(reqs)
     ! do nothing
+  end subroutine
+
+
+  function comm_send_init_array5d_double(invalue, ndest, ntag, ngroup) result(req)
+    implicit none
+    real(8), intent(in) :: invalue(:,:,:,:,:)
+    integer, intent(in) :: ndest, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(invalue)
+    UNUSED_VARIABLE(ndest)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
+  function comm_send_init_array5d_dcomplex(invalue, ndest, ntag, ngroup) result(req)
+    implicit none
+    complex(8), intent(in) :: invalue(:,:,:,:,:)
+    integer, intent(in)    :: ndest, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(invalue)
+    UNUSED_VARIABLE(ndest)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
+  function comm_recv_init_array5d_double(outvalue, nsrc, ntag, ngroup) result(req)
+    implicit none
+    real(8), intent(out) :: outvalue(:,:,:,:,:)
+    integer, intent(in)  :: nsrc, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(outvalue)
+    UNUSED_VARIABLE(nsrc)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
+  function comm_recv_init_array5d_dcomplex(outvalue, nsrc, ntag, ngroup) result(req)
+    implicit none
+    complex(8), intent(out) :: outvalue(:,:,:,:,:)
+    integer, intent(in)     :: nsrc, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(outvalue)
+    UNUSED_VARIABLE(nsrc)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
+  subroutine comm_start_all(reqs)
+    implicit none
+    integer, intent(in) :: reqs(:)
+    UNUSED_VARIABLE(reqs)
   end subroutine
 
 
