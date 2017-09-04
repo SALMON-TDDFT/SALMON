@@ -11,6 +11,10 @@
 # temporary namelist
 *.tmp
 
+# Automatically created header files
+*version.h
+*versionf.h
+
 
 ######################################################
 # Created by https://www.gitignore.io/api/c,cmake,fortran
