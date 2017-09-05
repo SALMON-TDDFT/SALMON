@@ -16,8 +16,11 @@
 module persistent_comm
   use pack_unpack, only: array_shape
 
-integer,allocatable :: nreqs_rgroupob(:),nreqs_cgroupob(:)
+  integer,public,allocatable :: nreqs_rh(:,:)
+  integer,public,allocatable :: nreqs_rorbital(:),nreqs_corbital(:)
+  integer,public,allocatable :: nreqs_rgroupob(:),nreqs_cgroupob(:)
 
+  type(array_shape),public,allocatable :: nshape_orbital(:)
   type(array_shape),public,allocatable :: nshape_groupob(:),nrange_groupob(:,:)
 
   public :: init_persistent_requests
@@ -27,7 +30,58 @@ contains
   subroutine init_persistent_requests
     implicit none
 
+    call init_comm_orbital
     call init_comm_groupob
+  end subroutine
+
+  subroutine init_comm_orbital
+    use init_sendrecv_sub,    only: iup_array,idw_array,jup_array,jdw_array,kup_array,kdw_array
+    use salmon_parallel,      only: icomm => nproc_group_orbital
+    use salmon_communication, only: comm_send_init, comm_recv_init
+    use pack_unpack,          only: create_array_shape
+    use scf_data
+    implicit none
+    integer :: iup,idw,jup,jdw,kup,kdw
+
+    iup=iup_array(1)
+    idw=idw_array(1)
+    jup=jup_array(1)
+    jdw=jdw_array(1)
+    kup=kup_array(1)
+    kdw=kdw_array(1)
+
+    allocate(nreqs_rorbital(12))
+    nreqs_rorbital( 1) = comm_send_init(srmatbox1_x_3d,iup,3,icomm)
+    nreqs_rorbital( 2) = comm_recv_init(srmatbox2_x_3d,idw,3,icomm)
+    nreqs_rorbital( 3) = comm_send_init(srmatbox3_x_3d,idw,4,icomm)
+    nreqs_rorbital( 4) = comm_recv_init(srmatbox4_x_3d,iup,4,icomm)
+    nreqs_rorbital( 5) = comm_send_init(srmatbox1_y_3d,jup,5,icomm)
+    nreqs_rorbital( 6) = comm_recv_init(srmatbox2_y_3d,jdw,5,icomm)
+    nreqs_rorbital( 7) = comm_send_init(srmatbox3_y_3d,jdw,6,icomm)
+    nreqs_rorbital( 8) = comm_recv_init(srmatbox4_y_3d,jup,6,icomm)
+    nreqs_rorbital( 9) = comm_send_init(srmatbox1_z_3d,kup,7,icomm)
+    nreqs_rorbital(10) = comm_recv_init(srmatbox2_z_3d,kdw,7,icomm)
+    nreqs_rorbital(11) = comm_send_init(srmatbox3_z_3d,kdw,8,icomm)
+    nreqs_rorbital(12) = comm_recv_init(srmatbox4_z_3d,kup,8,icomm)
+
+    allocate(nreqs_corbital(12))
+    nreqs_corbital( 1) = comm_send_init(scmatbox1_x_3d,iup,3,icomm)
+    nreqs_corbital( 2) = comm_recv_init(scmatbox2_x_3d,idw,3,icomm)
+    nreqs_corbital( 3) = comm_send_init(scmatbox3_x_3d,idw,4,icomm)
+    nreqs_corbital( 4) = comm_recv_init(scmatbox4_x_3d,iup,4,icomm)
+    nreqs_corbital( 5) = comm_send_init(scmatbox1_y_3d,jup,5,icomm)
+    nreqs_corbital( 6) = comm_recv_init(scmatbox2_y_3d,jdw,5,icomm)
+    nreqs_corbital( 7) = comm_send_init(scmatbox3_y_3d,jdw,6,icomm)
+    nreqs_corbital( 8) = comm_recv_init(scmatbox4_y_3d,jup,6,icomm)
+    nreqs_corbital( 9) = comm_send_init(scmatbox1_z_3d,kup,7,icomm)
+    nreqs_corbital(10) = comm_recv_init(scmatbox2_z_3d,kdw,7,icomm)
+    nreqs_corbital(11) = comm_send_init(scmatbox3_z_3d,kdw,8,icomm)
+    nreqs_corbital(12) = comm_recv_init(scmatbox4_z_3d,kup,8,icomm)
+
+    allocate(nshape_orbital(3))
+    nshape_orbital(1) = create_array_shape(mg_sta(1)-Nd, mg_end(1)+Nd)
+    nshape_orbital(2) = create_array_shape(mg_sta(2)-Nd, mg_end(2)+Nd)
+    nshape_orbital(3) = create_array_shape(mg_sta(3)-Nd, mg_end(3)+Nd)
   end subroutine
 
   subroutine init_comm_groupob
