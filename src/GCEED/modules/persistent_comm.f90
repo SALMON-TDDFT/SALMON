@@ -32,6 +32,7 @@ contains
 
     call init_comm_orbital
     call init_comm_groupob
+    call init_comm_h
   end subroutine
 
   subroutine init_comm_orbital
@@ -188,5 +189,51 @@ contains
     nrange_groupob(1,12) = create_array_shape(mg_sta(1),  mg_sta(1)+mg_num(1)-1)
     nrange_groupob(2,12) = create_array_shape(mg_sta(2),  mg_sta(2)+mg_num(2)-1)
     nrange_groupob(3,12) = create_array_shape(mg_end(3)+1,mg_end(3)+Nd)
+  end subroutine
+
+  subroutine init_comm_h
+    implicit none
+
+    allocate(nreqs_rh(12,4))
+    call init_reqs_h(nreqs_rh(:,1),1)
+    call init_reqs_h(nreqs_rh(:,2),2)
+    call init_reqs_h(nreqs_rh(:,4),4)
+  end subroutine
+
+  subroutine init_reqs_h(ireqs,itype)
+    use init_sendrecv_sub
+    use salmon_parallel,      only: nproc_group_global, nproc_group_h
+    use salmon_communication, only: comm_send_init, comm_recv_init
+    implicit none
+    integer, intent(out) :: ireqs(12)
+    integer, intent(in)  :: itype
+    integer :: icomm
+    integer :: iup,idw,jup,jdw,kup,kdw
+
+    iup=iup_array(itype)
+    idw=idw_array(itype)
+    jup=jup_array(itype)
+    jdw=jdw_array(itype)
+    kup=kup_array(itype)
+    kdw=kdw_array(itype)
+
+    if (itype == 1) then
+      icomm = nproc_group_global
+    else
+      icomm = nproc_group_h
+    end if
+
+    ireqs( 1) = comm_send_init(rmatbox1_x_h,iup,3,icomm)
+    ireqs( 2) = comm_recv_init(rmatbox2_x_h,idw,3,icomm)
+    ireqs( 3) = comm_send_init(rmatbox3_x_h,idw,4,icomm)
+    ireqs( 4) = comm_recv_init(rmatbox4_x_h,iup,4,icomm)
+    ireqs( 5) = comm_send_init(rmatbox1_y_h,jup,5,icomm)
+    ireqs( 6) = comm_recv_init(rmatbox2_y_h,jdw,5,icomm)
+    ireqs( 7) = comm_send_init(rmatbox3_y_h,jdw,6,icomm)
+    ireqs( 8) = comm_recv_init(rmatbox4_y_h,jup,6,icomm)
+    ireqs( 9) = comm_send_init(rmatbox1_z_h,kup,7,icomm)
+    ireqs(10) = comm_recv_init(rmatbox2_z_h,kdw,7,icomm)
+    ireqs(11) = comm_send_init(rmatbox3_z_h,kdw,8,icomm)
+    ireqs(12) = comm_recv_init(rmatbox4_z_h,kup,8,icomm)
   end subroutine
 end module
