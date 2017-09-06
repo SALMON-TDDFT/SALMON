@@ -1,5 +1,4 @@
-OBJDIR = build_temp
-
+OBJDIR = $(SALMON)/build_temp
 
 ifdef SIMD_SET
 C_SRC_STENCIL_FILE=\
@@ -27,83 +26,89 @@ H_IN_VERSION_FILE=version.h.in versionf.h.in
 
 
 
-
-F_SRC_PARALLEL=$(addprefix src/parallel/, \
+F_SRC_PARALLEL=$(addprefix $(SALMON)/src/parallel/, \
 	$(F_SRC_COMM_FILE) \
 	salmon_parallel.f90 \
 )
 
-F_SRC_IO=$(addprefix src/io/, \
+F_SRC_IO=$(addprefix $(SALMON)/src/io/, \
 	salmon_file.f90 \
 	salmon_global.f90 \
 	inputoutput.f90 \
 )
 
-F_SRC_MATH=$(addprefix src/math/, \
+F_SRC_MATH=$(addprefix $(SALMON)/src/math/, \
 	salmon_math.f90 \
 )
 
-F_SRC_RT=$(addprefix src/rt/, \
+F_SRC_RT=$(addprefix $(SALMON)/src/rt/, \
 )
 
-F_SRC_ATOM=$(addprefix src/atom/, \
+F_SRC_ATOM=$(addprefix $(SALMON)/src/atom/, \
 )
 
-F_SRC_MAXWELL=$(addprefix src/maxwell/, \
+F_SRC_MAXWELL=$(addprefix $(SALMON)/src/maxwell/, \
 )
 
-F_SRC_GS=$(addprefix src/gs/, \
+F_SRC_GS=$(addprefix $(SALMON)/src/gs/, \
 )
 
-F_SRC_XC=$(addprefix src/xc/, \
+F_SRC_XC=$(addprefix $(SALMON)/src/xc/, \
 	exc_cor.f90 \
 )
 
-F_SRC_POISSON=$(addprefix src/poisson/, \
+F_SRC_POISSON=$(addprefix $(SALMON)/src/poisson/, \
 )
 
-F_SRC_MISC=$(addprefix src/misc/, \
+F_SRC_MISC=$(addprefix $(SALMON)/src/misc/, \
+	backup_routines.f90 \
 	misc_routines.f90 \
+	unusedvar.f90 \
+	timer.f90 \
 )
 
-F_SRC_ARTED=$(addprefix src/ARTED/, \
+F_SRC_COMMON=$(addprefix $(SALMON)/src/common/, \
+	stencil.f90 \
+	update_overlap.f90 \
+	hpsi.f90 \
+)
+
+F_SRC_ARTED=$(addprefix $(SALMON)/src/ARTED/, \
 	common/Ylm_dYlm.f90 \
 	common/preprocessor.f90 \
-	modules/backup_routines.f90 \
 	modules/env_variables.f90 \
 	modules/global_variables.f90 \
 	modules/nvtx.f90 \
+	FDTD/FDTD.f90 \
 	FDTD/beam.f90 \
 	GS/Density_Update.f90 \
 	GS/Fermi_Dirac_distribution.f90 \
+	GS/Gram_Schmidt.f90 \
 	GS/Occupation_Redistribution.f90 \
 	GS/io_gs_wfn_k.f90 \
 	GS/write_GS_data.f90 \
 	RT/Fourier_tr.f90 \
 	RT/init_Ac.f90 \
 	RT/k_shift_wf.f90 \
+	common/Exc_Cor.f90 \
+	common/Hartree.f90 \
 	common/density_plot.f90 \
+	common/ion_force.f90 \
+	control/ground_state.f90 \
 	control/inputfile.f90 \
 	modules/opt_variables.f90 \
-	modules/timer.f90 \
+	modules/performance_analyzer.f90 \
 	preparation/fd_coef.f90 \
 	preparation/init.f90 \
 	preparation/init_wf.f90 \
 	preparation/input_ps.f90 \
-	preparation/prep_ps.f90 \
-	FDTD/FDTD.f90 \
-	GS/Gram_Schmidt.f90 \
 	RT/current.f90 \
 	RT/dt_evolve.f90 \
-	common/Exc_Cor.f90 \
-	common/Hartree.f90 \
 	common/hpsi.f90 \
-	common/ion_force.f90 \
 	common/psi_rho.f90 \
 	common/restart.f90 \
 	common/total_energy.f90 \
-	control/ground_state.f90 \
-	modules/performance_analyzer.f90 \
+	preparation/prep_ps.f90 \
 	$(F_SRC_STENCIL_FILE) \
 	GS/CG.f90 \
 	GS/diag.f90 \
@@ -115,7 +120,7 @@ F_SRC_ARTED=$(addprefix src/ARTED/, \
 	main.f90 \
 )
 
-F_SRC_GCEED=$(addprefix src/GCEED/, \
+F_SRC_GCEED=$(addprefix $(SALMON)/src/GCEED/, \
 	common/calc_iquotient.f90 \
 	common/calc_ob_num.f90 \
 	common/check_cep.f90 \
@@ -243,16 +248,17 @@ F_SRC_GCEED=$(addprefix src/GCEED/, \
 	scf/real_space_dft.f90 \
 )
 
-F_SRC=$(addprefix src/, \
+F_SRC=$(addprefix $(SALMON)/src/, \
 	main.f90 \
 )
 
-F_SRCS=\
-	$(F_SRC_PARALLEL) $(F_SRC_IO) $(F_SRC_MATH) $(F_SRC_RT) $(F_SRC_ATOM) \
-	$(F_SRC_MAXWELL) $(F_SRC_GS) $(F_SRC_XC) $(F_SRC_POISSON) $(F_SRC_MISC) \
-	$(F_SRC_ARTED) $(F_SRC_GCEED) $(F_SRC)
+F_SRCS=$(F_SRC_PARALLEL) $(F_SRC_IO) $(F_SRC_MATH) $(F_SRC_RT) $(F_SRC_ATOM) $(F_SRC_MAXWELL) $(F_SRC_GS) $(F_SRC_XC) $(F_SRC_POISSON) $(F_SRC_MISC) $(F_SRC_COMMON) $(F_SRC_ARTED) $(F_SRC_GCEED) $(F_SRC) 
 
-C_SRCS=$(addprefix src/ARTED/, \
+
+
+
+
+C_SRCS=$(addprefix $(SALMON)/src/ARTED/, \
 	$(C_SRC_STENCIL_FILE) \
 	modules/env_variables_internal.c \
 )
@@ -260,7 +266,7 @@ C_SRCS=$(addprefix src/ARTED/, \
 F_OBJS = $(addprefix $(OBJDIR)/,$(F_SRCS:.f90=.o))
 C_OBJS = $(addprefix $(OBJDIR)/,$(C_SRCS:.c=.o))
 
-H_IN_VERSION=$(addprefix src/, $(H_IN_VERSION_FILE))
+H_IN_VERSION=$(addprefix $(SALMON)/src/, $(H_IN_VERSION_FILE))
 H_VERSION=$(addprefix $(OBJDIR)/, $(H_IN_VERSION_FILE:.h.in=.h))
 
 .PHONY: all clean
@@ -281,7 +287,7 @@ $(OBJDIR)/%.o: %.c $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR)  
 
-$(OBJDIR)/%.h: src/%.h.in
+$(OBJDIR)/%.h: $(SALMON)/src/%.h.in
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	cat $< \
 	| sed  -e "/cmakedefine/d" \

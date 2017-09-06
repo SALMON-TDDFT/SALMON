@@ -11,4 +11,6 @@ LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
 MODULE_SWITCH = -M
 COMM_SET =
 
-include $(dir $(abspath $(lastword $(MAKEFILE_LIST))))/make.body
+SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
+
+include $(SALMON)/makefiles/make.body

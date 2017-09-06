@@ -14,4 +14,6 @@ SIMD_SET = AVX
 MODULE_SWITCH = -module
 COMM_SET =
 
-include $(dir $(abspath $(lastword $(MAKEFILE_LIST))))/make.body
+SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
+
+include $(SALMON)/makefiles/make.body
