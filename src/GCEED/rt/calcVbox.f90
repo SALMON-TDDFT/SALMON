@@ -136,7 +136,7 @@ SUBROUTINE calcVbox
         end do
         end do
       end if
-      if(dt*dble(itt)-t1_t2 >= 1.d-12 .and. dt*dble(itt)-t1_t2 <= pulse_tw2)then
+      if(abs(dt*dble(itt)-0.5d0*pulse_tw1-t1_t2) < 0.5d0*pulse_tw2)then
         ipulse=2
         call calc_env_trigon(ipulse,env_trigon_2)
         !$OMP parallel do collapse(2) private(ix,iy,iz)

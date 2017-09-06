@@ -40,10 +40,10 @@ subroutine calc_env_trigon(ipulse,tenv_trigon)
   else if(ipulse==2)then
     tae_shape=ae_shape2
     ! cos(theta1)**2
-    theta1=Pi/pulse_tw2*(dble(itt)*dt-t1_t2-0.5d0*pulse_tw2)
+    theta1=Pi/pulse_tw2*(dble(itt)*dt-t1_t2-0.5d0*pulse_tw1)
     alpha=Pi/pulse_tw2
     ! cos(theta2)
-    theta2=omega2*(dble(itt)*dt-t1_t2-0.5d0*pulse_tw2)+phi_cep2*2d0*pi
+    theta2=omega2*(dble(itt)*dt-t1_t2-0.5d0*pulse_tw1)+phi_cep2*2d0*pi
     beta=omega2
   end if
 
