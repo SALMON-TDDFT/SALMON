@@ -1,79 +1,77 @@
+SRCDIR = $(SALMON)/src
 OBJDIR = $(SALMON)/build_temp
 
 ifdef SIMD_SET
-C_SRC_STENCIL_FILE=\
-	stencil/C/$(SIMD_SET)/current.c \
-	stencil/C/$(SIMD_SET)/hpsi.c \
-	stencil/C/$(SIMD_SET)/total_energy.c
-F_SRC_STENCIL_FILE=
+	C_STENCIL_FILE= \
+		stencil/C/$(SIMD_SET)/current.c \
+		stencil/C/$(SIMD_SET)/hpsi.c \
+		stencil/C/$(SIMD_SET)/total_energy.c 
+	F_STENCIL_FILE=
 else
-C_SRC_STENCIL_FILE=
-F_SRC_STENCIL_FILE=\
-	stencil/F90/current.f90 \
-	stencil/F90/hpsi.f90 \
-	stencil/F90/total_energy.f90
+	C_STENCIL_FILE=
+	F_STENCIL_FILE = \
+		stencil/F90/current.f90 \
+		stencil/F90/hpsi.f90 \
+		stencil/F90/total_energy.f90
 endif
 
 ifdef COMM_SET
-F_SRC_COMM_FILE=salmon_communication_$(COMM_SET).f90
+	F_COMM_FILE=salmon_communication_$(COMM_SET).f90
 else
-F_SRC_COMM_FILE=salmon_communication.f90
+	F_COMM_FILE=salmon_communication.f90
 endif
 
-H_IN_VERSION_FILE=version.h.in versionf.h.in
+H_IN_VERSION = $(addprefix $(SRCDIR)/, version.h.in versionf.h.in)
+H_VERSION = $(addprefix $(OBJDIR)/, version.h versionf.h)
 
-
-
-
-
-F_SRC_PARALLEL=$(addprefix $(SALMON)/src/parallel/, \
-	$(F_SRC_COMM_FILE) \
+F_SRC_PARALLEL=$(addprefix parallel/, \
+	$(F_COMM_FILE) \
 	salmon_parallel.f90 \
 )
 
-F_SRC_IO=$(addprefix $(SALMON)/src/io/, \
+F_SRC_IO=$(addprefix io/, \
 	salmon_file.f90 \
 	salmon_global.f90 \
 	inputoutput.f90 \
 )
 
-F_SRC_MATH=$(addprefix $(SALMON)/src/math/, \
+F_SRC_MATH=$(addprefix math/, \
 	salmon_math.f90 \
 )
 
-F_SRC_RT=$(addprefix $(SALMON)/src/rt/, \
+F_SRC_RT=$(addprefix rt/, \
 )
 
-F_SRC_ATOM=$(addprefix $(SALMON)/src/atom/, \
+F_SRC_ATOM=$(addprefix atom/, \
 )
 
-F_SRC_MAXWELL=$(addprefix $(SALMON)/src/maxwell/, \
+F_SRC_MAXWELL=$(addprefix maxwell/, \
 )
 
-F_SRC_GS=$(addprefix $(SALMON)/src/gs/, \
+F_SRC_GS=$(addprefix gs/, \
 )
 
-F_SRC_XC=$(addprefix $(SALMON)/src/xc/, \
+F_SRC_XC=$(addprefix xc/, \
 	exc_cor.f90 \
 )
 
-F_SRC_POISSON=$(addprefix $(SALMON)/src/poisson/, \
+F_SRC_POISSON=$(addprefix poisson/, \
 )
 
-F_SRC_MISC=$(addprefix $(SALMON)/src/misc/, \
+F_SRC_MISC=$(addprefix misc/, \
 	backup_routines.f90 \
 	misc_routines.f90 \
 	unusedvar.f90 \
 	timer.f90 \
 )
 
-F_SRC_COMMON=$(addprefix $(SALMON)/src/common/, \
+F_SRC_COMMON=$(addprefix common/, \
 	stencil.f90 \
 	update_overlap.f90 \
 	hpsi.f90 \
 )
 
-F_SRC_ARTED=$(addprefix $(SALMON)/src/ARTED/, \
+F_SRC_ARTED=$(addprefix ARTED/, \
 	common/Ylm_dYlm.f90 \
 	common/preprocessor.f90 \
 	modules/env_variables.f90 \
@@ -109,7 +107,7 @@ F_SRC_ARTED=$(addprefix $(SALMON)/src/ARTED/, \
 	common/restart.f90 \
 	common/total_energy.f90 \
 	preparation/prep_ps.f90 \
-	$(F_SRC_STENCIL_FILE) \
+	$(F_STENCIL_FILE) \
 	GS/CG.f90 \
 	GS/diag.f90 \
 	GS/sp_energy.f90 \
@@ -120,7 +118,7 @@ F_SRC_ARTED=$(addprefix $(SALMON)/src/ARTED/, \
 	main.f90 \
 )
 
-F_SRC_GCEED=$(addprefix $(SALMON)/src/GCEED/, \
+F_SRC_GCEED=$(addprefix GCEED/, \
 	common/calc_iquotient.f90 \
 	common/calc_ob_num.f90 \
 	common/check_cep.f90 \
@@ -129,6 +127,7 @@ F_SRC_GCEED=$(addprefix $(SALMON)/src/GCEED/, \
 	misc/setlg.f90 \
 	misc/setmg.f90 \
 	misc/setng.f90 \
+	modules/pack_unpack.f90 \
 	modules/rmmdiis_eigen_lapack.f90 \
 	modules/scf_data.f90 \
 	read_input_gceed.f90 \
@@ -220,15 +219,16 @@ F_SRC_GCEED=$(addprefix $(SALMON)/src/GCEED/, \
 	common/calcuV.f90 \
 	common/psl.f90 \
 	common/storevpp.f90 \
-	modules/sendrecv.f90 \
-	modules/sendrecv_groupob.f90 \
-	modules/sendrecvh.f90 \
+	modules/persistent_comm.f90 \
 	rt/read_rt.f90 \
 	rt/taylor.f90 \
 	rt/total_energy_groupob.f90 \
 	scf/calc_dos.f90 \
 	scf/calc_pdos.f90 \
 	scf/rmmdiis_eigen.f90 \
+	modules/sendrecv.f90 \
+	modules/sendrecv_groupob.f90 \
+	modules/sendrecvh.f90 \
 	common/calc_gradient_fast.f90 \
 	common/calc_gradient_fast_c.f90 \
 	common/hartree_boundary.f90 \
@@ -248,46 +248,50 @@ F_SRC_GCEED=$(addprefix $(SALMON)/src/GCEED/, \
 	scf/real_space_dft.f90 \
 )
 
-F_SRC=$(addprefix $(SALMON)/src/, \
-	main.f90 \
-)
+F_SRCS= \
+	$(F_SRC_PARALLEL) \
+	$(F_SRC_IO) \
+	$(F_SRC_MATH) \
+	$(F_SRC_RT) \
+	$(F_SRC_ATOM) \
+	$(F_SRC_MAXWELL) \
+	$(F_SRC_GS) \
+	$(F_SRC_XC) \
+	$(F_SRC_POISSON) \
+	$(F_SRC_MISC) \
+	$(F_SRC_COMMON) \
+	$(F_SRC_ARTED) \
+	$(F_SRC_GCEED) \
+	main.f90
 
-F_SRCS=$(F_SRC_PARALLEL) $(F_SRC_IO) $(F_SRC_MATH) $(F_SRC_RT) $(F_SRC_ATOM) $(F_SRC_MAXWELL) $(F_SRC_GS) $(F_SRC_XC) $(F_SRC_POISSON) $(F_SRC_MISC) $(F_SRC_COMMON) $(F_SRC_ARTED) $(F_SRC_GCEED) $(F_SRC) 
+C_SRCS= \
+	$(addprefix ARTED/, $(C_STENCIL_FILE)) \
+	ARTED/modules/env_variables_internal.c
 
-
-
-
-
-C_SRCS=$(addprefix $(SALMON)/src/ARTED/, \
-	$(C_SRC_STENCIL_FILE) \
-	modules/env_variables_internal.c \
-)
-
-F_OBJS = $(addprefix $(OBJDIR)/,$(F_SRCS:.f90=.o))
-C_OBJS = $(addprefix $(OBJDIR)/,$(C_SRCS:.c=.o))
-
-H_IN_VERSION=$(addprefix $(SALMON)/src/, $(H_IN_VERSION_FILE))
-H_VERSION=$(addprefix $(OBJDIR)/, $(H_IN_VERSION_FILE:.h.in=.h))
+F_SRC_FILES=$(addprefix $(SRCDIR)/, $(F_SRCS))
+F_OBJ_FILES=$(addprefix $(OBJDIR)/, $(F_SRCS:.f90=.o))
+C_SRC_FILES=$(addprefix $(SRCDIR)/, $(C_SRCS))
+C_OBJ_FILES=$(addprefix $(OBJDIR)/, $(C_SRCS:.c=.o))
 
 .PHONY: all clean
 
+$(TARGET): $(F_OBJ_FILES) $(C_OBJ_FILES)
+	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
+	$(FC) $(FFLAGS) -o $@ $(F_OBJ_FILES) $(C_OBJ_FILES) -I $(OBJDIR) $(LIBLAPACK)
 
-$(TARGET): $(F_OBJS) $(C_OBJS)
-	$(FC) $(FFLAGS) -o $@ $(F_OBJS) $(C_OBJS) -I $(OBJDIR)  $(LIBLAPACK)
-
-$(F_OBJS): $(F_SRCS) 
-$(C_OBJS): $(C_SRCS)
+$(F_OBJ_FILES): $(F_SRC_FILES)
+$(C_OBJ_FILES): $(C_SRC_FILES)
 $(H_VERSION): $(H_IN_VERSION)
 
-$(OBJDIR)/%.o: %.f90 $(H_VERSION)
+$(OBJDIR)/%.o: $(SRCDIR)/%.f90 $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) 
 
-$(OBJDIR)/%.o: %.c $(H_VERSION)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR)  
 
-$(OBJDIR)/%.h: $(SALMON)/src/%.h.in
+$(OBJDIR)/%.h: $(SRCDIR)/%.h.in
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	cat $< \
 	| sed  -e "/cmakedefine/d" \
@@ -296,7 +300,8 @@ $(OBJDIR)/%.h: $(SALMON)/src/%.h.in
 	| sed  -e "~s/@GIT_COMMIT_HASH@//" \
 	> $@
 	
-
+all: $(TARGET)
+	
 clean:
 	rm -f $(TARGET)
 	rm -rf $(OBJDIR)

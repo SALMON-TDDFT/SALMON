@@ -1,6 +1,8 @@
 # intel-knl
 
-TARGET = salmon.cpu
+SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
+
+TARGET = $(SALMON)/bin/salmon.mic
 FC = mpiifort
 CC = mpiicc
 FLAGS = -xMIC-AVX512 -qopenmp -qopt-ra-region-strategy=block -ansi-alias -fno-alias \
@@ -18,6 +20,5 @@ SIMD_SET = IMCI
 MODULE_SWITCH = -module
 COMM_SET =
 
-SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
 
 include $(SALMON)/makefiles/make.body
