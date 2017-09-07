@@ -29,10 +29,11 @@ Subroutine diag_omp
   integer           :: ik,ib1,ib2
   integer           :: ia,j,i,ix,iy,iz,thr_id
   real(8)           :: kr
+  integer           :: ithr
 
 !LAPACK
   integer                :: lwork,info
-  complex(8),allocatable :: za(:,:),zutmp(:,:)
+  complex(8),allocatable :: za(:,:),zutmp(:,:,:)
   complex(8),allocatable :: work_lp(:)
   real(8),allocatable    :: rwork(:),w(:)
 
@@ -56,12 +57,12 @@ Subroutine diag_omp
 !$omp end do
 !$omp end parallel
 
-!$omp parallel private(thr_id,za,zutmp,work_lp,rwork,w)
-!$ thr_id = omp_get_thread_num()
-  allocate(za(NB,NB),zutmp(NL,NB))
+  allocate(za(NB,NB),zutmp(NL,NB,0:NUMBER_THREADS-1))
   allocate(work_lp(lwork),rwork(3*NB-2),w(NB))
-!$omp do private(ik,ib1,ib2)
   do ik=NK_s,NK_e
+!$omp parallel private(thr_id)
+!$ thr_id = omp_get_thread_num()
+!$omp do private(ib1,ib2)
     do ib1=1,NB
       tpsi_omp(1:NL,thr_id)=zu_GS(1:NL,ib1,ik)
       call hpsi_omp_KB_GS(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))
@@ -71,20 +72,28 @@ Subroutine diag_omp
       end do
       za(ib1,ib1)=real(sum(conjg(zu_GS(:,ib1,ik))*htpsi_omp(:,thr_id))*Hxyz)
     end do
+!$omp end do
+!$omp end parallel
     call zheev('V', 'U', NB, za, NB, w, work_lp, lwork, rwork, info)
 
     zutmp=0.d0
+!$omp parallel private(thr_id)
+!$ thr_id = omp_get_thread_num()
+!$omp do private(ib1,ib2) collapse(2)
     do ib1=1,NB
     do ib2=1,NB
-      zutmp(:,ib1)=zutmp(:,ib1)+zu_GS(:,ib2,ik)*za(ib2,ib1)
+      zutmp(:,ib1,thr_id)=zutmp(:,ib1,thr_id)+zu_GS(:,ib2,ik)*za(ib2,ib1)
     end do
     end do
-    zu_GS(:,:,ik)=zutmp(:,:)
+
+    Zu_GS(:,:,ik)=0.d0
+    do ithr=0,NUMBER_THREADS-1
+      zu_GS(:,:,ik)=Zu_GS(:,:,ik)+zutmp(:,:,thr_id)
+    end do
     esp(:,ik)=w(:)
-  enddo
-!$omp end do
-  deallocate(za,zutmp,work_lp,rwork)
 !$omp end parallel
+  enddo
+  deallocate(za,zutmp,work_lp,rwork)
   call timer_end(LOG_DIAG)
 
   return
