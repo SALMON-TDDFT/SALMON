@@ -102,12 +102,20 @@ module salmon_communication
   end interface
 
   interface comm_send_init
+    ! 3-D array
+    module procedure comm_send_init_array3d_double
+    module procedure comm_send_init_array3d_dcomplex
+
     ! 5-D array
     module procedure comm_send_init_array5d_double
     module procedure comm_send_init_array5d_dcomplex
   end interface
 
   interface comm_recv_init
+    ! 3-D array
+    module procedure comm_recv_init_array3d_double
+    module procedure comm_recv_init_array3d_dcomplex
+
     ! 5-D array
     module procedure comm_recv_init_array5d_double
     module procedure comm_recv_init_array5d_dcomplex
@@ -441,6 +449,30 @@ contains
   end subroutine
 
 
+  function comm_send_init_array3d_double(invalue, ndest, ntag, ngroup) result(req)
+    implicit none
+    real(8), intent(in) :: invalue(:,:,:)
+    integer, intent(in) :: ndest, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(invalue)
+    UNUSED_VARIABLE(ndest)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
+  function comm_send_init_array3d_dcomplex(invalue, ndest, ntag, ngroup) result(req)
+    implicit none
+    complex(8), intent(in) :: invalue(:,:,:)
+    integer, intent(in)    :: ndest, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(invalue)
+    UNUSED_VARIABLE(ndest)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
   function comm_send_init_array5d_double(invalue, ndest, ntag, ngroup) result(req)
     implicit none
     real(8), intent(in) :: invalue(:,:,:,:,:)
@@ -460,6 +492,30 @@ contains
     integer :: req
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ndest)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
+  function comm_recv_init_array3d_double(outvalue, nsrc, ntag, ngroup) result(req)
+    implicit none
+    real(8), intent(out) :: outvalue(:,:,:)
+    integer, intent(in)  :: nsrc, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(outvalue)
+    UNUSED_VARIABLE(nsrc)
+    UNUSED_VARIABLE(ntag)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(req)
+  end function
+
+  function comm_recv_init_array3d_dcomplex(outvalue, nsrc, ntag, ngroup) result(req)
+    implicit none
+    complex(8), intent(out) :: outvalue(:,:,:)
+    integer, intent(in)     :: nsrc, ntag, ngroup
+    integer :: req
+    UNUSED_VARIABLE(outvalue)
+    UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(req)

@@ -23,6 +23,7 @@ use new_world_sub
 use Total_Energy_sub
 use read_pslfile_sub
 use allocate_psl_sub
+use persistent_comm
 
 implicit none
 
@@ -193,6 +194,7 @@ call init_itype
 call init_sendrecv_matrix
 
 call allocate_sendrecv
+call init_persistent_requests
 
 if(ilsda==0)then
   numspin=1

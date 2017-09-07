@@ -35,6 +35,8 @@ complex(8),allocatable :: cmatbox2_x_s(:,:,:),cmatbox2_y_s(:,:,:),cmatbox2_z_s(:
 
 real(8),allocatable :: rmatbox1_x_h(:,:,:),rmatbox1_y_h(:,:,:),rmatbox1_z_h(:,:,:)
 real(8),allocatable :: rmatbox2_x_h(:,:,:),rmatbox2_y_h(:,:,:),rmatbox2_z_h(:,:,:)
+real(8),allocatable :: rmatbox3_x_h(:,:,:),rmatbox3_y_h(:,:,:),rmatbox3_z_h(:,:,:)
+real(8),allocatable :: rmatbox4_x_h(:,:,:),rmatbox4_y_h(:,:,:),rmatbox4_z_h(:,:,:)
 
 complex(8),allocatable :: cmatbox1_x_h(:,:,:),cmatbox1_y_h(:,:,:),cmatbox1_z_h(:,:,:)
 complex(8),allocatable :: cmatbox2_x_h(:,:,:),cmatbox2_y_h(:,:,:),cmatbox2_z_h(:,:,:)
@@ -446,6 +448,12 @@ allocate(rmatbox1_z_h(inum_Mxin2(1,nproc_id_global),inum_Mxin2(2,nproc_id_global
 allocate(rmatbox2_x_h(Ndh,inum_Mxin2(2,nproc_id_global),inum_Mxin2(3,nproc_id_global)))
 allocate(rmatbox2_y_h(inum_Mxin2(1,nproc_id_global),Ndh,inum_Mxin2(3,nproc_id_global)))
 allocate(rmatbox2_z_h(inum_Mxin2(1,nproc_id_global),inum_Mxin2(2,nproc_id_global),Ndh))
+allocate(rmatbox3_x_h(Ndh,inum_Mxin2(2,nproc_id_global),inum_Mxin2(3,nproc_id_global)))
+allocate(rmatbox3_y_h(inum_Mxin2(1,nproc_id_global),Ndh,inum_Mxin2(3,nproc_id_global)))
+allocate(rmatbox3_z_h(inum_Mxin2(1,nproc_id_global),inum_Mxin2(2,nproc_id_global),Ndh))
+allocate(rmatbox4_x_h(Ndh,inum_Mxin2(2,nproc_id_global),inum_Mxin2(3,nproc_id_global)))
+allocate(rmatbox4_y_h(inum_Mxin2(1,nproc_id_global),Ndh,inum_Mxin2(3,nproc_id_global)))
+allocate(rmatbox4_z_h(inum_Mxin2(1,nproc_id_global),inum_Mxin2(2,nproc_id_global),Ndh))
 
 rmatbox1_x_h=0.d0
 rmatbox1_y_h=0.d0
@@ -453,6 +461,12 @@ rmatbox1_z_h=0.d0
 rmatbox2_x_h=0.d0
 rmatbox2_y_h=0.d0
 rmatbox2_z_h=0.d0
+rmatbox3_x_h=0.d0
+rmatbox3_y_h=0.d0
+rmatbox3_z_h=0.d0
+rmatbox4_x_h=0.d0
+rmatbox4_y_h=0.d0
+rmatbox4_z_h=0.d0
 
 allocate(cmatbox1_x_h(Ndh,inum_Mxin2(2,nproc_id_global),inum_Mxin2(3,nproc_id_global)))
 allocate(cmatbox1_y_h(inum_Mxin2(1,nproc_id_global),Ndh,inum_Mxin2(3,nproc_id_global)))

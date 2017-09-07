@@ -30,6 +30,7 @@ use calc_density_sub
 use change_order_sub
 use read_pslfile_sub
 use allocate_psl_sub
+use persistent_comm
 implicit none
 
 END MODULE global_variables_scf
@@ -116,6 +117,7 @@ if(istopt==1)then
     call allocate_mat
     call set_icoo1d
     call allocate_sendrecv
+    call init_persistent_requests
     allocate( Vpsl(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
     if(icalcforce==1)then
       allocate( Vpsl_atom(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),MI) )
@@ -198,6 +200,7 @@ if(istopt==1)then
     call allocate_mat
     call set_icoo1d
     call allocate_sendrecv
+    call init_persistent_requests
 
     if(iflag_ps/=0) then
       call read_pslfile
