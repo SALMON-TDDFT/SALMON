@@ -38,36 +38,42 @@ integer :: ix,iy,iz,iter
 real(8) :: sum1,sum2,ak,ck
 real(8) :: tottmp
 real(8) :: totbox
-real(8) :: wk2(ng_sta(1)-Ndh:ng_end(1)+Ndh,    &
-               ng_sta(2)-Ndh:ng_end(2)+Ndh,      &
-               ng_sta(3)-Ndh:ng_end(3)+Ndh)
 real(8) :: rlap_wk(ng_sta(1):ng_end(1),    &
-               ng_sta(2):ng_end(2),      &
-               ng_sta(3):ng_end(3))
-real(8) :: zk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
-real(8) :: tk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
-real(8) :: pk(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3)) 
-
+                   ng_sta(2):ng_end(2),      &
+                   ng_sta(3):ng_end(3))
+real(8) :: zk(ng_sta(1)-Ndh:ng_end(1)+Ndh,   &
+              ng_sta(2)-Ndh:ng_end(2)+Ndh,   &
+              ng_sta(3)-Ndh:ng_end(3)+Ndh)
+real(8) :: pk(ng_sta(1)-Ndh:ng_end(1)+Ndh,   &
+              ng_sta(2)-Ndh:ng_end(2)+Ndh,   &
+              ng_sta(3)-Ndh:ng_end(3)+Ndh)
 iwk_size=12
 call make_iwksta_iwkend
 
-call hartree_boundary(trho,wk2)
+call hartree_boundary(trho,pk)
 
 !------------------------- C-G minimization
+
+!$OMP parallel do private(iz,iy,ix)
+do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
+do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
+do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
+  zk(ix,iy,iz)=0.d0
+end do
+end do
+end do
 
 !$OMP parallel do private(iz,iy,ix)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
-  wk2(ix,iy,iz)=tVh(ix,iy,iz)
-  zk(ix,iy,iz) = -4.d0*Pi*trho(ix,iy,iz)
+  pk(ix,iy,iz)=tVh(ix,iy,iz)
+  zk(ix,iy,iz)=-4.d0*Pi*trho(ix,iy,iz)
 end do
 end do
 end do
-
-call sendrecvh(wk2)
-
-call calc_laplacianh(wk2,rlap_wk)
+call sendrecvh(pk)
+call calc_laplacianh(pk,rlap_wk)
 
 !$OMP parallel do private(iz,iy,ix)
 do iz=ng_sta(3),ng_end(3)
@@ -82,10 +88,11 @@ end do
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
-  wk2(ix,iy,iz)=0.d0 
+  pk(ix,iy,iz)=0.d0
 end do
 end do
 end do
+
 !$OMP parallel do private(iz,iy,ix)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
@@ -116,35 +123,15 @@ end if
 
 Iteration : do iter=1,maxiter
 
-
-!$OMP parallel do private(iz,iy,ix)
-  do iz=ng_sta(3),ng_end(3)
-  do iy=ng_sta(2),ng_end(2)
-  do ix=ng_sta(1),ng_end(1)
-    wk2(ix,iy,iz)=pk(ix,iy,iz)
-  end do
-  end do
-  end do
-
-  call sendrecvh(wk2)
-
-  call calc_laplacianh(wk2,rlap_wk)
-
-!$OMP parallel do private(iz,iy,ix) 
-  do iz=ng_sta(3),ng_end(3)
-  do iy=ng_sta(2),ng_end(2)
-  do ix=ng_sta(1),ng_end(1)
-    tk(ix,iy,iz)=rlap_wk(ix,iy,iz)
-  end do
-  end do
-  end do
+  call sendrecvh(pk)
+  call calc_laplacianh(pk,rlap_wk)
 
   totbox=0d0
 !$OMP parallel do reduction(+ : totbox) private(iz,iy,ix) 
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
-    totbox=totbox+(zk(ix,iy,iz)*tk(ix,iy,iz))
+    totbox=totbox+(zk(ix,iy,iz)*rlap_wk(ix,iy,iz))
   end do
   end do
   end do
@@ -165,7 +152,7 @@ Iteration : do iter=1,maxiter
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
      tVh(ix,iy,iz)=tVh(ix,iy,iz)+ak*pk(ix,iy,iz)
-     zk(ix,iy,iz)=zk(ix,iy,iz)-ak*tk(ix,iy,iz)
+     zk(ix,iy,iz)=zk(ix,iy,iz)-ak*rlap_wk(ix,iy,iz)
   end do
   end do
   end do

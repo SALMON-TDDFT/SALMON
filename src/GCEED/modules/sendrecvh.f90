@@ -29,7 +29,7 @@ END INTERFACE
 CONTAINS
 
 !======================================================================
-SUBROUTINE R_sendrecvh(wk2)
+SUBROUTINE R_sendrecvh(wk2,wk1)
 use salmon_communication, only: comm_proc_null, comm_start_all, comm_wait_all
 use scf_data
 use init_sendrecv_sub
@@ -38,7 +38,8 @@ use pack_unpack
 use persistent_comm, only: nreqs_rh
 
 implicit none
-real(8) :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3))
+real(8),intent(inout)        :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3))
+real(8),intent(out),optional :: wk1(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3))
 
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: ireqs(12)
@@ -143,19 +144,33 @@ call comm_start_all(ireqs(11:12))
 !recv from idw to iup
 call comm_wait_all(ireqs(1:2))
 if(idw/=comm_proc_null)then
+  if(present(wk1)) then
+    call copy_data(rmatbox2_x_h,                               &
+                   wk1(iwk3sta(1)-Ndh:iwk3sta(1),              &
+                       iwk3sta(2)    :iwk3sta(2)+iwk3num(2)-1, &
+                       iwk3sta(3)    :iwk3sta(3)+iwk3num(3)-1))
+  else
     call copy_data(rmatbox2_x_h,                               &
                    wk2(iwk3sta(1)-Ndh:iwk3sta(1),              &
                        iwk3sta(2)    :iwk3sta(2)+iwk3num(2)-1, &
                        iwk3sta(3)    :iwk3sta(3)+iwk3num(3)-1))
+  end if
 end if
 
 !recv from iup to idw
 call comm_wait_all(ireqs(3:4))
 if(iup/=comm_proc_null)then
+  if(present(wk1)) then
+    call copy_data(rmatbox4_x_h,                             &
+                   wk1(iwk3end(1)+1:iwk3end(1)+Ndh,          &
+                       iwk3sta(2)  :iwk3sta(2)+iwk3num(2)-1, &
+                       iwk3sta(3)  :iwk3sta(3)+iwk3num(3)-1))
+  else
     call copy_data(rmatbox4_x_h,                             &
                    wk2(iwk3end(1)+1:iwk3end(1)+Ndh,          &
                        iwk3sta(2)  :iwk3sta(2)+iwk3num(2)-1, &
                        iwk3sta(3)  :iwk3sta(3)+iwk3num(3)-1))
+  end if
 end if
 
 !=====================================================================-
@@ -163,19 +178,33 @@ end if
 !recv from jdw to jup
 call comm_wait_all(ireqs(5:6))
 if(jdw/=comm_proc_null)then
+  if(present(wk1)) then
+    call copy_data(rmatbox2_y_h,                               &
+                   wk1(iwk3sta(1)    :iwk3sta(1)+iwk3num(1)-1, &
+                       iwk3sta(2)-Ndh:iwk3sta(2),              &
+                       iwk3sta(3)    :iwk3sta(3)+iwk3num(3)-1))
+  else
     call copy_data(rmatbox2_y_h,                               &
                    wk2(iwk3sta(1)    :iwk3sta(1)+iwk3num(1)-1, &
                        iwk3sta(2)-Ndh:iwk3sta(2),              &
                        iwk3sta(3)    :iwk3sta(3)+iwk3num(3)-1))
+  end if
 end if
 
 !recv from jup to jdw
 call comm_wait_all(ireqs(7:8))
 if(jup/=comm_proc_null)then
+  if(present(wk1)) then
+    call copy_data(rmatbox4_y_h,                              &
+                   wk1(iwk3sta(1)   :iwk3sta(1)+iwk3num(1)-1, &
+                       iwk3end(2)+1:iwk3end(2)+Ndh,          &
+                        iwk3sta(3)  :iwk3sta(3)+iwk3num(3)-1))
+  else
     call copy_data(rmatbox4_y_h,                              &
                    wk2(iwk3sta(1)   :iwk3sta(1)+iwk3num(1)-1, &
-                        iwk3end(2)+1:iwk3end(2)+Ndh,          &
-                        iwk3sta(3)  :iwk3sta(3)+iwk3num(3)-1))
+                       iwk3end(2)+1:iwk3end(2)+Ndh,          &
+                       iwk3sta(3)  :iwk3sta(3)+iwk3num(3)-1))
+  end if
 end if
 
 !=====================================================================-
@@ -183,19 +212,33 @@ end if
 !recv from kdw to kup
 call comm_wait_all(ireqs(9:10))
 if(kdw/=comm_proc_null)then
+  if(present(wk1)) then
+    call copy_data(rmatbox2_z_h,                               &
+                   wk1(iwk3sta(1)    :iwk3sta(1)+iwk3num(1)-1, &
+                       iwk3sta(2)    :iwk3sta(2)+iwk3num(2)-1, &
+                       iwk3sta(3)-Ndh:iwk3sta(3)))
+  else
     call copy_data(rmatbox2_z_h,                               &
                    wk2(iwk3sta(1)    :iwk3sta(1)+iwk3num(1)-1, &
                        iwk3sta(2)    :iwk3sta(2)+iwk3num(2)-1, &
                        iwk3sta(3)-Ndh:iwk3sta(3)))
+  end if
 end if
 
 !recv from kup to kdw
 call comm_wait_all(ireqs(11:12))
 if(kup/=comm_proc_null)then
+  if(present(wk1)) then
+    call copy_data(rmatbox4_z_h,                             &
+                   wk1(iwk3sta(1)  :iwk3sta(1)+iwk3num(1)-1, &
+                       iwk3sta(2)  :iwk3sta(2)+iwk3num(2)-1, &
+                       iwk3end(3)+1:iwk3end(3)+Ndh))
+  else
     call copy_data(rmatbox4_z_h,                             &
                    wk2(iwk3sta(1)  :iwk3sta(1)+iwk3num(1)-1, &
                        iwk3sta(2)  :iwk3sta(2)+iwk3num(2)-1, &
                        iwk3end(3)+1:iwk3end(3)+Ndh))
+  end if
 end if
 
 return
