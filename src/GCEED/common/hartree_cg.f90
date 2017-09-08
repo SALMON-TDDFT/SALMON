@@ -54,7 +54,7 @@ call hartree_boundary(trho,pk)
 
 !------------------------- C-G minimization
 
-!$OMP parallel do private(iz,iy,ix)
+!$OMP parallel do private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
@@ -63,7 +63,7 @@ end do
 end do
 end do
 
-!$OMP parallel do private(iz,iy,ix)
+!$OMP parallel do private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
@@ -75,7 +75,7 @@ end do
 call sendrecvh(pk)
 call calc_laplacianh(pk,rlap_wk)
 
-!$OMP parallel do private(iz,iy,ix)
+!$OMP parallel do private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
@@ -84,7 +84,7 @@ end do
 end do
 end do
 
-!$OMP parallel do private(iz,iy,ix)
+!$OMP parallel do private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
@@ -93,7 +93,7 @@ end do
 end do
 end do
 
-!$OMP parallel do private(iz,iy,ix)
+!$OMP parallel do private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
@@ -103,7 +103,7 @@ end do
 end do
 
 sum1=0.d0
-!$OMP parallel do reduction(+ : sum1) private(iz,iy,ix) 
+!$OMP parallel do reduction(+ : sum1) private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
@@ -127,7 +127,7 @@ Iteration : do iter=1,maxiter
   call calc_laplacianh(pk,rlap_wk)
 
   totbox=0d0
-!$OMP parallel do reduction(+ : totbox) private(iz,iy,ix) 
+!$OMP parallel do reduction(+ : totbox) private(iz,iy,ix) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -147,7 +147,7 @@ Iteration : do iter=1,maxiter
 
   ak=sum1/tottmp/Hvol
 
-!$OMP parallel do private(iz,iy,ix) 
+!$OMP parallel do private(iz,iy,ix) firstprivate(ak) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -158,7 +158,7 @@ Iteration : do iter=1,maxiter
   end do
 
   totbox=0d0
-!$OMP parallel do reduction(+ : totbox) private(iz,iy,ix) 
+!$OMP parallel do reduction(+ : totbox) private(iz,iy,ix) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -182,7 +182,7 @@ Iteration : do iter=1,maxiter
 
   ck=sum2/sum1 ; sum1=sum2
 
-!$OMP parallel do private(iz,iy,ix) 
+!$OMP parallel do private(iz,iy,ix) firstprivate(ck) collapse(2)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
