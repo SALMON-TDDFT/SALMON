@@ -420,7 +420,9 @@ subroutine tddft_sc
 !====Analyzing calculation====================
 
 !Adiabatic evolution
-  call k_shift_wf_last(Rion_update_rt,10,zu_t)
+  if (projection_option /= 'no') then
+    call k_shift_wf_last(Rion_update_rt,10,zu_t)
+  end if
 
   call Fourier_tr
 
