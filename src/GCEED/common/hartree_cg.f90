@@ -76,15 +76,6 @@ call sendrecvh(pk)
 call calc_laplacianh(pk,rlap_wk)
 
 !$OMP parallel do private(iz,iy,ix) collapse(2)
-do iz=ng_sta(3),ng_end(3)
-do iy=ng_sta(2),ng_end(2)
-do ix=ng_sta(1),ng_end(1)
-  zk(ix,iy,iz)=zk(ix,iy,iz)-rlap_wk(ix,iy,iz)
-end do
-end do
-end do
-
-!$OMP parallel do private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
@@ -97,6 +88,7 @@ end do
 do iz=ng_sta(3),ng_end(3)
 do iy=ng_sta(2),ng_end(2)
 do ix=ng_sta(1),ng_end(1)
+  zk(ix,iy,iz)=zk(ix,iy,iz)-rlap_wk(ix,iy,iz)
   pk(ix,iy,iz)=zk(ix,iy,iz)
 end do
 end do
