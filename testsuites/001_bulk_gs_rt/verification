@@ -22,13 +22,13 @@ checklist = {
     # Total Energy Check
     "Eall": [
         r"^\s*Eall\s*=\s*([E\+\-\.\d]+)\s*$",  # Regular expression
-        -31.1739726751449,  # Reference value
+        -3.095228e+01,  # Reference value
         0.1,  # Permissible error
     ],
     # Bandgap Check
     "Bandgap": [
         r"^\s*The Bandgap\s+([E\+\-\.\d]+)\s*$",  # Regular expression
-        5.686255746897059E-002,  # Reference value
+        5.607843e-02,  # Reference value
         1E-3,  # Permissible error
     ],
 }
