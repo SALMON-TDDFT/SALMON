@@ -85,13 +85,13 @@ Subroutine diag_omp
       zutmp(:,ib1,thr_id)=zutmp(:,ib1,thr_id)+zu_GS(:,ib2,ik)*za(ib2,ib1)
     end do
     end do
+!$omp end parallel
 
     Zu_GS(:,:,ik)=0.d0
     do ithr=0,NUMBER_THREADS-1
-      zu_GS(:,:,ik)=Zu_GS(:,:,ik)+zutmp(:,:,thr_id)
+      zu_GS(:,:,ik)=Zu_GS(:,:,ik)+zutmp(:,:,ithr)
     end do
     esp(:,ik)=w(:)
-!$omp end parallel
   enddo
   deallocate(za,zutmp,work_lp,rwork)
   call timer_end(LOG_DIAG)
