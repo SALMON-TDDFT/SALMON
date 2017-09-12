@@ -1,5 +1,7 @@
 # recommended version : 3.0.2
 cmake_minimum_required(VERSION 2.8)
+enable_testing()
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmakefiles/Platforms)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmakefiles/Modules)
 include(${CMAKE_SOURCE_DIR}/cmakefiles/misc.cmake)
@@ -184,6 +186,10 @@ set(SALMON_MISC_LIB      "misc_rtl")
 
 set(SALMON_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 add_subdirectory(${SALMON_SRC_DIR})
+
+# test directory
+set(SALMON_TEST_DIR ${CMAKE_SOURCE_DIR}/testsuites)
+add_subdirectory(${SALMON_TEST_DIR})
 
 message(STATUS "Enabled macro")
 get_directory_property(MACRO_LOG COMPILE_DEFINITIONS)
