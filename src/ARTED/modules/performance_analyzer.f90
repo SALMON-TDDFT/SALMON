@@ -290,10 +290,15 @@ contains
   end function
 
   function get_gflops(FLOP,time)
+    use ieee_arithmetic
     implicit none
     real(8),intent(in) :: FLOP
     real(8),intent(in) :: time
-    real(8) :: get_gflops
-    get_gflops = FLOP / (time * (10**9))
+    real(8) :: get_gflops, ret
+    ret = FLOP / (time * (10**9))
+    if (ieee_is_nan(ret)) then
+      ret = 0.d0
+    end if
+    get_gflops = ret
   end function
 end module
