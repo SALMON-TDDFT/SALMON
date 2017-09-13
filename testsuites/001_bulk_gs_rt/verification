@@ -34,7 +34,7 @@ checklist = {
     "Convergence": [
         r"^\s*Total Energy\s*=\s*[E\+\-\.\d]+\s+([E\+\-\.\d]+)\s*$", # Regular expression
         0.0,   # Reference value
-        1E-9,  # Permissible error
+        1E-8,  # Permissible error
     ],
 }
 
