@@ -278,15 +278,15 @@ This option is incompatible with
 <dd>Name of pseudopotential files.
 </dd>
 
-<dt>Lmax_ps(:); <code>Integer</code>; 0d/3d</dt>
+<dt>lmax_ps(:); <code>Integer</code>; 0d/3d</dt>
 <dd>Maximum angular momentum of pseudopotential projectors.
 </dd>
 
-<dt>Lloc_ps(:); <code>Integer</code>; 0d/3d</dt>
+<dt>lloc_ps(:); <code>Integer</code>; 0d/3d</dt>
 <dd>Angular momentum of pseudopotential thant will be treated as local.
 </dd>
 
-<dt>iZatom(:); <code>Integer</code>; 0d/3d</dt>
+<dt>izatom(:); <code>Integer</code>; 0d/3d</dt>
 <dd>Atomic number.
 </dd>
 

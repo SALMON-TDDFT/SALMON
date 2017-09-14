@@ -246,9 +246,9 @@ contains
 
     namelist/pseudo/ &
       & pseudo_file, &
-      & Lmax_ps, &
-      & Lloc_ps, &
-      & iZatom, &
+      & lmax_ps, &
+      & lloc_ps, &
+      & izatom, &
       & psmask_option, &
       & alpha_mask, &
       & gamma_mask, &
@@ -489,9 +489,9 @@ contains
     file_atom_red_coor          = 'none'
 !! == default for &pseudo
     pseudo_file     = 'none'
-    Lmax_ps       = -1
-    Lloc_ps       = -1
-    iZatom        = -1
+    lmax_ps       = -1
+    lloc_ps       = -1
+    izatom        = -1
     psmask_option = 'n'
     alpha_mask    = 0.8d0
     gamma_mask    = 1.8d0
@@ -758,9 +758,9 @@ contains
     call comm_bcast(file_atom_red_coor ,nproc_group_global)
 !! == bcast for &pseudo
     call comm_bcast(pseudo_file  ,nproc_group_global)
-    call comm_bcast(Lmax_ps      ,nproc_group_global)
-    call comm_bcast(Lloc_ps      ,nproc_group_global)
-    call comm_bcast(iZatom       ,nproc_group_global)
+    call comm_bcast(lmax_ps      ,nproc_group_global)
+    call comm_bcast(lloc_ps      ,nproc_group_global)
+    call comm_bcast(izatom       ,nproc_group_global)
     call comm_bcast(psmask_option,nproc_group_global)
     call comm_bcast(alpha_mask   ,nproc_group_global)
     call comm_bcast(gamma_mask   ,nproc_group_global)
@@ -1006,10 +1006,10 @@ contains
        stop
     end if
 
-    allocate(Rion(3,natom), Rion_red(3,natom),Kion(natom), flag_geo_opt_atom(natom))
-    Rion = 0d0
-    Rion_red = 0d0
-    Kion = 0
+    allocate(rion(3,natom), rion_red(3,natom),kion(natom), flag_geo_opt_atom(natom))
+    rion = 0d0
+    rion_red = 0d0
+    kion = 0
     flag_geo_opt_atom = 'n'
 
     if (comm_is_root(nproc_id_global))then
@@ -1018,27 +1018,27 @@ contains
       case(ntype_atom_coor_cartesian)
          do i=1, natom
             if(use_geometry_opt == 'y')then
-               read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i), flag_geo_opt_atom(i)
+               read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i), flag_geo_opt_atom(i)
             else
-               read(fh_atomic_coor, *) char_atom, Rion(:,i), Kion(i)
+               read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i)
             end if
          end do
-         Rion = Rion*ulength_to_au
+         rion = rion*ulength_to_au
       case(ntype_atom_coor_reduced)
          do i=1, natom
             if(use_geometry_opt == 'y')then
-               read(fh_atomic_coor, *) char_atom, Rion_red(:,i), Kion(i), flag_geo_opt_atom(i)
+               read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i), flag_geo_opt_atom(i)
             else
-               read(fh_atomic_coor, *) char_atom, Rion_red(:,i), Kion(i)
+               read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i)
             end if
          end do
       end select
       close(fh_atomic_coor)
     end if
 
-    call comm_bcast(Rion,nproc_group_global)
-    call comm_bcast(Rion_red,nproc_group_global)
-    call comm_bcast(Kion,nproc_group_global)
+    call comm_bcast(rion,nproc_group_global)
+    call comm_bcast(rion_red,nproc_group_global)
+    call comm_bcast(kion,nproc_group_global)
     call comm_bcast(flag_geo_opt_atom,nproc_group_global)
 
 
@@ -1232,9 +1232,9 @@ contains
 
       do i = 1,nelem
         write(fh_variables_log, '("#",4X,A,I2,A,"=",A)') 'pseudo_file(',i,')', trim(pseudo_file(i))
-        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'Lmax_ps(',i,')', Lmax_ps(i)
-        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'Lloc_ps(',i,')', Lloc_ps(i)
-        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'iZatom(',i,')', iZatom(i)
+        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'lmax_ps(',i,')', lmax_ps(i)
+        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'lloc_ps(',i,')', lloc_ps(i)
+        write(fh_variables_log, '("#",4X,A,I2,A,"=",I4)') 'izatom(',i,')', izatom(i)
       end do
       write(fh_variables_log, '("#",4X,A,"=",A)') 'psmask_option', psmask_option
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'alpha_mask', alpha_mask
@@ -1445,12 +1445,12 @@ contains
       case(ntype_atom_coor_cartesian)
         write(fh_variables_log, '("#namelist: ",A)') 'atom_coor'
         do i = 1,natom
-          write(fh_variables_log, '("#",4X,A,I2,A,"=",3ES14.5)') 'Rion(',i,')', Rion(1:3,i)
+          write(fh_variables_log, '("#",4X,A,I2,A,"=",3ES14.5)') 'rion(',i,')', rion(1:3,i)
         end do
       case(ntype_atom_coor_reduced)
         write(fh_variables_log, '("#namelist: ",A)') 'atom_red_coor'
         do i = 1,natom
-          write(fh_variables_log, '("#",4X,A,I2,A,"=",3ES14.5)') 'Rion_red(',i,')', Rion_red(1:3,i)
+          write(fh_variables_log, '("#",4X,A,I2,A,"=",3ES14.5)') 'rion_red(',i,')', rion_red(1:3,i)
         end do
       case default
       end select
