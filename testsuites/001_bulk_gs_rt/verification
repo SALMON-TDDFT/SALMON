@@ -9,7 +9,7 @@ import sys
 import os
 import re
 
-print("#"*60)
+print("#" * 60)
 print("# Verification start")
 
 filelist = [
@@ -22,14 +22,19 @@ checklist = {
     # Total Energy Check
     "Eall": [
         r"^\s*Eall\s*=\s*([E\+\-\.\d]+)\s*$",  # Regular expression
-        -3.095228e+01,  # Reference value
-        0.1,  # Permissible error
+        -31.2252433160217,  # Reference value
+        0.001,  # Permissible error
     ],
     # Bandgap Check
     "Bandgap": [
         r"^\s*The Bandgap\s+([E\+\-\.\d]+)\s*$",  # Regular expression
-        5.607843e-02,  # Reference value
-        1E-3,  # Permissible error
+        5.686255790357880E-002,  # Reference value
+        1E-4,  # Permissible error
+    ],
+    "Convergence": [
+        r"^\s*Total Energy\s*=\s*[E\+\-\.\d]+\s+([E\+\-\.\d]+)\s*$", # Regular expression
+        0.0,   # Reference value
+        1E-8,  # Permissible error
     ],
 }
 
@@ -60,6 +65,6 @@ for name, [ptn, refval, error] in checklist.items():
             sys.exit(-1)  # Failure
 
 print("# Verification end")
-print("#"*60)
+print("#" * 60)
 
 sys.exit(0)  # Success
