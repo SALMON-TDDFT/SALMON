@@ -8,6 +8,4 @@
 
 cp ../pseudo/C_rps.dat ./
 cp ../pseudo/H_rps.dat ./
-if [ -e C2H2.data]; then
-  rm C2H2.data
-fi
+cp ../101_C2H2_gs/C2H2.data ./
