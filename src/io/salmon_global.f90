@@ -202,6 +202,22 @@ module salmon_global
   integer        :: newald
   real(8)        :: aewald
 
+!! &opt
+  real(8)        :: cg_alpha_ini
+  real(8)        :: cg_alpha_up
+  real(8)        :: cg_alpha_down
+  real(8)        :: convrg_scf_ene
+  real(8)        :: convrg_opt_ene
+  real(8)        :: convrg_opt_fmax
+
+!! &md
+  character(10)  :: ensemble
+  character(20)  :: thermostat
+  integer        :: step_velocity_scaling
+  integer        :: step_update_ps
+  real(8)        :: temperature0_ion
+  character(1)   :: set_ini_velocity
+
 !! &group_fundamental
   integer        :: iditerybcg
   integer        :: iditer_nosubspace_diag

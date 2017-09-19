@@ -48,6 +48,8 @@ module inputoutput
   integer :: inml_analysis
   integer :: inml_hartree
   integer :: inml_ewald
+  integer :: inml_opt
+  integer :: inml_md
   integer :: inml_group_fundamental
   integer :: inml_group_parallel
   integer :: inml_group_hartree
@@ -364,6 +366,22 @@ contains
       & newald, &
       & aewald
 
+    namelist/opt/ &
+      & cg_alpha_ini, &
+      & cg_alpha_up, &
+      & cg_alpha_down, &
+      & convrg_scf_ene, &
+      & convrg_opt_ene, &
+      & convrg_opt_fmax
+
+    namelist/md/ &
+      & ensemble, &
+      & thermostat, &
+      & step_velocity_scaling, &
+      & step_update_ps, &
+      & temperature0_ion, &
+      & set_ini_velocity
+
     namelist/group_fundamental/ &
       & iditerybcg, &
       & iditer_nosubspace_diag, &
@@ -599,6 +617,20 @@ contains
 !! == default for &ewald
     newald = 4
     aewald = 0.5d0
+!! == default for &opt
+    cg_alpha_ini   =  0.8d0
+    cg_alpha_up    =  1.3d0
+    cg_alpha_down  =  0.5d0
+    convrg_scf_ene = -1d0
+    convrg_opt_ene =  1d-6
+    convrg_opt_fmax=  1d-5
+!! == default for &md
+    ensemble              = 'nve'
+    thermostat            = 'nose-hoover'
+    step_velocity_scaling = 10
+    step_update_ps        = 1
+    temperature0_ion      = 298.15d0
+    set_ini_velocity      = 'n'
 !! == default for &group_fundamental
     iditerybcg             = 20
     iditer_nosubspace_diag = 10
@@ -699,6 +731,12 @@ contains
       rewind(fh_namelist)
 
       read(fh_namelist, nml=ewald, iostat=inml_ewald)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=opt, iostat=inml_opt)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=md, iostat=inml_md)
       rewind(fh_namelist)
 
       read(fh_namelist, nml=group_fundamental, iostat=inml_group_fundamental)
@@ -885,6 +923,20 @@ contains
 !! == bcast for &ewald
     call comm_bcast(newald,nproc_group_global)
     call comm_bcast(aewald,nproc_group_global)
+!! == bcast for &opt
+    call comm_bcast(cg_alpha_ini     ,nproc_group_global)
+    call comm_bcast(cg_alpha_up      ,nproc_group_global)
+    call comm_bcast(cg_alpha_down    ,nproc_group_global)
+    call comm_bcast(convrg_scf_ene   ,nproc_group_global)
+    call comm_bcast(convrg_opt_ene   ,nproc_group_global)
+    call comm_bcast(convrg_opt_fmax  ,nproc_group_global)
+!! == bcast for &md
+    call comm_bcast(ensemble               ,nproc_group_global)
+    call comm_bcast(thermostat             ,nproc_group_global)
+    call comm_bcast(step_velocity_scaling  ,nproc_group_global)
+    call comm_bcast(step_update_ps         ,nproc_group_global)
+    call comm_bcast(temperature0_ion       ,nproc_group_global)
+    call comm_bcast(set_ini_velocity       ,nproc_group_global)
 !! == bcast for &group_fundamental
     call comm_bcast(iditerybcg            ,nproc_group_global)
     call comm_bcast(iditer_nosubspace_diag,nproc_group_global)
@@ -1375,6 +1427,24 @@ contains
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'ewald', inml_ewald
       write(fh_variables_log, '("#",4X,A,"=",I3)') 'newald', newald
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'aewald', aewald
+
+      if(inml_opt >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'opt', inml_opt
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cg_alpha_ini', cg_alpha_ini
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cg_alpha_up', cg_alpha_up
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cg_alpha_down', cg_alpha_down
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_scf_ene', convrg_scf_ene
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_opt_ene', convrg_opt_ene
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_opt_fmax',convrg_opt_fmax
+
+      if(inml_md >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'md', inml_md
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'ensemble', ensemble
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'thermostat', thermostat
+      write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_velocity_scaling', step_velocity_scaling
+      write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_update_ps', step_update_ps
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature0_ion', temperature0_ion
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_velocity', set_ini_velocity
 
       if(inml_group_fundamental >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_fundamental', inml_group_fundamental

@@ -81,6 +81,9 @@ contains
 ! initialize for optimization.
     call opt_vars_initialize_p2
 
+    if(use_ehrenfest_md=='y')then
+       call init_md
+    endif
 
   end subroutine initialize
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
@@ -462,6 +465,7 @@ contains
     
     allocate(Rps(NE),NRps(NE))
     allocate(Rion_eq(3,NI),dRion(3,NI,-1:Nt+1))
+    dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
     allocate(Zps(NE),NRloc(NE),Rloc(NE),Mass(NE),force(3,NI))
     allocate(dVloc_G(NG_s:NG_e,NE),force_ion(3,NI))
     allocate(Mps(NI),Mlps(NE))
@@ -470,6 +474,9 @@ contains
     allocate(radnl(Nrmax,NE))
     allocate(udVtbl(Nrmax,0:Lmax,NE),dudVtbl(Nrmax,0:Lmax,NE))
     allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
+    if(use_ehrenfest_md=='y')then
+       allocate(velocity(3,NI)) ; velocity(:,:)=0d0
+    endif
     
     select case(iflag_atom_coor)
     case(ntype_atom_coor_cartesian)
@@ -495,4 +502,97 @@ contains
     
     return
   End Subroutine Read_data
+  Subroutine init_md
+    use Global_Variables
+    implicit none    
+
+    if(set_ini_velocity=='y') call set_initial_velocity
+
+  End Subroutine init_md
+
+  Subroutine set_initial_velocity
+    use salmon_global
+    use Global_Variables
+    use salmon_parallel
+    use salmon_communication
+    !use misc_routines
+    use salmon_math
+    implicit none
+    integer :: ia,ixyz,iseed
+    real(8) :: rnd1,rnd2,rnd, sqrt_kT_im, kB,mass_au
+    real(8) :: v_com(3), sum_mass, Temperature_ion, scale_v
+
+    write(*,*) "  Initial velocities with maxwell-bolthman distribution was set"
+    write(*,*) "  Set temperature is ", real(temperature0_ion)
+
+    kB = 8.6173303d-5 / 27.211396d0 ![au/K]
+
+    iseed= 123
+    do ia=1,NI
+       mass_au = umass*Mass(Kion(ia))
+       sqrt_kT_im = sqrt( kB * temperature0_ion / mass_au )
+
+       do ixyz=1,3
+          call quickrnd(iseed,rnd1)
+          call quickrnd(iseed,rnd2)
+          rnd = sqrt(-2d0*log(rnd1))*cos(2d0*Pi*rnd2)
+          velocity(ixyz,ia) = rnd * sqrt_kT_im
+       enddo
+       !write(*,*)"velocity1:",ia,real(velocity(:,ia))
+    enddo
+
+    !!(check temperature)
+    !Tion=0d0
+    !do ia=1,NI
+    !   Tion = Tion + 0.5d0*umass*Mass(Kion(ia))*sum(velocity(:,ia)**2d0)
+    !enddo
+    !Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    !write(*,*)"  Temperature: random-vel",real(Temperature_ion)
+
+    !velocity of center of mass is removed
+    v_com(:)=0d0
+    sum_mass=0d0
+    do ia=1,NI
+       mass_au = umass*Mass(Kion(ia))
+       v_com(:) = v_com(:) + mass_au * velocity(:,ia)
+       sum_mass = sum_mass + mass_au
+    enddo
+    v_com(:) = v_com(:)/sum_mass
+    do ia=1,NI
+       velocity(:,ia) = velocity(:,ia) - v_com(:)
+    enddo
+
+    !(check velocity of center of mass)
+    v_com(:)=0d0
+    do ia=1,NI
+       v_com(:) = v_com(:) + umass*Mass(Kion(ia)) * velocity(:,ia)
+    enddo
+    v_com(:) = v_com(:)/sum_mass
+    write(*,*)"    v_com =",real(v_com(:))
+
+    !rotation around center of mass is removed (do nothing now)
+
+
+    !scaling: set temperature exactly to input value
+    Tion=0d0
+    do ia=1,NI
+       Tion = Tion + 0.5d0 * umass*Mass(Kion(ia)) * sum(velocity(:,ia)**2d0)
+    enddo
+    Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    !write(*,*)"    Temperature: befor-scaling",real(Temperature_ion)
+
+    scale_v = sqrt(temperature0_ion/Temperature_ion)
+    velocity(:,:) = velocity(:,:) * scale_v
+
+    !(check)
+    Tion=0d0
+    do ia=1,NI
+       Tion = Tion + 0.5d0 * umass*Mass(Kion(ia)) * sum(velocity(:,ia)**2d0)
+    enddo
+    Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    write(*,*)"    Initial Temperature: after-scaling",real(Temperature_ion)
+
+    call comm_bcast(velocity ,nproc_group_global)
+
+  End Subroutine set_initial_velocity
 end module initialization

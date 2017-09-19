@@ -35,7 +35,7 @@ subroutine tddft_sc
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
   integer :: fh_rt_data
-  real(8) :: Temperature_R,kB,hartree2J
+  real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI)
   parameter( kB = 1.38064852d-23 ) ![J/K]
   parameter( hartree2J = 4.359744650d-18 )
   character(100) :: comment_line
@@ -54,7 +54,7 @@ subroutine tddft_sc
     case('y')
       Rion_update_rt = rion_update_on
       write(comment_line,110) 0, 0
-      call write_xyz(NI,Rion,comment_line,"new")
+      call write_xyz(comment_line,"new","rv ")
     case('n')
       Rion_update_rt = rion_update_off
     end select
@@ -184,14 +184,20 @@ subroutine tddft_sc
     force=force+force_ion
 !pseudo potential update
     if (use_ehrenfest_md == 'y') then
+      if(iter==entrance_iter+1)then
+         dRion(:,:,iter-1) = dRion(:,:,iter) - velocity(:,:)*dt
+      endif
       Tion=0.d0
       do ia=1,NI
-        dRion(:,ia,iter+1)=2*dRion(:,ia,iter)-dRion(:,ia,iter-1)+force(:,ia)*dt**2/(umass*Mass(Kion(ia)))
-        Rion(:,ia)=Rion_eq(:,ia)+dRion(:,ia,iter+1)
-        Tion=Tion+0.5d0*umass*Mass(Kion(ia))*sum((dRion(:,ia,iter+1)-dRion(:,ia,iter-1))**2)/(2*dt)**2
+        mass_au = umass*Mass(Kion(ia))
+        velocity(:,ia) = ( dRion(:,ia,iter)-dRion(:,ia,iter-1) )/dt
+        dRion(:,ia,iter+1) = dRion(:,ia,iter) + velocity(:,ia)*dt +force(:,ia)*dt**2/mass_au
+        Rion(:,ia) = Rion_eq(:,ia) + dRion(:,ia,iter+1)
+        vel_cor(:,ia) = ( dRion(:,ia,iter+1) - dRion(:,ia,iter-1) ) / (2d0*dt)
+        Tion = Tion + 0.5d0 * mass_au * sum(vel_cor(:,ia)**2d0)
       enddo
-      Temperature_R = Tion * 2d0 / (3d0*NI) / (kB/hartree2J)
-      call prep_ps_periodic('not_initial')
+      Temperature_ion = Tion * 2d0 / (3d0*NI) / (kB/hartree2J)
+      if (mod(iter,step_update_ps)==0 ) call prep_ps_periodic('not_initial')
     else
       dRion(:,:,iter+1)=0.d0
       Tion=0.d0
@@ -202,13 +208,13 @@ subroutine tddft_sc
     if (use_ehrenfest_md == 'y') then
       write(*,'(1x,f10.4,8f12.6,f22.14,f18.5)') iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-           &  Eall, Eall-Eall0, Tion, Temperature_R
+           &  Eall, Eall-Eall0, Tion, Temperature_ion
       write(7,'(1x,100e16.6E3)') iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-           &  Eall, Eall-Eall0, Tion, Temperature_R
+           &  Eall, Eall-Eall0, Tion, Temperature_ion
       write(comment_line,110) iter, iter*dt
 110   format("#md   step=",i4,"   time",e16.6)
-      call write_xyz(NI,Rion,comment_line,"add")
+      call write_xyz(comment_line,"add","rv ")
     else
       write(*,'(1x,f10.4,8f12.6,f22.14)') iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
@@ -471,7 +477,7 @@ subroutine calc_opt_ground_state
   real(8) :: StepLen_LineSearch_Up,StepLen_LineSearch_Dw
   real(8) :: SearchDirection(3,NI), Rion_save(3,NI)
   real(8) :: Eall_prev,Eall_save,Eall_3points(3),Eall_min,Eall_new,Eall_prev_line
-  real(8) :: dEall,dE_conv,dE_conv_LineSearch, fave_conv
+  real(8) :: dEall,dE_conv,dE_conv_LineSearch, fmax_conv  !,fave_conv
   real(8) :: force_prev(3,NI), force_1d(3*NI), force_prev_1d(3*NI)
   character(100) :: comment_line
 
@@ -490,25 +496,30 @@ subroutine calc_opt_ground_state
   if(comm_is_root(nproc_id_global)) &
   &  write(*,*) "===== Grand State Optimization Start ====="
   PrLv_scf = 0
-  convrg_scf_ene  =1d-6
+  if(convrg_scf_ene < 0d0) convrg_scf_ene=1d-6
   iflag_gs_init_wf=1   !flag to skip giving randam number initial guess
-  !Nscf = 50
   Nopt_perp = 100
   Nopt_line = 40
-  !StepLen_LineSearch0   = 0.05d0
-  StepLen_LineSearch0   = 0.5d0  !--i dont know efficient number
-  StepLen_LineSearch_Up = 1.2d0
-  StepLen_LineSearch_Dw = 0.5d0
-  dE_conv_LineSearch    = 1d-6   !--i dont know good number
-  dE_conv               = 1d-6   !--i dont know good number
-  fave_conv             = 1d-5   !--i dont know good number
+  StepLen_LineSearch0   = cg_alpha_ini
+  StepLen_LineSearch_Up = cg_alpha_up
+  StepLen_LineSearch_Dw = cg_alpha_down
+  dE_conv_LineSearch    = convrg_opt_ene
+  dE_conv               = convrg_opt_ene
+  fmax_conv             = convrg_opt_fmax
+  !fave_conv             = 1d-5   !--i dont know good number
 
   if(comm_is_root(nproc_id_global)) then
      write(*,*) "  [Set following in optimization]"
-    !write(*,*) "  Nscf in each optimize step =",Nscf
      write(*,*) "  SCF convergence threshold(E)=",real(convrg_scf_ene)
      write(*,*) "  Max optimization CG step    =",Nopt_perp
      write(*,*) "  Max line search opt step    =",Nopt_line
+     write(*,*) "  Ini. step length param. for line search    =",real(StepLen_LineSearch0)
+     write(*,*) "  Up rate of step length for line search     =",real(StepLen_LineSearch_Up)
+     write(*,*) "  Down rate of step length for line search   =",real(StepLen_LineSearch_Dw)
+     write(*,*) "  Convergence threshold of dE: line search   =",real(dE_conv_LineSearch)
+     write(*,*) "  Convergence threshold of dE: main search   =",real(dE_conv)
+     write(*,*) "  Convergence threshold of Fmax: only initial=",real(fmax_conv)
+     !write(*,*) "  Convergence threshold of F: only initial=",real(fave_conv)
   endif
 
   !if (comm_is_root(nproc_id_global)) then
@@ -522,19 +533,25 @@ subroutine calc_opt_ground_state
   !Initial Step Procedure
   SearchDirection(:,:) = force(:,:)
   write(comment_line,110) 0, 0
-  call write_xyz(NI,Rion,comment_line,"new")
+  call write_xyz(comment_line,"new","r  ")
   call cal_mean_max_forces(NI,force,fave,fmax)
   if(comm_is_root(nproc_id_global)) then
      write(*,135) 0, 0, Eall, 0d0
      write(*,120) " Max-force=", fmax, "  Mean-force=", fave
   endif
   !(initial check of convergence: if force is enough small, exit before opt)
-  if(fave .le. fave_conv) then
+  if(fmax .le. fmax_conv) then
     if(comm_is_root(nproc_id_global)) &
-    &  write(*,*) " Mean force is enough small: stop calculation"
+    &  write(*,*) " Max force is enough small: stop calculation"
     call end_parallel
     stop
   endif
+  !if(fave .le. fave_conv) then
+  !  if(comm_is_root(nproc_id_global)) &
+  !  &  write(*,*) " Mean force is enough small: stop calculation"
+  !  call end_parallel
+  !  stop
+  !endif
 
   !--- Main Loop ----
   do iter_perp =1,Nopt_perp     !iteration for perpendicular direction
@@ -609,7 +626,7 @@ subroutine calc_opt_ground_state
           Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch_new* SearchDirection(:,:)
           Rion_eq(:,:)= Rion(:,:)
           write(comment_line,110) iter_perp, iter_line
-          call write_xyz(NI,Rion,comment_line,"add")
+          call write_xyz(comment_line,"add","r  ")
           call prep_ps_periodic('not_initial')
           call calc_ground_state
           Eall_new = Eall
@@ -629,7 +646,7 @@ subroutine calc_opt_ground_state
        Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch_min* SearchDirection(:,:)
        Rion_eq(:,:)= Rion(:,:)
        write(comment_line,110) iter_perp, iter_line
-       call write_xyz(NI,Rion,comment_line,"add")
+       call write_xyz(comment_line,"add","r  ")
        call prep_ps_periodic('not_initial')
        call calc_ground_state
        Eall_min = Eall
@@ -785,7 +802,7 @@ contains
     zu_GS0(:,:,:)=zu_GS(:,:,:)
     zu_t(:,:,:)=zu_GS(:,1:NBoccmax,:)
     Rion_eq=Rion
-    dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
+    !dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
     call psi_rho_GS
     call Hartree
     call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
@@ -895,15 +912,17 @@ contains
 
 end subroutine calc_opt_ground_state
 
-subroutine write_xyz(NI,Rion,comment,action)
+subroutine write_xyz(comment,action,rvf)
+! Write xyz in xyz format but also velocity and force are printed if necessary
+! (these can be used for restart of opt and md)
+  use Global_Variables
   use inputoutput, only: au_length_aa
   use salmon_global, only: SYSname,iflag_atom_coor,ntype_atom_coor_cartesian,ntype_atom_coor_reduced
   use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root
   implicit none
-  integer :: ia,NI,unit_xyz=200,unit_atomic_coor_tmp=201
-  real(8) :: Rion(3,NI)
-  character(3) :: action
+  integer :: ia,unit_xyz=200,unit_atomic_coor_tmp=201
+  character(3) :: action,rvf
   character(100)  :: char_atom,atom_name
   character(1024) :: file_trj
   character(*) :: comment
@@ -932,13 +951,22 @@ subroutine write_xyz(NI,Rion,comment,action)
   do ia=1,NI
      read(unit_atomic_coor_tmp,*) char_atom
      atom_name = char_atom(1:len_trim(char_atom))
-     write(unit_xyz,100) trim(atom_name), Rion(1:3,ia)*au_length_aa
+     if(      rvf=="r  " ) then
+        write(unit_xyz,100) trim(atom_name),Rion(1:3,ia)*au_length_aa
+     else if( rvf=="rv " ) then
+        write(unit_xyz,110) trim(atom_name),Rion(1:3,ia)*au_length_aa,velocity(1:3,ia)
+     else if( rvf=="rvf" ) then
+        write(unit_xyz,120) trim(atom_name),Rion(1:3,ia)*au_length_aa,velocity(1:3,ia),force(1:3,ia)
+     endif
+     
   enddo
 
   close(unit_xyz) 
   close(unit_atomic_coor_tmp)
 
 100 format(a2,3f18.10)
+110 format(a2,3f18.10, "  #",3f18.10)
+120 format(a2,3f18.10, "  #",3f18.10, "  #",3f18.10)
 
 end subroutine write_xyz
 

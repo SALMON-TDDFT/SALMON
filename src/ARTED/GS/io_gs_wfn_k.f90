@@ -89,7 +89,7 @@ contains
     
     zu_t(:,:,:)=zu_GS(:,1:NBoccmax,:)
     Rion_eq=Rion
-    dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
+    !dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0  !moved to initialization
     call psi_rho_GS
     call Hartree
     call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
