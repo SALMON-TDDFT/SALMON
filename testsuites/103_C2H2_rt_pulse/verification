@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+# This verification script file is automatically executed after the SALMON.
+# If necessary, this script file can used for the verification of the result.
+# The script MUST indicate a "return-code 0", if the calculation is successful.
+# If a negative value is returned, it is treated as a test failure.
+
+import sys
+import os
+import re
+
+print("#" * 60)
+print("# Verification start")
+
+filelist = [
+    "C2H2-RT.data",
+]
+
+print("# Checking the existance of outputfile")
+for item in filelist:
+    if not os.path.exists(item):
+        print("File not found: %s" % item)
+        sys.exit(-1)  # Failure
+
+print("# Verification end")
+print("#" * 60)
+
+sys.exit(0)  # Success
