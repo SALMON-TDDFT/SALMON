@@ -18,29 +18,36 @@ SUBROUTINE calc_laplacianh(wk2,lap_wk)
 use scf_data
 
 implicit none
-integer :: ix,iy,iz,ist
-real(8) :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3))
-real(8) :: lap_wk(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
-real(8) :: f0
+real(8),intent(in)  :: wk2(iwk2sta(1):iwk2end(1),iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3))
+real(8),intent(out) :: lap_wk(iwk3sta(1):iwk3end(1),iwk3sta(2):iwk3end(2),iwk3sta(3):iwk3end(3))
+real(8) :: f0,wv
 real(8) :: Hinv2(3)
+integer :: ix,iy,iz,ist
 
 f0=(1.d0/Hgs(1)**2   &
    +1.d0/Hgs(2)**2   &
-   +1.d0/Hgs(3)**2)
+   +1.d0/Hgs(3)**2) * cNmat(0,Nd)
 Hinv2(1:3)=1.d0/Hgs(1:3)**2
 
-!$OMP parallel do collapse(2) private(ist,iz,iy,ix)
+!$OMP parallel do collapse(2) &
+!$OMP             firstprivate(Hinv2,f0) &
+!$OMP             private(ist,iz,iy,ix,wv)
 do iz=iwk3sta(3),iwk3end(3)
 do iy=iwk3sta(2),iwk3end(2)
-do ix=iwk3sta(1),iwk3end(1)
-  lap_wk(ix,iy,iz)=cNmat(0,Nd)*f0*wk2(ix,iy,iz)
-  do ist=1,Ndh
-    lap_wk(ix,iy,iz)=lap_wk(ix,iy,iz)     &
-           +cNmat(ist,Ndh)*( (wk2(ix+ist,iy,iz) + wk2(ix-ist,iy,iz))*Hinv2(1)       &
-                            +(wk2(ix,iy+ist,iz) + wk2(ix,iy-ist,iz))*Hinv2(2)       &
-                            +(wk2(ix,iy,iz+ist) + wk2(ix,iy,iz-ist))*Hinv2(3)  )
+
+!dir$ vector nontemporal(lap_wk)
+  do ix=iwk3sta(1),iwk3end(1)
+    wv = 0.d0
+
+    do ist=1,Ndh
+      wv = wv + cNmat(ist,Ndh)*( (wk2(ix+ist,iy,iz) + wk2(ix-ist,iy,iz))*Hinv2(1) &
+                                +(wk2(ix,iy+ist,iz) + wk2(ix,iy-ist,iz))*Hinv2(2) &
+                                +(wk2(ix,iy,iz+ist) + wk2(ix,iy,iz-ist))*Hinv2(3) )
+    end do
+
+    lap_wk(ix,iy,iz) = wv + f0 * wk2(ix,iy,iz)
   end do
-end do
+
 end do
 end do
 

@@ -18,11 +18,11 @@ module salmon_global
   implicit none
 
 !Parameters for pseudo-potential
-  integer, parameter :: maxMKI=10
-  integer :: MI,MKI
+  integer, parameter :: maxmki=10
+  integer :: mi,mki
    !shinohara
-  integer :: ipsfileform(maxMKI)   ! file format for pseudo potential
-  character(16)  :: ps_format(maxMKI)
+  integer :: ipsfileform(maxmki)   ! file format for pseudo potential
+  character(16)  :: ps_format(maxmki)
 ! List of pseudopotential file formats
   integer,parameter :: n_Yabana_Bertsch_psformat = 1 !.rps
   integer,parameter :: n_ABINIT_psformat = 2 ! .pspnc
@@ -83,10 +83,10 @@ module salmon_global
   character(256) :: file_atom_red_coor
 
 !! &pseudo
-  character(256) :: pseudo_file(maxMKI)
-  integer        :: Lmax_ps(maxMKI)
-  integer        :: Lloc_ps(maxMKI)
-  integer        :: iZatom(maxMKI)
+  character(256) :: pseudo_file(maxmki)
+  integer        :: lmax_ps(maxmki)
+  integer        :: lloc_ps(maxmki)
+  integer        :: izatom(maxmki)
   character(1)   :: psmask_option
   real(8)        :: alpha_mask
   real(8)        :: gamma_mask
@@ -271,9 +271,9 @@ module salmon_global
 
 !! &atomic_coor
 !! &atomic_red_coor
-integer,allocatable :: Kion(:)    
-real(8),allocatable :: Rion(:,:)  
-real(8),allocatable :: Rion_red(:,:)  
+integer,allocatable :: kion(:)    
+real(8),allocatable :: rion(:,:)  
+real(8),allocatable :: rion_red(:,:)  
 character(1),allocatable :: flag_geo_opt_atom(:)
 
 

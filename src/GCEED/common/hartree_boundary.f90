@@ -26,13 +26,16 @@ use sendrecvh_sub
 use allocate_mat_sub
 use deallocate_mat_sub
 
+use omp_lib, only: omp_get_num_threads, omp_get_thread_num, omp_get_max_threads
+use misc_routines, only: ceiling_pow2
+
 implicit none
 real(8) :: trho(mg_sta(1):mg_end(1),    &
                mg_sta(2):mg_end(2),      &
                mg_sta(3):mg_end(3))
 
 integer,parameter :: maxiter=1000
-integer :: ii,jj,ix,iy,iz,lm,LL,icen
+integer :: ii,jj,kk,ix,iy,iz,lm,LL,icen,pl,cl
 integer :: ixbox,iybox,izbox
 integer :: k
 integer :: istart(0:nproc_size_global-1),iend(0:nproc_size_global-1)
@@ -44,7 +47,8 @@ real(8) :: Ylm2(25)
 integer :: L2(25)
 real(8) :: xx,yy,zz,rr,sum1,xxxx,yyyy,zzzz,rrrr,sumbox1,sumbox2,sumbox3
 real(8) :: rholm2box
-real(8),allocatable :: rholm(:,:),rholm2(:,:)
+real(8),allocatable :: rholm(:,:),rholm2(:,:),rholm3(:,:)
+integer :: tid
 real(8) :: center_trho2(3)
 real(8),allocatable :: center_trho(:,:)
 real(8),allocatable :: center_trho_nume_deno(:,:)
@@ -211,31 +215,88 @@ do ii=1,num_pole
   end if
 end do
 
-rholm2=0.d0
-do ii=1,num_pole_myrank
-  if(itrho(icorr_polenum(ii))==1)then
-    rholm=0.d0
-    do LL=0,lmax_MEO
-    do lm=LL**2+1,(LL+1)**2
-      rholm2box=0.d0
-!$OMP parallel do reduction ( + : rholm2box)&
-!$OMP private(jj,ixbox,iybox,izbox,xx,yy,zz,rr,xxxx,yyyy,zzzz,Ylm)
-      do jj=1,icount_pole(ii)
+if(omp_get_max_threads() > 16) then
+!$omp parallel shared(rholm3,lmax_MEO)
+!$omp master
+    allocate(rholm3((lmax_MEO+1)**2,0:ceiling_pow2(omp_get_num_threads())-1))
+!$omp end master
+!$omp end parallel
+
+  rholm2=0.d0
+  rholm3=0.d0
+  do ii=1,num_pole_myrank
+    pl=icorr_polenum(ii)
+    cl=icount_pole(ii)
+    if(itrho(pl)==1)then
+!$omp parallel default(none) &
+!$omp          shared(icorr_xyz_pole,gridcoo,center_trho,trho,rholm3) &
+!$omp          private(tid,kk,jj,LL,lm,ixbox,iybox,izbox,xx,yy,zz,rr,rinv,xxxx,yyyy,zzzz,Ylm) &
+!$omp          firstprivate(ii,pl,cl,lmax_MEO,Hvol)
+      tid=omp_get_thread_num()
+      rholm3(:,tid)=0.d0
+
+!$omp do
+      do jj=1,cl
         ixbox=icorr_xyz_pole(1,jj,ii)
         iybox=icorr_xyz_pole(2,jj,ii)
         izbox=icorr_xyz_pole(3,jj,ii)
-        xx=gridcoo(ixbox,1)-center_trho(1,icorr_polenum(ii))
-        yy=gridcoo(iybox,2)-center_trho(2,icorr_polenum(ii))
-        zz=gridcoo(izbox,3)-center_trho(3,icorr_polenum(ii))
-        rr=sqrt(xx*xx+yy*yy+zz*zz)+1.d-50 ; xxxx=xx/rr ; yyyy=yy/rr ; zzzz=zz/rr
-        call Ylm_sub(xxxx,yyyy,zzzz,lm,Ylm)
-        rholm2box=rholm2box+rr**LL*Ylm*trho(ixbox,iybox,izbox)*Hvol
+        xx=gridcoo(ixbox,1)-center_trho(1,pl)
+        yy=gridcoo(iybox,2)-center_trho(2,pl)
+        zz=gridcoo(izbox,3)-center_trho(3,pl)
+        rr=sqrt(xx*xx+yy*yy+zz*zz)+1.d0-50.d0
+        rinv=1.0d0/rr
+        xxxx=xx*rinv
+        yyyy=yy*rinv
+        zzzz=zz*rinv
+        do LL=0,lmax_MEO
+        do lm=LL**2+1,(LL+1)**2
+          call Ylm_sub(xxxx,yyyy,zzzz,lm,Ylm)
+          rholm3(lm,tid)=rholm3(lm,tid)+rr**LL*Ylm*trho(ixbox,iybox,izbox)*Hvol
+        end do
+        end do
       end do
-      rholm2(lm,icorr_polenum(ii))=rholm2box
-    end do
-    end do
-  end if
-end do 
+!$omp end do
+
+      kk = ceiling_pow2(omp_get_num_threads())/2
+      do while(kk > 0)
+        if(tid < kk) then
+          rholm3(:,tid) = rholm3(:,tid) + rholm3(:,tid+kk)
+        end if
+        kk = kk/2
+!$omp barrier
+      end do
+!$omp end parallel
+    end if
+    rholm2(:,pl)=rholm3(:,0)
+  end do
+  deallocate(rholm3)
+else
+  rholm2=0.d0
+  do ii=1,num_pole_myrank
+    if(itrho(icorr_polenum(ii))==1)then
+      rholm=0.d0
+      do LL=0,lmax_MEO
+      do lm=LL**2+1,(LL+1)**2
+        rholm2box=0.d0
+!$OMP parallel do reduction ( + : rholm2box)&
+!$OMP private(jj,ixbox,iybox,izbox,xx,yy,zz,rr,xxxx,yyyy,zzzz,Ylm)
+        do jj=1,icount_pole(ii)
+          ixbox=icorr_xyz_pole(1,jj,ii)
+          iybox=icorr_xyz_pole(2,jj,ii)
+          izbox=icorr_xyz_pole(3,jj,ii)
+          xx=gridcoo(ixbox,1)-center_trho(1,icorr_polenum(ii))
+          yy=gridcoo(iybox,2)-center_trho(2,icorr_polenum(ii))
+          zz=gridcoo(izbox,3)-center_trho(3,icorr_polenum(ii))
+          rr=sqrt(xx*xx+yy*yy+zz*zz)+1.d-50 ; xxxx=xx/rr ; yyyy=yy/rr ; zzzz=zz/rr
+          call Ylm_sub(xxxx,yyyy,zzzz,lm,Ylm)
+          rholm2box=rholm2box+rr**LL*Ylm*trho(ixbox,iybox,izbox)*Hvol
+        end do
+        rholm2(lm,icorr_polenum(ii))=rholm2box
+      end do
+      end do
+    end if
+  end do
+endif
 
 deallocate(center_trho_nume_deno)
 deallocate(center_trho_nume_deno2)
@@ -254,7 +315,7 @@ else
   elp3(252)=elp3(252)+elp3(202)-elp3(201)
 end if
 
-!$OMP parallel do private(iz,iy,ix) 
+!$OMP parallel do private(iz,iy,ix) collapse(2)
 do iz=ng_sta(3)-Ndh,ng_end(3)+Ndh
 do iy=ng_sta(2)-Ndh,ng_end(2)+Ndh
 do ix=ng_sta(1)-Ndh,ng_end(1)+Ndh
