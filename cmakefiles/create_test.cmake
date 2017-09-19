@@ -7,8 +7,8 @@ function(create_test)
   file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/verification DESTINATION ${CMAKE_CURRENT_BINARY_DIR} FILE_PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
 
   add_custom_command(OUTPUT  ${TEST_EXEC}
-                     COMMAND echo '\#! /bin/sh'                                             >  ${TEST_EXEC}
-                     COMMAND echo "${TEST_MPI_COMMAND}" '< ./inputfile |& tee ./outputfile' >> ${TEST_EXEC}
+                     COMMAND echo '\#! /bin/sh'                                         >  ${TEST_EXEC}
+                     COMMAND echo "${TEST_COMMAND}" '< ./inputfile |& tee ./outputfile' >> ${TEST_EXEC}
                      COMMAND chmod +x ${TEST_EXEC})
   add_custom_target("gen_${TEST_NAME}" ALL DEPENDS ${TEST_EXEC} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
