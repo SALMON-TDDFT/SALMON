@@ -31,6 +31,7 @@ contains
     allocate(rho_in(1:NL,1:Nscf+1),rho_out(1:NL,1:Nscf+1))
     rho_in(1:NL,1:Nscf+1)=0.d0; rho_out(1:NL,1:Nscf+1)=0.d0
     allocate(Eall_GS(0:Nscf),esp_var_ave(1:Nscf),esp_var_max(1:Nscf),dns_diff(1:Nscf))
+    Eall_GS(0:Nscf)=0d0; esp_var_ave(1:Nscf)=0d0; esp_var_max(1:Nscf)=0d0; dns_diff(1:Nscf)=0d0
     
     if(iflag_gs_init_wf==0) then  !case that initial guess is generated with random number
       call init_wf
@@ -186,7 +187,7 @@ contains
     zu_t(:,:,:)=zu_GS(:,1:NBoccmax,:)
     Rion_eq=Rion
     dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
-    
+
     call psi_rho_GS
     call Hartree
     call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)

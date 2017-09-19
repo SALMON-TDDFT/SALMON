@@ -80,6 +80,7 @@ Module Global_Variables
   real(8),allocatable :: rho_in(:,:),rho_out(:,:) !MB method
   complex(8),allocatable :: rhoe_G(:),rhoion_G(:)
   real(8),allocatable :: force(:,:),esp(:,:),force_ion(:,:)
+  real(8),allocatable :: velocity(:,:)
   real(8),allocatable :: Floc(:,:),Fnl(:,:),Fion(:,:)               
   real(8),allocatable :: ovlp_occ_l(:,:),ovlp_occ(:,:)
   integer,allocatable :: NBocc(:) !FS set
@@ -228,7 +229,6 @@ Module Global_Variables
 
   ! scf
   integer :: PrLv_scf = 3          !(no print=0, all print=3)
-  real(8) :: convrg_scf_ene= -1d0
 
   ! Rion update flag
   logical :: Rion_update_rt

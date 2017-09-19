@@ -18,6 +18,8 @@
 - [&analysis](#analysis)
 - [&hartree](#hartree)
 - [&ewald](#ewald)
+- [&opt](#opt)
+- [&md](#md)
 
 ## &calculation
 <dl>
@@ -909,6 +911,73 @@ Default is <code>0.5</code>.
 </dd>
 
 </dl>
+
+## &opt
+<dl>
+<dt>cg_alpha_ini; <code>Real(8)</code>; 3d</dt>
+<dd>
+Parameter for initial step length in line search in conjugated gradient method.
+Default is <code>0.8</code>.
+</dd>
+<dt>cg_alpha_up; <code>Real(8)</code>; 3d</dt>
+<dd>
+Parameter for up-rate of step length in line search in conjugated gradient method.
+Default is <code>1.3</code>.
+</dd>
+<dt>cg_alpha_down; <code>Real(8)</code>; 3d</dt>
+<dd>
+Parameter for down-rate of step length in line search in conjugated gradient method.
+Default is <code>0.5</code>.
+</dd>
+<dt>convrg_scf_ene; <code>Real(8)</code>; 3d</dt>
+<dd>
+Convergence threshold of SCF calculation in energy difference. If negative number no threshold (SCF loop is up to <code>Nscf</code>)
+Default is <code>-1.0</code>.
+</dd>
+<dt>convrg_opt_ene; <code>Real(8)</code>; 3d</dt>
+<dd>
+Convergence threshold of optimization in energy difference. 
+Default is <code>1d-6</code>.
+</dd>
+<dt>convrg_opt_fmax; <code>Real(8)</code>; 3d</dt>
+<dd>
+Convergence threshold of optimization in maximum force. (used in the initial optimization step only)
+Default is <code>1d-5</code>.
+</dd>
+
+
+## &md
+<dt>ensemble; <code>Character</code>; 3d</dt>
+<dd>
+Ensemble in MD option: "NVE", "NVT" or "NVP" (currently only "NVE" is available)
+Default is <code>"NVE"</code>.
+</dd>
+<dt>thermostat; <code>Character</code>; 3d</dt>
+<dd>
+Thermostat in "NVT" and "NPT" option: (currently not available)
+Default is <code>"nose-hoover"</code>.
+</dd>
+<dt>step_velocity_scaling; <code>Integer</code>; 3d</dt>
+<dd>
+Time step interval for velocity scaling (currently not available)
+Default is <code>10</code>.
+</dd>
+<dt>step_update_ps; <code>Integer</code>; 3d</dt>
+<dd>
+Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate)
+Default is <code>1</code>.
+</dd>
+<dt>temperature0_ion; <code>Real(8)</code>; 3d</dt>
+<dd>
+Setting temperature in NVT ensemble and for generating initial velocities.
+Default is <code>298.15</code>.
+</dd>
+<dt>set_ini_velocity; <code>Character</code>; 3d</dt>
+<dd>
+Flag of generating initial velocity (Maxwell-Bortzman distribution).
+Default is <code>n</code>.
+</dd>
+
 
 ***
 
