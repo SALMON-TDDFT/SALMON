@@ -55,15 +55,15 @@ group.add_option('--prefix',       action='store', default=None, dest='prefix', 
 parser.add_option_group(group)
 
 group = OptionGroup(parser, 'Library options')
-group.add_option('--enable-mpi',        action='store_true',  dest='mpi',       help='enable MPI parallelization.')
-group.add_option('--disable-mpi',       action='store_false', dest='mpi',       help='disable MPI parallelization.')
-group.add_option('--enable-scalapack',  action='store_true',  dest='scalapack', help='enable computations with ScaLAPACK library.')
-group.add_option('--disable-scalapack', action='store_false', dest='scalapack', help='disable computations with ScaLAPACK library.')
+group.add_option('--enable-mpi',        action='store_true',  dest='mpi')
+group.add_option('--disable-mpi',       action='store_false', dest='mpi',       help='enable/disable MPI parallelization.')
+group.add_option('--enable-scalapack',  action='store_true',  dest='scalapack')
+group.add_option('--disable-scalapack', action='store_false', dest='scalapack', help='disable/disable computations with ScaLAPACK library.')
 parser.add_option_group(group)
 
 group = OptionGroup(parser, 'Optimization options')
-group.add_option('--enable-reduce-for-manycore',  action='store_true',  dest='reduce_manycore',   help='enable reduction code optimization for many-core processor.')
-group.add_option('--disable-reduce-for-manycore', action='store_true',  dest='reduce_manycore',   help='disable the above feature.')
+group.add_option('--enable-reduce-for-manycore',  action='store_true',  dest='reduce_manycore')
+group.add_option('--disable-reduce-for-manycore', action='store_true',  dest='reduce_manycore', help='enable/disable reduction code optimization for many-core processor.')
 parser.add_option_group(group)
 
 group = OptionGroup(parser, 'Optimization options for stencil computations')
