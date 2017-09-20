@@ -1,0 +1,45 @@
+&units
+  unit_system='A_eV_fs'
+/
+&calculation
+  calc_mode='RT'
+/
+&control
+  sysname = 'C2H2'
+/
+&system
+  iperiodic = 0
+  al = 16d0, 16d0, 16d0
+  nstate = 5
+  nelem = 2
+  natom = 4
+  nelec = 10
+/
+&pseudo
+  izatom(1)=6
+  izatom(2)=1
+  pseudo_file(1)='C_rps.dat'
+  pseudo_file(2)='H_rps.dat'
+  lmax_ps(1)=1
+  lmax_ps(2)=0
+  lloc_ps(1)=1
+  lloc_ps(2)=0
+/
+&tgrid
+  dt=1.25d-3
+  nt=4800
+/
+&emfield
+  ae_shape1 = 'Ecos2'
+  epdir_re1 = 0.d0,0.d0,1.d0
+  rlaser_int_wcm2_1 = 1.d8
+  omega1=9.26d0
+  pulse_tw1=6.d0
+  phi_cep1=0.75d0
+/
+&atomic_coor
+'C'    0.000000    0.000000    0.599672  1
+'H'    0.000000    0.000000    1.662257  2
+'C'    0.000000    0.000000   -0.599672  1
+'H'    0.000000    0.000000   -1.662257  2
+/
