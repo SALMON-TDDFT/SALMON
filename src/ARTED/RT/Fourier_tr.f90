@@ -16,24 +16,43 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine Fourier_tr
   use Global_Variables
+  use salmon_file, only: open_filehandle
   use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root
   implicit none
   integer :: ihw,ixyz,iter
   real(8) :: hw,tt
   complex(8) :: jav_w(3),E_ext_w(3),E_tot_w(3)
+  complex(8) :: jav_d(3),jav_s(3),smt_s
   complex(8) :: zsigma_w(3),zeps(3)
+  integer :: fh_lr
 
   if (comm_is_root(nproc_id_global)) then
     open(7,file=file_epse)
+    fh_lr = open_filehandle( &
+    & trim(directory) // trim(SYSname) // '_lr.data' &
+    & )
   endif
+  
+  if (KbTev < 0d0) then
+    ! sigma(omega=0) correcton
+    jav_s=0d0; smt_s=0d0;
+    do iter=0,Nt
+      tt=(iter+0.5)*dt
+      jav_s(:)=jav_s(:)+javt(iter,:)*smoothing_t(tt)
+      smt_s=smt_s+smoothing_t(tt)
+    end do
+    jav_d(:)=jav_s(:)/smt_s
+  else
+    jav_d(:)=0d0
+  end if
 
   do ihw=1,Nomega
     hw=ihw*domega
     jav_w=0.d0; E_ext_w=0.d0; E_tot_w=0.d0
     do iter=0,Nt
       tt=(iter+0.5)*dt
-      jav_w(:)=jav_w(:)+javt(iter,:)*exp(zI*hw*tt)*smoothing_t(tt)
+      jav_w(:)=jav_w(:)+(javt(iter,:)-jav_d(:))*exp(zI*hw*tt)*smoothing_t(tt)
       E_ext_w(:)=E_ext_w(:)+E_ext(iter,:)*exp(zI*hw*tt)*smoothing_t(tt)
       E_tot_w(:)=E_tot_w(:)+E_tot(iter,:)*exp(zI*hw*tt)*smoothing_t(tt)
     enddo
@@ -68,10 +87,20 @@ Subroutine Fourier_tr
              &,(aimag(E_tot_w(ixyz)),ixyz=1,3)
       endif
     endif
+    
+    if (Trans_Longi == 'tr') then
+      write(fh_lr,'(1x,f13.7,12f22.14)') &
+          & hw &
+          &,(real(zsigma_w(ixyz)),ixyz=1,3)&
+          &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
+          &,(real(zeps(ixyz)),ixyz=1,3)&
+          &,(aimag(zeps(ixyz)),ixyz=1,3)
+    end if
   enddo
  
   if (comm_is_root(nproc_id_global)) then
     close(7)
+    close(fh_lr)
   endif
 
   return
