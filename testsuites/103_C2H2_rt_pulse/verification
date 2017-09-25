@@ -33,14 +33,12 @@ for item in filelist:
 
 print("# Checking calculated result")
 result = {}
-linecount = 0
-for line in open("C2H2-RT.data"):
-    linecount += 1
+for linecount, line in enumerate(open("C2H2-RT.data")):
     if linecount == 4703: # corresponds to a line of 5.8763fs
-        for name, [resval, refval, error] in checklist.items(): 
-            data = line.split()
-            result[name] = float(data[3])
-            print(result[name])
+        name = "Dipole Moment"
+        data = line.split()
+        result[name] = float(data[3])
+        print(result[name])
 
 for name, [resval, refval, error] in checklist.items():
     if name not in result: 
