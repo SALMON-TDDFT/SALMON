@@ -9,3 +9,6 @@
 cp ../pseudo/C_rps.dat ./
 cp ../pseudo/H_rps.dat ./
 cp ../101_C2H2_gs/C2H2.data ./
+if [ -e C2H2-ALP.data ]; then
+  rm C2H2-ALP.data
+fi
