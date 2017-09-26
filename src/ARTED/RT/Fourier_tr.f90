@@ -38,7 +38,7 @@ Subroutine Fourier_tr
     ! sigma(omega=0) correcton
     jav_s=0d0; smt_s=0d0;
     do iter=0,Nt
-      tt=(iter+0.5)*dt
+      tt=iter*dt
       jav_s(:)=jav_s(:)+javt(iter,:)*smoothing_t(tt)
       smt_s=smt_s+smoothing_t(tt)
     end do
@@ -51,7 +51,7 @@ Subroutine Fourier_tr
     hw=ihw*domega
     jav_w=0.d0; E_ext_w=0.d0; E_tot_w=0.d0
     do iter=0,Nt
-      tt=(iter+0.5)*dt
+      tt=iter*dt
       jav_w(:)=jav_w(:)+(javt(iter,:)-jav_d(:))*exp(zI*hw*tt)*smoothing_t(tt)
       E_ext_w(:)=E_ext_w(:)+E_ext(iter,:)*exp(zI*hw*tt)*smoothing_t(tt)
       E_tot_w(:)=E_tot_w(:)+E_tot(iter,:)*exp(zI*hw*tt)*smoothing_t(tt)
