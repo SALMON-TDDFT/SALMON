@@ -86,16 +86,16 @@ Subroutine Fourier_tr
              &,(real(E_tot_w(ixyz)),ixyz=1,3)&
              &,(aimag(E_tot_w(ixyz)),ixyz=1,3)
       endif
+      
+      if (Trans_Longi == 'tr') then
+        write(fh_lr,'(1x,f13.7,12f22.14)') &
+            & hw &
+            &,(real(zsigma_w(ixyz)),ixyz=1,3)&
+            &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
+            &,(real(zeps(ixyz)),ixyz=1,3)&
+            &,(aimag(zeps(ixyz)),ixyz=1,3)
+      endif
     endif
-    
-    if (Trans_Longi == 'tr') then
-      write(fh_lr,'(1x,f13.7,12f22.14)') &
-          & hw &
-          &,(real(zsigma_w(ixyz)),ixyz=1,3)&
-          &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
-          &,(real(zeps(ixyz)),ixyz=1,3)&
-          &,(aimag(zeps(ixyz)),ixyz=1,3)
-    end if
   enddo
  
   if (comm_is_root(nproc_id_global)) then
