@@ -77,6 +77,12 @@ Subroutine Fourier_tr
              &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
+         write(fh_lr,'(1x,f13.7,12f22.14)') &
+             & hw &
+             &,(real(zsigma_w(ixyz)),ixyz=1,3)&
+             &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
+             &,(real(zeps(ixyz)),ixyz=1,3)&
+             &,(aimag(zeps(ixyz)),ixyz=1,3)
       else
         write(7,'(1x,f13.7,18f22.14)') hw&
              &,(real(jav_w(ixyz)),ixyz=1,3)&
@@ -85,15 +91,6 @@ Subroutine Fourier_tr
              &,(aimag(E_ext_w(ixyz)),ixyz=1,3)&
              &,(real(E_tot_w(ixyz)),ixyz=1,3)&
              &,(aimag(E_tot_w(ixyz)),ixyz=1,3)
-      endif
-      
-      if (Trans_Longi == 'tr') then
-        write(fh_lr,'(1x,f13.7,12f22.14)') &
-            & hw &
-            &,(real(zsigma_w(ixyz)),ixyz=1,3)&
-            &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
-            &,(real(zeps(ixyz)),ixyz=1,3)&
-            &,(aimag(zeps(ixyz)),ixyz=1,3)
       endif
     endif
   enddo
