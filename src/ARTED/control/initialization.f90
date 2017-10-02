@@ -476,6 +476,7 @@ contains
     allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
     if(use_ehrenfest_md=='y')then
        allocate(velocity(3,NI)) ; velocity(:,:)=0d0
+       allocate(save_dVloc_G(NG_s:NG_e,NE))
     endif
     
     select case(iflag_atom_coor)

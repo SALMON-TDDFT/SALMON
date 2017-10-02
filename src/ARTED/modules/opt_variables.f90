@@ -171,6 +171,7 @@ contains
     integer :: a,ik,ix,iy,iz,jx,jy,jz,i,j,k
     real(8) :: x,y,z,r
 
+    if(allocated(zKxyz)) deallocate(zKxyz)
     allocate(zKxyz(Nps,NI))
 
     do a=1,NI
