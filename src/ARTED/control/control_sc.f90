@@ -323,7 +323,7 @@ subroutine tddft_sc
     end if
   
 !Adiabatic evolution
-    if (projection_option /= 'no' .and. iter/100*100 == iter) then
+    if (projection_option /= 'no' .and. mod(iter,out_projection_step) == 0) then
       call k_shift_wf(Rion_update_rt,5,zu_t)
       if (comm_is_root(nproc_id_global)) then
         do ia=1,NI

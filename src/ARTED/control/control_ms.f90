@@ -178,7 +178,7 @@ subroutine tddft_maxwell_ms
 
       call timer_begin(LOG_K_SHIFT_WF)
 !Adiabatic evolution
-      if (projection_option /= 'no' .and. mod(iter,100) == 0) then
+      if (projection_option /= 'no' .and. mod(iter,out_projection_step) == 0) then
         call k_shift_wf(Rion_update_rt,2,zu_m(:,:,:,ixy_m))
         if(comm_is_root(nproc_id_tdks))then ! sato
           excited_electron_l(ix_m,iy_m)=sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
@@ -264,7 +264,7 @@ subroutine tddft_maxwell_ms
     end if
     call timer_end(LOG_OTHER)
 
-    if (projection_option /= 'no' .and. mod(iter,100) == 0 ) then 
+    if (projection_option /= 'no' .and. mod(iter,out_projection_step) == 0 ) then 
       call timer_begin(LOG_ALLREDUCE)
       call comm_summation(excited_electron_l,excited_electron,NX_m*NY_m,nproc_group_global)
       call timer_end(LOG_ALLREDUCE)
