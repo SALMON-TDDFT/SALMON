@@ -732,6 +732,13 @@ Methods of projection.
 </ul>
 </dd>
 
+<dt>out_projection_step; <code>Integer</code>; 3d</dt>
+<dd>
+Interval time step of projection analysis 
+if <code>projection_option</code> is not <code>'no'</code>.
+Default is <code>100</code>.
+</dd>
+
 <dt>nenergy; <code>Integer</code>; 0d/3d</dt>
 <dd>
 Number of energy grids for analysis.

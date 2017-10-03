@@ -233,7 +233,7 @@ Subroutine write_GS_data
         write(fh_eigen_data,'(A)')'# occup        : electron occupation'
         write(fh_eigen_data, '(a)') "#" // & 
           & " ik" // & 
-          & " kx" // & 
+          & " ib" // & 
           & " energy [" // trim(t_unit_energy%name) // "]" // & 
           & " occup" 
         do ik = 1, NK

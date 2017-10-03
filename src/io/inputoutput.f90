@@ -354,6 +354,7 @@ contains
       & out_elf_rt_step, &
       & out_estatic_rt, &
       & out_estatic_rt_step, &
+      & out_projection_step, &
       & format3d, &
       & numfiles_out_3d, &
       & timer_process
@@ -608,6 +609,7 @@ contains
     out_elf_rt_step     = 50
     out_estatic_rt      = 'n'
     out_estatic_rt_step = 50
+    out_projection_step = 100
     format3d            = 'cube'
     numfiles_out_3d     = 1
     timer_process       = 'n'
@@ -914,6 +916,7 @@ contains
     call comm_bcast(out_elf_rt_step    ,nproc_group_global)
     call comm_bcast(out_estatic_rt     ,nproc_group_global)
     call comm_bcast(out_estatic_rt_step,nproc_group_global)
+    call comm_bcast(out_projection_step,nproc_group_global)
     call comm_bcast(format3d           ,nproc_group_global)
     call comm_bcast(numfiles_out_3d    ,nproc_group_global)
     call comm_bcast(timer_process      ,nproc_group_global)
@@ -1412,6 +1415,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_elf_rt_step', out_elf_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_estatic_rt', out_estatic_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_estatic_rt_step', out_estatic_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_projection_step', out_projection_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'format3d', format3d
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'numfiles_out_3d', numfiles_out_3d
       write(fh_variables_log, '("#",4X,A,"=",A)') 'timer_process', timer_process
