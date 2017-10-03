@@ -507,7 +507,9 @@ contains
     use Global_Variables
     implicit none    
 
-    if(set_ini_velocity=='y') call set_initial_velocity
+    if(set_ini_velocity=='y' .or. step_velocity_scaling>=1) then
+       call set_initial_velocity
+    endif
 
   End Subroutine init_md
 
