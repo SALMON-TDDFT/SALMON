@@ -1246,6 +1246,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'time_shutdown', time_shutdown
       write(fh_variables_log, '("#",4X,A,"=",A)') 'sysname', trim(sysname)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'directory', trim(directory)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'dump_filename', trim(dump_filename)
 
       if(inml_units >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'units', inml_units
