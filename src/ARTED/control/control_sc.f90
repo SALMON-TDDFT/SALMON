@@ -49,58 +49,56 @@ subroutine tddft_sc
 2 if (restart_option == 'restart') then
     position_option='append'
   else if(restart_option == 'new')then
+    position_option='rewind'
+    entrance_iter=-1
+  end if
 
-    select case(use_ehrenfest_md)
-    case('y')
-      Rion_update_rt = rion_update_on
-      write(comment_line,110) 0, 0
-      call write_xyz(comment_line,"new","rv ")
-    case('n')
-      Rion_update_rt = rion_update_off
-    end select
+  select case(use_ehrenfest_md)
+  case('y')
+    Rion_update_rt = rion_update_on
+    write(comment_line,110) 0, 0
+    call write_xyz(comment_line,"new","rv ")
+  case('n')
+    Rion_update_rt = rion_update_off
+  end select
 
-    if(comm_is_root(nproc_id_global)) then
-      write(*,*) 'This is the end of preparation for Real time calculation'
-      call timer_show_current_hour('elapse time=',LOG_ALL)
-      write(*,*) '-----------------------------------------------------------'
-    end if
+  if(comm_is_root(nproc_id_global)) then
+    write(*,*) 'This is the end of preparation for Real time calculation'
+    call timer_show_current_hour('elapse time=',LOG_ALL)
+    write(*,*) '-----------------------------------------------------------'
+  end if
 
 !====RT calculation============================
 
-    call init_Ac
-    iter=0
-    do ixyz=1,3
-      kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
-    enddo
-    call current0(zu_t)
-    javt(0,:)=jav(:)
+  call init_Ac
+  iter=entrance_iter+1
+  do ixyz=1,3
+    kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
+  enddo
+  call current0(zu_t)
+  javt(0,:)=jav(:)
 
-    Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
+  Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
 
-    rho_gs(:)=rho(:)
+  rho_gs(:)=rho(:)
 
-    position_option='rewind'
-    entrance_iter=-1
-    call reset_rt_timer
+  call reset_rt_timer
 
 
-
-    ! Export electronic density
-    if (out_dns == 'y') then
-      select case(format3d)
-      case ('cube')
-        write(file_dns_gs, '(2A,"_dns_gs.cube")') trim(directory), trim(SYSname)
-        open(502,file=file_dns_gs,position = position_option)
-        call write_density_cube(502, .false.)
-        close(502)
-      case ('vtk')
-        write(file_dns_gs, '(2A,"_dns_gs.vtk")') trim(directory), trim(SYSname)
-        open(502,file=file_dns_gs,position = position_option)
-        call write_density_vtk(502, .false.)
-        close(502)
-      end select
-    end if
-
+  ! Export electronic density
+  if (out_dns == 'y') then
+    select case(format3d)
+    case ('cube')
+      write(file_dns_gs, '(2A,"_dns_gs.cube")') trim(directory), trim(SYSname)
+      open(502,file=file_dns_gs,position = position_option)
+      call write_density_cube(502, .false.)
+      close(502)
+    case ('vtk')
+      write(file_dns_gs, '(2A,"_dns_gs.vtk")') trim(directory), trim(SYSname)
+      open(502,file=file_dns_gs,position = position_option)
+      call write_density_vtk(502, .false.)
+      close(502)
+    end select
   end if
 
 
@@ -184,7 +182,7 @@ subroutine tddft_sc
     force=force+force_ion
 !pseudo potential update
     if (use_ehrenfest_md == 'y') then
-      if(iter==entrance_iter+1)then
+      if(iter==0)then
          dRion(:,:,iter-1) = dRion(:,:,iter) - velocity(:,:)*dt
       endif
       Tion=0.d0

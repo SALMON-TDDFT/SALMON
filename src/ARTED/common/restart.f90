@@ -576,6 +576,7 @@ subroutine prep_backup_values(is_backup)
 
   BACKUP(iflag_calc_mode)
   BACKUP(Rion_update_rt)
+  BACKUP(velocity)
 
   if (is_backup) then
     call timer_reentrance_write(iounit)
@@ -643,12 +644,12 @@ contains
     integer :: mt
 
     ! javt
-    mt = min(Nt, ubound(javt, 1))
-    allocate(tmp2(0:Nt,3))
+    mt = min(Nt+1, ubound(javt, 1))
+    allocate(tmp2(0:Nt+1,3))
     tmp2(:,:) = 0.d0
     tmp2(0:mt,:) = javt(0:mt,:)
     deallocate(javt)
-    allocate(javt(0:Nt,3))
+    allocate(javt(0:Nt+1,3))
     javt(:,:) = tmp2(:,:)
     deallocate(tmp2)
 
@@ -751,6 +752,17 @@ contains
     allocate(data_out(16,NXvacL_m:NXvacR_m,NY_m+1,0:Ndata_out_per_proc))
     data_out(:,:,:,:) = tmp4(:,:,:,:)
     deallocate(tmp4)
+
+    ! dRion
+    mt = min(Nt+1, ubound(dRion,3))
+    allocate(tmp3(3,NI,-1:Nt+1))
+    tmp3(:,:,:) = 0.d0
+    tmp3(:,:,-1:mt) = dRion(:,:,-1:mt)
+    deallocate(dRion)
+    allocate(dRion(3,NI,-1:Nt+1))
+    dRion(:,:,:) = tmp3
+    deallocate(tmp3)
+
   end subroutine
 end subroutine
 
