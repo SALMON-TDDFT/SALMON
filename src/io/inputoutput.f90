@@ -629,7 +629,7 @@ contains
 !! == default for &md
     ensemble              = 'nve'
     thermostat            = 'nose-hoover'
-    step_velocity_scaling = 10
+    step_velocity_scaling = -1
     step_update_ps        = 1
     temperature0_ion      = 298.15d0
     set_ini_velocity      = 'n'

@@ -35,7 +35,7 @@ subroutine tddft_sc
   implicit none
   integer :: iter,ik,ib,ia,i,ixyz
   integer :: fh_rt_data
-  real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI)
+  real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI),fac_vscaling
   parameter( kB = 1.38064852d-23 ) ![J/K]
   parameter( hartree2J = 4.359744650d-18 )
   character(100) :: comment_line
@@ -180,15 +180,25 @@ subroutine tddft_sc
       force_ion(:,ia)=Zps(Kion(ia))*E_tot(iter,:)
     enddo
     force=force+force_ion
-!pseudo potential update
+
+!update ion coordinates and pseudo potential (md option)
     if (use_ehrenfest_md == 'y') then
-      if(iter==0)then
-         dRion(:,:,iter-1) = dRion(:,:,iter) - velocity(:,:)*dt
+      if(iter==0) dRion(:,:,iter-1)= dRion(:,:,iter) - velocity(:,:)*dt
+      if(step_velocity_scaling>=1 .and. mod(iter,step_velocity_scaling)==0) then
+         Tion=0.d0
+         do ia=1,NI
+            velocity(:,ia) = ( dRion(:,ia,iter)-dRion(:,ia,iter-1) )/dt
+            Tion = Tion + 0.5d0 * umass*Mass(Kion(ia)) * sum(velocity(:,ia)**2d0)
+         enddo
+         Temperature_ion = Tion * 2d0 / (3d0*NI) / (kB/hartree2J)
+         fac_vscaling = sqrt(temperature0_ion/Temperature_ion)
+      else
+         fac_vscaling = 1d0
       endif
       Tion=0.d0
       do ia=1,NI
         mass_au = umass*Mass(Kion(ia))
-        velocity(:,ia) = ( dRion(:,ia,iter)-dRion(:,ia,iter-1) )/dt
+        velocity(:,ia) = ( dRion(:,ia,iter)-dRion(:,ia,iter-1) )/dt * fac_vscaling
         dRion(:,ia,iter+1) = dRion(:,ia,iter) + velocity(:,ia)*dt +force(:,ia)*dt**2/mass_au
         Rion(:,ia) = Rion_eq(:,ia) + dRion(:,ia,iter+1)
         vel_cor(:,ia) = ( dRion(:,ia,iter+1) - dRion(:,ia,iter-1) ) / (2d0*dt)
@@ -201,6 +211,7 @@ subroutine tddft_sc
       Tion=0.d0
     endif
     Eall=Eall+Tion
+
 !write section
     if (iter/10*10 == iter.and.comm_is_root(nproc_id_global)) then
     if (use_ehrenfest_md == 'y') then

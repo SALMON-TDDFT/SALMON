@@ -508,7 +508,8 @@ contains
     implicit none    
 
     if(restart_option == 'new') then
-       if(set_ini_velocity=='y') call set_initial_velocity
+       if(set_ini_velocity=='y' .or. step_velocity_scaling>=1) &
+       call set_initial_velocity
     endif
 
   End Subroutine init_md

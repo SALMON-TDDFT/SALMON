@@ -966,8 +966,8 @@ Default is <code>"nose-hoover"</code>.
 </dd>
 <dt>step_velocity_scaling; <code>Integer</code>; 3d</dt>
 <dd>
-Time step interval for velocity scaling (currently not available)
-Default is <code>10</code>.
+Time step interval for velocity-scaling. Velocity-scaling is applied if this is set to positive.
+Default is <code>-1</code>.
 </dd>
 <dt>step_update_ps; <code>Integer</code>; 3d</dt>
 <dd>
