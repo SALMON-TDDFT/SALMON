@@ -1,6 +1,8 @@
 # intel-avx2
 
-TARGET = salmon.cpu
+SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
+
+TARGET = $(SALMON)/bin/salmon.cpu
 FC = mpiifort
 CC = mpiicc
 FLAGS = -xCORE-AVX2 -qopenmp -ansi-alias -fno-alias \
@@ -13,7 +15,5 @@ LIBSCALAPACK = -mkl=cluster
 SIMD_SET = AVX
 MODULE_SWITCH = -module
 COMM_SET =
-
-SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
 
 include $(SALMON)/makefiles/make.body

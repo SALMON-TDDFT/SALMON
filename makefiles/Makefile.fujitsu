@@ -1,6 +1,8 @@
 # fujitsu
 
-TARGET = salmon.cpu
+SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
+
+TARGET = $(SALMON)/bin/salmon.cpu
 FC = mpifrtpx
 CC = mpifccpx
 FFLAGS = -O3 -Kfast,openmp,simd=1 -Cpp -Kocl,nooptmsg
@@ -10,7 +12,5 @@ LIBLAPACK = -SSL2BLAMP
 LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
 MODULE_SWITCH = -M
 COMM_SET =
-
-SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
 
 include $(SALMON)/makefiles/make.body
