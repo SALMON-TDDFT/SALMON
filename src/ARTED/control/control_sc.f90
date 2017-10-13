@@ -479,7 +479,7 @@ subroutine calc_opt_ground_state
   use io_gs_wfn_k
 
   implicit none
-  integer :: i,j,k,iter_perp,iter_line, Nopt_perp,Nopt_line
+  integer :: i,j,k,iter_perp,iter_line,iter_line2, Nopt_perp,Nopt_line
   real(8) :: fmax,fave, gm, tmp1,tmp2,tmp3, dsl12,dsl23,ratio_too_much
   real(8) :: StepLen_LineSearch0, StepLen_LineSearch(3)
   real(8) :: StepLen_LineSearch_min, StepLen_LineSearch_new
@@ -612,11 +612,14 @@ subroutine calc_opt_ground_state
        & write(*,*) "alpha: adjusting initial ( up )--> ",real(StepLen_LineSearch(3))
        goto 1
     endif
+    StepLen_LineSearch0 = StepLen_LineSearch(3) !for next initial step length
 
+    iter_line2=0
     do iter_line= 1,Nopt_line      !iteration for lise search minimize
 
        !(narrow search range if the three points are too unbalanced)
        do
+          iter_line2 = iter_line2 +1
           !(check and make new point)
           ratio_too_much = 5d0
           dsl12 = abs(StepLen_LineSearch(1)-StepLen_LineSearch(2))
@@ -634,7 +637,7 @@ subroutine calc_opt_ground_state
           call read_write_gs_wfn_k(iflag_read)
           Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch_new* SearchDirection(:,:)
           Rion_eq(:,:)= Rion(:,:)
-          write(comment_line,110) iter_perp, iter_line
+          write(comment_line,110) iter_perp, iter_line2
           call write_xyz(comment_line,"add","r  ")
           call prep_ps_periodic('not_initial')
           call calc_ground_state
@@ -654,7 +657,7 @@ subroutine calc_opt_ground_state
        call read_write_gs_wfn_k(iflag_read)
        Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch_min* SearchDirection(:,:)
        Rion_eq(:,:)= Rion(:,:)
-       write(comment_line,110) iter_perp, iter_line
+       write(comment_line,110) iter_perp, iter_line2
        call write_xyz(comment_line,"add","r  ")
        call prep_ps_periodic('not_initial')
        call calc_ground_state
@@ -671,7 +674,7 @@ subroutine calc_opt_ground_state
        !Judge Convergence for line search opt
        dEall = Eall_min - Eall_prev_line
        if(comm_is_root(nproc_id_global)) &
-       & write(*,130) iter_perp, iter_line, Eall, dEall
+       & write(*,130) iter_perp, iter_line2, Eall, dEall
 
        if(abs(dEall) .le. dE_conv_LineSearch)then
           if(comm_is_root(nproc_id_global)) &
@@ -706,10 +709,10 @@ subroutine calc_opt_ground_state
     if(comm_is_root(nproc_id_global)) &
     &  write(*,120) " Max-force=", fmax, "  Mean-force=", fave
 
-    !Judge Convergence
+    !Judge Convergence for perpendicular opt (main judge)
     dEall = Eall - Eall_prev
     if(comm_is_root(nproc_id_global)) &
-    &  write(*,135) iter_perp, iter_line, Eall, dEall
+    &  write(*,135) iter_perp, iter_line2, Eall, dEall
     if(abs(dEall) .le. dE_conv) then
        if(comm_is_root(nproc_id_global)) then
           write(*,*) "Optimization Converged",iter_perp,real(Eall),real(dEall)

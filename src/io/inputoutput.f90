@@ -217,7 +217,9 @@ contains
       & time_shutdown, &
       & sysname, &
       & directory, &
-      & dump_filename
+      & dump_filename, &
+      & read_initial_guess, &
+      & modify_initial_guess
 
     namelist/units/ &
       & unit_system
@@ -478,12 +480,14 @@ contains
     use_force        = 'n'
     use_geometry_opt = 'n'
 !! == default for &control
-    restart_option   = 'new'
-    backup_frequency = 0
-    time_shutdown    = -1d0
-    sysname          = 'default'
-    directory        = './'
-    dump_filename    = 'default'
+    restart_option      = 'new'
+    backup_frequency    = 0
+    time_shutdown       = -1d0
+    sysname             = 'default'
+    directory           = './'
+    dump_filename       = 'default'
+    read_initial_guess  = 'n'
+    modify_initial_guess= 'n'
 !! == default for &parallel
     domain_parallel   = 'n'
     nproc_ob          = 0
@@ -767,12 +771,15 @@ contains
     call comm_bcast(use_force       ,nproc_group_global)
     call comm_bcast(use_geometry_opt,nproc_group_global)
 !! == bcast for &control
-    call comm_bcast(restart_option  ,nproc_group_global)
-    call comm_bcast(backup_frequency,nproc_group_global)
-    call comm_bcast(time_shutdown   ,nproc_group_global)
-    call comm_bcast(sysname         ,nproc_group_global)
-    call comm_bcast(directory       ,nproc_group_global)
-    call comm_bcast(dump_filename   ,nproc_group_global)
+    call comm_bcast(restart_option      ,nproc_group_global)
+    call comm_bcast(backup_frequency    ,nproc_group_global)
+    call comm_bcast(time_shutdown       ,nproc_group_global)
+    call comm_bcast(sysname             ,nproc_group_global)
+    call comm_bcast(directory           ,nproc_group_global)
+    call comm_bcast(dump_filename       ,nproc_group_global)
+    call comm_bcast(read_initial_guess  ,nproc_group_global)
+    call comm_bcast(modify_initial_guess,nproc_group_global)
+
 !! == bcast for &parallel
     call comm_bcast(domain_parallel  ,nproc_group_global)
     call comm_bcast(nproc_ob         ,nproc_group_global)
@@ -1247,6 +1254,8 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'sysname', trim(sysname)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'directory', trim(directory)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'dump_filename', trim(dump_filename)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_initial_guess', trim(read_initial_guess)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'modify_initial_guess', trim(modify_initial_guess)
 
       if(inml_units >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'units', inml_units

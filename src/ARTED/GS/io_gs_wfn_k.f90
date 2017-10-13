@@ -103,5 +103,75 @@ contains
 
 
   end subroutine read_write_gs_wfn_k
+
+  subroutine modify_initial_guess_copy_1stk_to_all
+    implicit none
+    integer :: ik,ik1,ib
+    !integer :: nproc_group_kpoint_ms
+    !integer :: nproc_id_kpoint_ms
+    !integer :: nproc_size_kpoint_ms
+    real(8) :: tot_occ
+    real(8),allocatable :: occ_tmp(:,:)
+    complex(8),allocatable :: zu_GS1(:,:,:)
+
+    write (gs_wfn_directory,'(A,A)') trim(directory),'/gs_wfn_k/'
+
+    if(comm_is_root(nproc_id_global))then
+      occ_file = trim(gs_wfn_directory)//'occupation'
+
+      !read only gammma point
+      allocate(occ_tmp(NB,1))
+      open(nfile_occ,file=trim(occ_file),form='unformatted')
+      read(nfile_occ)occ_tmp
+      close(nfile_occ)
+
+      !over-write with all k-points
+      tot_occ=0d0
+      do ib=1,NB
+         tot_occ = tot_occ + occ_tmp(ib,1)
+      enddo
+      occ_tmp(:,1) = occ_tmp(:,1)/tot_occ*dble(nelec)/dble(NK)
+
+      do ik=1,NK
+         occ(:,ik) = occ_tmp(:,1)
+      enddo
+      open(nfile_occ,file=trim(occ_file),form='unformatted')
+      write(nfile_occ)occ
+      close(nfile_occ)
+
+      deallocate(occ_tmp)
+
+   end if
+      
+   if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. NXY_s == 0))then
+
+     allocate(zu_GS1(NL,NB,1))
+     if(comm_is_root(nproc_id_global))then
+        !read the first k-point data 
+        ik1=1
+        write (gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik1,'.wfn'
+        open(nfile_gs_wfn,file=trim(gs_wfn_file),form='unformatted')
+        read(nfile_gs_wfn) zu_GS1(:,:,1)
+     endif
+     call comm_bcast(zu_GS1,nproc_group_global)
+
+     do ik=NK_s,NK_e
+        zu_GS(:,:,ik) = zu_GS1(:,:,1)
+        write (gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
+        open(nfile_gs_wfn,file=trim(gs_wfn_file),form='unformatted')
+        write(nfile_gs_wfn) zu_GS(:,:,ik)
+        close(nfile_gs_wfn)
+     end do
+
+     deallocate(zu_GS1)
+
+     if(comm_is_root(nproc_id_global))then
+       write(*,*) "  Initial guess was modified:"
+       write(*,*) "  Wave function at the first k-point was coppied to the other all."
+      endif
+
+    endif
+
+  end subroutine modify_initial_guess_copy_1stk_to_all
 end module io_gs_wfn_k
 

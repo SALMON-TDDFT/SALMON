@@ -96,6 +96,18 @@ Default is the current directoy, <code>./</code>.
 <dd>Name of a filename for the restart calculation.
 </dd>
 
+<dt>read_initial_guess; <code>Character</code>; 3d</dt>
+<dd>
+Option to read wave function as initial guess (pre-calculated "gs_wfn_k" directory) if this is <code>y</code>.
+Default is <code>n</code>.
+</dd>
+
+<dt>modify_initial_guess; <code>Character</code>; 3d</dt>
+<dd>
+Option to modify initial guess wave function (pre-calculated "gs_wfn_k" directory) in combination with <code>read_initial_guess = y</code>.
+If <code>copy_1stk_to_all</code> is set, the first k-point data file, wfn_gs_k0000001.wfn (supposed to be obtained by gamma-point calculation), is copied to all other points.
+Default is <code>n</code>.
+</dd>
 
 </dl>
 

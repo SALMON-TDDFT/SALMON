@@ -24,6 +24,7 @@ contains
     use timer
     use salmon_parallel, only: nproc_id_global
     use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
+    use io_gs_wfn_k, only: iflag_read,read_write_gs_wfn_k
     implicit none
     integer :: iter, ik, ib, ia
     character(10) :: functional_t
@@ -43,8 +44,13 @@ contains
 
       call Hartree
     
-    else if(iflag_gs_init_wf==1) then  !case that initial guess is already read from files
+    else if(iflag_gs_init_wf==1) then  !case that initial guess has been already read from files
       rho_in(1:NL,1)=rho(1:NL)
+
+    else if(iflag_gs_init_wf==2) then  !case of option that initial guess is read from files
+      call read_write_gs_wfn_k(iflag_read)
+      rho_in(1:NL,1)=rho(1:NL)
+
     endif
 
     functional_t = functional

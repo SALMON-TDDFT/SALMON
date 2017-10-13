@@ -29,6 +29,7 @@ contains
     use misc_routines
     use inputfile,only: transfer_input
     use restart,only: prep_restart_read
+    use io_gs_wfn_k,only: modify_initial_guess_copy_1stk_to_all
     implicit none
 !$ integer :: omp_get_max_threads  
 
@@ -81,8 +82,15 @@ contains
 ! initialize for optimization.
     call opt_vars_initialize_p2
 
-    if(use_ehrenfest_md=='y')then
+    if(use_ehrenfest_md=='y') then
        call init_md
+    endif
+
+! modify initial guess if read and modify options = y
+    if(read_initial_guess=='y') then
+       if(modify_initial_guess=='copy_1stk_to_all') then
+          call modify_initial_guess_copy_1stk_to_all
+       endif
     endif
 
   end subroutine initialize
@@ -384,7 +392,8 @@ contains
     call comm_bcast(NBoccmax,nproc_group_global)
     call comm_sync_all
     NKB=(NK_e-NK_s+1)*NBoccmax ! sato
-    
+    if(read_initial_guess=='y') iflag_gs_init_wf=2
+
     allocate(occ(NB,NK),wk(NK),esp(NB,NK))
     allocate(ovlp_occ_l(NB,NK),ovlp_occ(NB,NK))
     allocate(zu_GS(NL,NB,NK_s:NK_e),zu_GS0(NL,NB,NK_s:NK_e))
