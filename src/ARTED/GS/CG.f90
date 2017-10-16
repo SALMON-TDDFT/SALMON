@@ -185,6 +185,7 @@ Subroutine CG_ompr(iter_cg_max)
 !$omp do private(j,i,ix,iy,iz,kr,ib,ibt,s,xkHxk,xkTxk,iter,uk,gkgk,xkHpk,pkHpk,ev,cx,cp,zs) collapse(2)
   do ik=NK_s,NK_e
   do ib=1,NB
+    !(GramShumit)
     !do ibt=1,ib-1
     !  s=sum(conjg(zu_GS(:,ibt,ik))*zu_GS(:,ib,ik))*Hxyz
     !  zu_GS(1:NL,ib,ik)=zu_GS(1:NL,ib,ik)-zu_GS(1:NL,ibt,ik)*s
@@ -197,24 +198,24 @@ Subroutine CG_ompr(iter_cg_max)
     xkTxk=sum(conjg(xk_omp(:,thr_id))*txk_omp(:,thr_id))*Hxyz
 
     do iter=1,iter_cg_max
-!??? GramShumit???
-!      gk_omp(1:NL,thr_id)=(hxk_omp(1:NL,thr_id)-xkHxk*xk_omp(1:NL,thr_id))
-!      do ibt=1,ib-1
-!        zs=sum(conjg(zu_GS(:,ibt,ik))*gk_omp(:,thr_id))*Hxyz
-!        gk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)-zu_GS(1:NL,ibt,ik)*zs
-!      end do
-!      s=sum(abs(gk_omp(:,thr_id))**2)*Hxyz
-!
-!      select case (iter)
-!      case(1)
-!        pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)
-!      case default
-!        uk=s/gkgk
-!        pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)+uk*pk_omp(1:NL,thr_id)
-!      end select
-!      gkgk=s
+      !(GramShumit)
+      !gk_omp(1:NL,thr_id)=(hxk_omp(1:NL,thr_id)-xkHxk*xk_omp(1:NL,thr_id))
+      !do ibt=1,ib-1
+      !  zs=sum(conjg(zu_GS(:,ibt,ik))*gk_omp(:,thr_id))*Hxyz
+      !  gk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)-zu_GS(1:NL,ibt,ik)*zs
+      !end do
+      !s=sum(abs(gk_omp(:,thr_id))**2)*Hxyz
+      !
+      !select case (iter)
+      !case(1)
+      !  pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)
+      !case default
+      !  uk=s/gkgk
+      !  pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)+uk*pk_omp(1:NL,thr_id)
+      !end select
+      !gkgk=s
 
-      !Is this correct??  removed above GS(?) and added this line by AY
+      !added instead of GramShumit procedure
       pk_omp(1:NL,thr_id)=(hxk_omp(1:NL,thr_id)-xkHxk*xk_omp(1:NL,thr_id)) 
 
       zs=sum(conjg(xk_omp(:,thr_id))*pk_omp(:,thr_id))*Hxyz
