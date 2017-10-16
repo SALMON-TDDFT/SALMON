@@ -130,6 +130,8 @@ module salmon_global
   character(8)   :: convergence
   real(8)        :: threshold
   real(8)        :: threshold_pot
+  character(1)   :: omp_loop
+  character(1)   :: skip_gsortho
 
 !! &emfield
   character(2)   :: trans_longi

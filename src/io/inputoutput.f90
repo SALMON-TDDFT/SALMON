@@ -293,7 +293,9 @@ contains
       & subspace_diagonalization, &
       & convergence, &
       & threshold, &
-      & threshold_pot
+      & threshold_pot, &
+      & omp_loop, &
+      & skip_gsortho
 
     namelist/emfield/ &
       & trans_longi, &
@@ -550,6 +552,9 @@ contains
     convergence   = 'rho_dng'
     threshold     = 1d-17/ulength_from_au**3  ! a.u., 1d-17 a.u. = 6.75d-17 AA**(-3)
     threshold_pot = -1d0*uenergy_from_au**2*uenergy_from_au**3  ! a.u., -1 a.u. = -1.10d2 eV**2*AA**3
+    omp_loop      = 'k'
+    skip_gsortho  = 'n'
+
 !! == default for &emfield
     trans_longi    = 'tr'
     ae_shape1      = 'none'
@@ -847,6 +852,8 @@ contains
     threshold = threshold / (ulength_to_au)**3
     call comm_bcast(threshold_pot           ,nproc_group_global)
     threshold_pot = threshold_pot * (uenergy_to_au)**2 * (ulength_to_au)**3 
+    call comm_bcast(omp_loop                ,nproc_group_global)
+    call comm_bcast(skip_gsortho            ,nproc_group_global)
 !! == bcast for &emfield
     call comm_bcast(trans_longi,nproc_group_global)
     call comm_bcast(ae_shape1  ,nproc_group_global)
@@ -1349,6 +1356,8 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'convergence', convergence
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold', threshold
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_pot', threshold_pot
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'omp_loop', omp_loop
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'skip_gsortho', skip_gsortho
 
       if(inml_emfield >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'emfield', inml_emfield
