@@ -50,6 +50,8 @@ module salmon_global
   character(256) :: sysname
   character(256) :: directory
   character(256) :: dump_filename
+  character(1)   :: read_initial_guess
+  character(20)  :: modify_initial_guess
                  
 !! &units
   character(16)  :: unit_system

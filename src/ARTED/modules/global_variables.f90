@@ -98,7 +98,7 @@ Module Global_Variables
   complex(8),allocatable :: tpsi(:),htpsi(:),zwork(:,:,:),ttpsi(:)
   real(8),allocatable :: work(:,:,:)
   real(8),allocatable :: esp_var(:,:)
-  integer :: iflag_gs_init_wf=0   !use random number(=0), don't use it(=1)
+  integer :: iflag_gs_init_wf=0   !use random number(=0)
 
 ! variables for 4-times loop in Fourier transportation
   integer,allocatable :: nxyz(:,:,:)
