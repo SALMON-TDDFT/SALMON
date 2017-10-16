@@ -22,11 +22,12 @@ Subroutine CG_omp(iter_cg_max)
   implicit none
   integer :: iter_cg_max
 
-  if( NK_e-NK_s+1 .lt. NB ) then !change as you like
-     call CG_ompr(iter_cg_max)
-  else
+  select case (omp_loop)
+  case('k')
      call CG_ompk(iter_cg_max)
-  endif
+  case('b')
+     call CG_ompb(iter_cg_max)
+  end select
 
 End Subroutine CG_omp
 
@@ -71,34 +72,42 @@ Subroutine CG_ompk(iter_cg_max)
   enddo
 ! sato -----------------------------------------------------------------------------------------
   do ib=1,NB
-    !do ibt=1,ib-1
-    !  s=sum(conjg(zu_GS(:,ibt,ik))*zu_GS(:,ib,ik))*Hxyz
-    !  zu_GS(1:NL,ib,ik)=zu_GS(1:NL,ib,ik)-zu_GS(1:NL,ibt,ik)*s
-    !end do
-    !s=1.0d0/sqrt(sum(abs(zu_GS(:,ib,ik))**2)*Hxyz)
-    !xk_omp(1:NL,thr_id)=zu_GS(1:NL,ib,ik)*s
-    xk_omp(1:NL,thr_id)=zu_GS(1:NL,ib,ik)
+    select case (skip_gsortho)
+    case('n')
+      do ibt=1,ib-1
+        s=sum(conjg(zu_GS(:,ibt,ik))*zu_GS(:,ib,ik))*Hxyz
+        zu_GS(1:NL,ib,ik)=zu_GS(1:NL,ib,ik)-zu_GS(1:NL,ibt,ik)*s
+      end do
+      s=1.0d0/sqrt(sum(abs(zu_GS(:,ib,ik))**2)*Hxyz)
+      xk_omp(1:NL,thr_id)=zu_GS(1:NL,ib,ik)*s
+    case('y')
+      xk_omp(1:NL,thr_id)=zu_GS(1:NL,ib,ik)
+    end select
     call hpsi_omp_KB_GS(ik,xk_omp(:,thr_id),txk_omp(:,thr_id),hxk_omp(:,thr_id))
     xkHxk=sum(conjg(xk_omp(:,thr_id))*hxk_omp(:,thr_id))*Hxyz
     xkTxk=sum(conjg(xk_omp(:,thr_id))*txk_omp(:,thr_id))*Hxyz
 
     do iter=1,iter_cg_max
-      gk_omp(1:NL,thr_id)=(hxk_omp(1:NL,thr_id)-xkHxk*xk_omp(1:NL,thr_id))
-      do ibt=1,ib-1
-        zs=sum(conjg(zu_GS(:,ibt,ik))*gk_omp(:,thr_id))*Hxyz
-        gk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)-zu_GS(1:NL,ibt,ik)*zs
-      end do
-      s=sum(abs(gk_omp(:,thr_id))**2)*Hxyz
-
-      select case (iter)
-      case(1)
-        pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)
-      case default
-        uk=s/gkgk
-        pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)+uk*pk_omp(1:NL,thr_id)
+      select case (skip_gsortho)
+      case('n')
+        gk_omp(1:NL,thr_id)=(hxk_omp(1:NL,thr_id)-xkHxk*xk_omp(1:NL,thr_id))
+        do ibt=1,ib-1
+          zs=sum(conjg(zu_GS(:,ibt,ik))*gk_omp(:,thr_id))*Hxyz
+          gk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)-zu_GS(1:NL,ibt,ik)*zs
+        end do
+        s=sum(abs(gk_omp(:,thr_id))**2)*Hxyz
+      
+        select case (iter)
+        case(1)
+          pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)
+        case default
+          uk=s/gkgk
+          pk_omp(1:NL,thr_id)=gk_omp(1:NL,thr_id)+uk*pk_omp(1:NL,thr_id)
+        end select
+        gkgk=s
+      case('y')
+        pk_omp(1:NL,thr_id)=(hxk_omp(1:NL,thr_id)-xkHxk*xk_omp(1:NL,thr_id))
       end select
-      gkgk=s
-
       zs=sum(conjg(xk_omp(:,thr_id))*pk_omp(:,thr_id))*Hxyz
       pko_omp(1:NL,thr_id)=pk_omp(1:NL,thr_id)-xk_omp(1:NL,thr_id)*zs
       s=1.0d0/sqrt(sum(abs(pko_omp(:,thr_id))**2)*Hxyz)
@@ -137,7 +146,7 @@ Subroutine CG_ompk(iter_cg_max)
   return
 End Subroutine CG_ompk
 
-Subroutine CG_ompr(iter_cg_max)
+Subroutine CG_ompb(iter_cg_max)
   use Global_Variables
   use salmon_parallel, only: nproc_group_tdks
   use salmon_communication, only: comm_summation
@@ -253,5 +262,5 @@ Subroutine CG_ompr(iter_cg_max)
   call timer_end(LOG_CG)
 
   return
-End Subroutine CG_ompr
+End Subroutine CG_ompb
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

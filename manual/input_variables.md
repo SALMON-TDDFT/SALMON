@@ -541,6 +541,24 @@ Threshold for convergence check that is used when either <code>'pot'</code> or <
 Default is <code>-1d0</code> a.u. (1 a.u.= 1.10d2 Å<sup>3</sup>eV<sup>2</sup>)
 </dd>
 
+<dt>omp_loop; <code>Character</code>; 3d</dt>
+<dd>
+Loop for OpenMP parallelization if periodic boundary system is used. 
+<li>
+<code>k</code>: parallelization by k-point loop (Default).
+<li>
+</li>
+<code>b</code>: parallelization mainly by band orbital loop (sometimzes space grid loop too). This works efficiently if the number of k-point to be calculated in a node is small (e.x. the case of single k-point for each node)
+</li>
+</dd>
+
+<dt>skip_gsortho; <code>Character</code>; 3d</dt>
+<dd>
+Flag to skip Gram-Schmidt orthogonalization in CG loop if periodic boundary system is used. If this is skipped the more iteration number is necessary to get convergence but each iteration step gets faster. If <code>omp_loop=b</code>, this flag is always applied.
+Default is <code>n</code>
+</dd>
+
+
 </dl>
 
 ## &emfield

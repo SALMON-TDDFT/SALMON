@@ -20,11 +20,12 @@
 Subroutine Gram_Schmidt
   use Global_Variables
 
-  if( NK_e-NK_s+1 .lt. NB ) then !change as you like
-     call Gram_Schmidt_ompr
-  else
+  select case (omp_loop)
+  case('k')
      call Gram_Schmidt_ompk
-  endif
+  case('b')
+     call Gram_Schmidt_ompb
+  end select
 
 End Subroutine Gram_Schmidt
 
@@ -42,7 +43,7 @@ Subroutine Gram_Schmidt_ompk
   do ib=1,NB
     do ibt=1,ib-1
       zov=sum(conjg(zu_GS(:,ibt,ik))*zu_GS(:,ib,ik))*Hxyz
-      zu_GS(:,ib,ik)=zu_GS(:,ib,ik)-zu_GS(:,ibt,ik)*zov  !?? correct?? out of loop?
+      zu_GS(:,ib,ik)=zu_GS(:,ib,ik)-zu_GS(:,ibt,ik)*zov
     enddo
     s=sum(abs(zu_GS(:,ib,ik))**2)*Hxyz
     zu_GS(:,ib,ik)=zu_GS(:,ib,ik)/sqrt(s)
@@ -53,7 +54,7 @@ Subroutine Gram_Schmidt_ompk
   return
 End Subroutine Gram_Schmidt_ompk
 
-Subroutine Gram_Schmidt_ompr
+Subroutine Gram_Schmidt_ompb
   !This subroutine follows the algorithm developed 
   !in RSDFT for efficient parallelization
   !(but not perfectly the same to avoid complication.
@@ -135,6 +136,6 @@ Subroutine Gram_Schmidt_ompr
   call timer_end(LOG_GRAM_SCHMIDT)
 
   return
-End Subroutine Gram_Schmidt_ompr
+End Subroutine Gram_Schmidt_ompb
 
 

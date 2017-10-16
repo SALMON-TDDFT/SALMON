@@ -107,40 +107,11 @@ Subroutine diag_omp
 #else
 
 
-  if( NK_e-NK_s+1 .lt. NB ) then !change as you like
-  !!---Openmp is for orbital---
+!  if( NK_e-NK_s+1 .lt. NB ) then !change as you like
 
-  allocate(za(NB,NB),zutmp(NL,NB))
-  allocate(work_lp(lwork),rwork(3*NB-2),w(NB))
-  do ik=NK_s,NK_e
-!$omp parallel private(thr_id)
-!$ thr_id = omp_get_thread_num()
-!$omp do private(ib1,ib2)
-    do ib1=1,NB
-      tpsi_omp(1:NL,thr_id)=zu_GS(1:NL,ib1,ik)
-      call hpsi_omp_KB_GS(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))
-      do ib2=ib1+1,NB
-        za(ib2,ib1)=sum(conjg(zu_GS(:,ib2,ik))*htpsi_omp(:,thr_id))*Hxyz
-        za(ib1,ib2)=conjg(za(ib2,ib1))
-      end do
-      za(ib1,ib1)=real(sum(conjg(zu_GS(:,ib1,ik))*htpsi_omp(:,thr_id))*Hxyz)
-    end do
-!$omp end do
-!$omp end parallel
-    call zheev('V', 'U', NB, za, NB, w, work_lp, lwork, rwork, info)
+  select case (omp_loop)
+  case('k')
 
-    zutmp=0.d0
-    do ib1=1,NB
-    do ib2=1,NB
-      zutmp(:,ib1)=zutmp(:,ib1)+zu_GS(:,ib2,ik)*za(ib2,ib1)
-    end do
-    end do
-    zu_GS(:,:,ik)=zutmp(:,:)
-    esp(:,ik)=w(:)
-  enddo
-  deallocate(za,zutmp,work_lp,rwork)
-
-  else  
   !!---Openmp is for k-points---
 
 !$omp parallel private(thr_id,za,zutmp,work_lp,rwork,w)
@@ -173,7 +144,41 @@ Subroutine diag_omp
   deallocate(za,zutmp,work_lp,rwork)
 !$omp end parallel
 
-  endif
+  case('b')
+
+  !!---Openmp is for band orbital---
+
+  allocate(za(NB,NB),zutmp(NL,NB))
+  allocate(work_lp(lwork),rwork(3*NB-2),w(NB))
+  do ik=NK_s,NK_e
+!$omp parallel private(thr_id)
+!$ thr_id = omp_get_thread_num()
+!$omp do private(ib1,ib2)
+    do ib1=1,NB
+      tpsi_omp(1:NL,thr_id)=zu_GS(1:NL,ib1,ik)
+      call hpsi_omp_KB_GS(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))
+      do ib2=ib1+1,NB
+        za(ib2,ib1)=sum(conjg(zu_GS(:,ib2,ik))*htpsi_omp(:,thr_id))*Hxyz
+        za(ib1,ib2)=conjg(za(ib2,ib1))
+      end do
+      za(ib1,ib1)=real(sum(conjg(zu_GS(:,ib1,ik))*htpsi_omp(:,thr_id))*Hxyz)
+    end do
+!$omp end do
+!$omp end parallel
+    call zheev('V', 'U', NB, za, NB, w, work_lp, lwork, rwork, info)
+
+    zutmp=0.d0
+    do ib1=1,NB
+    do ib2=1,NB
+      zutmp(:,ib1)=zutmp(:,ib1)+zu_GS(:,ib2,ik)*za(ib2,ib1)
+    end do
+    end do
+    zu_GS(:,:,ik)=zutmp(:,:)
+    esp(:,ik)=w(:)
+  enddo
+  deallocate(za,zutmp,work_lp,rwork)
+
+  end select
 
 #endif
   call timer_end(LOG_DIAG)
