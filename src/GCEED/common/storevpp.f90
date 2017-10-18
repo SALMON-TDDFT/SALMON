@@ -36,7 +36,7 @@ do ak=1,MKI
       do i=Mr(ak)+1,Nr
         rad_psl(i,ak) = 1.0d2*(dble(Mr(ak))/dble(Mr(ak))+1.0d-2)**5 - 1.0d-8 + step(ak)*dble(i-Mr(ak))
       end do
-    case(3)
+    case(3,4)
       do i=0,Mr(ak)
         rad_psl(i,ak) = rad_f(i,ak)
       end do
