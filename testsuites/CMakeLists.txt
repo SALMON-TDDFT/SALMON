@@ -1,6 +1,7 @@
 include(${CMAKE_SOURCE_DIR}/cmakefiles/create_test.cmake)
 
 if (USE_MPI)
+  find_package(MPI REQUIRED)
   set(TEST_MPI_NPROC 4)
   set(TEST_COMMAND "${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${TEST_MPI_NPROC} ${CMAKE_BINARY_DIR}/${TARGET_NAME}")
 else ()
