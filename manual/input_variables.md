@@ -562,7 +562,7 @@ Default is <code>-1d0</code> a.u. (1 a.u.= 45.54Å<sup>-6</sup>)
 
 <dt>threshold_norm_pot; <code>Real(8)</code>; 0d</dt>
 <dd>
-Threshold for convergence check that is used when either <code>'norm_pot'</code> or <code>'norm_pot_dng'</code> is specified. <code>threshold_pot</code> must be set when either <code>'norm_pot'</code> or <code>'norm_pot_dng'</code> is specified.
+Threshold for convergence check that is used when either <code>'norm_pot'</code> or <code>'norm_pot_dng'</code> is specified. <code>threshold_norm_pot</code> must be set when either <code>'norm_pot'</code> or <code>'norm_pot_dng'</code> is specified.
 Default is <code>-1d0</code> a.u. (1 a.u.= 33.72x10<sup>4</sup> Å<sup>-6</sup>eV<sup>2</sup>)
 </dd>
 
