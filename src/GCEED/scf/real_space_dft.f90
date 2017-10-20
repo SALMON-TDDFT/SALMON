@@ -457,7 +457,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       end do
       end do
       call comm_summation(sum0,sum1,nproc_group_h)
-      if(convergence=='rho_dng')then
+      if(convergence=='norm_rho_dng')then
         sum1=sum1/dble(lg_num(1)*lg_num(2)*lg_num(3))
       end if
     case('norm_pot','norm_pot_dng')
@@ -471,7 +471,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       end do
       end do
       call comm_summation(sum0,sum1,nproc_group_h)
-      if(convergence=='pot_dng')then
+      if(convergence=='norm_pot_dng')then
         sum1=sum1/dble(lg_num(1)*lg_num(2)*lg_num(3))
       end if
   end select 
