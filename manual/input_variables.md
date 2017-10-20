@@ -521,22 +521,26 @@ subspace diagonalization during scf cycle.
 <dt>convergence; <code>Character</code>; 0d</dt>
 <dd>
 Choice of quantity that is used for convergence check in a scf calculation. 
-Default is <code>'rho_dng'</code>. The following can be chosen.
+Default is <code>'rho_dne'</code>. The following can be chosen.
 <ul>
 <li>
-<code>'rho'</code>: Convergence is checked by ||rho(i)-rho(i-1)||<sup>2</sup>, where i is an iteration number of the scf calculation.
+<code>'rho'</code>: Convergence is checked by sum_ix||rho(ix,iter)-rho(ix,iter-1)||<sup>2</sup>dx, where iter is an iteration number of the scf calculation.
 </li>
 
 <li>
-<code>'rho_dng'</code>: Convergence is checked by ||rho(i)-rho(i-1)||<sup>2</sup>/(number of grids). "dng" means "devided by number of grids".
+<code>'rho_dng'</code>: Convergence is checked by sum_ix||rho(ix,iter)-rho(ix,iter-1)||<sup>2</sup>dx/(number of grids). "dng" means "devided by number of grids".
 </li>
 
 <li>
-<code>'pot'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||<sup>2</sup>, where Vlocal is Vh + Vxc + Vps_local.
+<code>'rho_dne'</code>: Convergence is checked by sum_ix|rho(ix,iter)-rho(ix,iter-1)|dx/(number of electrons). "dne" means "devided by number of electrons".
 </li>
 
 <li>
-<code>'pot_dng'</code>: Convergence is checked by ||Vlocal(i)-Vlocal(i-1)||<sup>2</sup>/(number of grids).
+<code>'pot'</code>: Convergence is checked by ||Vlocal(iter)-Vlocal(iter-1)||<sup>2</sup>, where Vlocal is Vh + Vxc + Vps_local.
+</li>
+
+<li>
+<code>'pot_dng'</code>: Convergence is checked by ||Vlocal(iter)-Vlocal(iter-1)||<sup>2</sup>/(number of grids).
 </li>
 </ul>
 </dd>

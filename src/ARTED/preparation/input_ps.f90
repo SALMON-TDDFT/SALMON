@@ -167,7 +167,7 @@ Subroutine input_pseudopotential_YS
       write(*,*) '===================pseudopotential data==================='
       write(*,*) 'ik ,atom_symbol=',ik, atom_symbol
       write(*,*) 'ps_format =',ps_format(ik)
-      write(*,*) 'ps_file =',ps_file
+      write(*,*) 'ps_file =',trim(ps_file)
 
       select case (ips_type)
       case(n_Yabana_Bertsch_psformat)
@@ -214,7 +214,7 @@ Subroutine input_pseudopotential_YS
       write(*,*) 'Zps(ik), Mlps(ik) =',Zps(ik), Mlps(ik)
       write(*,*) 'Rps(ik), NRps(ik) =',Rps(ik), NRps(ik)
       write(*,*) 'Lref(ik) =',Lref(ik)
-      write(*,*) 'anorm(ik,l) =',(anorm(l,ik),l=0,Mlps(ik))
+      write(*,*) 'anorm(ik,l) =',(real(anorm(l,ik)),l=0,Mlps(ik))
       write(*,*) 'inorm(ik,l) =',(inorm(l,ik),l=0,Mlps(ik))
       write(*,*) 'Mass(ik) =',Mass(ik)
       write(*,*) 'flag_nlcc_element(ik) =',flag_nlcc_element(ik)

@@ -117,6 +117,7 @@ contains
     if(restart_option == 'restart')return
     call read_atomic_coordinates
     call dump_input_common ! Should be renamed properly later
+    call check_bad_input
 
   end subroutine read_input
 
@@ -549,7 +550,7 @@ contains
     nscf          = 0
     ngeometry_opt = 1
     subspace_diagonalization = 'y'
-    convergence   = 'rho_dng'
+    convergence   = 'rho_dne'  !'rho_dng'
     threshold     = 1d-17/ulength_from_au**3  ! a.u., 1d-17 a.u. = 6.75d-17 AA**(-3)
     threshold_pot = -1d0*uenergy_from_au**2*uenergy_from_au**3  ! a.u., -1 a.u. = -1.10d2 eV**2*AA**3
     omp_loop      = 'k'
@@ -1561,5 +1562,35 @@ contains
 
 
   end subroutine dump_input_common
-    
+
+  subroutine check_bad_input
+    use salmon_parallel
+    use salmon_communication
+    implicit none
+
+    !! Add wrong input keyword or wrong/unavailable input combinations here
+    !! (now only a few)
+
+    !ARTED side
+    if(iperiodic==3) then
+       if(convergence.ne.'rho_dne') call stop_by_bad_input2('iperiodic','convergence')
+    endif
+
+  end subroutine check_bad_input
+
+  subroutine stop_by_bad_input2(inp1,inp2)
+    use salmon_parallel
+    use salmon_communication
+    implicit none
+    character(*) :: inp1
+    character(*) :: inp2
+    if (comm_is_root(nproc_id_global)) then
+       write(*,*) ' Bad input combination: '
+       write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2)
+    endif
+    call end_parallel
+    stop
+  end subroutine stop_by_bad_input2
+
+
 end module inputoutput

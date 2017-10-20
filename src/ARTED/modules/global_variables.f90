@@ -86,7 +86,7 @@ Module Global_Variables
   integer,allocatable :: NBocc(:) !FS set
   real(8),allocatable :: esp_vb_min(:),esp_vb_max(:) !FS set
   real(8),allocatable :: esp_cb_min(:),esp_cb_max(:) !FS set
-  real(8),allocatable :: Eall_GS(:),esp_var_ave(:),esp_var_max(:),dns_diff(:)
+  real(8),allocatable :: Eall_GS(:),esp_var_ave(:),esp_var_max(:),ddns(:),ddns_abs_1e(:)
   complex(8),allocatable :: save_dVloc_G(:,:)
 !Nonlinear core correction
   logical :: flag_nlcc = .false.
@@ -230,6 +230,7 @@ Module Global_Variables
 
   ! scf
   integer :: PrLv_scf = 3          !(no print=0, all print=3)
+  integer :: Nscf_conv
 
   ! Rion update flag
   logical :: Rion_update_rt
