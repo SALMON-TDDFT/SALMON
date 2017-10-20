@@ -531,13 +531,14 @@ Default is <code>'rho_dne'</code>.
 For isolated systems, the followings can also be chosen.
 <ul>
 <li>
-<code>'norm_rho'</code>: Convergence is checked by the square of the norm of difference of density, ||rho_iter(ix)-rho_iter-1(ix||<sup>2</sup>=sum_ix|rho(ix,iter)-rho(ix,iter-1)|<sup>2</sup>. 
+<code>'norm_rho'</code>: Convergence is checked by the square of the norm of difference of density, ||rho_iter(ix)-rho_iter-1(ix)||<sup>2</sup>=sum_ix|rho(ix,iter)-rho(ix,iter-1)|<sup>2</sup>. 
 </li>
 
 <li>
 <code>'norm_rho_dng'</code>: Convergence is checked by ||rho_iter(ix)-rho_iter-1(ix)||<sup>2</sup>/(number of grids). "dng" means "devided by number of grids".
 </li>
 
+<li>
 <code>'norm_pot'</code>: Convergence is checked by ||Vlocal_iter(ix)-Vlocal_iter-1(ix)||<sup>2</sup>, where Vlocal is Vh + Vxc + Vps_local.
 </li>
 
@@ -570,8 +571,8 @@ Default is <code>-1d0</code> a.u. (1 a.u.= 33.72x10<sup>4</sup> Å<sup>-6</sup>e
 Loop for OpenMP parallelization if periodic boundary system is used. 
 <li>
 <code>k</code>: parallelization by k-point loop (Default).
-<li>
 </li>
+<li>
 <code>b</code>: parallelization mainly by band orbital loop (sometimzes space grid loop too). This works efficiently if the number of k-point to be calculated in a node is small (e.x. the case of single k-point for each node)
 </li>
 </dd>
