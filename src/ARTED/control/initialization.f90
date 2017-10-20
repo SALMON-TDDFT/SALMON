@@ -129,8 +129,8 @@ contains
        !yabana
        write(*,*) 'propagator=',propagator
        write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
-       write(*,*) 'PSmask_option =',PSmask_option !shinohara
-       write(*,*) 'alpha_mask, gamma_mask, eta_mask =',alpha_mask, gamma_mask, eta_mask !shinohara
+       write(*,*) 'PSmask_option =',PSmask_option
+       write(*,*) 'alpha_mask, gamma_mask, eta_mask =',real(alpha_mask), real(gamma_mask), real(eta_mask)
        file_GS=trim(directory)//trim(SYSname)//'_GS.out'
        file_RT=trim(directory)//trim(SYSname)//'_RT.out'
        file_epst=trim(directory)//trim(SYSname)//'_t.out'
@@ -149,7 +149,7 @@ contains
        
        
        
-       write(*,*) 'al(1),al(2),al(3)=',al(1),al(2),al(3)
+       write(*,*) 'al(1),al(2),al(3)=',real(al(1)),real(al(2)),real(al(3))
        write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym
        write(*,*) 'Nd,NLx,NLy,NLz,NKx,NKy,NKz=',Nd,NLx,NLy,NLz,NKx,NKy,NKz
        write(*,*) 'FDTDdim=',FDTDdim
@@ -270,7 +270,7 @@ contains
     else
        if (comm_is_root(nproc_id_global)) then
           write(*,*) "Use non-uniform k-points distribution"
-          write(*,*) "file_kw=", file_kw
+          write(*,*) "file_kw=", trim(file_kw)
           open(410, file=file_kw, status="old")
           read(410,*) NK, NKxyz
           close(410)

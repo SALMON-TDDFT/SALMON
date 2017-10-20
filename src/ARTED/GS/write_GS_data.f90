@@ -57,6 +57,7 @@ Subroutine write_GS_data
     write(403,*) '#Nmemory_MB,alpha_MB =',Nmemory_MB,alpha_MB
     write(403,*) '#NFSset_start,NFSset_every =',NFSset_start,NFSset_every
     write(403,*) '#Nscf=',Nscf
+    write(403,*) '#Nscf_conv=',Nscf_conv
     write(403,*) '#NI,NE=',NI,NE
     write(403,*) '#Zatom=',(Zatom(j),j=1,NE)
     write(403,*) '#Lref=',(Lref(j),j=1,NE)
@@ -69,9 +70,10 @@ Subroutine write_GS_data
     write(403,*) '#GS information-------------------------------------------'
     write(403,*) '#NB,Nelec=',NB,Nelec
     write(403,*) '#Eall =',Eall
-    write(403,*) '#dns_diff(iter = Nscf)',dns_diff(Nscf)
-    write(403,*) '#esp_var_ave(iter = Nscf)',esp_var_ave(Nscf)
-    write(403,*) '#esp_var_max(iter = Nscf)',esp_var_max(Nscf)
+    write(403,*) '#ddns(iter = Nscf_conv)',ddns(Nscf_conv)
+    write(403,*) '#ddns_abs_1e(iter = Nscf_conv)',ddns_abs_1e(Nscf_conv)
+    write(403,*) '#esp_var_ave(iter = Nscf_conv)',esp_var_ave(Nscf_conv)
+    write(403,*) '#esp_var_max(iter = Nscf_conv)',esp_var_max(Nscf_conv)
     write(403,*) '#NBoccmax is ',NBoccmax
     write(403,*) '#---------------------------------------------------------'
     write(403,*) '#band information-----------------------------------------'
@@ -86,8 +88,10 @@ Subroutine write_GS_data
     write(403,*) '#Physicaly upper bound of CB for DOS',minval(esp_cb_max(:))
     write(403,*) '#Physicaly upper bound of CB for eps(omega)',minval(esp_cb_max(:)-esp_vb_min(:))
     write(403,*) '#---------------------------------------------------------'
-    do iter=1,Nscf
-      write(403,'(1x,i5,4e20.10)') iter, Eall_GS(iter),dns_diff(iter),esp_var_ave(iter),esp_var_max(iter)
+    write(403,'(a)') ' #iter     total-energy          ddns/nelec         esp_var_ave         esp_var_max'
+    do iter=1,Nscf_conv
+      !write(403,'(1x,i5,4e20.10)') iter, Eall_GS(iter),ddns(iter),esp_var_ave(iter),esp_var_max(iter)
+      write(403,'(1x,i5,4e20.10)') iter, Eall_GS(iter),ddns_abs_1e(iter),esp_var_ave(iter),esp_var_max(iter)
     end do
     close(403)
 

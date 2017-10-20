@@ -31,8 +31,11 @@ contains
 
     allocate(rho_in(1:NL,1:Nscf+1),rho_out(1:NL,1:Nscf+1))
     rho_in(1:NL,1:Nscf+1)=0.d0; rho_out(1:NL,1:Nscf+1)=0.d0
-    allocate(Eall_GS(0:Nscf),esp_var_ave(1:Nscf),esp_var_max(1:Nscf),dns_diff(1:Nscf))
-    Eall_GS(0:Nscf)=0d0; esp_var_ave(1:Nscf)=0d0; esp_var_max(1:Nscf)=0d0; dns_diff(1:Nscf)=0d0
+    allocate(Eall_GS(0:Nscf),esp_var_ave(1:Nscf),esp_var_max(1:Nscf), &
+             ddns(1:Nscf),ddns_abs_1e(1:Nscf))
+    Eall_GS(0:Nscf)=0d0; 
+    esp_var_ave(1:Nscf)=0d0; esp_var_max(1:Nscf)=0d0
+    ddns(1:Nscf)=0d0; ddns_abs_1e(1:Nscf)=0d0
     
     if(iflag_gs_init_wf==0) then  !case that initial guess is generated with random number
       call init_wf
@@ -72,8 +75,12 @@ contains
 
     call reset_gs_timer
     call timer_begin(LOG_GROUND_STATE)
+
+    !(Main GS itaration loop)
+    Nscf_conv=0
     do iter=1,Nscf
        if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'iter = ',iter
+
        if( kbTev < 0d0 )then ! sato
           if (FSset_option == 'Y') then
              if (iter/NFSset_every*NFSset_every == iter .and. iter >= NFSset_start) then
@@ -99,13 +106,14 @@ contains
           if((comm_is_root(nproc_id_global)).and.(iter == Nscf))then
              open(126,file='occ.out')
              do ik=1,NK
-                do ib=1,NB
-                   write(126,'(2I7,e26.16E3)')ik,ib,occ(ib,ik)
-                end do
+             do ib=1,NB
+                write(126,'(2I7,e26.16E3)')ik,ib,occ(ib,ik)
+             end do
              end do
              close(126)
           end if
        end if
+
        call Gram_Schmidt
        call diag_omp
        call Gram_Schmidt
@@ -129,19 +137,22 @@ contains
        call sp_energy_omp
        call current_GS
        Eall_GS(iter)=Eall
-       esp_var_ave(iter)=sum(esp_var(:,:))/(NK*Nelec/2)
-       esp_var_max(iter)=maxval(esp_var(:,:))
-       dns_diff(iter)=sqrt(sum((rho_out(:,iter)-rho_in(:,iter))**2))*Hxyz
+       esp_var_ave(iter) = sum(esp_var(:,:))/(NK*Nelec/2)
+       esp_var_max(iter) = maxval(esp_var(:,:))
+       ddns(iter)        = sqrt(sum((rho_out(:,iter)-rho_in(:,iter))**2))*Hxyz
+       ddns_abs_1e(iter) = sum(abs(rho_out(:,iter)-rho_in(:,iter)))*Hxyz/Nelec
 
        if (PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
           write(*,*) 'Total Energy = ',Eall_GS(iter),Eall_GS(iter)-Eall_GS(iter-1)
           write(*,'(a28,3e15.6)') 'jav(1),jav(2),jav(3)= ',jav(1),jav(2),jav(3)
+          write(*,*) '(orbital eigen energies)'
           write(*,'(4(i3,f12.6,2x))') (ib,esp(ib,1),ib=1,NB)
+          write(*,*) '(forces on atoms)'
           do ia=1,NI
              write(*,'(1x,i7,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
           end do
-          write(*,*) 'var_ave,var_max=',esp_var_ave(iter),esp_var_max(iter)
-          write(*,*) 'dns. difference =',dns_diff(iter)
+          write(*,*) 'e_var_ave,e_var_max=',esp_var_ave(iter),esp_var_max(iter)
+          write(*,*) 'diff-dns,ddns/nelec=',ddns(iter),ddns_abs_1e(iter)
           if (iter/20*20 == iter) then
              write(*,*) '====='
              call timer_show_current_min('elapse time=',LOG_ALL)
@@ -149,21 +160,55 @@ contains
           write(*,*) '-----------------------------------------------'
        end if
 
+       !Convergence judge for general GS calculation
+       if(convergence=='rho_dne' .and. ddns_abs_1e(iter) < threshold) then
+         if(comm_is_root(nproc_id_global)) write(*,'(a,i4,/)')" GS converged at",iter
+         Nscf_conv = iter
+         exit
+       endif
+       !(following convergence keyword are not supprted yet)
+       !if(convergence=='rho_dng' .and. XXXX < threshold) then
+       !  if(comm_is_root(nproc_id_global)) write(*,'(a,i4,/)')" GS converged at",iter
+       !  Nscf_conv = iter
+       !  exit
+       !endif
+       !if(convergence=='rho'     .and. XXXX < threshold) then
+       !  if(comm_is_root(nproc_id_global)) write(*,'(a,i4,/)')" GS converged at",iter
+       !  Nscf_conv = iter
+       !  exit
+       !endif
+       !if(convergence=='pot_dng' .and. XXXX < threshold_pot) then
+       !  if(comm_is_root(nproc_id_global)) write(*,'(a,i4,/)')" GS converged at",iter
+       !  Nscf_conv = iter
+       !  exit
+       !endif
+       !if(convergence=='pot'     .and. XXXX < threshold_pot) then
+       !  if(comm_is_root(nproc_id_global)) write(*,'(a,i4,/)')" GS converged at",iter
+       !  Nscf_conv = iter
+       !  exit
+       !endif
+
+       !Convergence judge for geometry optimization
        !(exit if energy difference is below threshold: only if set convrg_scf_Eall>0)
        if( abs(Eall_GS(iter)-Eall_GS(iter-1)) .le. convrg_scf_ene ) then
           if(kbTev >= 0d0) then
              if(comm_is_root(nproc_id_global)) &
              & write(*,*) "sorry, occ.out was not generated" !(fix if need)
           endif
-          !if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
           if(comm_is_root(nproc_id_global)) then
              write(*,'(a,i4,a,e18.10)') " GS converged at",iter," : dEall_GS=", &
                                       & abs(Eall_GS(iter)-Eall_GS(iter-1))
           endif
+          Nscf_conv = iter
           exit
        endif
 
+       if( iter==Nscf  .and. Nscf_conv==0) then
+          if(comm_is_root(nproc_id_global)) write(*,'(a,/)')" GS did not converge"
+       endif
+
     end do
+    if(Nscf_conv==0) Nscf_conv=Nscf
     call timer_end(LOG_GROUND_STATE)
 
     if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
@@ -236,7 +281,7 @@ contains
     endif
     
     deallocate(rho_in,rho_out)
-    deallocate(Eall_GS,esp_var_ave,esp_var_max,dns_diff)
+    deallocate(Eall_GS,esp_var_ave,esp_var_max,ddns)
 
   contains
     subroutine reset_gs_timer
