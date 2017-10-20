@@ -20,8 +20,8 @@ checklist = {
     # Dipole moment
     "Dipole Moment": [
         -100, # Temporary value for result
-        -0.0035351493,  # Reference value 
-        0.001,  # Permissible error 
+        -0.0035453573,  # Reference value 
+        0.0001,  # Permissible error 
     ], 
 } 
 

@@ -294,7 +294,8 @@ contains
       & subspace_diagonalization, &
       & convergence, &
       & threshold, &
-      & threshold_pot, &
+      & threshold_norm_rho, &
+      & threshold_norm_pot, &
       & omp_loop, &
       & skip_gsortho
 
@@ -550,9 +551,10 @@ contains
     nscf          = 0
     ngeometry_opt = 1
     subspace_diagonalization = 'y'
-    convergence   = 'rho_dne'  !'rho_dng'
-    threshold     = 1d-17/ulength_from_au**3  ! a.u., 1d-17 a.u. = 6.75d-17 AA**(-3)
-    threshold_pot = -1d0*uenergy_from_au**2*uenergy_from_au**3  ! a.u., -1 a.u. = -1.10d2 eV**2*AA**3
+    convergence   = 'rho_dne'
+    threshold     = 1d-17
+    threshold_norm_rho = -1d0/ulength_from_au**6                     ! a.u., -1 a.u. = -45.54 AA**(-6)
+    threshold_norm_pot = -1d0/ulength_from_au**6*uenergy_from_au**2  ! a.u., -1 a.u. = -33.72d4 AA**(-6)*eV**2
     omp_loop      = 'k'
     skip_gsortho  = 'n'
 
@@ -850,9 +852,10 @@ contains
     call comm_bcast(subspace_diagonalization,nproc_group_global)
     call comm_bcast(convergence             ,nproc_group_global)
     call comm_bcast(threshold               ,nproc_group_global)
-    threshold = threshold / (ulength_to_au)**3
-    call comm_bcast(threshold_pot           ,nproc_group_global)
-    threshold_pot = threshold_pot * (uenergy_to_au)**2 * (ulength_to_au)**3 
+    call comm_bcast(threshold_norm_rho      ,nproc_group_global)
+    threshold_norm_rho = threshold_norm_rho / (ulength_to_au)**6
+    call comm_bcast(threshold_norm_pot      ,nproc_group_global)
+    threshold_norm_pot = threshold_norm_pot * (uenergy_to_au)**2 / (ulength_to_au)**6
     call comm_bcast(omp_loop                ,nproc_group_global)
     call comm_bcast(skip_gsortho            ,nproc_group_global)
 !! == bcast for &emfield
@@ -1356,7 +1359,8 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'subspace_diagonalization', subspace_diagonalization
       write(fh_variables_log, '("#",4X,A,"=",A)') 'convergence', convergence
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold', threshold
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_pot', threshold_pot
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_norm_rho', threshold_norm_rho
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_norm_pot', threshold_norm_pot
       write(fh_variables_log, '("#",4X,A,"=",A)') 'omp_loop', omp_loop
       write(fh_variables_log, '("#",4X,A,"=",A)') 'skip_gsortho', skip_gsortho
 
@@ -1555,9 +1559,9 @@ contains
 
     call comm_bcast(ierr_nml,nproc_group_global)
     if(ierr_nml > 0)then
-       if (comm_is_root(nproc_id_global)) write(*,"(I4,2x,A)")ierr_nml,'error(s) in input.'
-       call end_parallel
-       stop
+      if (comm_is_root(nproc_id_global)) write(*,"(I4,2x,A)")ierr_nml,'error(s) in input.'
+      call end_parallel
+      stop
     end if
 
 
@@ -1571,9 +1575,29 @@ contains
     !! Add wrong input keyword or wrong/unavailable input combinations here
     !! (now only a few)
 
-    !ARTED side
-    if(iperiodic==3) then
-       if(convergence.ne.'rho_dne') call stop_by_bad_input2('iperiodic','convergence')
+    if(iperiodic==0) then
+      select case(convergence)
+      case('rho_dne')
+        continue
+      case('norm_rho','norm_rho_dng')
+        if(threshold_norm_rho<-1.d-12)then
+          if (comm_is_root(nproc_id_global)) then
+            write(*,*) 'set threshold_norm_rho when convergence is norm_rho or norm_rho_dng.'
+          endif
+          call end_parallel
+        end if
+      case('norm_pot','norm_pot_dng')
+        if(threshold_norm_pot<-1.d-12)then
+          if (comm_is_root(nproc_id_global)) then
+            write(*,*) 'set threshold_norm_pot when convergence is norm_pot or norm_rho_pot.'
+          endif
+          call end_parallel
+        end if
+      case default
+        call stop_by_bad_input2('iperiodic','convergence')
+      end select
+    else if(iperiodic==3) then
+      if(convergence.ne.'rho_dne') call stop_by_bad_input2('iperiodic','convergence')
     endif
 
   end subroutine check_bad_input
@@ -1585,8 +1609,8 @@ contains
     character(*) :: inp1
     character(*) :: inp2
     if (comm_is_root(nproc_id_global)) then
-       write(*,*) ' Bad input combination: '
-       write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2)
+      write(*,*) ' Bad input combination: '
+      write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2)
     endif
     call end_parallel
     stop

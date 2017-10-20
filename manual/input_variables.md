@@ -518,43 +518,50 @@ Number of iteration of geometry optimization.
 subspace diagonalization during scf cycle.
 </dd>
 
-<dt>convergence; <code>Character</code>; 0d</dt>
+<dt>convergence; <code>Character</code>; 0d/3d</dt>
 <dd>
 Choice of quantity that is used for convergence check in a scf calculation. 
-Default is <code>'rho_dne'</code>. The following can be chosen.
+Default is <code>'rho_dne'</code>. 
 <ul>
 <li>
-<code>'rho'</code>: Convergence is checked by sum_ix||rho(ix,iter)-rho(ix,iter-1)||<sup>2</sup>dx, where iter is an iteration number of the scf calculation.
+<code>'rho_dne'</code>: Convergence is checked by sum_ix|rho(ix,iter)-rho(ix,iter-1)|<sup>2</sup>dx, where iter is an iteration number of the scf calculation.
+</li>
+
+For isolated systems, the followings can also be chosen.
+<li>
+<li>
+<code>'norm_rho'</code>: Convergence is checked by the square of the norm of difference of density, ||rho_iter(ix)-rho_iter-1(ix||<sup>2</sup>=sum_ix|rho(ix,iter)-rho(ix,iter-1)|<sup>2</sup>. 
 </li>
 
 <li>
-<code>'rho_dng'</code>: Convergence is checked by sum_ix||rho(ix,iter)-rho(ix,iter-1)||<sup>2</sup>dx/(number of grids). "dng" means "devided by number of grids".
+<code>'norm_rho_dng'</code>: Convergence is checked by ||rho_iter(ix)-rho_iter-1(ix)||<sup>2</sup>/(number of grids). "dng" means "devided by number of grids".
+</li>
+
+<code>'norm_pot'</code>: Convergence is checked by ||Vlocal_iter(ix)-Vlocal_iter-1(ix)||<sup>2</sup>, where Vlocal is Vh + Vxc + Vps_local.
 </li>
 
 <li>
-<code>'rho_dne'</code>: Convergence is checked by sum_ix|rho(ix,iter)-rho(ix,iter-1)|dx/(number of electrons). "dne" means "devided by number of electrons".
-</li>
-
-<li>
-<code>'pot'</code>: Convergence is checked by ||Vlocal(iter)-Vlocal(iter-1)||<sup>2</sup>, where Vlocal is Vh + Vxc + Vps_local.
-</li>
-
-<li>
-<code>'pot_dng'</code>: Convergence is checked by ||Vlocal(iter)-Vlocal(iter-1)||<sup>2</sup>/(number of grids).
+<code>'pot_dng'</code>: Convergence is checked by ||Vlocal_iter(ix)-Vlocal_iter-1(ix)||<sup>2</sup>/(number of grids).
 </li>
 </ul>
 </dd>
 
-<dt>threshold; <code>Real(8)</code>; 0d</dt>
+<dt>threshold; <code>Real(8)</code>; 0d/3d</dt>
 <dd>
-Threshold for convergence check that is used when either <code>'rho'</code> or <code>'rho_dng'</code> is specified.
-Default is <code>1d-17</code> a.u. (= 6.75d-17Å<sup>-3</sup>)
+Threshold for convergence check that is used when <code>'rho_dne'</code> is specified.
+Default is <code>1d-17</code>. 
 </dd>
 
-<dt>threshold_pot; <code>Real(8)</code>; 0d</dt>
+<dt>threshold_norm_rho; <code>Real(8)</code>; 0d</dt>
 <dd>
-Threshold for convergence check that is used when either <code>'pot'</code> or <code>'pot_dng'</code> is specified. <code>threshold_pot</code> must be set when either <code>'pot'</code> or <code>'pot_dng'</code> is specified.
-Default is <code>-1d0</code> a.u. (1 a.u.= 1.10d2 Å<sup>3</sup>eV<sup>2</sup>)
+Threshold for convergence check that is used when either <code>'norm_rho'</code> or <code>'norm_rho_dng'</code> is specified. <code>threshold_norm_rho</code> must be set when either <code>'norm_rho'</code> or <code>'norm_rho_dng'</code> is specified.
+Default is <code>-1d0</code> a.u. (1 a.u.= 45.54Å<sup>-6</sup>)
+</dd>
+
+<dt>threshold_norm_pot; <code>Real(8)</code>; 0d</dt>
+<dd>
+Threshold for convergence check that is used when either <code>'norm_pot'</code> or <code>'norm_pot_dng'</code> is specified. <code>threshold_pot</code> must be set when either <code>'norm_pot'</code> or <code>'norm_pot_dng'</code> is specified.
+Default is <code>-1d0</code> a.u. (1 a.u.= 33.72x10<sup>4</sup> Å<sup>-6</sup>eV<sup>2</sup>)
 </dd>
 
 <dt>omp_loop; <code>Character</code>; 3d</dt>
