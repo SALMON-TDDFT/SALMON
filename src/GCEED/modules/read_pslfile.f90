@@ -77,13 +77,16 @@ do ak=1,MKI
   else if(ps_file_tmp(nlen_psf+1-4:nlen_psf) == '.cpi')then
      ips_type = n_FHI_psformat
      ps_format(ak) = 'FHI'
+  else if(ps_file_tmp(nlen_psf+1-4:nlen_psf) == '.fhi')then
+     ips_type = n_ABINITFHI_psformat
+     ps_format(ak) = 'ABINITPHI'
   else
      stop 'Unprepared ps_format is required input_pseudopotential_YS'
   end if
 
   ipsfileform(ak) = ips_type
 
-  if(ipsfileform(ak)==3)then
+  if(ipsfileform(ak)==3.or.ipsfileform(ak)==4)then
     Mlps0(ak)=Mlps(ak)
   end if
 
@@ -143,8 +146,8 @@ do ak=1,MKI
     case(2)
       ps_file(ak)=trim(ps_file_tmp) !trim(Atomname(ak))//'.pspnc'
       call read_Mr_ABINIT(ak,ps_file)
-    case(3)
-      ps_file(ak)=trim(ps_file_tmp) !trim(Atomname(ak))//'.cpi'
+    case(3,4)
+      ps_file(ak)=trim(ps_file_tmp) !trim(Atomname(ak))//'.cpi' or trim(Atomname(ak))//'.fhi' 
       call read_Mr_fhi(ak,ps_file)
   end select
 end do
@@ -162,7 +165,7 @@ do ak=1,MKI
       call read_psl_YB(ak,ps_file)
     case(2) 
       call read_psl_ABINIT(ak,ps_file)
-    case(3) 
+    case(3,4) 
       call read_psl_fhi(ak,ps_file)
       call setRps_fhi(ak)
   end select
@@ -215,9 +218,16 @@ character(256) :: ps_file(MKI)
 character(1) :: dummy_text
 
 open(4,file=ps_file(ak),status='old')
-do i=1,11
-  read(4,*) dummy_text
-end do
+select case( ipsfileform(ak) )
+  case(3) 
+    do i=1,11
+      read(4,*) dummy_text
+    end do
+  case(4) 
+    do i=1,18
+      read(4,*) dummy_text
+    end do
+end select
 read(4,*) Mr(ak)
 close(4)
 
@@ -402,9 +412,16 @@ open(4,file=ps_file(ak),status='old')
 
 call set_Zps(ak)
 
-do i=1,11
-  read(4,*) dummy_text
-end do
+select case( ipsfileform(ak) )
+  case(3) 
+    do i=1,11
+      read(4,*) dummy_text
+    end do
+  case(4) 
+    do i=1,18
+      read(4,*) dummy_text
+    end do
+end select
 
 do ll=0,Mlps0(ak)
   read(4,*) ibox,step_tmp(ll)
