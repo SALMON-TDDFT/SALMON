@@ -526,9 +526,10 @@ Default is <code>'rho_dne'</code>.
 <li>
 <code>'rho_dne'</code>: Convergence is checked by sum_ix|rho(ix,iter)-rho(ix,iter-1)|<sup>2</sup>dx, where iter is an iteration number of the scf calculation.
 </li>
+</ul>
 
 For isolated systems, the followings can also be chosen.
-<li>
+<ul>
 <li>
 <code>'norm_rho'</code>: Convergence is checked by the square of the norm of difference of density, ||rho_iter(ix)-rho_iter-1(ix||<sup>2</sup>=sum_ix|rho(ix,iter)-rho(ix,iter-1)|<sup>2</sup>. 
 </li>
