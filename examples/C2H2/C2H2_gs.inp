@@ -31,6 +31,8 @@
 &scf
   ncg = 4
   nscf = 1000
+  convergence = 'norm_rho_dng'
+  threshold_norm_rho = 1.d-15
 /
 &atomic_coor
 'C'    0.000000    0.000000    0.599672  1

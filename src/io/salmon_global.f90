@@ -127,9 +127,10 @@ module salmon_global
   integer        :: nscf
   integer        :: ngeometry_opt
   character(1)   :: subspace_diagonalization
-  character(8)   :: convergence
+  character(16)  :: convergence
   real(8)        :: threshold
-  real(8)        :: threshold_pot
+  real(8)        :: threshold_norm_rho
+  real(8)        :: threshold_norm_pot
   character(1)   :: omp_loop
   character(1)   :: skip_gsortho
 

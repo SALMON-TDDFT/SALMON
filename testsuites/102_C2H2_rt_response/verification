@@ -20,7 +20,7 @@ checklist = {
     # Oscillator strength
     "Oscillator Strength (z-direction, 9.28eV)": [
         -100, # Temporary value for result
-        1.2082738,  # Reference value 
+        1.2081861,  # Reference value 
         0.001,  # Permissible error 
     ], 
 } 

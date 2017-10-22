@@ -97,17 +97,6 @@ case('n')
   iflag_subspace_diag = 0
 end select
 
-select case(convergence)
-case('rho','rho_dng')
-  continue
-case('pot','pot_dng')
-  if(threshold_pot<-1.d-12)then
-    stop 'threthold_pot must be specified when the variable convergence is "pot" or "pot_dng".'
-  end if 
-case default
-  stop 'the variable convergence must be set to either "rho", "rho_dng", "pot", or "pot_dng"'
-end select
-
 select case(use_force)
 case('y')
   icalcforce = 1
