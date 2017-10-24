@@ -281,7 +281,7 @@ contains
     endif
     
     deallocate(rho_in,rho_out)
-    deallocate(Eall_GS,esp_var_ave,esp_var_max,ddns)
+    deallocate(Eall_GS,esp_var_ave,esp_var_max,ddns,ddns_abs_1e)
 
   contains
     subroutine reset_gs_timer
