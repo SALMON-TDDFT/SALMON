@@ -132,7 +132,7 @@ Module Global_Variables
   character(256) :: file_energy_transfer ! 940
   character(256) :: file_ac_vac          ! 941
   character(256) :: file_ac_vac_back     ! 942
-  character(256) :: file_ac_m            ! 943
+  character(256) :: file_ac_ms            ! 943
   character(256) :: file_ac              ! 902
   character(256) :: file_ac_init         ! 902
   character(256) :: file_k_data
@@ -174,18 +174,39 @@ Module Global_Variables
   real(8) :: KbTev
 
 ! multi scale
-  integer :: NXY_s,NXY_e ! sato
   integer :: macRANK,kRANK ! sato
+  
+  
+  integer,allocatable :: macropoint(:,:)
+  integer :: nmacro, nmacro_s, nmacro_e
+  
+  ! Size of Macroscopic FDTD Grid 
+  integer :: nx1_m, ny1_m, nz1_m
+  integer :: nx2_m, ny2_m, nz2_m
+  ! Array size of Macroscopic FDTD Grid (including overlaped region)
+  integer :: mx1_m, my1_m, mz1_m ! 
+  integer :: mx2_m, my2_m, mz2_m
+  integer,parameter :: novlp_m = 1
 
-
-  integer :: NYvacT_m,NYvacB_m
-  real(8),allocatable :: Ac_m(:,:,:),Ac_new_m(:,:,:),Ac_old_m(:,:,:)
-  real(8),allocatable :: Elec(:,:,:),Bmag(:,:,:)
-  real(8),allocatable :: j_m(:,:,:)
-  real(8),allocatable :: jmatter_m(:,:,:),jmatter_m_l(:,:,:)
-  real(8),allocatable :: g(:,:,:)
+  !! Macroscopic electromagnetic field variables
+  !! NOTE: "Ac_(old|new)?_ms" are the vector potential Ac(r,t)
+  !!       "Jm_(old|new)?_ms" are the matter current density Jm(r,t)
+  !!       In the RT iteration, the variable with suffix "new" and "old" 
+  !!       indicate the data at the time "iter+1" and "iter-1", respectively.
+  real(8),allocatable :: Ac_old_ms(:,:,:,:),  Ac_ms(:,:,:,:), Ac_new_ms(:,:,:,:)
+  real(8),allocatable :: Jm_old_ms(:,:,:,:),  Jm_ms(:,:,:,:), Jm_new_ms(:,:,:,:)
+  real(8),allocatable :: elec_ms(:,:,:,:)
+  real(8),allocatable :: bmag_ms(:,:,:,:)
+  real(8),allocatable :: energy_joule_ms(:,:,:)
+  real(8),allocatable :: energy_elec_ms(:,:,:)
+  real(8),allocatable :: energy_elemag_ms(:,:,:)
+  real(8) :: total_energy_elemag_old, total_energy_elemag
+  real(8) :: total_energy_absorb_old, total_energy_absorb
+  real(8) :: total_energy_elec_old, total_energy_elec
+  real(8) :: total_energy_em_old, total_energy_em  
+  
   real(8) :: bcon
-  integer,allocatable :: NX_table(:),NY_table(:)
+  
   character(50) BC_my
 
   complex(8),allocatable :: zu_m(:,:,:,:)
@@ -194,22 +215,21 @@ Module Global_Variables
   real(8),allocatable :: Eexc_m(:,:)
   real(8),allocatable :: Vloc_m(:,:),Vloc_old_m(:,:,:)
   real(8),allocatable :: rho_m(:,:)
-  real(8),allocatable :: energy_joule(:,:)
-  real(8),allocatable :: energy_elec_Matter_l(:,:)
-  real(8),allocatable :: energy_elec_Matter(:,:)
-  real(8),allocatable :: energy_elec(:,:)
-  real(8),allocatable :: energy_elemag(:,:)
-  real(8),allocatable :: energy_total(:,:)
-  real(8),allocatable :: excited_electron_l(:,:)
-  real(8),allocatable :: excited_electron(:,:)
-
-  real(8),allocatable :: data_out(:,:,:,:)
-  real(8),allocatable :: data_local_Ac(:,:,:)
-  real(8),allocatable :: data_local_jm(:,:,:)
-  real(8),allocatable :: data_vac_Ac(:,:,:)
-  integer :: Nstep_write=100
-  integer :: Ndata_out, Ndata_out_per_proc
   
+  real(8),allocatable :: Ac_m(:,:), Ac_new_m(:,:)
+  real(8),allocatable :: Jm_m(:,:), Jm_new_m(:,:)
+  real(8),allocatable :: jm_new_m_tmp(:,:)
+  real(8),allocatable :: energy_elec_Matter_new_m(:)
+  real(8),allocatable :: energy_elec_Matter_new_m_tmp(:)
+  real(8),allocatable :: excited_electron_new_m(:)
+  real(8),allocatable :: excited_electron_new_m_tmp(:)
+
+  real(8), allocatable :: data_out(:,:,:,:,:)
+  integer, parameter :: ndata_out_column = 15
+  integer :: ndata_out, ndata_out_per_proc
+  real(8), allocatable :: data_local_ac(:,:,:)
+  real(8), allocatable :: data_local_jm(:,:,:)
+  real(8), allocatable :: data_vac_ac(:,:,:)
 
   character(30), parameter :: calc_mode_sc = 'singlecell'
   character(30), parameter :: calc_mode_ms = 'multiscale'

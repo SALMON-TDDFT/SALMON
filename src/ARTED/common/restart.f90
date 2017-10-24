@@ -482,7 +482,7 @@ subroutine prep_backup_values(is_backup)
   BACKUP(file_energy_transfer)
   BACKUP(file_ac_vac)
   BACKUP(file_ac_vac_back)
-  BACKUP(file_ac_m)
+  BACKUP(file_ac_ms)
   BACKUP(file_ac)
   BACKUP(file_ac_init)
   BACKUP(process_directory)
@@ -529,25 +529,47 @@ subroutine prep_backup_values(is_backup)
   BACKUP(KbTev)
 
 ! multi scale
-  BACKUP(NXY_s)
-  BACKUP(NXY_e)
+  BACKUP(macropoint)
+  BACKUP(nmacro)
+  BACKUP(nmacro_s)
+  BACKUP(nmacro_e)
   BACKUP(macRANK)
   BACKUP(kRANK)
 
-  BACKUP(NYvacT_m)
-  BACKUP(NYvacB_m)
-  BACKUP(Ac_m)
-  BACKUP(Ac_new_m)
-  BACKUP(Ac_old_m)
-  BACKUP(Elec)
-  BACKUP(Bmag)
-  BACKUP(j_m)
-  BACKUP(jmatter_m)
-  BACKUP(jmatter_m_l)
-  BACKUP(g)
+  BACKUP(nx1_m)
+  BACKUP(ny1_m)
+  BACKUP(nz1_m)
+  BACKUP(nx2_m)
+  BACKUP(ny2_m)
+  BACKUP(nz2_m)
+  BACKUP(mx1_m)
+  BACKUP(my1_m)
+  BACKUP(mz1_m)
+  BACKUP(mx2_m)
+  BACKUP(my2_m)
+  BACKUP(mz2_m)
+
+  BACKUP(Ac_old_ms)
+  BACKUP(Ac_ms)
+  BACKUP(Ac_new_ms)
+  BACKUP(Jm_old_ms)
+  BACKUP(Jm_ms)
+  BACKUP(Jm_new_ms)
+  BACKUP(elec_ms)
+  BACKUP(bmag_ms)
+  BACKUP(energy_joule_ms)
+  BACKUP(energy_elec_ms)
+  BACKUP(energy_elemag_ms)
+  BACKUP(total_energy_elemag_old)
+  BACKUP(total_energy_elemag)
+  BACKUP(total_energy_absorb_old)
+  BACKUP(total_energy_absorb)
+  BACKUP(total_energy_elec_old)
+  BACKUP(total_energy_elec)
+  BACKUP(total_energy_em_old)
+  BACKUP(total_energy_em)  
+
   BACKUP(bcon)
-  BACKUP(NX_table)
-  BACKUP(NY_table)
   BACKUP(BC_my)
 
   BACKUP(zu_m)
@@ -557,22 +579,24 @@ subroutine prep_backup_values(is_backup)
   BACKUP(Vloc_m)
   BACKUP(Vloc_old_m)
   BACKUP(rho_m)
-  BACKUP(energy_joule)
-  BACKUP(energy_elec_Matter_l)
-  BACKUP(energy_elec_Matter)
-  BACKUP(energy_elec)
-  BACKUP(energy_elemag)
-  BACKUP(energy_total)
-  BACKUP(excited_electron_l)
-  BACKUP(excited_electron)
+
+  BACKUP(Ac_m)
+  BACKUP(Ac_new_m)
+  BACKUP(Jm_m)
+  BACKUP(Jm_new_m)
+  BACKUP(jm_new_m_tmp)
+  BACKUP(energy_elec_Matter_new_m)
+  BACKUP(energy_elec_Matter_new_m_tmp)
+  BACKUP(excited_electron_new_m)
+  BACKUP(excited_electron_new_m_tmp)
+
 
   BACKUP(data_out)
-  BACKUP(data_local_Ac)
+  BACKUP(data_local_ac)
   BACKUP(data_local_jm)
-  BACKUP(data_vac_Ac)
-  BACKUP(Nstep_write)
+  BACKUP(data_vac_ac)
   BACKUP(ndata_out)
-  BACKUP(Ndata_out_per_proc)
+  BACKUP(ndata_out_per_proc)
 
   BACKUP(need_backup)
 
@@ -605,8 +629,8 @@ subroutine prep_backup_values(is_backup)
           print '(A,I7,A,I7)', '*** [Nt is updated] start continuous execution:',Nt,' to ',gNt
         end if
         Nt                 = gNt
-        Ndata_out          = Nt / Nstep_write
-        Ndata_out_per_proc = Ndata_out / nproc_size_global
+        ndata_out = (nt / out_ms_step) + 1
+        ndata_out_per_proc = ndata_out / nproc_size_global + 1
         call resize_arrays
       end if
 !    end if
@@ -642,7 +666,7 @@ contains
   ! TODO: An array resizing subroutine should be provided.
   subroutine resize_arrays
     implicit none
-    real(8), allocatable :: tmp2(:,:),tmp3(:,:,:),tmp4(:,:,:,:)
+    real(8), allocatable :: tmp2(:,:),tmp3(:,:,:),tmp4(:,:,:,:,:)
     integer :: mt
 
     ! javt
@@ -717,21 +741,21 @@ contains
 
     ! data_local_Ac
     mt = min(Nt, ubound(data_local_Ac,3))
-    allocate(tmp3(3,NXY_s:NXY_e,0:Nt))
+    allocate(tmp3(3,nmacro_s:nmacro_e,0:Nt))
     tmp3(:,:,:) = 0.d0
     tmp3(:,:,0:mt) = data_local_Ac(:,:,0:mt)
     deallocate(data_local_Ac)
-    allocate(data_local_Ac(3,NXY_s:NXY_e,0:Nt))
+    allocate(data_local_Ac(3,nmacro_s:nmacro_e,0:Nt))
     data_local_Ac(:,:,:) = tmp3(:,:,:)
     deallocate(tmp3)
 
     ! data_local_jm
     mt = min(Nt, ubound(data_local_jm,3))
-    allocate(tmp3(3,NXY_s:NXY_e,0:Nt))
+    allocate(tmp3(3,nmacro_s:nmacro_e,0:Nt))
     tmp3(:,:,:) = 0.d0
     tmp3(:,:,0:mt) = data_local_jm(:,:,0:mt)
     deallocate(data_local_jm)
-    allocate(data_local_jm(3,NXY_s:NXY_e,0:Nt))
+    allocate(data_local_jm(3,nmacro_s:nmacro_e,0:Nt))
     data_local_jm(:,:,:) = tmp3(:,:,:)
     deallocate(tmp3)
 
@@ -746,13 +770,13 @@ contains
     deallocate(tmp3)
 
     ! data_out
-    mt = min(Ndata_out_per_proc, ubound(data_out, 4))
-    allocate(tmp4(16,NXvacL_m:NXvacR_m,NY_m+1,0:Ndata_out_per_proc))
-    tmp4(:,:,:,:) = 0.d0
-    tmp4(:,:,:,0:mt) = data_out(:,:,:,0:mt)
+    mt = min(Ndata_out_per_proc, ubound(data_out, 5))
+    allocate(tmp4(1:15, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m, 0:Ndata_out_per_proc))
+    tmp4(:,:,:,:,:) = 0.d0
+    tmp4(:,:,:,:,0:mt) = data_out(:,:,:,:,0:mt)
     deallocate(data_out)
-    allocate(data_out(16,NXvacL_m:NXvacR_m,NY_m+1,0:Ndata_out_per_proc))
-    data_out(:,:,:,:) = tmp4(:,:,:,:)
+    allocate(data_out(1:15, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m, 0:Ndata_out_per_proc))
+    data_out(:,:,:,:,:) = tmp4(:,:,:,:,:)
     deallocate(tmp4)
 
     ! dRion

@@ -171,9 +171,17 @@ module salmon_global
   real(8)        :: hz_m
   integer        :: nksplit
   integer        :: nxysplit
-  integer        :: nxvacl_m
+  ! The input variables nxvac(l|r)_m do not recommend to use,
+  ! However I tempolary remain them for the reason of the compatibility.
+  ! Please use  n(x|y|z)_origin_m to provide the same functionality.
+  integer        :: nxvacl_m 
   integer        :: nxvacr_m
-
+  integer        :: nx_origin_m
+  integer        :: ny_origin_m
+  integer        :: nz_origin_m
+  character(100) :: file_macropoint
+  integer        :: num_macropoint
+  
 !! &analysis
   character(2)   :: projection_option
   integer        :: nenergy
@@ -196,6 +204,7 @@ module salmon_global
   character(1)   :: out_estatic_rt
   integer        :: out_estatic_rt_step
   integer        :: out_projection_step
+  integer        :: out_ms_step
   character(16)  :: format3d
   integer        :: numfiles_out_3d
   character(1)   :: timer_process

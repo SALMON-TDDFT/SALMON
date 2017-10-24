@@ -169,6 +169,11 @@ module salmon_communication
     ! 3-D array
     module procedure comm_bcast_array3d_double
     module procedure comm_bcast_array3d_dcomplex
+  
+    ! 4-D array
+    module procedure comm_bcast_array4d_double
+    ! module procedure comm_bcast_array3d_dcomplex
+    !! TODO: create broadcast routine for rank-4 tensor later ...
   end interface
 
   interface comm_allgatherv
@@ -863,6 +868,21 @@ contains
     use mpi, only: MPI_DOUBLE_PRECISION
     implicit none
     real(8), intent(inout)        :: val(:,:,:)
+    integer, intent(in)           :: ngroup
+    integer, intent(in), optional :: root
+    integer :: rank, ierr
+    if (present(root)) then
+      rank = root
+    else
+      rank = 0
+    end if
+    MPI_ERROR_CHECK(call MPI_Bcast(val, size(val), MPI_DOUBLE_PRECISION, rank, ngroup, ierr))
+  end subroutine
+  
+  subroutine comm_bcast_array4d_double(val, ngroup, root)
+    use mpi, only: MPI_DOUBLE_PRECISION
+    implicit none
+    real(8), intent(inout)        :: val(:,:,:,:)
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     integer :: rank, ierr

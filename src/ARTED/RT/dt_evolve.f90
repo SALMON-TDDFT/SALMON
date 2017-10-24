@@ -63,14 +63,10 @@ contains
   end subroutine
 end subroutine
 
-subroutine dt_evolve_KB_MS(ixy_m)
-  use global_variables, only: propagator,kAc,kAc0,Ac_new_m,Ac_m,zu_m,NX_table,NY_table
+subroutine dt_evolve_KB_MS(imacro)
+  use global_variables, only: propagator,kAc,kAc0,Ac_new_m,ac_m,zu_m
   implicit none
-  integer, intent(in) :: ixy_m
-  integer :: ix_m, iy_m
-
-  ix_m=NX_table(ixy_m)
-  iy_m=NY_table(ixy_m)
+  integer, intent(in) :: imacro
 
   select case(propagator)
     case('middlepoint')
@@ -86,10 +82,10 @@ contains
     implicit none
     integer :: ixyz
     do ixyz=1,3
-      kAc(:,ixyz)=kAc0(:,ixyz)+(Ac_new_m(ixyz,ix_m,iy_m)+Ac_m(ixyz,ix_m,iy_m))/2d0
+      kAc(:,ixyz)=kAc0(:,ixyz)+(Ac_new_m(ixyz,imacro)+Ac_m(ixyz,imacro))/2d0
     enddo
 !$acc update device(kAc)
-    call dt_evolve_omp_KB_MS(zu_m(:,:,:,ixy_m))
+    call dt_evolve_omp_KB_MS(zu_m(:,:,:,imacro))
   end subroutine
 
   subroutine etrs_propagator
@@ -97,11 +93,11 @@ contains
     implicit none
     integer :: ixyz
     do ixyz=1,3
-      kAc(:,ixyz)=kAc0(:,ixyz)+Ac_m(ixyz,ix_m,iy_m)
-      kAc_new(:,ixyz)=kAc0(:,ixyz)+Ac_new_m(ixyz,ix_m,iy_m)
+      kAc(:,ixyz)=kAc0(:,ixyz)+Ac_m(ixyz,imacro)
+      kAc_new(:,ixyz)=kAc0(:,ixyz)+Ac_new_m(ixyz,imacro)
     enddo
 !$acc update device(kAc,kAc_new)
-    call dt_evolve_etrs_omp_KB(zu_m(:,:,:,ixy_m))
+    call dt_evolve_etrs_omp_KB(zu_m(:,:,:,imacro))
   end subroutine
 end subroutine
 

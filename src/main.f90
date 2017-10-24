@@ -5,7 +5,6 @@ program main
   implicit none
 
   call setup_parallel
-
   if (nproc_id_global == 0) then
     call print_software_version
   endif

@@ -102,11 +102,13 @@ contains
     use environment
     use salmon_parallel
     use salmon_communication
+    use salmon_file
     use misc_routines
     use timer
     implicit none
     integer :: ia,i,j
-    integer :: ix_m,iy_m
+    integer :: ix_m,iy_m,iz_m
+    integer :: fh
     
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Nprocs=',nproc_size_global
@@ -145,9 +147,6 @@ contains
        file_k_data=trim(directory) // trim(SYSname) // '_k.data'
        file_eigen_data=trim(directory) // trim(SYSname) // '_eigen.data'
        file_rt_data=trim(directory) // trim(SYSname) // '_rt.data'
-
-       
-       
        
        write(*,*) 'al(1),al(2),al(3)=',real(al(1)),real(al(2)),real(al(3))
        write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym
@@ -156,7 +155,6 @@ contains
        write(*,*) 'TwoD_shape=',TwoD_shape 
        write(*,*) 'NX_m,NY_m=',NX_m,NY_m
        write(*,*) 'HX_m,HY_m=',HX_m,HY_m
-       write(*,*) 'NKsplit,NXYsplit=',NKsplit,NXYsplit
        write(*,*) 'NXvacL_m,NXvacR_m=',NXvacL_m,NXvacR_m
        write(*,*) 'NEwald, aEwald =',NEwald, aEwald 
        write(*,*) 'KbTev=',KbTev ! sato
@@ -200,6 +198,7 @@ contains
           TwoD_shape='periodic'
        end if
     end if
+      
     !sym ---
     select case(crystal_structure)
     case("diamond2")
@@ -279,39 +278,27 @@ contains
        call comm_bcast(NK,nproc_group_global)
        call comm_bcast(NKxyz,nproc_group_global)
     endif
-    
-
-    if(use_ms_maxwell == 'y')then
-       if(NXYsplit /= 1 .and. NKsplit /=1) call err_finalize('cannot respond your request')
-       if(NX_m*NY_m*NKsplit/NXYsplit /= nproc_size_global) call err_finalize('NProcs is not good')
-    
-       NXY_s=NXYsplit*nproc_id_global/NKsplit
-       NXY_e=(NXYsplit*(nproc_id_global+1)-1)/NKsplit
-    
-       allocate(NX_table(0:NX_m*NY_m-1),NY_table(0:NX_m*NY_m-1))
-       i=-1
-       do ix_m=1,NX_m
-          do iy_m=1,NY_m
-             i=i+1
-             NX_table(i)=ix_m
-             NY_table(i)=iy_m
-          end do
-       end do
-    
-       macRANK=NXY_s
-       kRANK=mod(nproc_id_global,NKsplit)
-    
-       nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
-       call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
+  
+   ! Assign the number of macropoints into "nmacro"
+   call set_num_macropoint()
+     
+    ! Determine NXYsplit and NKsplit from the number of MPI processes
+    call set_nksplit_nxysplit()
+    if (comm_is_root(nproc_id_global)) then
+      write(*,*) 'NKsplit,NXYsplit=',NKsplit,NXYsplit
     end if
     
-    !  NK_ave=NK/Nprocs; NK_remainder=NK-NK_ave*Nprocs
-    !  NG_ave=NG/Nprocs; NG_remainder=NG-NG_ave*Nprocs
-    
+
+    ! Create communicator "nproc_group_tdks"
+    kRANK = mod(nproc_id_global, NKsplit)
+    macRANK = (nproc_id_global - kRANK) / NKsplit
+    nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
+    call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
+
     NK_ave=NK/nproc_size_tdks; NK_remainder=NK-NK_ave*nproc_size_tdks
     NG_ave=NG/nproc_size_tdks; NG_remainder=NG-NG_ave*nproc_size_tdks
     
-    if(is_symmetric_mode() == 1 .and. ENABLE_LOAD_BALANCER == 1) then
+1    if(is_symmetric_mode() == 1 .and. ENABLE_LOAD_BALANCER == 1) then
        call symmetric_load_balancing(NK,NK_ave,NK_s,NK_e,NK_remainder,nproc_id_tdks,nproc_size_tdks)
     else
        if (NK/nproc_size_tdks*nproc_size_tdks == NK) then
@@ -429,48 +416,20 @@ contains
     allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
     allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
     
-    NYvacB_m = 1
-    NYvacT_m = NY_m  
-    allocate(Ac_m(1:3,NXvacL_m-1:NXvacR_m+1,NYvacB_m-1:NYvacT_m+1))
-    allocate(Ac_old_m(1:3,NXvacL_m-1:NXvacR_m+1,NYvacB_m-1:NYvacT_m+1))
-    allocate(Ac_new_m(1:3,NXvacL_m-1:NXvacR_m+1,NYvacB_m-1:NYvacT_m+1))
-    allocate(g(1:3,NXvacL_m-1:NXvacR_m+1,NYvacB_m-1:NYvacT_m+1))
-    allocate(Elec(1:3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m))
-    allocate(Bmag(1:3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m))
-    allocate(j_m(1:3,NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m))
-    allocate(jmatter_m(1:3,1:NX_m,1:NY_m))
-    allocate(jmatter_m_l(1:3,1:NX_m,1:NY_m))
-    jmatter_m_l=0d0;j_m=0d0
-    
-    allocate(zu_m(NL,NBoccmax,NK_s:NK_e,NXY_s:NXY_e))
-    if(NXYsplit /= 1)then
-       allocate(rho_m(NL,NXY_s:NXY_e))
-       allocate(Vh_m(NL,NXY_s:NXY_e))
-       allocate(Vexc_m(NL,NXY_s:NXY_e))
-       allocate(Eexc_m(NL,NXY_s:NXY_e))
-       allocate(Vloc_m(NL,NXY_s:NXY_e))
-       allocate(Vloc_old_m(NL,2,NXY_s:NXY_e))
+    ! Maxwell+TDDFT Multiscale Calculation:
+    if (use_ms_maxwell == 'y') then
+       ! Allocate macroscale grid variables
+       call allocate_macropoint_vars()
+       ! Set macropoint coordinates
+       if(comm_is_root(nproc_id_global)) then
+         call set_macropoint()
+       endif
+       call comm_bcast(macropoint, nproc_group_global)
     end if
     
-    allocate(energy_joule(NXvacL_m:NXvacR_m, NYvacB_m:NYvacT_m))
-    allocate(energy_elec_Matter_l(1:NX_m,1:NY_m))
-    allocate(energy_elec_Matter(1:NX_m,1:NY_m))
-    allocate(energy_elec(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m))
-    allocate(energy_elemag(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m))
-    allocate(energy_total(NXvacL_m:NXvacR_m,NYvacB_m:NYvacT_m))
-    allocate(excited_electron_l(1:NX_m,1:NY_m))
-    allocate(excited_electron(1:NX_m,1:NY_m))
-    energy_elec_Matter_l(:,:)=0d0
-    excited_electron_l=0d0
-    Ndata_out = Nt / Nstep_write
-    Ndata_out_per_proc = NData_out / nproc_size_global
-    allocate(data_out(16,NXvacL_m:NXvacR_m,NY_m+1,0:Ndata_out_per_proc))
-    allocate(data_local_Ac(3,NXY_s:NXY_e,0:Nt),data_local_jm(3,NXY_s:NXY_e,0:Nt))
-    allocate(data_vac_Ac(3,2,0:Nt))
     ! sato ---------------------------------------------------------------------------------------
     
     call comm_sync_all
-    
     
     allocate(Rps(NE),NRps(NE))
     allocate(Rion_eq(3,NI),dRion(3,NI,-1:Nt+1))
@@ -608,4 +567,215 @@ contains
     call comm_bcast(velocity ,nproc_group_global)
 
   End Subroutine set_initial_velocity
+  
+  
+  
+  subroutine set_nksplit_nxysplit()
+    use Global_Variables
+    use salmon_parallel
+    implicit none
+    !! Assign the macropoint into the every MPI procs    
+    if (nproc_size_global <= nmacro) then
+      !! Parallization Case 1:
+      !! Assign more than one TDDFT cells in every single MPI processe
+      if (mod(nmacro, nproc_size_global) == 0) then
+        nksplit = 1
+        nxysplit = nmacro / nproc_size_global
+        nmacro_s = nxysplit * nproc_id_global + 1
+        nmacro_e = nxysplit * (nproc_id_global + 1)
+      else
+        call err_finalize('Error! Set nproc as mod(num_macripoint, nproc) == 0')
+      end if
+      
+    else !! (nproc_size_global > nmacro)
+      !! Parallization Case 2:
+      !! Fork the single TDDFT cell into more than two MPI processes
+      if (mod(nproc_size_global, nmacro) == 0) then
+        nksplit = nproc_size_global / nmacro
+        nxysplit = 1
+        nmacro_s = nproc_id_global / nksplit + 1
+        nmacro_e = nmacro_s
+      else
+        call err_finalize('Error! Set nproc as mod(nproc % num_macripoint) == 0')
+      end if
+      
+    end if
+    
+  end subroutine
+  
+  
+  ! TODO: Create deallocate variables for the finalization of the program
+  subroutine allocate_macropoint_vars()
+    use Global_Variables
+    use salmon_parallel
+    implicit none
+    
+    !! Set the size of macroscopic grid
+    nx1_m = min(NXvacL_m, nx_origin_m) 
+    nx2_m = max(NXvacR_m, nx_origin_m + (nx_m - 1)) 
+    ny1_m = ny_origin_m 
+    ny2_m = ny_origin_m + (ny_m - 1) 
+    nz1_m = nz_origin_m 
+    nz2_m = nz_origin_m + (nz_m - 1)
+    !! Set the actual size of macroscpic grid (including overlap region)
+    mx1_m = nx1_m - novlp_m; mx2_m = nx2_m + novlp_m
+    my1_m = ny1_m - novlp_m; my2_m = ny2_m + novlp_m
+    mz1_m = nz1_m - novlp_m; mz2_m = nz2_m + novlp_m
+  
+    !! Allocate macroscopic electromagnetic field variables
+    !! NOTE: "Ac_(old|new)?_ms" are the vector potential Ac(r,t)
+    !!       "Jm_(old|new)?_ms" are the matter current density Jm(r,t)
+    !!       In the RT iteration, the variable with suffix "new" and "old" 
+    !!       indicate the data at the time "iter+1" and "iter-1", respectively.
+    allocate(Ac_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
+    allocate(Ac_old_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
+    allocate(Ac_new_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
+    Ac_ms = 0d0; Ac_old_ms = 0d0; Ac_new_ms = 0d0
+    allocate(Jm_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    allocate(Jm_old_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    allocate(Jm_new_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    Jm_ms = 0d0; Jm_old_ms = 0d0; Jm_new_ms = 0d0
+    allocate(elec_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    allocate(bmag_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    elec_ms = 0d0; bmag_ms = 0d0
+    allocate(energy_joule_ms(nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    allocate(energy_elemag_ms(nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    allocate(energy_elec_ms(nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+    energy_joule_ms = 0d0; energy_elemag_ms = 0d0;  energy_elec_ms = 0d0;
+    !! Total energy of Entire System
+    total_energy_elemag_old = 0d0; total_energy_elemag = 0d0
+    total_energy_absorb_old = 0d0; total_energy_absorb = 0d0
+    total_energy_elec_old = 0d0; total_energy_elec = 0d0
+    total_energy_em_old = 0d0; total_energy_em  = 0d0
+    !! Allocate local macropoint field variables
+    allocate(Ac_m(1:3, 1:nmacro))
+    allocate(Ac_new_m(1:3, 1:nmacro))
+    allocate(Jm_m(1:3, nmacro))
+    allocate(Jm_new_m(1:3, nmacro))
+    allocate(jm_new_m_tmp(1:3, nmacro))
+    Ac_m = 0d0; Ac_new_m = 0d0;
+    Jm_m = 0d0; Jm_new_m = 0d0; jm_new_m_tmp = 0d0
+
+    allocate(energy_elec_Matter_new_m(1:nmacro))
+    allocate(energy_elec_Matter_new_m_tmp(1:nmacro))
+    allocate(excited_electron_new_m(1:nmacro))
+    allocate(excited_electron_new_m_tmp(1:nmacro))
+    energy_elec_Matter_new_m = 0d0; energy_elec_Matter_new_m_tmp = 0d0
+    excited_electron_new_m = 0d0; excited_electron_new_m_tmp = 0d0
+    
+    ndata_out = (nt / out_ms_step) + 1
+    ndata_out_per_proc = ndata_out / nproc_size_global + 1
+    
+    allocate(data_out(1:ndata_out_column, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m, 0:ndata_out_per_proc))
+    allocate(data_local_Ac(3, nmacro_s:nmacro_e, 0:Nt))
+    allocate(data_local_jm(3, nmacro_s:nmacro_e, 0:Nt))
+    allocate(data_vac_Ac(3, 2, 0:Nt))
+    
+    ! Temporal Storage of Microscopic System
+    allocate(zu_m(NL,NBoccmax,NK_s:NK_e,nmacro_s:nmacro_e))
+    if(NXYsplit /= 1)then
+      allocate(rho_m(NL, nmacro_s:nmacro_e))
+      allocate(Vh_m(NL, nmacro_s:nmacro_e))
+      allocate(Vexc_m(NL, nmacro_s:nmacro_e))
+      allocate(Eexc_m(NL, nmacro_s:nmacro_e))
+      allocate(Vloc_m(NL, nmacro_s:nmacro_e))
+      allocate(Vloc_old_m(NL, 2, nmacro_s:nmacro_e))
+    end if
+    
+    ! Allocate and Assign the Coordinates of macropoint
+    allocate(macropoint(3, nmacro))
+  end subroutine allocate_macropoint_vars
+  
+  
+  
+  subroutine set_num_macropoint()
+    use salmon_global
+    use Global_variables
+    implicit none
+    integer :: ix_m, iy_m, iz_m, icount
+    integer :: fh
+    
+    if (use_ms_maxwell == 'y') then
+    
+      select case (FDTDdim)
+      case("1D", "1d")
+        nmacro = nx_m
+        ny_m = 1; ny_origin_m = 1;
+        nz_m = 1; nz_origin_m = 1;
+      
+      case("2D", "2d")
+        nmacro = nx_m * ny_m
+        nz_m = 1; nz_origin_m = 1;
+      
+      case("3D", "3d")
+        nmacro = nx_m * ny_m * nz_m
+      
+      case("mpfile1d", "mpfile2d", "mpfile3d")
+        nmacro = num_macropoint
+        
+      end select
+      
+    else
+      nmacro = 1
+
+    end if
+    
+  end subroutine set_num_macropoint
+  
+  
+  
+  
+  
+  subroutine set_macropoint()
+    use salmon_file
+    use salmon_global
+    use Global_variables
+    implicit none
+    integer :: ix_m, iy_m, iz_m, icount
+    integer :: fh
+    
+    select case (FDTDdim)
+    case("1D", "1d", "2D", "2d", "3D", "3d")
+      icount = 1
+      do ix_m = 0, nx_m - 1
+        do iy_m = 0, ny_m - 1
+          do iz_m = 0, nz_m - 1
+            macropoint(1, icount) = ix_m + nx_origin_m
+            macropoint(2, icount) = iy_m + ny_origin_m
+            macropoint(3, icount) = iz_m + nz_origin_m
+            icount = icount + 1
+          end do
+        end do
+      end do
+  
+    case("mpfile1d")
+      fh = open_filehandle(trim(directory)//trim(file_macropoint))
+      do icount=1, nmacro
+        read(fh, *) macropoint(1, icount)
+      end do
+      close(fh)
+      macropoint(2:3, 1:nmacro) = 1
+      
+    case("mpfile2d")
+      fh = open_filehandle(trim(directory)//trim(file_macropoint))
+      do icount=1, nmacro
+        read(fh, *) macropoint(1:2, icount)
+      end do
+      close(fh)  
+      macropoint(3, 1:nmacro) = 1
+
+    case("mpfile3d")
+      fh = open_filehandle(trim(directory)//trim(file_macropoint))
+      do icount=1, nmacro
+        read(fh, *) macropoint(1:3, icount)
+      end do
+      close(fh)
+    
+    end select
+    
+  end subroutine
+       
+    
+    
+    
 end module initialization
