@@ -105,6 +105,7 @@ subroutine current(mode,NBtmp,zutmp)
 contains
   subroutine impl(mode, NBtmp, zutmp, jxs, jys, jzs)
     use Global_Variables
+    use projector
     implicit none
     character(2),intent(in) :: mode
     integer,intent(in)      :: NBtmp
@@ -121,23 +122,12 @@ contains
 
     IaLxyz = 1.0 / aLxyz
 
+    call projector_update(kac)
+
     jxs=0.d0
     jys=0.d0
     jzs=0.d0
 !$omp parallel reduction(+:jxs,jys,jzs)
-
-    !Constructing nonlocal part
-!$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
-    do ik=NK_s,NK_e
-    do ia=1,NI
-    do j=1,Mps(ia)
-      i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-      kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-      ekr_omp(j,ia,ik)=exp(zI*kr)
-    end do
-    end do
-    end do
-!$omp end do
 
     if (mode == 'ZE' .or. mode == 'GS') then
 !$omp do private(ikb,ik,ib,jx,jy,jz)

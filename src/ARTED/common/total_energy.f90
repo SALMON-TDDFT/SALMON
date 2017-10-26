@@ -42,6 +42,7 @@ contains
     use Opt_Variables
     use timer
     use salmon_math
+    use projector
     implicit none
     logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
@@ -116,6 +117,8 @@ contains
     Eloc_l2=0.d0
     Enl_l=0.d0
 
+    call projector_update(kac)
+
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()
 
@@ -137,17 +140,6 @@ contains
     end do
 !$omp end do
 
-!$omp do private(ia,j,i,ix,iy,iz,kr) collapse(2)
-    do ik=NK_s,NK_e
-    do ia=1,NI
-    do j=1,Mps(ia)
-      i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-      kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-      ekr_omp(j,ia,ik)=exp(zI*kr)
-    end do
-    end do
-    end do
-!$omp end do
 
 !$omp do private(ik,ib,nabt,tpsum,i,j,ilma,uVpsi,ia) &
 !$omp   &reduction(+:Ekin_l,Enl_l) &
