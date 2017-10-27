@@ -21,7 +21,7 @@ contains
   subroutine update_projector(kac_in)
     use Global_Variables
     real(8),intent(in) :: kac_in(NK,3)
-    integer :: ik, ia, j, i, ix, iy, iz
+    integer :: ik, ia, j, i, ix, iy, iz, ilma
     real(8) :: kr
 
     do ik=NK_s,NK_e

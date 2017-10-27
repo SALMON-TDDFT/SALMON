@@ -56,7 +56,7 @@ Subroutine CG_ompk(iter_cg_max)
   thr_id=0
 
   call timer_begin(LOG_CG)
-  call projector_update(kac)
+  call update_projector(kac)
 
   esp_var_l(:,:)=0.d0
 !$omp parallel private(thr_id)
@@ -163,7 +163,7 @@ Subroutine CG_ompb(iter_cg_max)
   thr_id=0
 
   call timer_begin(LOG_CG)
-  call projector_update(kac)
+  call update_projector(kac)
   esp_var_l(:,:)=0.d0
 
 

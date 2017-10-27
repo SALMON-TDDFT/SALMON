@@ -82,7 +82,7 @@ contains
 
     ftmp_l=0.d0
     ftmp_l_kl=0.d0
-    call projector_update(kac)
+    call update_projector(kac)
 
 !$omp parallel private(ia) reduction(+:ftmp_l, ftmp_l_kl)
 

@@ -117,7 +117,7 @@ contains
     Eloc_l2=0.d0
     Enl_l=0.d0
 
-    call projector_update(kac)
+    call update_projector(kac)
 
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()

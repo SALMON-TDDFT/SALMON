@@ -122,7 +122,7 @@ contains
 
     IaLxyz = 1.0 / aLxyz
 
-    call projector_update(kac)
+    call update_projector(kac)
 
     jxs=0.d0
     jys=0.d0

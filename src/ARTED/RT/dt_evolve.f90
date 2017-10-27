@@ -244,7 +244,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
-  call projector_update(kac)
+  call update_projector(kac)
   NVTX_END()
 
 

@@ -36,7 +36,7 @@ Subroutine sp_energy_omp
   call timer_begin(LOG_SP_ENERGY)
   esp_l=0.d0
   thr_id=0
-  call projector_update(kac)
+  call update_projector(kac)
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()
 !$omp do private(ik,ia,j,i,ix,iy,iz,kr,ib)
