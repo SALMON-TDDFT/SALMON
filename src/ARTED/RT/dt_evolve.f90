@@ -117,10 +117,8 @@ Subroutine dt_evolve_omp_KB(zu)
   use opt_variables
   implicit none
   complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
-  integer    :: ik,ib
-  integer    :: ia,j,i,ix,iy,iz
-  real(8)    :: kr
-  integer    :: thr_id,omp_get_thread_num,ikb
+  integer    :: ik,ib,ikb
+  integer    :: i
 
   NVTX_BEG('dt_evolve_omp_KB()',1)
   call timer_begin(LOG_DT_EVOLVE)
@@ -230,10 +228,9 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
   use opt_variables
   implicit none
   complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
-  integer    :: ik,ib
-  integer    :: ia,j,i,ix,iy,iz
-  real(8)    :: kr,dt_t
-  integer    :: thr_id,omp_get_thread_num,ikb
+  integer    :: ik,ib,ikb
+  integer    :: i
+  real(8)    :: dt_t
 
   NVTX_BEG('dt_evolve_omp_KB()',1)
   call timer_begin(LOG_DT_EVOLVE)
@@ -360,10 +357,8 @@ Subroutine dt_evolve_omp_KB_MS(zu)
   use opt_variables
   implicit none
   complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
-  integer    :: ik,ib
-  integer    :: ia,j,i,ix,iy,iz
-  real(8)    :: kr
-  integer    :: thr_id,omp_get_thread_num,ikb
+  integer    :: ik,ib,ikb
+  integer    :: i
 
   NVTX_BEG('dt_evolve_omp_KB_MS()',1)
   call timer_begin(LOG_DT_EVOLVE)

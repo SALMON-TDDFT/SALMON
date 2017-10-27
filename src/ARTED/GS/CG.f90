@@ -49,7 +49,7 @@ Subroutine CG_ompk(iter_cg_max)
   real(8) :: esp_var_l(1:NB,1:NK)
   complex(8) :: zs
 ! sato
-  integer :: ia,j,i,ix,iy,iz
+  integer :: j,i,ix,iy,iz
   real(8) :: kr
 ! omp
   integer :: thr_id,omp_get_thread_num
@@ -61,7 +61,7 @@ Subroutine CG_ompk(iter_cg_max)
   esp_var_l(:,:)=0.d0
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()
-!$omp do private(ia,j,i,ix,iy,iz,kr,ib,ibt,s,xkHxk,xkTxk,iter,uk,gkgk,xkHpk,pkHpk,ev,cx,cp,zs)
+!$omp do private(j,i,ix,iy,iz,kr,ib,ibt,s,xkHxk,xkTxk,iter,uk,gkgk,xkHpk,pkHpk,ev,cx,cp,zs)
   do ik=NK_s,NK_e
   do ib=1,NB
     select case (skip_gsortho)
@@ -156,7 +156,7 @@ Subroutine CG_ompb(iter_cg_max)
   real(8) :: esp_var_l(1:NB,1:NK)
   complex(8) :: zs
 ! sato
-  integer :: ia,j,i,ix,iy,iz
+  integer :: j,i,ix,iy,iz
   real(8) :: kr
 ! omp
   integer :: thr_id,omp_get_thread_num

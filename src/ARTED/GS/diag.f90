@@ -28,8 +28,7 @@ Subroutine diag_omp
   implicit none
   integer,parameter :: matz=1
   integer           :: ik,ib1,ib2
-  integer           :: ia,j,i,ix,iy,iz,thr_id
-  real(8)           :: kr
+  integer           :: thr_id
 
 !LAPACK
   integer                :: lwork,info

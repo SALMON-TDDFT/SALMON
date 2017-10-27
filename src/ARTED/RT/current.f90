@@ -112,8 +112,8 @@ contains
     complex(8),intent(in)   :: zutmp(0:NL-1,NBtmp,NK_s:NK_e)
     real(8),intent(out)     :: jxs,jys,jzs
 
-    integer :: ikb,ib,ik,i,j,ix,iy,iz,ia
-    real(8) :: kr,jx,jy,jz,IaLxyz
+    integer :: ikb,ib,ik
+    real(8) :: jx,jy,jz,IaLxyz
     real(8) :: nabt(12)
 
     nabt( 1: 4) = nabx(1:4)

@@ -48,7 +48,7 @@ contains
     complex(8),intent(inout) :: zutmp(NL,zu_NB,NK_s:NK_e)
 
     integer      :: ia,ib,ilma,ik,ix,iy,iz,n,j,i
-    real(8)      :: rab(3),rab2,Gvec(3),G2,Gd,ftmp_l(3,NI),kr
+    real(8)      :: rab(3),rab2,Gvec(3),G2,Gd,ftmp_l(3,NI)
     complex(8)   :: uVpsi,duVpsi(3)
     real(8)      :: ftmp_l_kl(3,NI,NK_s:NK_e)
 

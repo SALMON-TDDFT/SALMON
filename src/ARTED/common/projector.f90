@@ -34,13 +34,14 @@ contains
        end do
     end do
 
-    do ilma=1,Nlma
-      ia=a_tbl(ilma)
-      do j=1,Mps(ia)
-        zproj(j,ilma,ik) = conjg(ekr_omp(j,ia,ik))*uv(j,ilma)
+    do ik=NK_s,NK_e
+      do ilma=1,Nlma
+        ia=a_tbl(ilma)
+        do j=1,Mps(ia)
+          zproj(j,ilma,ik) = conjg(ekr_omp(j,ia,ik))*uv(j,ilma)
+        end do
       end do
     end do
-
 
   end subroutine update_projector
 end module projector

@@ -49,7 +49,7 @@ contains
     complex(8),intent(inout) :: zutmp(0:NL-1,zu_NB,NK_s:NK_e)
 
     integer      :: ik,ib,ia,ix,iy,iz,n,ilma,j,i
-    real(8)      :: rab(3),rab2,G2,Gd,kr
+    real(8)      :: rab(3),rab2,G2,Gd
     complex(8)   :: uVpsi
     real(8)      :: Ekin_l,Enl_l,Eh_l,Eion_l,sum_tmp(5),sum_result(5)
     real(8)      :: Eion_tmp1,Eion_tmp2,Eloc_l1,Eloc_l2
