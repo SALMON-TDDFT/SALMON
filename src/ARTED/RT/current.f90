@@ -254,10 +254,10 @@ contains
         iy=Jyy(j,ia); y=Ly(i)*Hy-iy*aLy
         iz=Jzz(j,ia); z=Lz(i)*Hz-iz*aLz
 
-        uVpsi =uVpsi +uV(j,ilma)*ekr_omp(j,ia,ik)  *zutmp(i)
-        uVpsix=uVpsix+uV(j,ilma)*ekr_omp(j,ia,ik)*x*zutmp(i)
-        uVpsiy=uVpsiy+uV(j,ilma)*ekr_omp(j,ia,ik)*y*zutmp(i)
-        uVpsiz=uVpsiz+uV(j,ilma)*ekr_omp(j,ia,ik)*z*zutmp(i)
+        uVpsi =uVpsi +conjg(zproj(j,ilma,ik))  *zutmp(i)
+        uVpsix=uVpsix+conjg(zproj(j,ilma,ik))*x*zutmp(i)
+        uVpsiy=uVpsiy+conjg(zproj(j,ilma,ik))*y*zutmp(i)
+        uVpsiz=uVpsiz+conjg(zproj(j,ilma,ik))*z*zutmp(i)
       end do
       uVpsi =uVpsi *Hxyz*iuV(ilma)
       uVpsix=uVpsix*Hxyz
