@@ -24,6 +24,9 @@ contains
     integer :: ik, ia, j, i, ix, iy, iz, ilma
     real(8) :: kr
 
+
+!$omp parallel 
+!$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
     do ik=NK_s,NK_e
       do ia=1,NI
         do j=1,Mps(ia)
@@ -34,6 +37,7 @@ contains
        end do
     end do
 
+!$omp do private(ik,ilma,ia,j,i,ix,iy,iz,kr) collapse(2)
     do ik=NK_s,NK_e
       do ilma=1,Nlma
         ia=a_tbl(ilma)
@@ -42,6 +46,8 @@ contains
         end do
       end do
     end do
+
+!$omp end parallel 
 
   end subroutine update_projector
 end module projector
