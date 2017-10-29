@@ -529,10 +529,25 @@ subroutine prep_backup_values(is_backup)
   BACKUP(KbTev)
 
 ! multi scale
-  BACKUP(macropoint)
+  
+  !! Macropoint (Macropoint coordinates)
   BACKUP(nmacro)
+  BACKUP(macropoint)
+  BACKUP(nmacro_attr)
+  BACKUP(macropoint_attr)
+  !! Parallization information of macropoint
   BACKUP(nmacro_s)
   BACKUP(nmacro_e)
+  !! bg_media (Classical media coordinates)
+  BACKUP(nbg_media)
+  BACKUP(bg_media_point)
+  BACKUP(nbg_media_attr)
+  BACKUP(bg_media_attr)
+  BACKUP(ninit_acfield)
+  BACKUP(init_acfield_point)
+  BACKUP(init_acfield_val)
+
+  
   BACKUP(macRANK)
   BACKUP(kRANK)
 
@@ -569,8 +584,6 @@ subroutine prep_backup_values(is_backup)
   BACKUP(total_energy_em_old)
   BACKUP(total_energy_em)  
 
-  BACKUP(bcon)
-  BACKUP(BC_my)
 
   BACKUP(zu_m)
   BACKUP(Vh_m)

@@ -610,7 +610,6 @@ contains
     ny_origin_m = 1
     nz_origin_m = 1
     file_macropoint = ''
-    num_macropoint = 0
 !! == default for &analysis
     projection_option   = 'no'
     nenergy             = 1000

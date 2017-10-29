@@ -176,9 +176,20 @@ Module Global_Variables
 ! multi scale
   integer :: macRANK,kRANK ! sato
   
-  
-  integer,allocatable :: macropoint(:,:)
-  integer :: nmacro, nmacro_s, nmacro_e
+  integer, parameter :: nattr_column = 9
+  !! Macropoint coordinates and attributes
+  integer, allocatable :: macropoint(:,:)
+  real(8), allocatable :: macropoint_attr(:,:)
+  integer :: nmacro, nmacro_s, nmacro_e, nmacro_attr
+  !! bg_media: Background media coordinates and attributes  
+  integer, allocatable :: bg_media_point(:,:)
+  real(8), allocatable :: bg_media_attr(:,:)
+  integer :: nbg_media, nbg_media_attr
+  !! acinit: Initial vector field data
+  integer :: ninit_acfield
+  integer, allocatable :: init_acfield_point(:,:)
+  real(8), allocatable :: init_acfield_val(:,:)
+
   
   ! Size of Macroscopic FDTD Grid 
   integer :: nx1_m, ny1_m, nz1_m
@@ -205,10 +216,7 @@ Module Global_Variables
   real(8) :: total_energy_elec_old, total_energy_elec
   real(8) :: total_energy_em_old, total_energy_em  
   
-  real(8) :: bcon
   
-  character(50) BC_my
-
   complex(8),allocatable :: zu_m(:,:,:,:)
   real(8),allocatable :: Vh_m(:,:)
   real(8),allocatable :: Vexc_m(:,:)

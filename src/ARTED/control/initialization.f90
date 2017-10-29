@@ -151,11 +151,6 @@ contains
        write(*,*) 'al(1),al(2),al(3)=',real(al(1)),real(al(2)),real(al(3))
        write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym
        write(*,*) 'Nd,NLx,NLy,NLz,NKx,NKy,NKz=',Nd,NLx,NLy,NLz,NKx,NKy,NKz
-       write(*,*) 'FDTDdim=',FDTDdim
-       write(*,*) 'TwoD_shape=',TwoD_shape 
-       write(*,*) 'NX_m,NY_m=',NX_m,NY_m
-       write(*,*) 'HX_m,HY_m=',HX_m,HY_m
-       write(*,*) 'NXvacL_m,NXvacR_m=',NXvacL_m,NXvacR_m
        write(*,*) 'NEwald, aEwald =',NEwald, aEwald 
        write(*,*) 'KbTev=',KbTev ! sato
     end if
@@ -166,7 +161,7 @@ contains
 #else
     process_directory = trim(directory)
 #endif
-    
+
     call comm_bcast(need_backup,nproc_group_global)
     call comm_bcast(file_GS,nproc_group_global)
     call comm_bcast(file_RT,nproc_group_global)
@@ -185,18 +180,19 @@ contains
     call comm_bcast(file_kw,nproc_group_global)
 
     if(use_ms_maxwell == 'y')then
-       if(FDTDdim == '1D' .and. TwoD_shape /= 'periodic') then
-          if(comm_is_root(nproc_id_global))write(*,*)'Warning !! 1D calculation ! TwoD_shape is not good'
-          TwoD_shape='periodic'
-       end if
-       if(FDTDdim == '1D' .and. NY_m /= 1) then
-          if(comm_is_root(nproc_id_global))write(*,*)'Warning !! 1D calculation ! NY_m is not good'
-          NY_m=1
-       end if
-       if(FDTDdim == '2D' .and. TwoD_shape /= 'periodic') then
-          if(comm_is_root(nproc_id_global))write(*,*)'Warning !! 2D calculation ! TwoD_shape is not good'
-          TwoD_shape='periodic'
-       end if
+      !! TODO: Modify the conditions for present implementation
+      !  if(FDTDdim == '1D' .and. TwoD_shape /= 'periodic') then
+      !     if(comm_is_root(nproc_id_global))write(*,*)'Warning !! 1D calculation ! TwoD_shape is not good'
+      !     TwoD_shape='periodic'
+      !  end if
+      !  if(FDTDdim == '1D' .and. NY_m /= 1) then
+      !     if(comm_is_root(nproc_id_global))write(*,*)'Warning !! 1D calculation ! NY_m is not good'
+      !     NY_m=1
+      !  end if
+      !  if(FDTDdim == '2D' .and. TwoD_shape /= 'periodic') then
+      !     if(comm_is_root(nproc_id_global))write(*,*)'Warning !! 2D calculation ! TwoD_shape is not good'
+      !     TwoD_shape='periodic'
+      !  end if
     end if
       
     !sym ---
@@ -206,8 +202,8 @@ contains
             .or. functional == "TBmBJ" .or. functional == "BJ_PW")then
           if(Sym == 8)then
              if((mod(NLx,2)+mod(NLy,2)+mod(NLz,4)) /= 0)call err_finalize('Bad grid point')
-             if(NLx /= NLy)call err_finalize('Bad grid point: NLx /= NLy')
-             if(NKx /= NKy)call err_finalize('NKx /= NKy')
+             if(NLx /= NLy) call err_finalize('Bad grid point: NLx /= NLy')
+             if(NKx /= NKy) call err_finalize('NKx /= NKy')
           else if(Sym /=1)then
              call err_finalize('Bad crystal structure')
           end if
@@ -219,10 +215,10 @@ contains
             .or. functional == "TBmBJ"  .or. functional == "BJ_PW")then
           if(Sym == 8)then
              if((mod(NLx,4)+mod(NLy,4)+mod(NLz,4)) /= 0)call err_finalize('Bad grid point')
-             if(NLx /= NLy)call err_finalize('Bad grid point')
+             if(NLx /= NLy) call err_finalize('Bad grid point')
              if(NKx /= NKy) call err_finalize('NKx /= NKy')
           else if(Sym ==4 )then
-             if(NLx /= NLy)call err_finalize('Bad grid point')
+             if(NLx /= NLy) call err_finalize('Bad grid point')
              if(NKx /= NKy) call err_finalize('NKx /= NKy')
           else if(Sym /= 1)then
              call err_finalize('Bad crystal structure')
@@ -279,15 +275,28 @@ contains
        call comm_bcast(NKxyz,nproc_group_global)
     endif
   
-   ! Assign the number of macropoints into "nmacro"
-   call set_num_macropoint()
-     
-    ! Determine NXYsplit and NKsplit from the number of MPI processes
-    call set_nksplit_nxysplit()
-    if (comm_is_root(nproc_id_global)) then
-      write(*,*) 'NKsplit,NXYsplit=',NKsplit,NXYsplit
-    end if
-    
+   !! Assign the number of macropoints into "nmacro"
+   if (use_ms_maxwell == 'y') then
+     !! Number of the macropoint and bg_media in Multiscale grid
+     if (len_trim(file_macropoint) > 0) then
+       call set_macropoint_from_file()
+     else
+       call set_macropoint()
+     end if
+     !! Determine NXYsplit and NKsplit from the number of MPI processes
+     call set_nksplit_nxysplit()
+     !! Output calculation condition
+     if (comm_is_root(nproc_id_global)) then
+       write(*,*) 'FDTDdim=',FDTDdim
+       write(*,*) 'TwoD_shape=',TwoD_shape 
+       write(*,*) 'NX_m,NY_m=',NX_m,NY_m
+       write(*,*) 'HX_m,HY_m=',HX_m,HY_m
+       write(*,*) 'NXvacL_m,NXvacR_m=',NXvacL_m,NXvacR_m
+       write(*,*) 'NKsplit,NXYsplit=',NKsplit,NXYsplit
+     end if
+   else
+     nmacro = 1; NKsplit = 1; NXYsplit = 1
+   end if
 
     ! Create communicator "nproc_group_tdks"
     kRANK = mod(nproc_id_global, NKsplit)
@@ -416,15 +425,10 @@ contains
     allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
     allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
     
-    ! Maxwell+TDDFT Multiscale Calculation:
+    !! Maxwell+TDDFT Multiscale Calculation:
     if (use_ms_maxwell == 'y') then
-       ! Allocate macroscale grid variables
-       call allocate_macropoint_vars()
-       ! Set macropoint coordinates
-       if(comm_is_root(nproc_id_global)) then
-         call set_macropoint()
-       endif
-       call comm_bcast(macropoint, nproc_group_global)
+       !! Allocate multiscale variables
+       call allocate_multiscale_vars()
     end if
     
     ! sato ---------------------------------------------------------------------------------------
@@ -605,7 +609,7 @@ contains
   
   
   ! TODO: Create deallocate variables for the finalization of the program
-  subroutine allocate_macropoint_vars()
+  subroutine allocate_multiscale_vars()
     use Global_Variables
     use salmon_parallel
     implicit none
@@ -682,100 +686,134 @@ contains
       allocate(Vloc_old_m(NL, 2, nmacro_s:nmacro_e))
     end if
     
-    ! Allocate and Assign the Coordinates of macropoint
-    allocate(macropoint(3, nmacro))
-  end subroutine allocate_macropoint_vars
-  
-  
-  
-  subroutine set_num_macropoint()
-    use salmon_global
-    use Global_variables
-    implicit none
-    integer :: ix_m, iy_m, iz_m, icount
-    integer :: fh
-    
-    if (use_ms_maxwell == 'y') then
-    
-      select case (FDTDdim)
-      case("1D", "1d")
-        nmacro = nx_m
-        ny_m = 1; ny_origin_m = 1;
-        nz_m = 1; nz_origin_m = 1;
-      
-      case("2D", "2d")
-        nmacro = nx_m * ny_m
-        nz_m = 1; nz_origin_m = 1;
-      
-      case("3D", "3d")
-        nmacro = nx_m * ny_m * nz_m
-      
-      case("mpfile1d", "mpfile2d", "mpfile3d")
-        nmacro = num_macropoint
-        
-      end select
-      
-    else
-      nmacro = 1
 
-    end if
-    
-  end subroutine set_num_macropoint
-  
-  
+  end subroutine allocate_multiscale_vars
   
   
   
   subroutine set_macropoint()
-    use salmon_file
     use salmon_global
     use Global_variables
     implicit none
     integer :: ix_m, iy_m, iz_m, icount
-    integer :: fh
     
     select case (FDTDdim)
-    case("1D", "1d", "2D", "2d", "3D", "3d")
-      icount = 1
-      do ix_m = 0, nx_m - 1
-        do iy_m = 0, ny_m - 1
-          do iz_m = 0, nz_m - 1
-            macropoint(1, icount) = ix_m + nx_origin_m
-            macropoint(2, icount) = iy_m + ny_origin_m
-            macropoint(3, icount) = iz_m + nz_origin_m
-            icount = icount + 1
-          end do
+    case("1D", "1d")
+      nmacro = nx_m
+      ny_m = 1; ny_origin_m = 1;
+      nz_m = 1; nz_origin_m = 1;
+    
+    case("2D", "2d")
+      nmacro = nx_m * ny_m
+      nz_m = 1; nz_origin_m = 1;
+    
+    case("3D", "3d")
+      nmacro = nx_m * ny_m * nz_m
+    
+    case default
+      call err_finalize("Unknown FDTDdim:" // trim(FDTDdim))
+  
+    end select
+      
+    allocate(macropoint(1:4, nmacro))
+    
+    icount = 1
+    do ix_m = 0, nx_m - 1
+      do iy_m = 0, ny_m - 1
+        do iz_m = 0, nz_m - 1
+          macropoint(1, icount) = ix_m + nx_origin_m
+          macropoint(2, icount) = iy_m + ny_origin_m
+          macropoint(3, icount) = iz_m + nz_origin_m
+          macropoint(4, icount) = 0
+          icount = icount + 1
         end do
       end do
-  
-    case("mpfile1d")
-      fh = open_filehandle(trim(directory)//trim(file_macropoint))
-      do icount=1, nmacro
-        read(fh, *) macropoint(1, icount)
-      end do
-      close(fh)
-      macropoint(2:3, 1:nmacro) = 1
+    end do    
       
-    case("mpfile2d")
-      fh = open_filehandle(trim(directory)//trim(file_macropoint))
-      do icount=1, nmacro
-        read(fh, *) macropoint(1:2, icount)
-      end do
-      close(fh)  
-      macropoint(3, 1:nmacro) = 1
+    end subroutine
+    
+    subroutine set_macropoint_from_file()
+      use salmon_file
+      use salmon_parallel
+      use salmon_communication
+      use global_variables
+      implicit none
+      integer :: fh, icount, itmp
 
-    case("mpfile3d")
-      fh = open_filehandle(trim(directory)//trim(file_macropoint))
-      do icount=1, nmacro
-        read(fh, *) macropoint(1:3, icount)
-      end do
-      close(fh)
-    
-    end select
-    
-  end subroutine
-       
-    
+      namelist/macroscopic_system/ &
+        & nx_origin_m, nx_m, hx_m, &
+        & ny_origin_m, ny_m, hy_m, &
+        & nz_origin_m, nz_m, hz_m, &
+        & fdtddim, TwoD_shape, & 
+        & nmacro, nmacro_attr, &
+        & nbg_media, nbg_media_attr, &
+        & ninit_acfield
+      
+      nmacro = 1
+      nmacro_attr = 0
+      nbg_media = 0
+      nbg_media_attr = 0
+      ninit_acfield = 0
+
+      if(comm_is_root(nproc_id_global)) then
+        fh = open_filehandle(trim(directory) // trim(file_macropoint))
+        read(fh, nml=macroscopic_system)
+      end if
+      
+      call comm_bcast(nx_origin_m,nproc_group_global)
+      call comm_bcast(nx_m,nproc_group_global)
+      call comm_bcast(hx_m,nproc_group_global)
+      call comm_bcast(ny_origin_m,nproc_group_global)
+      call comm_bcast(ny_m,nproc_group_global)
+      call comm_bcast(hy_m,nproc_group_global)
+      call comm_bcast(nz_origin_m,nproc_group_global)
+      call comm_bcast(nz_m,nproc_group_global)
+      call comm_bcast(hz_m,nproc_group_global)
+      call comm_bcast(fdtddim,nproc_group_global)
+      call comm_bcast(TwoD_shape,nproc_group_global)
+      call comm_bcast(nmacro,nproc_group_global)
+      call comm_bcast(nmacro_attr,nproc_group_global)
+      call comm_bcast(nbg_media,nproc_group_global)
+      call comm_bcast(nbg_media_attr,nproc_group_global)
+      call comm_bcast(ninit_acfield,nproc_group_global)
+
+      allocate(macropoint(1:4, nmacro))
+      allocate(macropoint_attr(1:nattr_column, nmacro_attr))
+      allocate(bg_media_point(1:4, nbg_media))
+      allocate(bg_media_attr(1:nattr_column, nbg_media_attr))
+      allocate(init_acfield_point(1:3, ninit_acfield))
+      allocate(init_acfield_val(1:6, ninit_acfield))
+
+      if(comm_is_root(nproc_id_global)) then
+        do icount = 1, nmacro
+          read(fh, *) itmp, macropoint(1:4, icount)
+        end do
+        do icount = 1, nmacro_attr
+          read(fh, *) itmp, macropoint_attr(1:nattr_column, icount)
+        end do
+        do icount = 1, nbg_media
+          read(fh, *) itmp, bg_media_point(1:4, icount)
+        end do
+        do icount = 1, nbg_media_attr
+          read(fh, *) itmp, bg_media_attr(1:nattr_column, icount)
+        end do
+        do icount = 1, ninit_acfield
+          read(fh, *) itmp, init_acfield_point(1:3, icount), &
+            & init_acfield_val(1:6, icount)
+        end do
+        close(fh)
+      end if
+      call comm_bcast(macropoint,nproc_group_global)
+      call comm_bcast(macropoint_attr,nproc_group_global)
+      call comm_bcast(bg_media_point,nproc_group_global)
+      call comm_bcast(bg_media_attr,nproc_group_global)
+      call comm_bcast(init_acfield_point,nproc_group_global)
+      call comm_bcast(init_acfield_val,nproc_group_global)
+      return
+  end subroutine set_macropoint_from_file
+
+  
+  
     
     
 end module initialization

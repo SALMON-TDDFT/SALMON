@@ -169,8 +169,8 @@ module salmon_global
   real(8)        :: hx_m
   real(8)        :: hy_m
   real(8)        :: hz_m
-  integer        :: nksplit
-  integer        :: nxysplit
+  integer        :: nksplit !! TODO: remove this variable
+  integer        :: nxysplit !! TODO: remove this variable
   ! The input variables nxvac(l|r)_m do not recommend to use,
   ! However I tempolary remain them for the reason of the compatibility.
   ! Please use  n(x|y|z)_origin_m to provide the same functionality.
@@ -181,6 +181,7 @@ module salmon_global
   integer        :: nz_origin_m
   character(100) :: file_macropoint
   integer        :: num_macropoint
+  !! TODO: remove num_macropoint later
   
 !! &analysis
   character(2)   :: projection_option

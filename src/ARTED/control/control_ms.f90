@@ -578,8 +578,8 @@ contains
             data_out(7:9, iix_m, iiy_m, iiz_m, ipos) = Bmag_ms(1:3, iix_m, iiy_m, iiz_m)
             data_out(10:12, iix_m, iiy_m, iiz_m, ipos) = Jm_ms(1:3, iix_m, iiy_m, iiz_m)
             data_out(13, iix_m, iiy_m, iiz_m, ipos) = Energy_elec_ms(iix_m, iiy_m, iiz_m)
-            data_out(14, iix_m, iiy_m, iiz_m, ipos) = Energy_elemag_ms(iix_m, iiy_m, iiz_m)
-            data_out(15, iix_m, iiy_m, iiz_m, ipos) = Energy_joule_ms(iix_m, iiy_m, iiz_m)
+            data_out(14, iix_m, iiy_m, iiz_m, ipos) = Energy_joule_ms(iix_m, iiy_m, iiz_m)
+            data_out(15, iix_m, iiy_m, iiz_m, ipos) = Energy_elemag_ms(iix_m, iiy_m, iiz_m)
           end do
         end do
       end do
@@ -599,19 +599,19 @@ contains
     if (iproc == nproc_id_global) then
       write(file_ac, "(A,A,'_Ac_',I6.6,'.out')") trim(process_directory), trim(SYSname),  out_ms_step * index
       fh = open_filehandle(file_ac)
-      write(fh, '("#",1X,3A6,99A23)') "IX", "IY", "IZ", &
+      write(fh, '("#",*(A:1X))') "IX", "IY", "IZ", &
         & "Ac_x[au]", "Ac_y[au]", "Ac_z[au]", &
         & "E_x[au]", "E_y[au]", "E_z[au]", &
         & "B_x[au]", "B_y[au]", "B_z[au]", &
-        & "Jmatter_x[au]", "Jmatter_y[au]", "Jmatter_z[au]", &
-        & "Excitation Energy", &
-        & "E2B2 Field Energy", &
-        & "Absorption Energy"
+        & "Jm_x[au]", "Jm_y[au]", "Jm_z[au]", &
+        & "Eabs[au/cell]", &
+        & "Eabs[au/cell]", &
+        & "Eemf[au/cell]"
       
       do iiz_m = nz1_m, nz2_m
         do iiy_m = ny1_m, ny2_m
           do iix_m = nx1_m, nx2_m
-            write(fh,'(2X,3I6,99ES23.14E3)')  iix_m, iiy_m, iiz_m, &
+            write(fh,'(2X,3I6,*(ES22.14E3:1X))')  iix_m, iiy_m, iiz_m, &
             &    data_out(1:ndata_out_column, iix_m, iiy_m, iiz_m, ipos)
           end do
         end do

@@ -42,8 +42,6 @@ subroutine init_ac_ms_2dc()
   select case(AE_shape1)
   case('Asin2cos')
     call incident_bessel_beam()
-  case('input')
-    call read_initial_ac_from_file()
   end select 
   call comm_sync_all
   return
@@ -64,8 +62,6 @@ subroutine init_ac_ms
   real(8) length_y
   
   call comm_sync_all
-!  BC_my='isolated'
-!  BC_my='periodic'
   if(rlaser_int_wcm2_1 < 0d0)then
     f0_1 = amplitude1
   else
@@ -308,6 +304,13 @@ subroutine init_ac_ms
   end select
   return
 end subroutine init_ac_ms
+!
+
+
+
+!===========================================================
+
+
 !===========================================================
 subroutine dt_evolve_Ac_1d
   use Global_variables
@@ -315,20 +318,20 @@ subroutine dt_evolve_Ac_1d
   integer :: ix_m
   integer :: iy_m
   integer :: iz_m
-  real(8) :: RR(3) ! rot rot Ac
+  real(8) :: rr(3) ! rot rot Ac
 
   iz_m = nz_origin_m
   iy_m = ny_origin_m
 !$omp parallel do default(shared) private(ix_m)
   do ix_m = nx1_m, nx2_m
-    RR(1) = 0d0
-    RR(2:3) = -( &
+    rr(1) = 0d0
+    rr(2:3) = -( &
             &      + Ac_ms(2:3,ix_m+1, iy_m, iz_m) &
             & -2d0 * Ac_ms(2:3,ix_m, iy_m, iz_m) &
             &      + Ac_ms(2:3,ix_m-1, iy_m, iz_m) &
             & ) * (1d0 / HX_m ** 2)
     Ac_new_ms(:,ix_m, iy_m, iz_m) = (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
-      & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - RR(:)*(c_light*dt)**2 )
+      & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
   end do
 !$omp end parallel do
   return
@@ -339,33 +342,33 @@ subroutine dt_evolve_Ac_2d
   implicit none
   integer :: ix_m,iy_m
   integer :: iz_m
-  real(8) :: RR(3) ! rot rot Ac
+  real(8) :: rr(3) ! rot rot Ac
 
   iz_m = nz_origin_m
-  !$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, RR)
+  !$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, rr)
   do iy_m = ny1_m, ny2_m
     do ix_m = nx1_m, nx2_m
-      RR(1) = +(-1.00d0/HY_m**2) * Ac_ms(1, ix_m, iy_m-1, iz_m) &
+      rr(1) = +(-1.00d0/HY_m**2) * Ac_ms(1, ix_m, iy_m-1, iz_m) &
             & +(+2.00d0/HY_m**2) * Ac_ms(1, ix_m, iy_m, iz_m) &
             & +(-1.00d0/HY_m**2) * Ac_ms(1, ix_m, iy_m+1, iz_m) &
             & +(+0.25d0/HX_m/HY_m) * Ac_ms(2, ix_m-1, iy_m-1, iz_m) &
             & +(-0.25d0/HX_m/HY_m) * Ac_ms(2, ix_m-1, iy_m+1, iz_m) &
             & +(-0.25d0/HX_m/HY_m) * Ac_ms(2, ix_m+1, iy_m-1, iz_m) &
             & +(+0.25d0/HX_m/HY_m) * Ac_ms(2, ix_m+1, iy_m+1, iz_m)
-      RR(2) = +(+0.25d0/HX_m/HY_m) * Ac_ms(1, ix_m-1, iy_m-1, iz_m) &
+      rr(2) = +(+0.25d0/HX_m/HY_m) * Ac_ms(1, ix_m-1, iy_m-1, iz_m) &
             & +(-0.25d0/HX_m/HY_m) * Ac_ms(1, ix_m-1, iy_m+1, iz_m) &
             & +(-0.25d0/HX_m/HY_m) * Ac_ms(1, ix_m+1, iy_m-1, iz_m) &
             & +(+0.25d0/HX_m/HY_m) * Ac_ms(1, ix_m+1, iy_m+1, iz_m) &
             & +(-1.00d0/HX_m**2) * Ac_ms(2, ix_m-1, iy_m, iz_m) &
             & +(+2.00d0/HX_m**2) * Ac_ms(2, ix_m, iy_m, iz_m) &
             & +(-1.00d0/HX_m**2) * Ac_ms(2, ix_m+1, iy_m, iz_m)
-      RR(3) = +(-1.00d0/HX_m**2) * Ac_ms(3, ix_m-1, iy_m, iz_m) &
+      rr(3) = +(-1.00d0/HX_m**2) * Ac_ms(3, ix_m-1, iy_m, iz_m) &
             & +(-1.00d0/HY_m**2) * Ac_ms(3, ix_m, iy_m-1, iz_m) &
             & +(+2.00d0/HY_m**2 +2.00d0/HX_m**2) * Ac_ms(3, ix_m, iy_m, iz_m) &
             & +(-1.00d0/HY_m**2) * Ac_ms(3, ix_m, iy_m+1, iz_m) &
             & +(-1.00d0/HX_m**2) * Ac_ms(3, ix_m+1, iy_m, iz_m)
       Ac_new_ms(:,ix_m, iy_m, iz_m) = (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
-        & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - RR(:)*(c_light*dt)**2 )
+        & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
     end do
   end do
 !$omp end parallel do
@@ -397,15 +400,15 @@ subroutine dt_evolve_Ac_2dc()
   implicit none
   integer :: ix_m, iy_m
   integer :: iz_m
-  real(8) :: Y, RR(3) ! rot rot Ac
+  real(8) :: Y, rr(3) ! rot rot Ac
   iz_m = nz_origin_m
   
   !! Propagator
-!$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, RR,Y)
+!$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, rr,Y)
   do iy_m = ny1_m, ny2_m
     do ix_m = nx1_m, nx2_m
       Y = iy_m * HY_m
-      RR(1) = +(+0.50d0*(1.00d0/HY_m)*(1.00d0/Y)-(1.00d0/HY_m**2))*Ac_ms(1,ix_m+0,iy_m-1,iz_m) &
+      rr(1) = +(+0.50d0*(1.00d0/HY_m)*(1.00d0/Y)-(1.00d0/HY_m**2))*Ac_ms(1,ix_m+0,iy_m-1,iz_m) &
             & +2.00d0*(1.00d0/HY_m**2)*Ac_ms(1,ix_m+0,iy_m+0,iz_m) &
             & +(-0.50d0*(1.00d0/HY_m)*(1.00d0/Y)-(1.00d0/HY_m**2))*Ac_ms(1,ix_m+0,iy_m+1,iz_m) &
             & +0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(2,ix_m-1,iy_m-1,iz_m) &
@@ -414,20 +417,20 @@ subroutine dt_evolve_Ac_2dc()
             & -0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(2,ix_m+1,iy_m-1,iz_m) &
             & +0.50d0*(1.00d0/HX_m)*(1.00d0/Y)*Ac_ms(2,ix_m+1,iy_m+0,iz_m) &
             & +0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(2,ix_m+1,iy_m+1,iz_m)
-      RR(2) = +0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(1,ix_m-1,iy_m-1,iz_m) &
+      rr(2) = +0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(1,ix_m-1,iy_m-1,iz_m) &
             & -0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(1,ix_m-1,iy_m+1,iz_m) &
             & -0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(1,ix_m+1,iy_m-1,iz_m) &
             & +0.25d0*(1.00d0/(HX_m*HY_m))*Ac_ms(1,ix_m+1,iy_m+1,iz_m) &
             & -(1.00d0/HX_m**2)*Ac_ms(2,ix_m-1,iy_m+0,iz_m) &
             & +2.00d0*(1.00d0/HX_m**2)*Ac_ms(2,ix_m+0,iy_m+0,iz_m) &
             & -(1.00d0/HX_m**2)*Ac_ms(2,ix_m+1,iy_m+0,iz_m)
-      RR(3) = -(1.00d0/HX_m**2)*Ac_ms(3,ix_m-1,iy_m+0,iz_m) &
+      rr(3) = -(1.00d0/HX_m**2)*Ac_ms(3,ix_m-1,iy_m+0,iz_m) &
             & +(+0.50d0*(1.00d0/HY_m)*(1.00d0/Y)-(1.00d0/HY_m**2))*Ac_ms(3,ix_m+0,iy_m-1,iz_m) &
             & +(+(1.00d0/Y**2)+2.00d0*(1.00d0/HX_m**2)+2.00d0*(1.00d0/HY_m**2))*Ac_ms(3,ix_m+0,iy_m+0,iz_m) &
             & +(-0.50d0*(1.00d0/HY_m)*(1.00d0/Y)-(1.00d0/HY_m**2))*Ac_ms(3,ix_m+0,iy_m+1,iz_m) &
             & -(1.00d0/HX_m**2)*Ac_ms(3,ix_m+1,iy_m+0,iz_m)
       Ac_new_ms(:,ix_m, iy_m, iz_m) = (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
-        & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - RR(:)*(c_light*dt)**2)
+        & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2)
     end do
   end do
 !$omp end parallel do
@@ -446,16 +449,119 @@ subroutine dt_evolve_Ac_2dc()
   return
 end subroutine dt_evolve_Ac_2dc
 !===========================================================
+subroutine dt_evolve_Ac_3d
+  use Global_variables
+  implicit none
+  integer :: ix_m,iy_m
+  integer :: iz_m
+  real(8) :: rr(3) ! rot rot Ac
+  real(8) :: rinv_dx, rinv_dy, rinv_dz
+  
+  rinv_dx = 1.00 / HX_m
+  rinv_dy = 1.00 / HY_m
+  rinv_dz = 1.00 / HZ_m
+  
+!$omp parallel do collapse(3) default(shared) private(ix_m, iy_m, iz_m,rr)
+  do iz_m = nz1_m, nz2_m
+    do iy_m = ny1_m, ny2_m
+      do ix_m = nx1_m, nx2_m
+        ! Calculate Rot Rot A
+        rr(1) = - (rinv_dy**2) * Ac_ms(1, ix_m+0, iy_m-1, iz_m+0) &
+              & - (rinv_dz**2) * Ac_ms(1, ix_m+0, iy_m+0, iz_m-1) &
+              & + (2d0*(rinv_dy**2 + rinv_dz**2)) * Ac_ms(1, ix_m+0, iy_m+0, iz_m+0) &
+              & - (rinv_dz**2) * Ac_ms(1, ix_m+0, iy_m+0, iz_m+1) &
+              & - (rinv_dy**2) * Ac_ms(1, ix_m+0, iy_m+1, iz_m+0) &
+              & + (rinv_dx*rinv_dy*0.25d0) * Ac_ms(2, ix_m-1, iy_m-1, iz_m+0) &
+              & - (rinv_dx*rinv_dy*0.25d0) * Ac_ms(2, ix_m-1, iy_m+1, iz_m+0) &
+              & - (rinv_dx*rinv_dy*0.25d0) * Ac_ms(2, ix_m+1, iy_m-1, iz_m+0) &
+              & + (rinv_dx*rinv_dy*0.25d0) * Ac_ms(2, ix_m+1, iy_m+1, iz_m+0) &
+              & + (rinv_dx*rinv_dz*0.25d0) * Ac_ms(3, ix_m-1, iy_m+0, iz_m-1) &
+              & - (rinv_dx*rinv_dz*0.25d0) * Ac_ms(3, ix_m-1, iy_m+0, iz_m+1) &
+              & - (rinv_dx*rinv_dz*0.25d0) * Ac_ms(3, ix_m+1, iy_m+0, iz_m-1) &
+              & + (rinv_dx*rinv_dz*0.25d0) * Ac_ms(3, ix_m+1, iy_m+0, iz_m+1)
+        rr(2) = + (rinv_dx*rinv_dy*0.25d0) * Ac_ms(1, ix_m-1, iy_m-1, iz_m+0) &
+              & - (rinv_dx*rinv_dy*0.25d0) * Ac_ms(1, ix_m-1, iy_m+1, iz_m+0) &
+              & - (rinv_dx*rinv_dy*0.25d0) * Ac_ms(1, ix_m+1, iy_m-1, iz_m+0) &
+              & + (rinv_dx*rinv_dy*0.25d0) * Ac_ms(1, ix_m+1, iy_m+1, iz_m+0) &
+              & - (rinv_dx**2) * Ac_ms(2, ix_m-1, iy_m+0, iz_m+0) &
+              & - (rinv_dz**2) * Ac_ms(2, ix_m+0, iy_m+0, iz_m-1) &
+              & + (2d0*(rinv_dx**2 + rinv_dz**2)) * Ac_ms(2, ix_m+0, iy_m+0, iz_m+0) &
+              & - (rinv_dz**2) * Ac_ms(2, ix_m+0, iy_m+0, iz_m+1) &
+              & - (rinv_dx**2) * Ac_ms(2, ix_m+1, iy_m+0, iz_m+0) &
+              & + (rinv_dy*rinv_dz*0.25d0) * Ac_ms(3, ix_m+0, iy_m-1, iz_m-1) &
+              & - (rinv_dy*rinv_dz*0.25d0) * Ac_ms(3, ix_m+0, iy_m-1, iz_m+1) &
+              & - (rinv_dy*rinv_dz*0.25d0) * Ac_ms(3, ix_m+0, iy_m+1, iz_m-1) &
+              & + (rinv_dy*rinv_dz*0.25d0) * Ac_ms(3, ix_m+0, iy_m+1, iz_m+1)
+        rr(3) = + (rinv_dx*rinv_dz*0.25d0) * Ac_ms(1, ix_m-1, iy_m+0, iz_m-1) &
+              & - (rinv_dx*rinv_dz*0.25d0) * Ac_ms(1, ix_m-1, iy_m+0, iz_m+1) &
+              & - (rinv_dx*rinv_dz*0.25d0) * Ac_ms(1, ix_m+1, iy_m+0, iz_m-1) &
+              & + (rinv_dx*rinv_dz*0.25d0) * Ac_ms(1, ix_m+1, iy_m+0, iz_m+1) &
+              & + (rinv_dy*rinv_dz*0.25d0) * Ac_ms(2, ix_m+0, iy_m-1, iz_m-1) &
+              & - (rinv_dy*rinv_dz*0.25d0) * Ac_ms(2, ix_m+0, iy_m-1, iz_m+1) &
+              & - (rinv_dy*rinv_dz*0.25d0) * Ac_ms(2, ix_m+0, iy_m+1, iz_m-1) &
+              & + (rinv_dy*rinv_dz*0.25d0) * Ac_ms(2, ix_m+0, iy_m+1, iz_m+1) &
+              & - (rinv_dx**2) * Ac_ms(3, ix_m-1, iy_m+0, iz_m+0) &
+              & - (rinv_dy**2) * Ac_ms(3, ix_m+0, iy_m-1, iz_m+0) &
+              & + (2d0*(rinv_dx**2 + rinv_dy**2)) * Ac_ms(3, ix_m+0, iy_m+0, iz_m+0) &
+              & - (rinv_dy**2) * Ac_ms(3, ix_m+0, iy_m+1, iz_m+0) &
+              & - (rinv_dx**2) * Ac_ms(3, ix_m+1, iy_m+0, iz_m+0)
+
+
+        Ac_new_ms(:,ix_m, iy_m, iz_m) = &
+        & + (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
+        & - Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
+      end do
+    end do
+  end do
+  !$omp end parallel do
+  
+  ! select case(TwoD_shape)
+  ! case('periodic')
+  !! Only periodic boundary condition is available
+  
+!$omp parallel do collapse(2) default(shared) private(ix_m, iy_m)
+  do ix_m = mx1_m, mx2_m
+    do iy_m = my1_m, my2_m
+      Ac_new_ms(1:3, ix_m, iy_m, mz1_m) =Ac_new_ms(1:3, ix_m, iy_m, nz2_m)
+      Ac_new_ms(1:3, ix_m, iy_m, mz2_m) =Ac_new_ms(1:3, ix_m, iy_m, nz1_m)
+    end do
+  end do
+!end omp parallel do        
+!$omp parallel do collapse(2) default(shared) private(ix_m, iz_m)
+  do ix_m = mx1_m, mx2_m
+    do iz_m = mz1_m, mz2_m
+      Ac_new_ms(1:3, ix_m, my1_m, iz_m) = Ac_new_ms(1:3, ix_m, ny2_m, iz_m) 
+      Ac_new_ms(1:3, ix_m, my2_m, iz_m) = Ac_new_ms(1:3, ix_m, ny1_m, iz_m) 
+    end do
+  end do
+!end omp parallel do
+!$omp parallel do collapse(2) default(shared) private(iy_m, iz_m)
+  do iy_m = my1_m, my2_m
+    do iz_m = mz1_m, mz2_m
+      Ac_new_ms(1:3, mx1_m, iy_m, iz_m) = Ac_new_ms(1:3, nx2_m, iy_m, iz_m)
+      Ac_new_ms(1:3, mx2_m, iy_m, iz_m) = Ac_new_ms(1:3, nx1_m, iy_m, iz_m)
+    end do
+  end do
+!end omp parallel do
+
+  ! case default
+  !   stop 'boundary condition is not good'
+  ! end select
+  return
+end subroutine dt_evolve_Ac_3d
+!===========================================================
 subroutine dt_evolve_Ac
   use Global_variables
   use timer
   implicit none
   select case(FDTDdim)
-  case('1d', '1D', "mpfile1d")
+  case('1d', '1D')
     call dt_evolve_Ac_1d()
-  case('2d', '2D', "mpfile2d")
+  case('2d', '2D')
     call dt_evolve_Ac_2d()
   case('2dc', '2DC')
+    call dt_evolve_Ac_2dc()
+  case('3d', '3D')
     call dt_evolve_Ac_2dc()
   end select
   return
@@ -549,9 +655,9 @@ subroutine calc_bmag_field()
   use Global_variables
   implicit none
   select case(FDTDdim)
-  case('1d', '1D', "mpfile1d")
+  case('1d', '1D')
     call calc_bmag_field_1d()
-  case('2d', '2D', "mpfile2d")
+  case('2d', '2D')
     call calc_bmag_field_2d()
   case('2dc', '2DC')
     call calc_bmag_field_2dc()
@@ -613,9 +719,9 @@ subroutine calc_total_energy()
   select case (FDTDdim)
   case ("1D", "1d")
     cell_scalling = HX_m / aLx
-  case ("2D", "2d", "mpfile2d")
+  case ("2D", "2d")
     cell_scalling = HX_m / aLx * HY_m / aLy
-  case ("3D", "3d", "mpfile3d")
+  case ("3D", "3d")
     cell_scalling = HX_m / aLx * HY_m / aLy * HZ_m / aLz
   end select
   

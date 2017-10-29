@@ -98,36 +98,3 @@ subroutine incident_bessel_beam()
   Ac_ms(1,:,my1_m,iz_m) = Ac_ms(1,:,ny1_m,iz_m)
   return
 end subroutine incident_bessel_beam
-
-
-subroutine read_initial_ac_from_file()
-  use Global_Variables, only: SYSName, directory,file_ac_init, &
-                            & Ac_ms, Ac_new_ms
-  use salmon_parallel
-  use salmon_communication, only: comm_is_root, comm_bcast
-  use salmon_file
-  implicit none
-  integer :: fh
-  integer :: ix_m, iy_m, iz_m
-  integer :: bx1_m, by1_m, bz1_m
-  integer :: bx2_m, by2_m, bz2_m
-  
-  write(file_ac_init, "(A,A,'_Ac_init.dat')") trim(directory), trim(SYSname)
-  if (comm_is_root(nproc_id_global)) then
-    fh = open_filehandle(file_ac_init)
-    read(fh, *) bx1_m, bx2_m
-    read(fh, *) by1_m, by2_m
-    read(fh, *) by1_m, by2_m
-    do iz_m = bz1_m, bz2_m
-      do iy_m = by1_m, by2_m
-        do ix_m = bx1_m, bx2_m
-          read(fh, *) Ac_ms(:, ix_m, iy_m, iz_m), Ac_new_ms(:, ix_m, iy_m, iz_m)
-        end do
-      end do
-    end do
-    close(fh)
-  end if
-  call comm_bcast(Ac_ms, nproc_group_global)
-  call comm_bcast(Ac_new_ms, nproc_group_global)
-  return
-end subroutine 
