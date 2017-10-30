@@ -15,6 +15,8 @@
 !
 
 !===============================================================
+!! TODO: Create new beam source function
+
 real(8) function sin2cos(t, tw, omega, cep)
   use Global_Variables, only: pi
   implicit none

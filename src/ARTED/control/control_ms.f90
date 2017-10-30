@@ -66,7 +66,6 @@ subroutine tddft_maxwell_ms
     end if
 
 !====RT calculation============================
-
     ! TODO: FIx the initialization routine
     if (trim(FDTDdim) == '2DC') then
       call init_ac_ms_2dc()
@@ -154,7 +153,6 @@ subroutine tddft_maxwell_ms
     call dt_evolve_Ac() ! Timer: LOG_DT_EVOLVE_AC
     call timer_end(LOG_DT_EVOLVE_AC)
     !===========================================================================
-
     !===========================================================================    
     !! Compute EM field, energy and other important quantities...
     call timer_begin(LOG_OTHER) ! TODO: Create new timer "LOG_EMFIELD" later
@@ -668,6 +666,9 @@ contains
       & "Diff =", total_energy_em - total_energy_em_old, &
       & "[au]"
       
+    sem = 0d0;
+    sx1 = 0d0; sy1 = 0d0; sz1 = 0d0
+    sx2 = 0d0; sy2 = 0d0; sz2 = 0d0
 !$omp parallel do default(shared) collapse(3) &
 !$ & private(iix_m, iiy_m, iiz_m, rrx, rry, rrz, eem) &
 !$ & reduction(+: sx1, sy1, sz1, sx2, sy2, sz2, sem)
@@ -696,13 +697,18 @@ contains
     if (0d0 < sem) then
       cx1 = sx1 / sem; cy1 = sy1 / sem; cz1 = sz1 / sem 
       cx2 = sx2 / sem; cy2 = sy2 / sem; cz2 = sz2 / sem 
-      wx = sqrt(cx2-cx1**2); wy = sqrt(cy2-cy1**2); wz = sqrt(cz2-cz1**2)
-      write(*, '(1X,A)') "Position of wavepacket:"
-      write(*,'(2X,A20,A10,3(ES12.3E3,","),A5)') &
-        & 'Central position:', "<r> =", cx1, cy2, cz2, "[au]"
-      write(*,'(2X,A20,A10,3(ES12.3E3,","),A5)') &
-        & 'Spatial spreading:', "rms =", wx, wy, wz, "[au]"
+    else
+      cx1 = 0d0; cy1 = 0d0; cz1 = 0d0
+      cx2 = 0d0; cy2 = 0d0; cz2 = 0d0
     endif
+    wx = sqrt(abs(cx2-cx1**2))
+    wy = sqrt(abs(cy2-cy1**2))
+    wz = sqrt(abs(cz2-cz1**2))
+    write(*, '(1X,A)') "Position of wavepacket:"
+    write(*,'(2X,A20,A10,3(ES12.3E3,","),A5)') &
+      & 'Central position:', "<r> =", cx1, cy2, cz2, "[au]"
+    write(*,'(2X,A20,A10,3(ES12.3E3,","),A5)') &
+      & 'Spatial spreading:', "rms =", wx, wy, wz, "[au]"
     return 
   end subroutine trace_ms_calculation
 

@@ -86,7 +86,7 @@ subroutine init_ac_ms
   call comm_sync_all
 
   select case(FDTDdim)
-  case('1D')
+  case('1D','1d','2D','2d','3D','3d')
 !Pump
      select case(ae_shape1)
      case('Acos2','Acos3','Acos4','Acos6','Acos8')
@@ -100,8 +100,8 @@ subroutine init_ac_ms
          stop 'Error in init_Ac.f90'
        end select
 
-       iy_m = ny_origin_m
-       iz_m = nz_origin_m
+       do iy_m = ny1_m, ny2_m
+       do iz_m = nz1_m, nz2_m
        
            do ix_m = nx1_m, nx2_m
               x=(ix_m-1)*HX_m + Xstart + 0.5d0*pulse_tw1*c_light
@@ -130,11 +130,13 @@ subroutine init_ac_ms
               endif
 
            end do
+       end do
+       end do
 
      case('Asin2cos')
     
-       iy_m = ny_origin_m
-       iz_m = nz_origin_m
+       do iy_m = ny1_m, ny2_m
+       do iz_m = nz1_m, nz2_m
     
            do ix_m = nx1_m, nx2_m
               x=(ix_m-1)*HX_m
@@ -160,7 +162,9 @@ subroutine init_ac_ms
               endif
               
            end do
-
+       end do
+       end do
+         
      case('none')
      case default
         call Err_finalize("Invalid pulse_shape_1 parameter!")
@@ -178,8 +182,8 @@ subroutine init_ac_ms
          stop 'Error in init_Ac.f90'
        end select
 
-       iy_m = ny_origin_m
-       iz_m = nz_origin_m
+       do iy_m = ny1_m, ny2_m
+       do iz_m = nz1_m, nz2_m
 
            do ix_m=nx1_m, nx2_m
               x=(ix_m-1)*HX_m + Xstart + (0.5d0*pulse_tw1 + T1_T2)*c_light
@@ -209,10 +213,12 @@ subroutine init_ac_ms
               endif
 
            end do
+           end do
+           end do
 
      case('Asin2cos')
-       iy_m = ny_origin_m
-       iz_m = nz_origin_m
+       do iy_m = ny1_m, ny2_m
+       do iz_m = nz1_m, nz2_m
 
            do ix_m = nx1_m, nx2_m
               x=(ix_m-1)*HX_m
@@ -240,40 +246,44 @@ subroutine init_ac_ms
                       &*cos(omega2*(x+Xstart+(pulse_tw1+T1_T2)*c_light)/c_light+phi_CEP2*2d0*pi)
               endif
            enddo
+           enddo
+           enddo
 
      case('none')
      case default
         call Err_finalize("Invalid pulse_shape_1 parameter!")
      end select
 
- case('2D')
-
-   angle=0d0 !45d0*pi/180d0
-   kabs=omega1/c_light
-   kx=kabs*cos(angle)
-   ky=kabs*sin(angle)
-   length_y=2d0*pi/ky
-   HY_m=length_y/dble(NY_m)
-   do iy_m=ny1_m, ny2_m
-     y=iy_m*HY_m
-     do ix_m=nx1_m, nx2_m
-       x=(ix_m-1)*HX_m
-       if(x > -Xstart-pulse_tw1*c_light .and. x < -Xstart) then
-         Ac_ms(3,ix_m, iy_m, iz_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-           &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y)
-         
-         Ac_ms(2,ix_m, iy_m, iz_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-           &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y)
-       endif
-       if(x > -Xstart-pulse_tw1*c_light .and. x < -Xstart) then
-         Ac_new_ms(3,ix_m, iy_m, iz_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-            &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y-omega1*dt)            
-         
-         Ac_new_ms(2,ix_m, iy_m, iz_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-           &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y-omega1*dt)            
-       endif
-     end do
-   end do
+ ! case('2D', '2d', '3D', '3d')
+ ! 
+ !   angle=0d0 !45d0*pi/180d0
+ !   kabs=omega1/c_light
+ !   kx=kabs*cos(angle)
+ !   ky=kabs*sin(angle)
+ !   length_y=2d0*pi/ky
+ !   HY_m=length_y/dble(NY_m)
+ !   do iz_m=nz1_m, nz2_m
+ !     do iy_m=ny1_m, ny2_m
+ !       y=iy_m*HY_m
+ !       do ix_m=nx1_m, nx2_m
+ !         x=(ix_m-1)*HX_m
+ !         if(x > -Xstart-pulse_tw1*c_light .and. x < -Xstart) then
+ !           Ac_ms(3,ix_m, iy_m, iz_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+ !             &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y)
+ !           
+ !           Ac_ms(2,ix_m, iy_m, iz_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+ !             &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y)
+ !         endif
+ !         if(x > -Xstart-pulse_tw1*c_light .and. x < -Xstart) then
+ !           Ac_new_ms(3,ix_m, iy_m, iz_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+ !              &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y-omega1*dt)            
+ !           
+ !           Ac_new_ms(2,ix_m, iy_m, iz_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
+ !             &*cos(kx*(x+Xstart+pulse_tw1*c_light)+ky*y-omega1*dt)            
+ !         endif
+ !       end do
+ !     end do
+ !  end do
  end select
 
 
@@ -282,14 +292,37 @@ subroutine init_ac_ms
 
   select case(TwoD_shape)
   case('periodic')
-!$omp parallel do default(shared) private(ix_m)
-    do ix_m = mx1_m, mx2_m
-      Ac_new_ms(:, ix_m, my1_m, iz_m) = Ac_new_ms(:, ix_m, ny2_m, iz_m)
-      Ac_new_ms(:, ix_m, my2_m, iz_m) = Ac_new_ms(:, ix_m, ny1_m, iz_m)
-      Ac_ms(:, ix_m, my1_m, iz_m) = Ac_ms(:, ix_m, ny2_m, iz_m)
-      Ac_ms(:, ix_m, my2_m, iz_m) = Ac_ms(:, ix_m, ny1_m, iz_m)
-    enddo
-!$omp end parallel do
+!$omp parallel do collapse(2) default(shared) private(ix_m, iy_m)
+  do ix_m = mx1_m, mx2_m
+    do iy_m = my1_m, my2_m
+      Ac_new_ms(1:3, ix_m, iy_m, mz1_m) =Ac_new_ms(1:3, ix_m, iy_m, nz2_m)
+      Ac_new_ms(1:3, ix_m, iy_m, mz2_m) =Ac_new_ms(1:3, ix_m, iy_m, nz1_m)
+      Ac_ms(1:3, ix_m, iy_m, mz1_m) =Ac_ms(1:3, ix_m, iy_m, nz2_m)
+      Ac_ms(1:3, ix_m, iy_m, mz2_m) =Ac_new_ms(1:3, ix_m, iy_m, nz1_m)
+    end do
+  end do
+!end omp parallel do        
+!$omp parallel do collapse(2) default(shared) private(ix_m, iz_m)
+  do ix_m = mx1_m, mx2_m
+    do iz_m = mz1_m, mz2_m
+      Ac_new_ms(1:3, ix_m, my1_m, iz_m) = Ac_new_ms(1:3, ix_m, ny2_m, iz_m) 
+      Ac_new_ms(1:3, ix_m, my2_m, iz_m) = Ac_new_ms(1:3, ix_m, ny1_m, iz_m) 
+      Ac_ms(1:3, ix_m, my1_m, iz_m) = Ac_ms(1:3, ix_m, ny2_m, iz_m) 
+      Ac_ms(1:3, ix_m, my2_m, iz_m) = Ac_ms(1:3, ix_m, ny1_m, iz_m) 
+    end do
+  end do
+!end omp parallel do
+!$omp parallel do collapse(2) default(shared) private(iy_m, iz_m)
+  do iy_m = my1_m, my2_m
+    do iz_m = mz1_m, mz2_m
+      Ac_new_ms(1:3, mx1_m, iy_m, iz_m) = Ac_new_ms(1:3, nx2_m, iy_m, iz_m)
+      Ac_new_ms(1:3, mx2_m, iy_m, iz_m) = Ac_new_ms(1:3, nx1_m, iy_m, iz_m)
+      Ac_ms(1:3, mx1_m, iy_m, iz_m) = Ac_ms(1:3, nx2_m, iy_m, iz_m)
+      Ac_ms(1:3, mx2_m, iy_m, iz_m) = Ac_ms(1:3, nx1_m, iy_m, iz_m)
+    end do
+  end do
+!end omp parallel do
+    
   case('isolated')
 !$omp parallel do default(shared) private(ix_m)
     do ix_m = mx1_m, mx2_m
@@ -343,9 +376,8 @@ subroutine dt_evolve_Ac_2d
   integer :: ix_m,iy_m
   integer :: iz_m
   real(8) :: rr(3) ! rot rot Ac
-
-  iz_m = nz_origin_m
-  !$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, rr)
+  iz_m = nz1_m
+!$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, rr)
   do iy_m = ny1_m, ny2_m
     do ix_m = nx1_m, nx2_m
       rr(1) = +(-1.00d0/HY_m**2) * Ac_ms(1, ix_m, iy_m-1, iz_m) &
@@ -505,8 +537,6 @@ subroutine dt_evolve_Ac_3d
               & + (2d0*(rinv_dx**2 + rinv_dy**2)) * Ac_ms(3, ix_m+0, iy_m+0, iz_m+0) &
               & - (rinv_dy**2) * Ac_ms(3, ix_m+0, iy_m+1, iz_m+0) &
               & - (rinv_dx**2) * Ac_ms(3, ix_m+1, iy_m+0, iz_m+0)
-
-
         Ac_new_ms(:,ix_m, iy_m, iz_m) = &
         & + (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
         & - Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
@@ -562,7 +592,7 @@ subroutine dt_evolve_Ac
   case('2dc', '2DC')
     call dt_evolve_Ac_2dc()
   case('3d', '3D')
-    call dt_evolve_Ac_2dc()
+    call dt_evolve_Ac_3d()
   end select
   return
 end subroutine dt_evolve_Ac
@@ -589,8 +619,8 @@ subroutine calc_bmag_field_1d()
   integer :: iy_m
   integer :: iz_m
   real(8) :: Rc(3) 
-  iy_m = ny_origin_m
-  iz_m = nz_origin_m
+  iy_m = ny1_m
+  iz_m = nz1_m
   !$omp parallel do default(shared) private(ix_m, Rc)
   do ix_m = nx1_m, nx2_m
     Rc(1) = 0.0d0
@@ -607,16 +637,20 @@ subroutine calc_bmag_field_2d()
   implicit none
   integer :: ix_m,iy_m
   integer :: iz_m
-  real(8) :: rc(3)  ! rot Ac
-  iz_m = nz_origin_m
-  !$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, Rc)
+  real(8) :: rAc(3)  ! rot Ac
+  real(8) :: rinv_dx, rinv_dy
+  
+  rinv_dx = 1.00 / HX_m
+  rinv_dy = 1.00 / HY_m
+  iz_m = nz1_m
+  !$omp parallel do collapse(2) default(shared) private(ix_m, iy_m, rAc)
   do iy_m = ny1_m, ny2_m
     do ix_m = nx1_m, nx2_m
-      Rc(1) = + (Ac_ms(3, ix_m, iy_m+1, iz_m) - Ac_ms(3, ix_m, iy_m-1, iz_m)) / (2*HY_m)
-      Rc(2) = - (Ac_ms(3, ix_m+1, iy_m, iz_m) - Ac_ms(3, ix_m-1, iy_m, iz_m)) / (2*HX_m)
-      Rc(3) = + (Ac_ms(2, ix_m+1, iy_m, iz_m) - Ac_ms(2, ix_m-1, iy_m, iz_m)) / (2*HX_m) &
-            & - (Ac_ms(1, ix_m, iy_m+1, iz_m) - Ac_ms(1, ix_m, iy_m-1, iz_m)) / (2*HY_m)
-      bmag_ms(:, ix_m, iy_m, iz_m) = Rc(:) * c_light
+      rAc(1) = +(+Ac_ms(3, ix_m+0, iy_m+1, iz_m+0)-Ac_ms(3, ix_m+0, iy_m-1, iz_m+0)) * (0.5d0 * rinv_dy)
+      rAc(2) = -(+Ac_ms(3, ix_m+1, iy_m+0, iz_m+0)-Ac_ms(3, ix_m-1, iy_m+0, iz_m+0)) * (0.5d0 * rinv_dx) 
+      rAc(3) = +(+Ac_ms(2, ix_m+1, iy_m+0, iz_m+0)-Ac_ms(2, ix_m-1, iy_m+0, iz_m+0)) * (0.5d0 * rinv_dx) &
+             & -(+Ac_ms(1, ix_m+0, iy_m+1, iz_m+0)-Ac_ms(1, ix_m+0, iy_m-1, iz_m+0)) * (0.5d0 * rinv_dy) 
+      bmag_ms(:, ix_m, iy_m, iz_m) = rAc(:) * c_light
     end do
   end do
   !$omp end parallel do
@@ -651,6 +685,34 @@ subroutine calc_bmag_field_2dc()
   return
 end subroutine calc_bmag_field_2dc
 !===========================================================
+subroutine calc_bmag_field_3d()
+  use Global_variables
+  implicit none
+  integer :: ix_m, iy_m, iz_m
+  real(8) :: rac(3)  ! rot Ac
+  real(8) :: rinv_dx, rinv_dy, rinv_dz
+  
+  rinv_dx = 1.00 / HX_m
+  rinv_dy = 1.00 / HY_m
+  rinv_dz = 1.00 / HZ_m
+  !$omp parallel do collapse(3) default(shared) private(ix_m, iy_m, iz_m, rAc)
+  do iz_m = nz1_m, nz2_m
+    do iy_m = ny1_m, ny2_m
+      do ix_m = nx1_m, nx2_m
+        rAc(1) = +(+Ac_ms(3, ix_m+0, iy_m+1, iz_m+0)-Ac_ms(3, ix_m+0, iy_m-1, iz_m+0)) * (0.5d0 * rinv_dy) &
+               & -(+Ac_ms(2, ix_m+0, iy_m+0, iz_m+1)-Ac_ms(2, ix_m+0, iy_m+0, iz_m-1)) * (0.5d0 * rinv_dz) 
+        rAc(2) = +(+Ac_ms(1, ix_m+0, iy_m+0, iz_m+1)-Ac_ms(1, ix_m+0, iy_m+0, iz_m-1)) * (0.5d0 * rinv_dz) &
+               & -(+Ac_ms(3, ix_m+1, iy_m+0, iz_m+0)-Ac_ms(3, ix_m-1, iy_m+0, iz_m+0)) * (0.5d0 * rinv_dx) 
+        rAc(3) = +(+Ac_ms(2, ix_m+1, iy_m+0, iz_m+0)-Ac_ms(2, ix_m-1, iy_m+0, iz_m+0)) * (0.5d0 * rinv_dx) &
+               & -(+Ac_ms(1, ix_m+0, iy_m+1, iz_m+0)-Ac_ms(1, ix_m+0, iy_m-1, iz_m+0)) * (0.5d0 * rinv_dy) 
+        bmag_ms(:, ix_m, iy_m, iz_m) = rAc * c_light
+      end do
+    end do
+  end do
+  !$omp end parallel do
+  return
+end subroutine calc_bmag_field_3d
+!===========================================================
 subroutine calc_bmag_field()
   use Global_variables
   implicit none
@@ -661,6 +723,8 @@ subroutine calc_bmag_field()
     call calc_bmag_field_2d()
   case('2dc', '2DC')
     call calc_bmag_field_2dc()
+  case('3d', '3D')
+    call calc_bmag_field_3d()
   end select
   return
 end subroutine calc_bmag_field

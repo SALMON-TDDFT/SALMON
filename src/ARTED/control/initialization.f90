@@ -16,6 +16,10 @@
 !This file is "initialization.f90"
 !This file contains initialization of solid state part
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+
+
+
+
 module initialization
   implicit none
 contains
