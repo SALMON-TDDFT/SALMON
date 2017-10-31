@@ -42,13 +42,14 @@ contains
     use Opt_Variables
     use timer
     use salmon_math
+    use projector
     implicit none
     logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
     complex(8),intent(inout) :: zutmp(0:NL-1,zu_NB,NK_s:NK_e)
 
     integer      :: ik,ib,ia,ix,iy,iz,n,ilma,j,i
-    real(8)      :: rab(3),rab2,G2,Gd,kr
+    real(8)      :: rab(3),rab2,G2,Gd
     complex(8)   :: uVpsi
     real(8)      :: Ekin_l,Enl_l,Eh_l,Eion_l,sum_tmp(5),sum_result(5)
     real(8)      :: Eion_tmp1,Eion_tmp2,Eloc_l1,Eloc_l2
@@ -116,6 +117,8 @@ contains
     Eloc_l2=0.d0
     Enl_l=0.d0
 
+    call update_projector(kac)
+
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()
 
@@ -137,17 +140,6 @@ contains
     end do
 !$omp end do
 
-!$omp do private(ia,j,i,ix,iy,iz,kr) collapse(2)
-    do ik=NK_s,NK_e
-    do ia=1,NI
-    do j=1,Mps(ia)
-      i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-      kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-      ekr_omp(j,ia,ik)=exp(zI*kr)
-    end do
-    end do
-    end do
-!$omp end do
 
 !$omp do private(ik,ib,nabt,tpsum,i,j,ilma,uVpsi,ia) &
 !$omp   &reduction(+:Ekin_l,Enl_l) &

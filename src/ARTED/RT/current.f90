@@ -105,14 +105,15 @@ subroutine current(mode,NBtmp,zutmp)
 contains
   subroutine impl(mode, NBtmp, zutmp, jxs, jys, jzs)
     use Global_Variables
+    use projector
     implicit none
     character(2),intent(in) :: mode
     integer,intent(in)      :: NBtmp
     complex(8),intent(in)   :: zutmp(0:NL-1,NBtmp,NK_s:NK_e)
     real(8),intent(out)     :: jxs,jys,jzs
 
-    integer :: ikb,ib,ik,i,j,ix,iy,iz,ia
-    real(8) :: kr,jx,jy,jz,IaLxyz
+    integer :: ikb,ib,ik
+    real(8) :: jx,jy,jz,IaLxyz
     real(8) :: nabt(12)
 
     nabt( 1: 4) = nabx(1:4)
@@ -121,23 +122,12 @@ contains
 
     IaLxyz = 1.0 / aLxyz
 
+    call update_projector(kac)
+
     jxs=0.d0
     jys=0.d0
     jzs=0.d0
 !$omp parallel reduction(+:jxs,jys,jzs)
-
-    !Constructing nonlocal part
-!$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
-    do ik=NK_s,NK_e
-    do ia=1,NI
-    do j=1,Mps(ia)
-      i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-      kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-      ekr_omp(j,ia,ik)=exp(zI*kr)
-    end do
-    end do
-    end do
-!$omp end do
 
     if (mode == 'ZE' .or. mode == 'GS') then
 !$omp do private(ikb,ik,ib,jx,jy,jz)
@@ -264,10 +254,10 @@ contains
         iy=Jyy(j,ia); y=Ly(i)*Hy-iy*aLy
         iz=Jzz(j,ia); z=Lz(i)*Hz-iz*aLz
 
-        uVpsi =uVpsi +uV(j,ilma)*ekr_omp(j,ia,ik)  *zutmp(i)
-        uVpsix=uVpsix+uV(j,ilma)*ekr_omp(j,ia,ik)*x*zutmp(i)
-        uVpsiy=uVpsiy+uV(j,ilma)*ekr_omp(j,ia,ik)*y*zutmp(i)
-        uVpsiz=uVpsiz+uV(j,ilma)*ekr_omp(j,ia,ik)*z*zutmp(i)
+        uVpsi =uVpsi +conjg(zproj(j,ilma,ik))  *zutmp(i)
+        uVpsix=uVpsix+conjg(zproj(j,ilma,ik))*x*zutmp(i)
+        uVpsiy=uVpsiy+conjg(zproj(j,ilma,ik))*y*zutmp(i)
+        uVpsiz=uVpsiz+conjg(zproj(j,ilma,ik))*z*zutmp(i)
       end do
       uVpsi =uVpsi *Hxyz*iuV(ilma)
       uVpsix=uVpsix*Hxyz

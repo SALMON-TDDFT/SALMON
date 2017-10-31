@@ -158,7 +158,7 @@ Module Global_Variables
 
 ! omp
   integer :: NUMBER_THREADS
-  complex(8),allocatable :: ekr_omp(:,:,:)
+  complex(8),allocatable :: ekr_omp(:,:,:), zproj(:,:,:)
   complex(8),allocatable :: tpsi_omp(:,:),ttpsi_omp(:,:),htpsi_omp(:,:)
   complex(8),allocatable :: xk_omp(:,:),hxk_omp(:,:),gk_omp(:,:),pk_omp(:,:),pko_omp(:,:),txk_omp(:,:)
   integer :: NKB

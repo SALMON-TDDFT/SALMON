@@ -9,6 +9,7 @@ set(SOURCES
     preprocessor.f90
     restart.f90
     density_plot.f90
+    projector.f90
     )
 
 if (ENABLE_OPENACC)
