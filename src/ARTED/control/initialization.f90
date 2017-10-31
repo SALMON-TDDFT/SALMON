@@ -63,6 +63,8 @@ contains
     if(restart_option == 'restart') then
       if (comm_is_root(nproc_id_global)) call timer_show_current_hour('Restore...', LOG_ALL)
       call prep_restart_read
+      !AY read external input keyword for restart (hidden option now)
+      call read_external_input_for_restart
       return
     end if
 
@@ -142,6 +144,7 @@ contains
        file_dns=trim(directory)//trim(SYSname)//'_dns.out'
        file_ovlp=trim(directory)//trim(SYSname)//'_ovlp.out'
        file_nex=trim(directory)//trim(SYSname)//'_nex.out'
+       file_last_band_map=trim(directory)//trim(SYSname)//'_last_band_map.out'
        file_k_data=trim(directory) // trim(SYSname) // '_k.data'
        file_eigen_data=trim(directory) // trim(SYSname) // '_eigen.data'
        file_rt_data=trim(directory) // trim(SYSname) // '_rt.data'
@@ -181,6 +184,7 @@ contains
     call comm_bcast(file_dns,nproc_group_global)
     call comm_bcast(file_ovlp,nproc_group_global)
     call comm_bcast(file_nex,nproc_group_global)
+    call comm_bcast(file_last_band_map,nproc_group_global)
     call comm_bcast(file_k_data,nproc_group_global)
     call comm_bcast(file_eigen_data,nproc_group_global)
     call comm_bcast(file_rt_data,nproc_group_global)
@@ -608,4 +612,82 @@ contains
     call comm_bcast(velocity ,nproc_group_global)
 
   End Subroutine set_initial_velocity
+
+  !AY just temporal but need this function in future (hidden option now)
+  Subroutine read_external_input_for_restart
+    use salmon_global
+    use Global_Variables
+    use environment
+    use salmon_parallel
+    use salmon_communication
+    implicit none
+    character(1024) :: line,keyword
+
+    if(comm_is_root(nproc_id_global))then
+       open(123,file="input_for_restart.inp",status="old",err=999)
+       write(*,*) "Opened input_for_restart.inp"
+       do
+          read(123,'(a)',end=100) line
+          write(*,*) "   ", trim(line)
+          read(line,*) keyword
+
+          if(     keyword=='projection_option') then
+             read(line,*) keyword, projection_option
+             file_ovlp=trim(directory)//trim(SYSname)//'_ovlp.out'
+             file_nex=trim(directory)//trim(SYSname)//'_nex.out'
+             file_last_band_map=trim(directory)//trim(SYSname)//'_last_band_map.out'
+
+          else if(keyword=='out_projection_step') then
+             read(line,*) keyword, out_projection_step
+
+          else if(keyword=='format3d') then
+             read(line,*) keyword, format3d
+
+          else if(keyword=='out_dns_rt') then
+             read(line,*) keyword, out_dns_rt
+
+          else if(keyword=='out_dns_rt_step') then
+             read(line,*) keyword, out_dns_rt_step
+
+          else if(keyword=='omp_loop') then
+             read(line,*) keyword, omp_loop
+
+          else if(keyword=='step_velocity_scaling') then
+             read(line,*) keyword, step_velocity_scaling
+
+          else if(keyword=='temperature0_ion') then
+             read(line,*) keyword, temperature0_ion
+
+          else if(keyword=='set_ini_velocity') then
+             read(line,*) keyword, set_ini_velocity
+
+          else if(keyword=='step_update_ps') then
+             read(line,*) keyword, step_update_ps
+
+          else
+             write(*,*) "This keyword in input_for_restart.inp is not supported"
+          endif
+       enddo
+100    continue
+       close(123)
+    endif
+
+    call comm_bcast(file_ovlp,             nproc_group_global)
+    call comm_bcast(file_nex,              nproc_group_global)
+    call comm_bcast(file_last_band_map,    nproc_group_global)
+    call comm_bcast(projection_option,     nproc_group_global)
+    call comm_bcast(out_projection_step,   nproc_group_global)
+    call comm_bcast(format3d,              nproc_group_global)
+    call comm_bcast(out_dns_rt,            nproc_group_global)
+    call comm_bcast(out_dns_rt_step,       nproc_group_global)
+    call comm_bcast(omp_loop,              nproc_group_global)
+    call comm_bcast(step_velocity_scaling, nproc_group_global)
+    call comm_bcast(temperature0_ion,      nproc_group_global)
+    call comm_bcast(set_ini_velocity,      nproc_group_global)
+    call comm_bcast(step_update_ps,        nproc_group_global)
+
+999 return
+
+  End Subroutine read_external_input_for_restart
+
 end module initialization

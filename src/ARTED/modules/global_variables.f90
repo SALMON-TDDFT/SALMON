@@ -68,7 +68,7 @@ Module Global_Variables
   real(8),allocatable :: occ(:,:),wk(:)
 
 ! physical quantities
-  real(8) :: Eall,Eall0,jav(3),Tion
+  real(8) :: Eall,Eall0,Eall_GS0,jav(3),Tion
   real(8) :: Ekin,Eloc,Enl,Eh,Exc,Eion,Eelemag                      
   real(8),allocatable :: javt(:,:)
   real(8),allocatable :: Vpsl(:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)!yabana
@@ -76,7 +76,7 @@ Module Global_Variables
   real(8),allocatable :: tmass(:),tjr(:,:),tjr2(:),tmass_t(:),tjr_t(:,:),tjr2_t(:)
 !yabana
   complex(8),allocatable :: dVloc_G(:,:)
-  real(8),allocatable :: rho(:),rho_gs(:)
+  real(8),allocatable :: rho(:),rho_gs(:),rho_gs_t(:)
   real(8),allocatable :: rho_in(:,:),rho_out(:,:) !MB method
   complex(8),allocatable :: rhoe_G(:),rhoion_G(:)
   real(8),allocatable :: force(:,:),esp(:,:),force_ion(:,:)
@@ -125,7 +125,7 @@ Module Global_Variables
   character(256) :: file_epst,file_epse
   character(256) :: file_force_dR,file_j_ac
   character(256) :: file_DoS,file_band
-  character(256) :: file_dns,file_ovlp,file_nex
+  character(256) :: file_dns,file_ovlp,file_nex,file_last_band_map
   character(256) :: file_dns_gs
   character(256) :: file_dns_rt
   character(256) :: file_dns_dlt
