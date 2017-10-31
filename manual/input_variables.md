@@ -631,7 +631,7 @@ and <code>'Esin2sin'</code>, <code>'Asin2cos'</code>, <code>'Asin2cw'</code>,
 <dd>
 Momentum of impulsive perturbation.
 This valiable has the dimention of momentum, energy*time/length.
-Defalt value is <code>1d-2</code> a.u.
+Default value is <code>1d-2</code> a.u.
 </dd>
 
 <dt>amplitude1/amplitude2; <code>Real(8)</code>; 0d/3d</dt>
@@ -713,14 +713,15 @@ Unit of length can be chosen by <code>&units/unit_length</code>.
 <dt>fdtddim; <code>Character</code>; 3d</dt>
 <dd>
 Dimension of FDTD calculation for multi-scale Maxwell-Kohn-Sham method.
-Defalt value is <code>'1D'</code>.
+<code>1d,2d,3d</code> is available in the present version.
+Default value is <code>'1D'</code>. 
 </dd>
 
 <dt>twod_shape; <code>Character</code>; 3d</dt>
 <dd>
 Boundary condision of the second dimension for FDTD calculation with 
 multi-scale Maxwell-Kohn-Sham method.
-Defalt value is <code>'periodic'</code>.
+Default value is <code>'periodic'</code>.
 </dd>
 
 <dt>nx_m/ny_m/nz_m; <code>Integer</code>; 3d</dt>
@@ -734,23 +735,24 @@ Spacing of macroscopic grid points inside materials for (x/y/z)-direction.
 Unit of length can be chosen by <code>&units/unit_length</code>.
 </dd>
 
-<dt>nksplit; <code>Integer</code>; 3d</dt>
-<dd>
-Number of MPI processers that take care electron dynamics at each single macroscopic 
-point. 
-</dd>
-
-<dt>nxysplit; <code>Integer</code>; 3d</dt>
-<dd>
-Number of macroscopic points that will be taken care by a single MPI processer.
-</dd>
-
 <dt>nxvacl_m/nxvacr_m; <code>Integer</code>; 3d</dt>
 <dd>
 Number of macroscopic grid points for vacumm region.
 <code>nxvacl_m</code> gives the number for negative x-direction in front of material,
 while
 <code>nxvacr_m</code> gives the number for positive x-direction behind the material.
+</dd>
+
+<dt>nx_origin_m/ny_origin_m/nz_origin_m; <code>Integer</code>; 3d</dt>
+<dd>
+Origin coordinat of the grid points.
+Default value is <code>'1'</code>.
+</dd>
+
+<dt>file_macropoint; <code>Character</code>; 3d</dt>
+<dd>
+If this variable is specified, the coordinates of the macropoints are set from the file.
+Default value is <code>''</code>.
 </dd>
 
 </dl>
