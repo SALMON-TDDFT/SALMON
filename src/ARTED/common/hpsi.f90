@@ -99,11 +99,6 @@ contains
     use timer
     use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,iuV,Hxyz,Nlma,zproj
     use opt_variables, only: lapt,PNLx,PNLy,PNLz,PNL
-#ifdef ARTED_STENCIL_PADDING
-      use opt_variables, only: zJxyz => zKxyz
-#else
-      use opt_variables, only: zJxyz
-#endif
 #ifdef ARTED_USE_NVTX
     use nvtx
 #endif
@@ -131,7 +126,7 @@ contains
     LOG_END(LOG_HPSI_STENCIL)
 
     LOG_BEG(LOG_HPSI_PSEUDO)
-      call pseudo_pt(ik,zJxyz,zproj(:,:,ik),tpsi,htpsi)
+      call pseudo_pt(ik,zproj(:,:,ik),tpsi,htpsi)
     LOG_END(LOG_HPSI_PSEUDO)
 
     NVTX_END()
@@ -156,12 +151,11 @@ contains
     end subroutine
 
     !Calculating nonlocal part
-    subroutine pseudo_pt(ik,idx_proj,zproj,tpsi,htpsi)
-      use opt_variables, only: NP,NPI,pseudo_start_idx
+    subroutine pseudo_pt(ik,zproj,tpsi,htpsi)
+      use opt_variables, only: NPI,pseudo_start_idx,idx_proj,nprojector,idx_lma
       use global_variables, only: NI,Nps
       implicit none
       integer,    intent(in)  :: ik
-      integer,    intent(in)  :: idx_proj(NPI)
       complex(8), intent(in)  :: zproj(Nps,Nlma)
       complex(8), intent(in)  :: tpsi(0:PNL-1)
       complex(8), intent(out) :: htpsi(0:PNL-1)
@@ -180,8 +174,8 @@ contains
       end do
 
       do ia=1,NI
-      do ip=1,NP
-        i = NP*(ia-1) + ip
+      do ip=1,nprojector(ia)
+        i = idx_lma(ia) + ip
 
         ! summarize vector
         uVpsi   = 0.d0
