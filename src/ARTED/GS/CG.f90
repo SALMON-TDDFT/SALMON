@@ -37,6 +37,7 @@ Subroutine CG_ompk(iter_cg_max)
   use salmon_communication, only: comm_summation
   use timer
   use hpsi, only: hpsi_omp_KB_GS
+  use projector
   implicit none
   real(8),parameter :: delta_cg=1.d-15
   integer iter,ik,ib,ibt
@@ -48,29 +49,20 @@ Subroutine CG_ompk(iter_cg_max)
   real(8) :: esp_var_l(1:NB,1:NK)
   complex(8) :: zs
 ! sato
-  integer :: ia,j,i,ix,iy,iz
+  integer :: j,i,ix,iy,iz
   real(8) :: kr
 ! omp
   integer :: thr_id,omp_get_thread_num
   thr_id=0
 
   call timer_begin(LOG_CG)
+  call update_projector(kac)
+
   esp_var_l(:,:)=0.d0
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()
-!$omp do private(ia,j,i,ix,iy,iz,kr,ib,ibt,s,xkHxk,xkTxk,iter,uk,gkgk,xkHpk,pkHpk,ev,cx,cp,zs)
+!$omp do private(j,i,ix,iy,iz,kr,ib,ibt,s,xkHxk,xkTxk,iter,uk,gkgk,xkHpk,pkHpk,ev,cx,cp,zs)
   do ik=NK_s,NK_e
-! sato -----------------------------------------------------------------------------------------
-!    k2=sum(kAc(ik,:)**2)
-!Constructing nonlocal part
-  do ia=1,NI
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  enddo
-  enddo
-! sato -----------------------------------------------------------------------------------------
   do ib=1,NB
     select case (skip_gsortho)
     case('n')
@@ -152,6 +144,7 @@ Subroutine CG_ompb(iter_cg_max)
   use salmon_communication, only: comm_summation
   use timer
   use hpsi, only: hpsi_omp_KB_GS
+  use projector
   implicit none
   real(8),parameter :: delta_cg=1.d-15
   integer iter,ik,ib,ibt
@@ -163,30 +156,16 @@ Subroutine CG_ompb(iter_cg_max)
   real(8) :: esp_var_l(1:NB,1:NK)
   complex(8) :: zs
 ! sato
-  integer :: ia,j,i,ix,iy,iz
+  integer :: j,i,ix,iy,iz
   real(8) :: kr
 ! omp
   integer :: thr_id,omp_get_thread_num
   thr_id=0
 
   call timer_begin(LOG_CG)
+  call update_projector(kac)
   esp_var_l(:,:)=0.d0
 
-!$omp parallel 
-!$omp do private(j,i,ix,iy,iz,kr) collapse(2)
-  do ik=NK_s,NK_e
-  !    k2=sum(kAc(ik,:)**2)
-  !Constructing nonlocal part
-  do ia=1,NI
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  enddo
-  enddo
-  enddo
-!$omp end do
-!$omp end parallel 
 
 
 !$omp parallel private(thr_id)

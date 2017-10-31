@@ -109,6 +109,7 @@ end subroutine
 
 Subroutine dt_evolve_omp_KB(zu)
   use Global_Variables
+  use projector
   use timer
 #ifdef ARTED_USE_NVTX
   use nvtx
@@ -116,42 +117,19 @@ Subroutine dt_evolve_omp_KB(zu)
   use opt_variables
   implicit none
   complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
-  integer    :: ik,ib
-  integer    :: ia,j,i,ix,iy,iz
-  real(8)    :: kr
-  integer    :: thr_id,omp_get_thread_num,ikb
+  integer    :: ik,ib,ikb
+  integer    :: i
 
   NVTX_BEG('dt_evolve_omp_KB()',1)
   call timer_begin(LOG_DT_EVOLVE)
+
+
 
 !$acc data pcopy(zu, vloc) pcopyout(ekr_omp)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
-#ifdef _OPENACC
-!$acc kernels pcopy(ekr_omp) pcopyin(Mps, Jxyz,Jxx,Jyy,Jzz, kAc, Lx,Ly,Lz)
-!$acc loop collapse(2) independent gang
-#else
-  thr_id=0
-!$omp parallel private(thr_id)
-!$  thr_id=omp_get_thread_num()
-!$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
-#endif
-  do ik=NK_s,NK_e
-  do ia=1,NI
-!$acc loop independent vector(128)
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  end do
-  end do
-  end do
-#ifdef _OPENACC
-!$acc end kernels
-#else
-!$omp end parallel
-#endif
+  call update_projector(kac)
   NVTX_END()
 
 ! yabana
@@ -242,6 +220,7 @@ End Subroutine dt_evolve_omp_KB
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine dt_evolve_etrs_omp_KB(zu)
   use Global_Variables
+  use projector
   use timer
 #ifdef ARTED_USE_NVTX
   use nvtx
@@ -249,10 +228,9 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
   use opt_variables
   implicit none
   complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
-  integer    :: ik,ib
-  integer    :: ia,j,i,ix,iy,iz
-  real(8)    :: kr,dt_t
-  integer    :: thr_id,omp_get_thread_num,ikb
+  integer    :: ik,ib,ikb
+  integer    :: i
+  real(8)    :: dt_t
 
   NVTX_BEG('dt_evolve_omp_KB()',1)
   call timer_begin(LOG_DT_EVOLVE)
@@ -263,30 +241,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
-#ifdef _OPENACC
-!$acc kernels pcopy(ekr_omp) pcopyin(Mps, Jxyz,Jxx,Jyy,Jzz, kAc, Lx,Ly,Lz)
-!$acc loop collapse(2) independent gang
-#else
-  thr_id=0
-!$omp parallel private(thr_id)
-!$  thr_id=omp_get_thread_num()
-!$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
-#endif
-  do ik=NK_s,NK_e
-  do ia=1,NI
-!$acc loop independent vector(128)
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  end do
-  end do
-  end do
-#ifdef _OPENACC
-!$acc end kernels
-#else
-!$omp end parallel
-#endif
+  call update_projector(kac)
   NVTX_END()
 
 
@@ -308,30 +263,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
-#ifdef _OPENACC
-!$acc kernels pcopy(ekr_omp) pcopyin(Mps, Jxyz,Jxx,Jyy,Jzz, kAc, Lx,Ly,Lz)
-!$acc loop collapse(2) independent gang
-#else
-  thr_id=0
-!$omp parallel private(thr_id)
-!$  thr_id=omp_get_thread_num()
-!$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
-#endif
-  do ik=NK_s,NK_e
-  do ia=1,NI
-!$acc loop independent vector(128)
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  end do
-  end do
-  end do
-#ifdef _OPENACC
-!$acc end kernels
-#else
-!$omp end parallel
-#endif
+  call update_projector(kac)
   NVTX_END()
 
 !== predictor-corrector ==
@@ -419,15 +351,14 @@ End Subroutine dt_evolve_etrs_omp_KB
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine dt_evolve_omp_KB_MS(zu)
   use Global_Variables
+  use projector
   use timer
   use nvtx
   use opt_variables
   implicit none
   complex(8),intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
-  integer    :: ik,ib
-  integer    :: ia,j,i,ix,iy,iz
-  real(8)    :: kr
-  integer    :: thr_id,omp_get_thread_num,ikb
+  integer    :: ik,ib,ikb
+  integer    :: i
 
   NVTX_BEG('dt_evolve_omp_KB_MS()',1)
   call timer_begin(LOG_DT_EVOLVE)
@@ -436,29 +367,7 @@ Subroutine dt_evolve_omp_KB_MS(zu)
 
 !Constructing nonlocal part ! sato
   NVTX_BEG('dt_evolve_omp_KB_MS(): nonlocal part',2)
-#ifdef _OPENACC
-!$acc kernels pcopy(ekr_omp) pcopyin(Mps, Jxyz,Jxx,Jyy,Jzz, kAc, Lx,Ly,Lz)
-!$acc loop collapse(2) independent gang
-#else
-  thr_id=0
-!$omp parallel private(thr_id)
-!$  thr_id=omp_get_thread_num()
-!$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
-#endif
-  do ik=NK_s,NK_e
-  do ia=1,NI
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  end do
-  end do
-  end do
-#ifdef _OPENACC
-!$acc end kernels
-#else
-!$omp end parallel
-#endif
+  call update_projector(kac)
 
 ! yabana
   select case(functional)

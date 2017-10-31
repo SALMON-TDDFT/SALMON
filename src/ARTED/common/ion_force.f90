@@ -41,13 +41,14 @@ contains
     use salmon_communication, only: comm_summation
     use timer
     use salmon_math
+    use projector
     implicit none
     logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
     complex(8),intent(inout) :: zutmp(NL,zu_NB,NK_s:NK_e)
 
     integer      :: ia,ib,ilma,ik,ix,iy,iz,n,j,i
-    real(8)      :: rab(3),rab2,Gvec(3),G2,Gd,ftmp_l(3,NI),kr
+    real(8)      :: rab(3),rab2,Gvec(3),G2,Gd,ftmp_l(3,NI)
     complex(8)   :: uVpsi,duVpsi(3)
     real(8)      :: ftmp_l_kl(3,NI,NK_s:NK_e)
 
@@ -81,6 +82,7 @@ contains
 
     ftmp_l=0.d0
     ftmp_l_kl=0.d0
+    call update_projector(kac)
 
 !$omp parallel private(ia) reduction(+:ftmp_l, ftmp_l_kl)
 
@@ -101,18 +103,6 @@ contains
 !$omp end do
     end do
 
-    !nonlocal
-!$omp do private(ik,j,i,ix,iy,iz,kr) collapse(2)
-    do ik=NK_s,NK_e
-    do ia=1,NI
-    do j=1,Mps(ia)
-      i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-      kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-      ekr_omp(j,ia,ik)=exp(zI*kr)
-    end do
-    end do
-    end do
-!$omp end do
 
 !$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi) collapse(2)
     do ik=NK_s,NK_e
