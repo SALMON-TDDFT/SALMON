@@ -503,6 +503,7 @@ subroutine prep_backup_values(is_backup)
   BACKUP(ekr)
 
   BACKUP(ekr_omp)
+  BACKUP(zproj)
   BACKUP(tpsi_omp)
   BACKUP(ttpsi_omp)
   BACKUP(htpsi_omp)

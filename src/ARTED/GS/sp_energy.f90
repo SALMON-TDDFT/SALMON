@@ -23,6 +23,7 @@ Subroutine sp_energy_omp
   use salmon_communication, only: comm_summation
   use timer
   use hpsi, only: hpsi_omp_KB_GS
+  use projector
   implicit none
   integer :: ik,ib
   real(8) :: esp_l(NB,NK)
@@ -35,18 +36,11 @@ Subroutine sp_energy_omp
   call timer_begin(LOG_SP_ENERGY)
   esp_l=0.d0
   thr_id=0
+  call update_projector(kac)
 !$omp parallel private(thr_id)
 !$  thr_id=omp_get_thread_num()
 !$omp do private(ik,ia,j,i,ix,iy,iz,kr,ib)
   do ik=NK_s,NK_e
-!Constructing nonlocal part ! sato
-  do ia=1,NI
-    do j=1,Mps(ia)
-      i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-      kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-      ekr_omp(j,ia,ik)=exp(zI*kr)
-    enddo
-  enddo
     do ib=1,NB
       tpsi_omp(1:NL,thr_id)=zu_GS(1:NL,ib,ik)
       call hpsi_omp_KB_GS(ik,tpsi_omp(:,thr_id),ttpsi_omp(:,thr_id),htpsi_omp(:,thr_id))

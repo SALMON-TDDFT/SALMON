@@ -24,11 +24,11 @@ Subroutine diag_omp
   use timer
   use omp_lib
   use hpsi, only: hpsi_omp_KB_GS
+  use projector
   implicit none
   integer,parameter :: matz=1
   integer           :: ik,ib1,ib2
-  integer           :: ia,j,i,ix,iy,iz,thr_id
-  real(8)           :: kr
+  integer           :: thr_id
 
 !LAPACK
   integer                :: lwork,info
@@ -46,21 +46,7 @@ Subroutine diag_omp
   thr_id=0
 
   call timer_begin(LOG_DIAG)
-!$omp parallel private(thr_id)
-!$ thr_id = omp_get_thread_num()
-!$omp do private(ia,j,i,ix,iy,iz,kr) collapse(2)
-!Constructing nonlocal part ! sato
-  do ik=NK_s,NK_e
-  do ia=1,NI
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  end do
-  end do
-  end do
-!$omp end do
-!$omp end parallel
+  call update_projector(kac)
 
 ! FIXME: For Fujitsu's parallelized BLAS routines, the application crashes when
 !        invoking a routine under OpenMP parallelized loop.

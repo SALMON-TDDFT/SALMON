@@ -97,7 +97,7 @@ contains
 
   subroutine hpsi_omp_KB_base(ik,tpsi,htpsi,ttpsi)
     use timer
-    use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,uV,iuV,Hxyz,ekr_omp,Nlma,a_tbl
+    use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,iuV,Hxyz,Nlma,a_tbl,zproj
     use opt_variables, only: lapt,PNLx,PNLy,PNLz,PNL
 #ifdef ARTED_USE_NVTX
     use nvtx
@@ -169,13 +169,13 @@ contains
         uVpsi=0.d0
         do j=1,Mps(ia)
           i=zJxyz(j,ia)
-          uVpsi=uVpsi+uV(j,ilma)*ekr_omp(j,ia,ik)*tpsi(i)
+          uVpsi=uVpsi+conjg(zproj(j,ilma,ik))*tpsi(i)
         end do
         uVpsi=uVpsi*Hxyz*iuV(ilma)
 !dir$ ivdep
         do j=1,Mps(ia)
           i=zJxyz(j,ia)
-          htpsi(i)=htpsi(i)+conjg(ekr_omp(j,ia,ik))*uVpsi*uV(j,ilma)
+          htpsi(i)=htpsi(i)+zproj(j,ilma,ik)*uVpsi
         end do
       end do
     end subroutine

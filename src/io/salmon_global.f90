@@ -233,6 +233,7 @@ module salmon_global
   integer        :: step_update_ps
   real(8)        :: temperature0_ion
   character(1)   :: set_ini_velocity
+  character(256) :: file_ini_velocity
 
 !! &group_fundamental
   integer        :: iditerybcg

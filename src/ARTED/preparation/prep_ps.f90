@@ -249,7 +249,7 @@ Subroutine prep_ps_periodic(property)
   else if(property == 'not_initial') then
      narray=ubound(a_tbl,1)
      if(Nlma.gt.narray .or. flag_alloc1)then
-        deallocate(a_tbl,uV,duV,iuV)
+        deallocate(a_tbl,uV,duV,iuV,zproj)
         flag_alloc2=.true.
      else
         flag_alloc2=.false.
@@ -257,6 +257,7 @@ Subroutine prep_ps_periodic(property)
   endif
   if(flag_alloc2)then
      allocate(a_tbl(Nlma),uV(Nps,Nlma),iuV(Nlma),duV(Nps,Nlma,3))
+     allocate(zproj(Nps,Nlma,NK_s:NK_e))
   endif
 
   lma=0

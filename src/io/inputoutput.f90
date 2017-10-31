@@ -393,7 +393,8 @@ contains
       & step_velocity_scaling, &
       & step_update_ps, &
       & temperature0_ion, &
-      & set_ini_velocity
+      & set_ini_velocity, &
+      & file_ini_velocity
 
     namelist/group_fundamental/ &
       & iditerybcg, &
@@ -656,6 +657,7 @@ contains
     step_update_ps        = 1
     temperature0_ion      = 298.15d0
     set_ini_velocity      = 'n'
+    file_ini_velocity     = 'none'
 !! == default for &group_fundamental
     iditerybcg             = 20
     iditer_nosubspace_diag = 10
@@ -978,6 +980,7 @@ contains
     call comm_bcast(step_update_ps         ,nproc_group_global)
     call comm_bcast(temperature0_ion       ,nproc_group_global)
     call comm_bcast(set_ini_velocity       ,nproc_group_global)
+    call comm_bcast(file_ini_velocity      ,nproc_group_global)
 !! == bcast for &group_fundamental
     call comm_bcast(iditerybcg            ,nproc_group_global)
     call comm_bcast(iditer_nosubspace_diag,nproc_group_global)
@@ -1500,6 +1503,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_update_ps', step_update_ps
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature0_ion', temperature0_ion
       write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_velocity', set_ini_velocity
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_ini_velocity', trim(file_ini_velocity)
 
       if(inml_group_fundamental >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_fundamental', inml_group_fundamental

@@ -486,9 +486,11 @@ contains
     if(restart_option == 'new') then
        if(set_ini_velocity=='y' .or. step_velocity_scaling>=1) &
        call set_initial_velocity
+       if(set_ini_velocity=='r') call read_initial_velocity
     endif
 
   End Subroutine init_md
+
 
   Subroutine set_initial_velocity
     use salmon_global
@@ -577,6 +579,34 @@ contains
   End Subroutine set_initial_velocity
   
   
+  Subroutine read_initial_velocity
+    use salmon_global
+    use Global_Variables
+    use salmon_parallel
+    use salmon_communication
+    use salmon_math
+    implicit none
+    integer :: ia,ixyz
+
+    if(comm_is_root(nproc_id_global)) then
+       write(*,*) "Read initial velocity for MD"
+       write(*,*) "file_ini_velocity=", trim(file_ini_velocity)
+       if(file_ini_velocity(1:4)=="none") then
+          write(*,*) "set file name in file_ini_velocity keyword"
+          call end_parallel
+          stop
+       endif
+
+       open(411, file=file_ini_velocity, status="old")
+       do ia=1,NI
+          read(411,*) (velocity(ixyz,ia),ixyz=1,3)
+       enddo
+       close(411)
+    endif
+    call comm_bcast(velocity,nproc_group_global)
+
+
+  End Subroutine read_initial_velocity
   
   subroutine set_nksplit_nxysplit()
     use Global_Variables
@@ -816,8 +846,5 @@ contains
       return
   end subroutine set_macropoint_from_file
 
-  
-  
-    
-    
+
 end module initialization
