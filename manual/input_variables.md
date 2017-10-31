@@ -1024,8 +1024,21 @@ Default is <code>298.15</code>.
 </dd>
 <dt>set_ini_velocity; <code>Character</code>; 3d</dt>
 <dd>
-Flag of generating initial velocity (Maxwell-Bortzman distribution).
+Initial velocities are set.
 Default is <code>n</code>.
+<ul>
+<li>
+<code>y</code>: Generate initial velocity with Maxwell-Bortzman distribution.
+</li>
+<li>
+<code>r</code>: Read initial velocity from file specified by keyword of <code>file_ini_velocity</code>. This is, for example, used for restarting MD from the previous run. The last atomic coordinates and velocities are printed in <code>SYSname</code>_trj.xyz in that run. (atomic coordinate also should be copied from that and put in the next input file for restart)
+</li>
+</ul>
+</dd>
+<dt>file_ini_velocity; <code>Character</code>; 3d</dt>
+<dd>
+File name for initial velocities. This is read when <code>set_ini_velocity</code> is <code>'r'</code>. The format is simply vx(iatom) vy(iatom) vz(iatom) in each line. The order of atoms must be the same as the given coordinates in the main input file(atomic unit). 
+Default is <code>none</code>.
 </dd>
 
 
