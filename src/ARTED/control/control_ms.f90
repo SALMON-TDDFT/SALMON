@@ -602,7 +602,7 @@ contains
         & "E_x[au]", "E_y[au]", "E_z[au]", &
         & "B_x[au]", "B_y[au]", "B_z[au]", &
         & "Jm_x[au]", "Jm_y[au]", "Jm_z[au]", &
-        & "Eabs[au/cell]", &
+        & "Eex[au/cell]", &
         & "Eabs[au/cell]", &
         & "Eemf[au/cell]"
       
