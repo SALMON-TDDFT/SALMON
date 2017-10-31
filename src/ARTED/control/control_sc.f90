@@ -69,8 +69,7 @@ subroutine tddft_sc
   end if
 
 !====RT calculation============================
-
-  call init_Ac
+  if ( .not. (restart_option == 'restart')) call init_Ac
   iter=entrance_iter+1
   do ixyz=1,3
     kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter,ixyz)
