@@ -418,11 +418,10 @@ subroutine tddft_maxwell_ms
 
 
   if(comm_is_root(nproc_id_tdks))then
-    write (fmt,"(A,I2,A)")"(",(nmacro_e-nmacro_s+1)*6+1,"e26.16e3)"
     open(943,file=file_ac_ms ,position = position_option)
     write(943,"(A,2x,I6,2x,A,2x,I6)")"# Data of macro points",nmacro_s,"-",nmacro_e
     do iter=0,Nt
-       write(943,fmt)iter*dt,(data_local_Ac(1:3,imacro,iter) &
+       write(943,"(*(ES22.14E3:1X))")iter*dt,(data_local_Ac(1:3,imacro,iter) &
             ,data_local_jm(1:3,imacro,iter),imacro = nmacro_s,nmacro_e)
     end do
     close(943)
