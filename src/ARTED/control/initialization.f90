@@ -737,12 +737,12 @@ contains
       ny_m = 1; ny_origin_m = 1;
       nz_m = 1; nz_origin_m = 1;
     
-    case("2D", "2d")
-      nmacro = nx_m * ny_m
-      nz_m = 1; nz_origin_m = 1;
-    
-    case("3D", "3d")
-      nmacro = nx_m * ny_m * nz_m
+    ! case("2D", "2d")
+    !   nmacro = nx_m * ny_m
+    !   nz_m = 1; nz_origin_m = 1;
+    ! 
+    ! case("3D", "3d")
+    !   nmacro = nx_m * ny_m * nz_m
     
     case default
       call err_finalize("Unknown FDTDdim:" // trim(FDTDdim))
