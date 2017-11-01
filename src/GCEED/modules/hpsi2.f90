@@ -87,65 +87,21 @@ if(iflag_ps.eq.1)then
     end do
   end if
 
-  if(nproc_Mxin_mul==1)then
-    do iatom=1,MI
-      ik=Kion(iatom)
-      loop_lm : do lm=1,(Mlps(ik)+1)**2
-        if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm
-        sumbox=0.d0
-        if(iwk_size>=1.and.iwk_size<=2)then
+  do iatom=1,MI
+    ik=Kion(iatom)
+    loop_lm2 : do lm=1,(Mlps(ik)+1)**2
+      if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm2
+      sumbox=0.d0
 !$OMP parallel do reduction( + : sumbox )
-          do jj=1,max_jMps_l(iatom)
-            sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
-                     tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
-                          Jxyz(3,jMps_l(jj,iatom),iatom))
-          end do
-        else if(iwk_size>=11.and.iwk_size<=12)then
-!$OMP parallel do reduction( + : sumbox )
-          do jj=1,max_jMps_l_s(iatom)
-            sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*  &
-                     tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),  &
-                          Jxyz(3,jMps_l_s(jj,iatom),iatom))
-          end do
-        end if
-        uVpsibox2(lm,iatom)=sumbox*Hvol/uVu(lm,iatom)
-      end do loop_lm
-    end do
-  else
-    do iatom=1,MI
-      ik=Kion(iatom)
-      loop_lm2 : do lm=1,(Mlps(ik)+1)**2
-        if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm2
-        sumbox=0.d0
-        if(iwk_size>=1.and.iwk_size<=2)then
-!$OMP parallel do reduction( + : sumbox )
-          do jj=1,max_jMps_l(iatom)
-            sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
-                     tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
-                          Jxyz(3,jMps_l(jj,iatom),iatom))
-          end do
-        else if(iwk_size>=11.and.iwk_size<=12)then
-!$OMP parallel do reduction( + : sumbox )
-          do jj=1,max_jMps_l_s(iatom)
-            sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*  &
-                     tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),  &
-                          Jxyz(3,jMps_l_s(jj,iatom),iatom))
-          end do
-        end if
-        uVpsibox(lm,iatom)=sumbox*Hvol/uVu(lm,iatom)
-      end do loop_lm2
-    end do
-  end if
+        do jj=1,Mps(iatom)
+          sumbox=sumbox+uV(jj,lm,iatom)*  &
+                   tpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))
+        end do
+      uVpsibox(lm,iatom)=sumbox*Hvol/uVu(lm,iatom)
+    end do loop_lm2
+  end do
 
-  if(nproc_Mxin_mul==1)then
-    continue
-  else
-    if(iwk_size>=1.and.iwk_size<=2)then
-      call comm_summation(uVpsibox,uVpsibox2,maxlm*MI,nproc_group_orbital)
-    else if(iwk_size>=11.and.iwk_size<=12)then
-      call comm_summation(uVpsibox,uVpsibox2,maxlm*MI,nproc_group_h)
-    end if
-  end if
+  call comm_summation(uVpsibox,uVpsibox2,maxlm*MI,nproc_group_orbital)
 
 end if
 
@@ -174,29 +130,16 @@ end if
 
 ! Pseudopotential 2 (non-local)
 if(iflag_ps==1) then
-  if(iwk_size>=1.and.iwk_size<=2)then
-    do iatom=1,MI
-      ik=Kion(iatom)
-      do jj=1,max_jMps_l(iatom)
-        do lm=1,(Mlps(ik)+1)**2
-          htpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom))= &
-            htpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom)) + &
-            uVpsibox2(lm,iatom)*uV(jMps_l(jj,iatom),lm,iatom)
-        end do
+  do iatom=1,MI
+    ik=Kion(iatom)
+    do jj=1,Mps(iatom)
+      do lm=1,(Mlps(ik)+1)**2
+        htpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))= &
+          htpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom)) + &
+          uVpsibox2(lm,iatom)*uV(jj,lm,iatom)
       end do
     end do
-  else if(iwk_size>=11.and.iwk_size<=12)then
-    do iatom=1,MI
-      ik=Kion(iatom)
-      do jj=1,max_jMps_l_s(iatom)
-        do lm=1,(Mlps(ik)+1)**2
-          htpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),Jxyz(3,jMps_l_s(jj,iatom),iatom))= &
-            htpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),Jxyz(3,jMps_l_s(jj,iatom),iatom)) + &
-            uVpsibox2(lm,iatom)*uV(jMps_l_s(jj,iatom),lm,iatom)
-        end do
-      end do
-    end do
-  end if
+  end do
 end if
 
 wk2=0.d0
@@ -301,10 +244,9 @@ if(iflag_ps.eq.1)then
       if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm2
       sumbox=0.d0
 !$OMP parallel do reduction( + : sumbox )
-      do jj=1,max_jMps_l(iatom)
-        sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
-                 tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
-                      Jxyz(3,jMps_l(jj,iatom),iatom))
+      do jj=1,Mps(iatom)
+        sumbox=sumbox+uV(jj,lm,iatom)*  &
+                 tpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))
       end do
       uVpsibox(lm,iatom)=sumbox*Hvol/uVu(lm,iatom)
     end do loop_lm2
@@ -317,11 +259,11 @@ end if
 if(iflag_ps==1) then
   do iatom=1,MI
     ik=Kion(iatom)
-    do jj=1,max_jMps_l(iatom)
+    do jj=1,Mps(iatom)
       do lm=1,(Mlps(ik)+1)**2
-        htpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom))= &
-          htpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom)) + &
-          uVpsibox2(lm,iatom)*uV(jMps_l(jj,iatom),lm,iatom)
+        htpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom))= &
+          htpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom)) + &
+          uVpsibox2(lm,iatom)*uV(jj,lm,iatom)
       end do
     end do
   end do

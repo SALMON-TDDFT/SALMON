@@ -160,17 +160,18 @@ real(8) :: rLsize(3,maxntmg)    ! size of the box
 integer :: maxMps
 
 ! Pseudopotential
-integer,allocatable :: Jxyz(:,:,:),Mps(:),Jxxyyzz(:,:,:)
+integer,allocatable :: Jxyz_all(:,:,:),Mps_all(:),Jxxyyzz_all(:,:,:)
+integer,allocatable :: Mps(:)
 integer,allocatable :: Jxyz_tmp1(:,:,:)
 integer,allocatable :: Jxyz_tmp2(:,:,:)
 integer,allocatable :: Jxxyyzz_tmp1(:,:,:)
 integer,allocatable :: Jxxyyzz_tmp2(:,:,:)
-integer,allocatable :: Jxxyyzz2nd(:,:,:)
+integer,allocatable :: Jxxyyzz(:,:,:)
 integer :: Mlmps
 integer :: Mlps(maxMKI),Lref(maxMKI)
 real(8),allocatable :: Vpsl(:,:,:)                 ! Local pseudopotential
 real(8),allocatable :: Vpsl_atom(:,:,:,:)
-real(8),allocatable :: uV(:,:,:),uVu(:,:)          ! Non-local
+real(8),allocatable :: uV_all(:,:,:),uVu(:,:)          ! Non-local
 
 real(8),allocatable :: rocc(:,:)                    ! Occupation number
 real(8),allocatable :: psi(:,:,:,:,:)              ! Single particle orbitals
@@ -213,14 +214,6 @@ integer :: iwksta(3),iwkend(3),iwknum(3)
 integer :: iwk2sta(3),iwk2end(3),iwk2num(3)
 integer :: iwk3sta(3),iwk3end(3),iwk3num(3)
 integer :: iwk_size
-
-integer :: numcoo
-integer,allocatable :: jMps_l(:,:)
-integer,allocatable :: max_jMps_l(:)
-
-integer :: numcoo_s
-integer,allocatable :: jMps_l_s(:,:)
-integer,allocatable :: max_jMps_l_s(:)
 
 integer :: maxlm
 
@@ -334,22 +327,12 @@ character(100):: rtELFOutFile
 character(100):: file_Projection
 character(20):: fileNumber
 
-integer,allocatable :: Jxyz2nd(:,:,:)
-real(8),allocatable :: uV2nd(:,:,:)
+integer,allocatable :: Jxyz(:,:,:)
+real(8),allocatable :: uV(:,:,:)
 
 integer,allocatable :: numatom_ps(:,:,:)
 integer,allocatable :: iatomnum_ps(:,:,:,:)
-integer,allocatable :: Jxyz_all(:,:)
 integer :: maxMps_all
-integer,allocatable :: Mps3rd(:,:,:,:)
-
-integer :: jamax
-integer,allocatable :: Jxyz_all_2nd(:,:)
-integer,allocatable :: iatomnum_ps_2nd(:)
-integer,allocatable :: Mps3rd_2nd(:)
-integer,allocatable :: jja(:,:)
-integer :: MImax
-integer,allocatable :: numatom_ps_2nd(:)
 
 real(8), allocatable :: rho_n(:,:,:)
 real(8), allocatable :: Vh_n(:,:,:)

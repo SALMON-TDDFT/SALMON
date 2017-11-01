@@ -39,10 +39,8 @@ complex(8) :: tpsi_out(iwk2sta(1):iwk2end(1)+1,iwk2sta(2):iwk2end(2),iwk2sta(3):
 real(8) :: tVlocal(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),numspin)
 
 integer :: ist,ix,iy,iz,jj,iatom,lm,ikoa,iob,j,ind
-integer :: ja
 integer :: nn,isub
 integer :: jspin
-integer :: iix,iiy,iiz
 
 complex(8) :: sumbox
 
@@ -174,98 +172,44 @@ if(iflag_ps.eq.1)then
 
   do iob=1,iobmax
 !$OMP parallel
-    if(nproc_Mxin_mul==1)then
 !$OMP do private(iatom,ikoa,lm,jj,sumbox) schedule(static, 1)
-      do iatom=1,MI
-        ikoa=Kion(iatom)
-        loop_lm : do lm=1,(Mlps(ikoa)+1)**2
-          if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm
-          sumbox=0.d0
-          do jj=1,max_jMps_l(iatom)
-            sumbox=sumbox+uV2nd(jj,lm,iatom)*tpsi(Jxyz2nd(1,jj,iatom),Jxyz2nd(2,jj,iatom),Jxyz2nd(3,jj,iatom),iob,1)
-          end do
-          uVpsibox4(lm,iatom,iob,1)=sumbox*Hvol/uVu(lm,iatom)
-        end do loop_lm
-      end do
+    do iatom=1,MI
+      ikoa=Kion(iatom)
+      loop_lm2 : do lm=1,(Mlps(ikoa)+1)**2
+        if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm2
+        sumbox=0.d0
+        do jj=1,Mps(iatom)
+          sumbox=sumbox+uV(jj,lm,iatom)*  &
+                   tpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,1)
+        end do
+        uVpsibox3(lm,iatom,iob,1)=sumbox*Hvol/uVu(lm,iatom)
+      end do loop_lm2
+    end do
 !$OMP end do nowait
-    else
-!$OMP do private(iatom,ikoa,lm,jj,sumbox) schedule(static, 1)
-      do iatom=1,MI
-        ikoa=Kion(iatom)
-        loop_lm2 : do lm=1,(Mlps(ikoa)+1)**2
-          if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm2
-          sumbox=0.d0
-          if(iwk_size>=1.and.iwk_size<=2)then
-            do jj=1,max_jMps_l(iatom)
-              sumbox=sumbox+uV(jMps_l(jj,iatom),lm,iatom)*  &
-                       tpsi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
-                            Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
-            end do
-          else if(iwk_size>=11.and.iwk_size<=12)then
-            do jj=1,max_jMps_l_s(iatom)
-              sumbox=sumbox+uV(jMps_l_s(jj,iatom),lm,iatom)*  &
-                       tpsi(Jxyz(1,jMps_l_s(jj,iatom),iatom),Jxyz(2,jMps_l_s(jj,iatom),iatom),  &
-                            Jxyz(3,jMps_l_s(jj,iatom),iatom),iob,1)
-            end do
-          end if
-          uVpsibox3(lm,iatom,iob,1)=sumbox*Hvol/uVu(lm,iatom)
-        end do loop_lm2
-      end do
-!$OMP end do nowait
-    end if
 !$OMP end parallel
   end do
 
-  if(nproc_Mxin_mul/=1)then
-    if(iwk_size>=1.and.iwk_size<=2)then
-      elp3(705)=get_wtime()
-      call comm_summation(uVpsibox3,uVpsibox4,maxlm*MI*iobmax,nproc_group_orbital)
-      elp3(706)=get_wtime()
-      elp3(744)=elp3(744)+elp3(706)-elp3(705)
-    else if(iwk_size>=11.and.iwk_size<=12)then
-      call comm_summation(uVpsibox3,uVpsibox4,maxlm*MI*iobmax,nproc_group_h)
-    end if
-  end if
+  elp3(705)=get_wtime()
+  call comm_summation(uVpsibox3,uVpsibox4,maxlm*MI*iobmax,nproc_group_orbital)
+  elp3(706)=get_wtime()
+  elp3(744)=elp3(744)+elp3(706)-elp3(705)
 
 end if
 
 ! Pseudopotential 2 (non-local)
 if(iflag_ps==1) then
-  if(ikind_eext==0.and.icalcforce==0.and.iflag_md==0)then
-!$OMP parallel
-    do iob=1,iobmax
-!$OMP do private(jj,iatom,ja,iix,iiy,iiz,ikoa,lm)
-      do jj=1,maxMps_all
-        iix=Jxyz_all(1,jj)
-        iiy=Jxyz_all(2,jj)
-        iiz=Jxyz_all(3,jj)
-        do iatom=1,numatom_ps_2nd(jj)
-          ja=jja(iatom,jj)
-          ikoa=Kion(iatomnum_ps_2nd(ja))
-          do lm=1,(Mlps(ikoa)+1)**2
-          htpsi(iix,iiy,iiz,iob,1)= &
-            htpsi(iix,iiy,iiz,iob,1) + &
-            uVpsibox4(lm,iatomnum_ps_2nd(ja),iob,1)*uV(Mps3rd_2nd(ja),lm,iatomnum_ps_2nd(ja))
-          end do
-        end do
-      end do
-!$OMP end do nowait
-    end do
-!$OMP end parallel
-  else
-    do iob=1,iobmax
-      do iatom=1,MI
-      ikoa=Kion(iatom)
-        do jj=1,max_jMps_l(iatom)
-          do lm=1,(Mlps(ikoa)+1)**2
-            htpsi(Jxyz2nd(1,jj,iatom),Jxyz2nd(2,jj,iatom),Jxyz2nd(3,jj,iatom),iob,1)= &
-              htpsi(Jxyz2nd(1,jj,iatom),Jxyz2nd(2,jj,iatom),Jxyz2nd(3,jj,iatom),iob,1) + &
-                uVpsibox4(lm,iatom,iob,1)*uV2nd(jj,lm,iatom)
-          end do
+  do iob=1,iobmax
+    do iatom=1,MI
+    ikoa=Kion(iatom)
+      do jj=1,Mps(iatom)
+        do lm=1,(Mlps(ikoa)+1)**2
+          htpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,1)= &
+            htpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,1) + &
+              uVpsibox4(lm,iatom,iob,1)*uV(jj,lm,iatom)
         end do
       end do
     end do
-  end if
+  end do
 end if
 
 if(isub==1)then
