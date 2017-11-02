@@ -107,10 +107,9 @@ do iatom=1,MI
       if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm2
       rbox1=0.d0
 !$OMP parallel do reduction( + : rbox1 )
-      do jj=1,max_jMps_l(iatom)
-        rbox1=rbox1+uV(jMps_l(jj,iatom),lm,iatom)*  &
-                       psi(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),  &
-                           Jxyz(3,jMps_l(jj,iatom),iatom),iob,1)
+      do jj=1,Mps(iatom)
+        rbox1=rbox1+uV(jj,lm,iatom)*  &
+                       psi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,1)
       end do
       uVpsibox(iob,1,lm,iatom)=rbox1*Hvol/uVu(lm,iatom)
     end do loop_lm2
@@ -124,10 +123,10 @@ do iatom=1,MI
   do j2=1,3
     rbox1=0.d0
     do iob=1,iobnum
-      do jj=1,max_jMps_l(iatom)
+      do jj=1,Mps(iatom)
         do lm=1,(Mlps(ikoa)+1)**2
-          rbox1=rbox1-2.d0*rocc(iob,1)*uV(jMps_l(jj,iatom),lm,iatom)*   &
-                  rgrad_wk(Jxyz(1,jMps_l(jj,iatom),iatom),Jxyz(2,jMps_l(jj,iatom),iatom),Jxyz(3,jMps_l(jj,iatom),iatom),iob,1,j2)* &
+          rbox1=rbox1-2.d0*rocc(iob,1)*uV(jj,lm,iatom)*   &
+                  rgrad_wk(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,1,j2)* &
                   uVpsibox2(iob,1,lm,iatom)
         end do
       end do

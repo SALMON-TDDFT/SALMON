@@ -63,15 +63,16 @@ else
   Nr=Nr0
 end if
 
+allocate(Mps_all(1:MI))
 allocate(Mps(1:MI))
 
 maxMps=int(4.d0/3.d0*Pi*(rmaxRps+4.d0*maxval(Hgs(:)))**3/Hvol)
 Mlmps=(maxval(Mlps)+1)**2
 
-allocate(Jxyz(1:3,1:maxMps,1:MI))
+allocate(Jxyz_all(1:3,1:maxMps,1:MI))
 allocate(Jxyz_tmp1(1:3,1:maxMps,1:MI))
 allocate(Jxyz_tmp2(1:3,1:maxMps,1:MI))
-allocate(uV(maxMps,Mlmps,MI), uVu(Mlmps,MI))
+allocate(uV_all(maxMps,Mlmps,MI), uVu(Mlmps,MI))
 
 allocate(rhopp(0:Nr,MKI))
 allocate(vpp(0:Nr,0:Nlps,MKI))
@@ -83,18 +84,12 @@ allocate(ur(maxMps,Nlmps))
 
 allocate(rho_core(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 
-allocate(jMps_l(maxMps,MI))
-allocate(max_jMps_l(MI))
-
-allocate(jMps_l_s(maxMps,MI))
-allocate(max_jMps_l_s(MI))
-
-allocate(Jxyz2nd(3,maxMps,MI))
-allocate(uV2nd(maxMps,Mlmps,MI))
+allocate(Jxyz(3,maxMps,MI))
+allocate(uV(maxMps,Mlmps,MI))
 allocate(numatom_ps(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 
+allocate(Jxxyyzz_all(1:3,1:maxMps,1:MI))
 allocate(Jxxyyzz(1:3,1:maxMps,1:MI))
-allocate(Jxxyyzz2nd(1:3,1:maxMps,1:MI))
 
 if(iflag_ps==1) then
   allocate (uVpsibox_c(1:maxlm,1:MI))
@@ -107,9 +102,10 @@ end subroutine allocate_psl
 !==================================================================================================
 subroutine deallocate_psl
 
-deallocate(Jxyz,Jxyz_tmp1,Jxyz_tmp2)
+deallocate(Jxyz_all,Jxyz_tmp1,Jxyz_tmp2)
+deallocate(Mps_all)
 deallocate(Mps)
-deallocate(uV,uVu)
+deallocate(uV_all,uVu)
 
 deallocate(rhopp,vpp,uppr,uVnl)
 deallocate(ur)
@@ -117,14 +113,11 @@ deallocate(rad_psl)
 
 deallocate(rho_core)
 
-deallocate(jMps_l,max_jMps_l)
-deallocate(jMps_l_s,max_jMps_l_s)
-
-deallocate(Jxyz2nd,uV2nd)
+deallocate(Jxyz,uV)
 deallocate(numatom_ps)
 
+deallocate(Jxxyyzz_all)
 deallocate(Jxxyyzz)
-deallocate(Jxxyyzz2nd)
 
 if(iflag_ps==1) then
   deallocate (uVpsibox_c,uVpsibox2_c)
