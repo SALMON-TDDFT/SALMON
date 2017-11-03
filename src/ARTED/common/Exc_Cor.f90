@@ -50,7 +50,6 @@ Subroutine Exc_Cor_PZ()
   integer :: i
   real(8) :: trho,e_xc,de_xc_drho
 
-!$acc kernels
 !  call rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
   rho_s=rho*0.5d0
   if(flag_nlcc)rho_s = rho_s + 0.5d0*rho_nlcc
@@ -61,7 +60,6 @@ Subroutine Exc_Cor_PZ()
     Eexc(i)=e_xc*trho
     Vexc(i)=e_xc+trho*de_xc_drho
   enddo
-!$acc end kernels
   return
 End Subroutine Exc_Cor_PZ
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
@@ -72,7 +70,6 @@ Subroutine Exc_Cor_PZM()
   integer :: i
   real(8) :: trho,e_xc,de_xc_drho
 
-!$acc kernels
 !  call rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
   rho_s=rho*0.5d0
   if(flag_nlcc)rho_s = rho_s + 0.5d0*rho_nlcc
@@ -83,7 +80,6 @@ Subroutine Exc_Cor_PZM()
     Eexc(i)=e_xc*trho
     Vexc(i)=e_xc+trho*de_xc_drho
   enddo
-!$acc end kernels
   return
 End Subroutine Exc_Cor_PZM
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120------130
@@ -465,7 +461,6 @@ SUBROUTINE fec_xz(x,z,alp,a,b,c,d,e,f,fxz,dfxz_dx,dfxz_dz)
   end subroutine
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine PZxc(trho,exc,dexc_drho)
-!$acc routine seq
   implicit none
   real(8),parameter :: Pi=3.141592653589793d0
   real(8),parameter :: gammaU=-0.1423d0,beta1U=1.0529d0
@@ -495,7 +490,6 @@ Subroutine PZxc(trho,exc,dexc_drho)
 End Subroutine PZxc
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine PZMxc(trho,exc,dexc_drho)
-!$acc routine seq
   implicit none
   real(8),parameter :: Pi=3.141592653589793d0
   real(8),parameter :: gammaU=-0.1423d0,beta1U=1.0529d0

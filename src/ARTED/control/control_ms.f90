@@ -111,7 +111,7 @@ subroutine tddft_maxwell_ms
 !$acc enter data create(kAc)
 
   call timer_begin(LOG_DYNAMICS)
-!$acc enter data copyin(zu)
+!$acc enter data copyin(zu_t)
   RTiteratopm : do iter=entrance_iter+1, Nt ! sato
     
     !! NOTE: flg_out_ms_step (the macroscopic field will exported in this step)
@@ -256,14 +256,14 @@ subroutine tddft_maxwell_ms
       !===========================================================================
 
       if (use_ehrenfest_md == 'y') then
-!$acc update self(zu)
+!$acc update self(zu_t)
         call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
         if (flg_out_ms_next_step) then
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
       else
         if (flg_out_ms_next_step) then
-!$acc update self(zu)
+!$acc update self(zu_t)
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
           call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
@@ -337,7 +337,7 @@ subroutine tddft_maxwell_ms
       call comm_sync_all
       write(*,*) nproc_id_global,'iter =',iter
       iter_now=iter
-!$acc update self(zu)
+!$acc update self(zu_t)
       call timer_end(LOG_DYNAMICS)
       call prep_restart_write
       go to 1
@@ -367,7 +367,7 @@ subroutine tddft_maxwell_ms
     end if
     
   enddo RTiteratopm !end of RT iteraction========================
-!$acc exit data copyout(zu)
+!$acc exit data copyout(zu_t)
   call timer_end(LOG_DYNAMICS)
   
   if(comm_is_root(nproc_id_global)) then

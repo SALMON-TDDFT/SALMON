@@ -28,7 +28,7 @@
 #define NVTX_END()
 #endif
 
-subroutine hamiltonian(flag_current)
+subroutine hamiltonian(zu,flag_current)
   use Global_Variables
   use timer
 #ifdef ARTED_USE_NVTX
@@ -41,6 +41,7 @@ subroutine hamiltonian(flag_current)
   complex(8) :: zfac(4)
   integer    :: ikb_s,ikb_e
   integer    :: ikb0,ikb1,num_ikb1
+  complex(8), intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
   logical, intent(in) :: flag_current
 
   zfac(1)=(-zI*dt)
