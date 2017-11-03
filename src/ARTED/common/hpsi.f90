@@ -97,7 +97,7 @@ contains
 
   subroutine hpsi_omp_KB_base(ik,tpsi,htpsi,ttpsi)
     use timer
-    use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,iuV,Hxyz,Nlma,a_tbl,zproj
+    use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,iuV,Hxyz,Nlma,zproj
     use opt_variables, only: lapt,PNLx,PNLy,PNLz,PNL
 #ifdef ARTED_USE_NVTX
     use nvtx
@@ -126,7 +126,7 @@ contains
     LOG_END(LOG_HPSI_STENCIL)
 
     LOG_BEG(LOG_HPSI_PSEUDO)
-      call pseudo_pt(ik,tpsi,htpsi)
+      call pseudo_pt(ik,zproj(:,:,ik),tpsi,htpsi)
     LOG_END(LOG_HPSI_PSEUDO)
 
     NVTX_END()
@@ -150,33 +150,52 @@ contains
       end do
     end subroutine
 
-    subroutine pseudo_pt(ik,tpsi,htpsi)
-#ifdef ARTED_STENCIL_PADDING
-      use opt_variables, only: zJxyz => zKxyz
-#else
-      use opt_variables, only: zJxyz
-#endif
+    !Calculating nonlocal part
+    subroutine pseudo_pt(ik,zproj,tpsi,htpsi)
+      use opt_variables, only: NPI,pseudo_start_idx,idx_proj,nprojector,idx_lma
+      use global_variables, only: NI,Nps
       implicit none
       integer,    intent(in)  :: ik
+      complex(8), intent(in)  :: zproj(Nps,Nlma)
       complex(8), intent(in)  :: tpsi(0:PNL-1)
       complex(8), intent(out) :: htpsi(0:PNL-1)
-      integer    :: ilma,ia,j,i
+
+      integer    :: ia,i,j,ip,ioffset
       complex(8) :: uVpsi
 
-      !Calculating nonlocal part
-      do ilma=1,Nlma
-        ia=a_tbl(ilma)
-        uVpsi=0.d0
+      complex(8) :: pseudo(NPI)
+      complex(8) :: dpseudo(NPI)
+
+      dpseudo = cmplx(0.d0)
+
+      ! gather (load) pseudo potential point
+      do i=1,NPI
+        pseudo(i) = tpsi(idx_proj(i))
+      end do
+
+      do ia=1,NI
+      do ip=1,nprojector(ia)
+        i = idx_lma(ia) + ip
+
+        ! summarize vector
+        uVpsi   = 0.d0
+        ioffset = pseudo_start_idx(ia)
         do j=1,Mps(ia)
-          i=zJxyz(j,ia)
-          uVpsi=uVpsi+conjg(zproj(j,ilma,ik))*tpsi(i)
+          uVpsi = uVpsi + conjg(zproj(j,i)) * pseudo(ioffset+j)
         end do
-        uVpsi=uVpsi*Hxyz*iuV(ilma)
-!dir$ ivdep
+        uVpsi = uVpsi * Hxyz * iuV(i)
+
+        ! apply vector
+        ioffset = pseudo_start_idx(ia)
         do j=1,Mps(ia)
-          i=zJxyz(j,ia)
-          htpsi(i)=htpsi(i)+zproj(j,ilma,ik)*uVpsi
+          dpseudo(ioffset+j) = dpseudo(ioffset+j) + zproj(j,i) * uVpsi
         end do
+      end do
+      end do
+
+      ! scatter (store) pseudo potential point
+      do i=1,NPI
+        htpsi(idx_proj(i)) = htpsi(idx_proj(i)) + dpseudo(i)
       end do
     end subroutine
   end subroutine
