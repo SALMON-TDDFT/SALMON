@@ -198,43 +198,28 @@ subroutine hpsi_test2_C(tpsi0,htpsi0,iob,nn,isub)
 end subroutine hpsi_test2_C
 
 subroutine convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps_new,uV_new,uVu_new,Jxyz_new,icomm_pseudo)
-  use scf_data, only: MI,Kion,Mlps,uVu,iwk_size,max_jMps_l,uV,Jxyz,jMps_l,max_jMps_l_s,jMps_l_s,uVu,Hvol ! GCEED
+  use scf_data, only: MI,Kion,Mlps,uVu,iwk_size,uV_all,Jxyz,uVu,Hvol,Mps ! GCEED
   use salmon_parallel, only: nproc_group_orbital, nproc_group_h
   integer :: NI,Nps,Nlma,icomm_pseudo
   integer,allocatable :: ia_table(:),Mps_new(:),Jxyz_new(:,:,:)
   real(8),allocatable :: uV_new(:,:),uVu_new(:)
   !
   integer :: jj,iatom,ik,lm,ilma,jm
-  integer,allocatable :: jMps(:,:)
 
   NI = MI
 
   allocate(Mps_new(NI))
 
-  if(iwk_size>=1.and.iwk_size<=2)then
-    Mps_new = max_jMps_l
-    icomm_pseudo = nproc_group_orbital
-  else if(iwk_size>=11.and.iwk_size<=12)then
-    Mps_new = max_jMps_l_s
-    icomm_pseudo = nproc_group_h
-  end if
+  Mps_new = Mps
+  icomm_pseudo = nproc_group_orbital
 
   Nps = maxval(Mps_new)
-  allocate(jMps(Nps,NI))
-
-  if(iwk_size>=1.and.iwk_size<=2)then
-    jMps = jMps_l
-  else if(iwk_size>=11.and.iwk_size<=12)then
-    jMps = jMps_l_s
-  end if
 
   allocate(Jxyz_new(3,Nps,NI))
 
   do iatom=1,MI
-    do jj=1,Mps_new(iatom)
-      jm = jMps(jj,iatom)
-
-      Jxyz_new(:,jj,iatom) = Jxyz(:,jm,iatom)
+    do jj=1,Mps(iatom)
+      Jxyz_new(:,jj,iatom) = Jxyz(:,jj,iatom)
     end do
   end do
 
@@ -260,16 +245,13 @@ subroutine convert_pseudo_GCEED(NI,Nps,Nlma,ia_table,Mps_new,uV_new,uVu_new,Jxyz
 
       ia_table(ilma) = iatom
       do jj=1,Mps_new(iatom)
-        jm = jMps(jj,iatom)
-
-        uV_new(jj,ilma) = uV(jm,lm,iatom)
+        uV_new(jj,ilma) = uV(jj,lm,iatom)
       end do
       uVu_new(ilma) = Hvol/uVu(lm,iatom)
 
     end do loop_lm2
   end do
 
-  deallocate(jMps)
   return
 end subroutine convert_pseudo_GCEED
 !-----------------------------------------------------------------------------------------------------------------------------------

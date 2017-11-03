@@ -187,8 +187,6 @@ call read_pslfile
 call allocate_psl
 call init_ps
 
-if(ikind_eext==0.and.icalcforce==0.and.iflag_md==0) call calc_Mps3rd
-
 call init_updown
 call init_itype
 call init_sendrecv_matrix
