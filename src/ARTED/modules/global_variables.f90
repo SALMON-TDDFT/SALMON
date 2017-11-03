@@ -129,12 +129,8 @@ Module Global_Variables
   character(256) :: file_dns_gs
   character(256) :: file_dns_rt
   character(256) :: file_dns_dlt
-  character(256) :: file_energy_transfer ! 940
-  character(256) :: file_ac_vac          ! 941
-  character(256) :: file_ac_vac_back     ! 942
-  character(256) :: file_ac_ms            ! 943
-  character(256) :: file_ac              ! 902
-  character(256) :: file_ac_init         ! 902
+  character(256) :: file_energy_transfer
+  character(256) :: file_ac 
   character(256) :: file_k_data
   character(256) :: file_eigen_data
   character(256) :: file_rt_data

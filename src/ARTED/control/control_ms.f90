@@ -105,9 +105,6 @@ subroutine tddft_maxwell_ms
   
   ! Output filename
   write(file_energy_transfer, "(A,'energy-transfer.out')") trim(directory)
-  write(file_ac_vac, "(A,'Ac_Vac.out')") trim(directory)
-  write(file_ac_vac_back, "(A,'Ac_Vac_back.out')") trim(directory)
-  write(file_ac_ms, "(A,'Ac_m',I6.6,'.out')") trim(process_directory), imacro
   
 !$acc enter data copyin(ik_table,ib_table)
 !$acc enter data copyin(lapx,lapy,lapz)
@@ -406,27 +403,8 @@ subroutine tddft_maxwell_ms
     call write_data_out(index)
   end do
   
-  if (comm_is_root(nproc_id_global)) then
-    open(941,file=file_ac_vac, position = position_option)
-    do iter=0,Nt
-       write(941,"(7e26.16e3)")iter*dt,data_vac_Ac(1:3,1,iter) &
-            ,data_vac_Ac(1:3,2,iter)
-    end do
-    close(941)
-  end if
-
-
-
-  if(comm_is_root(nproc_id_tdks))then
-    open(943,file=file_ac_ms ,position = position_option)
-    write(943,"(A,2x,I6,2x,A,2x,I6)")"# Data of macro points",nmacro_s,"-",nmacro_e
-    do iter=0,Nt
-       write(943,"(*(ES22.14E3:1X))")iter*dt,(data_local_Ac(1:3,imacro,iter) &
-            ,data_local_jm(1:3,imacro,iter),imacro = nmacro_s,nmacro_e)
-    end do
-    close(943)
-  end if
-
+  call write_ac_m_file()
+  call write_data_vac_ac()
 
   call timer_end(LOG_IO)
   if(comm_is_root(nproc_id_global)) then
@@ -621,13 +599,13 @@ contains
 
 
   subroutine store_data_vac_ac()
-  implicit none
-  ! Export the Ac field of detecting point
-  if(comm_is_root(nproc_id_global)) then
-    ! TODO: Fix the detector positioning
-    data_vac_Ac(1:3, 1, iter) = Ac_ms(1:3,0,1,1)
-    data_vac_Ac(1:3, 2, iter) = Ac_ms(1:3,nx_m,1,1)
-  end if
+    implicit none
+    ! Export the Ac field of detecting point
+    if(comm_is_root(nproc_id_global)) then
+      ! TODO: Generalize the detector positioning for multidimensional case
+      data_vac_Ac(1:3, 1, iter) = Ac_ms(1:3,0,1,1)
+      data_vac_Ac(1:3, 2, iter) = Ac_ms(1:3,mx2_m,1,1)
+    end if
   end subroutine store_data_vac_ac
   
   
@@ -715,9 +693,53 @@ contains
 
   !===============================================================
 
-
-
-
+  subroutine write_ac_m_file()
+    use salmon_file
+    implicit none
+    integer :: fh
+    integer :: iimacro, iiter
+    character(100) :: file_ac_m
+    if(comm_is_root(nproc_id_tdks)) then
+      do iimacro = nmacro_s, nmacro_e
+        write(file_ac_m, "(A, A, '_Ac_m_',I6.6,'.out')") &
+          & trim(process_directory), trim(SYSname), iimacro
+        fh = open_filehandle(file_ac_m)
+        write(fh, "('#',A,3(1X,I6))") "Data of macro point coord:", macropoint(1:3, iimacro)
+        write(fh, "('#',6(1X,A))") "Time[au]", &
+          & "Ac_x[au]", "Ac_y[au]", "Ac_z[au]", &
+          & "Jmatter_x[au]", "Jmatter_y[au]", "Jmatter_z[au]"
+        do iiter = 0, Nt
+          write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
+            & iiter*dt, &
+            & data_local_Ac(1:3, iimacro, iiter), &
+            & data_local_jm(1:3, iimacro, iiter)
+        end do
+      end do
+      close(fh)
+    end if
+  end subroutine
+  
+  
+  subroutine write_data_vac_ac()
+    use salmon_file
+    implicit none
+    integer :: fh
+    integer :: iiter
+    character(100) :: file_ac_vac
+    
+    if (comm_is_root(nproc_id_global)) then
+      write(file_ac_vac, "(A, A, '_Ac_vac.out')") &
+        & trim(process_directory), trim(SYSname)
+      fh = open_filehandle(file_ac_vac)
+      do iiter=0,Nt
+        write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
+          & iiter * dt, &
+          & data_vac_Ac(1:3, 1, iiter), &
+          & data_vac_Ac(1:3, 2, iiter)
+      end do
+      close(fh)
+    end if
+  end subroutine write_data_vac_ac
 end subroutine tddft_maxwell_ms
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 
