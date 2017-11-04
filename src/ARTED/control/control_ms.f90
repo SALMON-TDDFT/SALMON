@@ -35,9 +35,7 @@ subroutine tddft_maxwell_ms
   integer :: iter
   integer :: ix_m, iy_m, iz_m
   integer :: imacro
-  integer :: index, n
-  character(len=128) :: fmt
-  
+  integer :: index
   logical :: flag_shutdown = .false.
   logical :: flg_out_ms_step, flg_out_ms_next_step
   logical :: flg_out_projection_step, flg_out_projection_next_step
@@ -575,7 +573,7 @@ contains
     if (iproc == nproc_id_global) then
       write(file_ac, "(A,A,'_Ac_',I6.6,'.out')") trim(process_directory), trim(SYSname),  out_ms_step * index
       fh = open_filehandle(file_ac)
-      write(fh, '("#",*(A:1X))') "IX", "IY", "IZ", &
+      write(fh, '("#",99(A:1X))') "IX", "IY", "IZ", &
         & "Ac_x[au]", "Ac_y[au]", "Ac_z[au]", &
         & "E_x[au]", "E_y[au]", "E_z[au]", &
         & "B_x[au]", "B_y[au]", "B_z[au]", &
@@ -587,7 +585,7 @@ contains
       do iiz_m = nz1_m, nz2_m
         do iiy_m = ny1_m, ny2_m
           do iix_m = nx1_m, nx2_m
-            write(fh,'(2X,3I6,*(ES22.14E3:1X))')  iix_m, iiy_m, iiz_m, &
+            write(fh,'(2X,3I6,99(ES22.14E3:1X))')  iix_m, iiy_m, iiz_m, &
             &    data_out(1:ndata_out_column, iix_m, iiy_m, iiz_m, ipos)
           end do
         end do

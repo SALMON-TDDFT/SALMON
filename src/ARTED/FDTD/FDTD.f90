@@ -51,15 +51,16 @@ subroutine init_ac_ms
   use Global_variables
   use salmon_communication, only: comm_sync_all, comm_is_root
   implicit none
-  real(8) x,y
+  ! real(8) x,y
+  real(8) x
   integer ix_m,iy_m,iz_m
   real(8) Xstart
   real(8) wpulse_1
   real(8) wpulse_2
   integer :: npower
 ! 2D parameter  
-  real(8) angle,kabs,kx,ky
-  real(8) length_y
+  ! real(8) angle,kabs,kx,ky
+  ! real(8) length_y
   
   call comm_sync_all
   if(rlaser_int_wcm2_1 < 0d0)then
@@ -153,12 +154,15 @@ subroutine init_ac_ms
 
               x=x-dt*c_light
               if(x > -Xstart-pulse_tw1*c_light+dt*c_light .and. x < -Xstart+dt*c_light) then
-                 Ac_new_ms(3,ix_m, iy_m, iz_m)=-Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-                      &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
+                 Ac_new_ms(3,ix_m, iy_m, iz_m) = &
+                  & -Epdir_Re1(3)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light) &
+                  & /(pulse_tw1*c_light))**2 &
+                  & *cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
                  
-                 Ac_new_ms(2,ix_m, iy_m, iz_m)=-Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light)/(pulse_tw1*c_light))**2 &
-                      &*cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
-                 
+                 Ac_new_ms(2,ix_m, iy_m, iz_m) = &
+                  & -Epdir_Re1(2)/omega1*f0_1*sin(pi*(x+Xstart+pulse_tw1*c_light) &
+                  & /(pulse_tw1*c_light))**2 &
+                  & *cos(omega1*(x+Xstart+pulse_tw1*c_light)/c_light+phi_CEP1*2d0*pi)
               endif
               
            end do

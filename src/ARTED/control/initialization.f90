@@ -111,8 +111,6 @@ contains
     use timer
     implicit none
     integer :: ia,i,j
-    integer :: ix_m,iy_m,iz_m
-    integer :: fh
     
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Nprocs=',nproc_size_global
