@@ -170,6 +170,7 @@ subroutine tddft_maxwell_ms
     !!       data_local_Ac_m = Ac_m; data_local_Jm_m = Jm_m
     call assign_mp_variables_omp()
     !! Store data_vac_ac variables
+    call store_data_local_ac_jm()
     call store_data_vac_ac()
     !! Store data_out variables
     if (flg_out_ms_step) then !! mod(iter, out_ms_step) == 0
@@ -401,7 +402,7 @@ subroutine tddft_maxwell_ms
     call write_data_out(index)
   end do
   
-  call write_ac_m_file()
+  call write_data_local_ac_jm()
   call write_data_vac_ac()
 
   call timer_end(LOG_IO)
@@ -526,12 +527,23 @@ contains
       !! Assign the vector potential into the local macropoint variables
       Ac_m(1:3, iimacro) = Ac_ms(1:3, iix_m, iiy_m, iiz_m)
       Ac_new_m(1:3, iimacro) = Ac_new_ms(1:3, iix_m, iiy_m, iiz_m)
+    end do
+!$omp end parallel do
+  end subroutine assign_mp_variables_omp
+  
+  
+  subroutine store_data_local_ac_jm()
+    implicit none
+    integer :: iimacro
+!$omp parallel do default(shared) private(iimacro)
+    do iimacro = nmacro_s, nmacro_e
       !! Store data_local_Ac, data_local_Jm
       data_local_Ac(1:3, iimacro, iter) = Ac_m(1:3, iimacro)
       data_local_jm(1:3, iimacro, iter) = Jm_m(1:3, iimacro)
     end do
 !$omp end parallel do
-  end subroutine assign_mp_variables_omp
+  end subroutine store_data_local_ac_jm
+  
 
   subroutine store_data_out_omp(index)
     use Global_Variables
@@ -691,7 +703,7 @@ contains
 
   !===============================================================
 
-  subroutine write_ac_m_file()
+  subroutine write_data_local_ac_jm()
     use salmon_file
     implicit none
     integer :: fh
@@ -699,11 +711,11 @@ contains
     character(100) :: file_ac_m
     if(comm_is_root(nproc_id_tdks)) then
       do iimacro = nmacro_s, nmacro_e
-        write(file_ac_m, "(A, A, '_Ac_m_',I6.6,'.out')") &
+        write(file_ac_m, "(A, A, '_Ac_M_',I6.6,'.out')") &
           & trim(process_directory), trim(SYSname), iimacro
         fh = open_filehandle(file_ac_m)
         write(fh, "('#',A,3(1X,I6))") "Data of macro point coord:", macropoint(1:3, iimacro)
-        write(fh, "('#',6(1X,A))") "Time[au]", &
+        write(fh, "('#',7(1X,A))") "Time[au]", &
           & "Ac_x[au]", "Ac_y[au]", "Ac_z[au]", &
           & "Jmatter_x[au]", "Jmatter_y[au]", "Jmatter_z[au]"
         do iiter = 0, Nt
