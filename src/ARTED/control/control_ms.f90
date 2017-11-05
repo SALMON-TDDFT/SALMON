@@ -251,7 +251,9 @@ subroutine tddft_maxwell_ms
       if(Sym /= 1)then
         jav(1:2) = 0d0
       end if
-      jm_new_m_tmp(1:3, imacro) = jav(1:3)
+      if (comm_is_root(nproc_id_tdks)) then
+        jm_new_m_tmp(1:3, imacro) = jav(1:3)
+      end if
       javt(iter+1,:) = jav(:)
       call timer_end(LOG_OTHER)
       !===========================================================================
