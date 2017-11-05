@@ -611,9 +611,6 @@ contains
 
   subroutine store_data_vac_ac()
     implicit none
-    integer :: nx_detect_trans
-    ! TODO: Generalize the detector positioning for multidimensional case
-    nx_detect_trans = min(nx_m+1, nx2_m)
     ! Export the Ac field of detecting point
     if(comm_is_root(nproc_id_global)) then
       data_vac_Ac(1:3, 1, iter) = Ac_ms(1:3,ix_detect_l,iy_detect,iz_detect)
