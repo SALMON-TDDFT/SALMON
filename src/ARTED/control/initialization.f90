@@ -718,7 +718,12 @@ contains
       allocate(Vloc_old_m(NL, 2, nmacro_s:nmacro_e))
     end if
     
-
+    !! Detecting Positioning of Vac_Ac file
+    ! TODO: Generalize the detector positioning for multidimensional case
+    ix_detect_r = min(NX_m+1, nx2_m)
+    ix_detect_l = 0
+    iy_detect = ny1_m
+    iz_detect = nz1_m
   end subroutine allocate_multiscale_vars
   
   

@@ -40,7 +40,6 @@ subroutine tddft_maxwell_ms
   logical :: flg_out_ms_step, flg_out_ms_next_step
   logical :: flg_out_projection_step, flg_out_projection_next_step
 
-
 #ifdef ARTED_LBLK
   call opt_vars_init_t4ppt()
 #endif
@@ -588,7 +587,7 @@ contains
       write(file_ac, "(A,A,'_Ac_',I6.6,'.out')") trim(process_directory), trim(SYSname),  out_ms_step * index
       fh = open_filehandle(file_ac)
       write(fh, '("#",99(A:1X))') "IX", "IY", "IZ", &
-        & "Ac_x[au]", "Ac_y[au]", "Ac_z[au]", &
+        & "A_x/c[au]", "A_y/c[au]", "A_z/c[au]", &
         & "E_x[au]", "E_y[au]", "E_z[au]", &
         & "B_x[au]", "B_y[au]", "B_z[au]", &
         & "Jm_x[au]", "Jm_y[au]", "Jm_z[au]", &
@@ -612,11 +611,13 @@ contains
 
   subroutine store_data_vac_ac()
     implicit none
+    integer :: nx_detect_trans
+    ! TODO: Generalize the detector positioning for multidimensional case
+    nx_detect_trans = min(nx_m+1, nx2_m)
     ! Export the Ac field of detecting point
     if(comm_is_root(nproc_id_global)) then
-      ! TODO: Generalize the detector positioning for multidimensional case
-      data_vac_Ac(1:3, 1, iter) = Ac_ms(1:3,0,1,1)
-      data_vac_Ac(1:3, 2, iter) = Ac_ms(1:3,mx2_m,1,1)
+      data_vac_Ac(1:3, 1, iter) = Ac_ms(1:3,ix_detect_l,iy_detect,iz_detect)
+      data_vac_Ac(1:3, 2, iter) = Ac_ms(1:3,ix_detect_r,iy_detect,iz_detect)
     end if
   end subroutine store_data_vac_ac
   
@@ -718,7 +719,7 @@ contains
         fh = open_filehandle(file_ac_m)
         write(fh, "('#',A,3(1X,I6))") "Data of macro point coord:", macropoint(1:3, iimacro)
         write(fh, "('#',7(1X,A))") "Time[au]", &
-          & "Ac_x[au]", "Ac_y[au]", "Ac_z[au]", &
+          & "A_x/c[au]", "A_y/c[au]", "A_z/c[au]", &
           & "Jmatter_x[au]", "Jmatter_y[au]", "Jmatter_z[au]"
         do iiter = 0, Nt
           write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
@@ -743,6 +744,13 @@ contains
       write(file_ac_vac, "(A, A, '_Ac_vac.out')") &
         & trim(process_directory), trim(SYSname)
       fh = open_filehandle(file_ac_vac)
+      write(fh, "('#',A)") "Data of Ac_m field at the end of media"
+      write(fh, "('#',2('(',3I6,'),'))") &
+        & ix_detect_l, iy_detect, iz_detect, &
+        & ix_detect_r, iy_detect, iz_detect
+      write(fh, "('#',7(1X,A))") "Time[au]", &
+        & "A_x/c(0)[au]", "A_y/c(0)[au]", "A_z/c(0)[au]", &
+        & "A_x/c(L)[au]", "A_y/c(L)[au]", "A_z/c(L)[au]"
       do iiter=0,Nt
         write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
           & iiter * dt, &

@@ -607,6 +607,10 @@ subroutine prep_backup_values(is_backup)
   BACKUP(data_vac_ac)
   BACKUP(ndata_out)
   BACKUP(ndata_out_per_proc)
+  BACKUP(ix_detect_l)
+  BACKUP(ix_detect_r)
+  BACKUP(iy_detect)
+  BACKUP(iz_detect)
 
   BACKUP(need_backup)
 

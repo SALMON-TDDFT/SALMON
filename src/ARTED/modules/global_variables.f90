@@ -234,6 +234,9 @@ Module Global_Variables
   real(8), allocatable :: data_local_ac(:,:,:)
   real(8), allocatable :: data_local_jm(:,:,:)
   real(8), allocatable :: data_vac_ac(:,:,:)
+  
+  integer :: ix_detect_l, ix_detect_r, iy_detect, iz_detect
+
 
   character(30), parameter :: calc_mode_sc = 'singlecell'
   character(30), parameter :: calc_mode_ms = 'multiscale'
