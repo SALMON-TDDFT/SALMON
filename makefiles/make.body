@@ -91,8 +91,7 @@ F_SRC_ARTED=$(addprefix ARTED/, \
 	common/Exc_Cor.f90 \
 	common/Hartree.f90 \
 	common/density_plot.f90 \
-	common/ion_force.f90 \
-	control/ground_state.f90 \
+	common/projector.f90 \
 	control/inputfile.f90 \
 	modules/opt_variables.f90 \
 	modules/performance_analyzer.f90 \
@@ -103,9 +102,11 @@ F_SRC_ARTED=$(addprefix ARTED/, \
 	RT/current.f90 \
 	RT/dt_evolve.f90 \
 	common/hpsi.f90 \
+	common/ion_force.f90 \
 	common/psi_rho.f90 \
 	common/restart.f90 \
 	common/total_energy.f90 \
+	control/ground_state.f90 \
 	preparation/prep_ps.f90 \
 	$(F_STENCIL_FILE) \
 	GS/CG.f90 \
@@ -134,7 +135,6 @@ F_SRC_GCEED=$(addprefix GCEED/, \
 	rt/check_ae_shape.f90 \
 	scf/check_dos_pdos.f90 \
 	common/allocate_sendrecv.f90 \
-	common/calc_Mps3rd.f90 \
 	common/check_mg.f90 \
 	common/check_ng.f90 \
 	common/conv_p.f90 \
@@ -155,7 +155,6 @@ F_SRC_GCEED=$(addprefix GCEED/, \
 	common/writeavs.f90 \
 	common/writecube.f90 \
 	modules/allocate_mat.f90 \
-	modules/calc_invA_lapack.f90 \
 	modules/copyVlocal.f90 \
 	modules/new_world.f90 \
 	modules/read_pslfile.f90 \
@@ -214,7 +213,7 @@ F_SRC_GCEED=$(addprefix GCEED/, \
 	common/OUT_IN_data.f90 \
 	common/bisection.f90 \
 	common/calcJxyz.f90 \
-	common/calcJxyz2nd.f90 \
+	common/calcJxyz_all.f90 \
 	common/calcVpsl.f90 \
 	common/calcuV.f90 \
 	common/psl.f90 \
