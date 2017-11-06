@@ -32,6 +32,12 @@ module opt_variables
 
   real(8),allocatable :: zcx(:,:),zcy(:,:),zcz(:,:)
 
+  integer,allocatable    :: nprojector(:)       ! # of projector
+  integer                :: NPI                 ! size of pseudo-vector (packed vector)
+  integer,allocatable    :: idx_proj(:)         ! projector element index
+  integer,allocatable    :: idx_lma(:)          ! start index of lma
+  integer,allocatable    :: pseudo_start_idx(:) ! start index of pseudo-vector
+
 #ifdef ARTED_STENCIL_ORIGIN
   integer,allocatable :: zifdx(:,:),zifdy(:,:),zifdz(:,:)
 #endif
@@ -158,6 +164,9 @@ contains
 
 #ifdef ARTED_STENCIL_PADDING
     call init_for_padding
+    call init_projector(zKxyz)
+#else
+    call init_projector(zJxyz)
 #endif
 
 #ifdef ARTED_STENCIL_ENABLE_LOOP_BLOCKING
@@ -203,6 +212,50 @@ contains
       end do
     end do
   end subroutine
+
+  function count_if_integer(vec, val) result(n)
+    implicit none
+    integer,intent(in) :: vec(:)
+    integer,intent(in) :: val
+    integer :: n, i
+    n = 0
+    do i=1,size(vec)
+      if (vec(i) == val) then
+        n = n + 1
+      end if
+    end do
+  end function
+
+  subroutine init_projector(zJxyz)
+    use global_variables
+    implicit none
+    integer,intent(in) :: zJxyz(Nps,NI)
+    integer :: i,ioffset
+
+    NPI = sum(Mps)
+
+    allocate(nprojector(NI),idx_lma(NI))
+
+    do i=1,NI
+      nprojector(i) = count_if_integer(a_tbl, i)
+    end do
+
+    idx_lma(1) = 0
+    do i=2,NI
+      idx_lma(i) = idx_lma(i-1) + nprojector(i-1)
+    end do
+
+    allocate(idx_proj(NPI))
+    allocate(pseudo_start_idx(NI))
+
+    ioffset = 0
+    do i=1,NI
+      pseudo_start_idx(i) = ioffset
+      idx_proj(ioffset+1:ioffset+1+Mps(i)) = zJxyz(1:Mps(i),i)
+      ioffset = ioffset + Mps(i)
+    end do
+  end subroutine
+
 
 #ifdef ARTED_LBLK
   subroutine opt_vars_init_t4ppt

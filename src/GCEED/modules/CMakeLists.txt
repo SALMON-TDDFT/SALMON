@@ -2,7 +2,6 @@ set(SOURCES
     allocate_mat.f90
     allocate_psl.f90
     calc_density.f90
-    calc_invA_lapack.f90
     change_order.f90
     copyVlocal.f90
     copy_psi_mesh.f90

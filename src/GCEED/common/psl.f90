@@ -28,11 +28,11 @@ end if
 
 call storevpp
 
-Mps=0
-call calcJxyz
+Mps_all=0
+call calcJxyz_all
 call calcuV
 call calcVpsl
-call calcJxyz2nd
+call calcJxyz
 
 return
 

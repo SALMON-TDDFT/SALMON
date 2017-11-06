@@ -9,9 +9,8 @@ set(SOURCES
     calc_gradient_fast.f90
     calc_iquotient.f90
     calc_iroot.f90
-    calcJxyz2nd.f90
     calcJxyz.f90
-    calc_Mps3rd.f90
+    calcJxyz_all.f90
     calc_myob.f90
     calc_ob_num.f90
     calc_pmax.f90
