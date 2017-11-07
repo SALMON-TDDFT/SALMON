@@ -658,8 +658,8 @@ contains
     sx1 = 0d0; sy1 = 0d0; sz1 = 0d0
     sx2 = 0d0; sy2 = 0d0; sz2 = 0d0
 !$omp parallel do default(shared) collapse(3) &
-!$ & private(iix_m, iiy_m, iiz_m, rrx, rry, rrz, eem) &
-!$ & reduction(+: sx1, sy1, sz1, sx2, sy2, sz2, sem)
+!$omp private(iix_m, iiy_m, iiz_m, rrx, rry, rrz, eem) &
+!$omp reduction(+: sx1, sy1, sz1, sx2, sy2, sz2, sem)
     do iiz_m = nz1_m, nz2_m
       do iiy_m = ny1_m, ny2_m
         do iix_m = nx1_m, nx2_m
