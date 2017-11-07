@@ -739,8 +739,8 @@ subroutine calc_energy_joule()
   integer :: ix_m, iy_m, iz_m
   real(8) :: elec_mid_old(3), jm_mid_old(3), ohm_mid_old
   !$omp parallel do collapse(3) default(shared) private( &
-  !$omp   & ix_m, iy_m, iz_m, elec_mid_old, jm_mid_old, ohm_mid_old &
-  !$omp   & )
+  !$omp     ix_m, iy_m, iz_m, elec_mid_old, jm_mid_old, ohm_mid_old &
+  !$omp     )
   do iz_m = nz1_m, nz2_m
     do iy_m = ny1_m, ny2_m
       do ix_m = nx1_m, nx2_m

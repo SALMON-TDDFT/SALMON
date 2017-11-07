@@ -438,8 +438,8 @@ contains
     integer, intent(in) :: jmacro
     integer :: il
 !$omp parallel do &
-!$omp&    default(none) private(il) firstprivate(jmacro) &
-!$omp&    shared(NL,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m,Vloc_old,Vloc_old_m)
+!$omp     default(none) private(il) firstprivate(jmacro) &
+!$omp     shared(NL,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m,Vloc_old,Vloc_old_m)
     do il=1,NL
       Vh(il)         = Vh_m(il,jmacro)
       Vexc(il)       = Vexc_m(il,jmacro)
@@ -455,8 +455,8 @@ contains
     integer, intent(in) :: jmacro
     integer :: il
 !$omp parallel do &
-!$omp&    default(none) private(il) firstprivate(jmacro) &
-!$omp&    shared(NL,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m)
+!$omp     default(none) private(il) firstprivate(jmacro) &
+!$omp     shared(NL,Vh,Vh_m,Vexc,Vexc_m,Eexc,Eexc_m,Vloc,Vloc_m)
     do il=1,NL
       Vh_m(il,jmacro)   = Vh(il)
       Vexc_m(il,jmacro) = Vexc(il)
