@@ -17,6 +17,7 @@
 !This file contains mainroutine program
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 
+
 Subroutine err_finalize(err_message)
   use Global_Variables
   use salmon_parallel, only: nproc_id_global, end_parallel

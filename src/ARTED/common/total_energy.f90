@@ -142,8 +142,8 @@ contains
 
 
 !$omp do private(ik,ib,nabt,tpsum,i,j,ilma,uVpsi,ia) &
-!$omp   &reduction(+:Ekin_l,Enl_l) &
-!$omp   &collapse(2)
+!$omp    reduction(+:Ekin_l,Enl_l) &
+!$omp    collapse(2)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
 

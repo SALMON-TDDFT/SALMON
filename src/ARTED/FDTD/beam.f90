@@ -15,6 +15,8 @@
 !
 
 !===============================================================
+!! TODO: Create new beam source function
+
 real(8) function sin2cos(t, tw, omega, cep)
   use Global_Variables, only: pi
   implicit none
@@ -34,17 +36,20 @@ end function sin2cos
 subroutine incident_bessel_beam()
   use Global_Variables, only: amplitude1, rlaser_int_wcm2_1, omega1, pulse_tw1, &
                             & Epdir_re1, phi_CEP1, &
-                            & NXvacL_m, NXvacR_m, NYvacB_m, NYvacT_m, &
-                            & HX_m, HY_m, Ac_m, Ac_new_m, dt, &
+                            & nx_m, ny_m, &
+                            & nx1_m, nx2_m, ny1_m, ny2_m, nz_origin_m, &
+                            & my1_m, my2_m, &
+                            & HX_m, HY_m, Ac_ms, Ac_new_ms, dt, &
                             & pi, c_light
   use salmon_math, only: bessel_j1_salmon
   implicit none
   real(8) :: f0_1, wpulse_1
-  integer :: ix_m, iy_m
+  integer :: ix_m, iy_m, iz_m
   real(8) :: lx, ly, x, y, kx, ky, k, vx
   real(8) :: f(3), j, tau
-  
   real(8) sin2cos
+  
+  iz_m = nz_origin_m
   
   ! First pulse
   if(rlaser_int_wcm2_1 < 0d0)then
@@ -56,8 +61,8 @@ subroutine incident_bessel_beam()
 !  tpulse_1 = tpulsefs_1 / 0.02418d0 ! pulse_duration in a.u.
   wpulse_1 = 2*pi/pulse_tw1
 
-  lx = (NXvacR_m-NXvacL_m) * HX_m
-  ly = (NYvacT_m+1) * HY_m
+  lx = NX_m * HX_m
+  ly = NY_m * HY_m
 
   ky = 3.8317d0 / ly
   k = omega1 / c_light
@@ -69,58 +74,29 @@ subroutine incident_bessel_beam()
   kx = SQRT(k*k-ky*ky)
   vx = omega1 / kx
 
-  Ac_m = 0.0
-  Ac_new_m = 0.0
-  do iy_m = NYvacB_m, NYvacT_m
+  Ac_ms = 0.0
+  Ac_new_ms = 0.0
+  do iy_m = ny1_m, ny2_m
      y = HY_m * iy_m
      j = bessel_j1_salmon(ky * y)
      f = j * f0_1 / 0.58186d0 * Epdir_re1
-     do ix_m = NXvacL_m-1, 0
+     do ix_m = nx1_m, nx2_m
        x = ix_m * HX_m
-       ! Ac_new_m
+       ! Ac_new_ms
        tau = - x / vx
-       Ac_new_m(:,ix_m,iy_m) = f * sin2cos(tau, pulse_tw1, omega1, phi_CEP1)
-       ! Ac_m (previous time-step)
+       Ac_new_ms(:,ix_m,iy_m,iz_m) = f * sin2cos(tau, pulse_tw1, omega1, phi_CEP1)
+       ! Ac_ms (previous time-step)
        tau = - x / vx - dt
-       Ac_m(:,ix_m,iy_m) =  f * sin2cos(tau, pulse_tw1, omega1, phi_CEP1)
+       Ac_ms(:,ix_m,iy_m,iz_m) =  f * sin2cos(tau, pulse_tw1, omega1, phi_CEP1)
      end do
   end do
   
   ! impose boundary condition
-  Ac_new_m(:,:,NYvacT_m+1) = 0.0d0
-  Ac_new_m(2:3,:,NYvacB_m-1) = 0.0d0
-  Ac_new_m(1,:,NYvacB_m-1) = Ac_new_m(1,:,NYvacB_m)
-  Ac_m(:,:,NYvacT_m+1) = 0.0d0
-  Ac_m(2:3,:,NYvacB_m-1) = 0.0d0
-  Ac_m(1,:,NYvacB_m-1) = Ac_m(1,:,NYvacB_m)
+  Ac_new_ms(:,:,my2_m,iz_m) = 0.0d0
+  Ac_new_ms(2:3,:,my1_m,iz_m) = 0.0d0
+  Ac_new_ms(1,:,my1_m,iz_m) = Ac_new_ms(1,:,ny1_m,iz_m)
+  Ac_ms(:,:,my2_m,iz_m) = 0.0d0
+  Ac_ms(2:3,:,my1_m,iz_m) = 0.0d0
+  Ac_ms(1,:,my1_m,iz_m) = Ac_ms(1,:,ny1_m,iz_m)
   return
 end subroutine incident_bessel_beam
-
-
-subroutine read_initial_ac_from_file()
-  use Global_Variables, only: SYSName, directory,file_ac_init, &
-                            & Ac_m, Ac_new_m
-  use salmon_parallel
-  use salmon_communication, only: comm_is_root, comm_bcast
-  implicit none
-  integer :: ix_m, iy_m
-  integer :: nx1_m, nx2_m, ny1_m, ny2_m
-  
-  write(file_ac_init, "(A,A,'_Ac_init.dat')") trim(directory), trim(SYSname)
-  if (comm_is_root(nproc_id_global)) then
-    Ac_m = 0.0
-    Ac_new_m = 0.0
-    open(944, file=trim(file_ac_init))
-    read(944, *) nx1_m, nx2_m
-    read(944, *) ny1_m, ny2_m
-    do iy_m = ny1_m, ny2_m
-      do ix_m = nx1_m, nx2_m
-        read(944, *) Ac_m(:, ix_m, iy_m), Ac_new_m(:, ix_m, iy_m)
-      end do
-    end do
-    close(944)
-  end if
-  call comm_bcast(Ac_m, nproc_group_global)
-  call comm_bcast(Ac_new_m, nproc_group_global)
-  return
-end subroutine 

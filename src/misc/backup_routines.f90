@@ -114,6 +114,9 @@ module backup_routines
     module procedure backup_array4d_real8
     module procedure backup_array4d_complex8
     module procedure backup_array4d_integer
+      
+    ! 5-D array
+    module procedure backup_array5d_real8
   end interface
 
 contains
@@ -408,6 +411,59 @@ contains
       call load_array4d_real8(iounit, val)
     end if
   end subroutine
+
+
+  subroutine save_array5d_real8(iounit, val)
+    implicit none
+    integer, intent(in)              :: iounit
+    real(8), allocatable, intent(in) :: val(:,:,:,:,:)
+    logical :: f
+    f = allocated(val)
+    write(iounit) f
+    if (f) then
+      write(iounit) lbound(val,1), ubound(val,1)
+      write(iounit) lbound(val,2), ubound(val,2)
+      write(iounit) lbound(val,3), ubound(val,3)
+      write(iounit) lbound(val,4), ubound(val,4)
+      write(iounit) lbound(val,5), ubound(val,5)
+      write(iounit) val(:,:,:,:,:)
+    end if
+  end subroutine
+
+  subroutine load_array5d_real8(iounit, val)
+    implicit none
+    integer, intent(in)               :: iounit
+    real(8), allocatable, intent(out) :: val(:,:,:,:,:)
+    logical :: f
+    integer :: lb1, ub1
+    integer :: lb2, ub2
+    integer :: lb3, ub3
+    integer :: lb4, ub4
+    integer :: lb5, ub5
+    read(iounit) f
+    if (f) then
+      read(iounit) lb1, ub1
+      read(iounit) lb2, ub2
+      read(iounit) lb3, ub3
+      read(iounit) lb4, ub4
+      read(iounit) lb5, ub5
+      allocate(val(lb1:ub1,lb2:ub2,lb3:ub3,lb4:ub4,lb5:ub5))
+      read(iounit) val(:,:,:,:,:)
+    end if
+  end subroutine
+
+  subroutine backup_array5d_real8(is_backup, iounit, val)
+    implicit none
+    logical, intent(in)                 :: is_backup
+    integer, intent(in)                 :: iounit
+    real(8), allocatable, intent(inout) :: val(:,:,:,:,:)
+    if (is_backup) then
+      call save_array5d_real8(iounit, val)
+    else
+      call load_array5d_real8(iounit, val)
+    end if
+  end subroutine
+
 
   subroutine save_complex8(iounit, val)
     implicit none
