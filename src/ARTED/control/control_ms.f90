@@ -287,7 +287,7 @@ subroutine tddft_maxwell_ms
       ! Calculate + store excitation number (if required in the next iteration..)
       call timer_begin(LOG_K_SHIFT_WF)
       if (flg_out_projection_next_step) then
-        call k_shift_wf(Rion_update_rt,Nscf,zu_m(:,:,:,imacro),"projection")
+        call k_shift_wf(Rion_update_rt,Nscf,zu_m(:,:,:,imacro),iter,"projection")
         if(comm_is_root(nproc_id_tdks))then ! sato
           excited_electron_new_m_tmp(imacro) = sum(occ) - sum(ovlp_occ(1:NBoccmax,:))
         end if ! sato
