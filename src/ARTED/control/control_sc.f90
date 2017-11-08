@@ -242,7 +242,6 @@ subroutine tddft_sc
     ! Export analysis data(Adiabatic evolution) to file_ovlp,file_nex
     if(projection_option /='no' .and. mod(iter,out_projection_step)==0)then
       call k_shift_wf(Rion_update_rt,Nscf,zu_t,iter,"projection")
-      !call k_shift_wf(Rion_update_rt,5,zu_t)
     end if
 
 
@@ -394,7 +393,6 @@ subroutine tddft_sc
   ! Export analysis data:Adiabatic evolution to file_last_band_map
   if (projection_option /= 'no') then
     call k_shift_wf(Rion_update_rt,Nscf,zu_t,iter,"proj_last ")
-    !call k_shift_wf_last(Rion_update_rt,10,zu_t)
   end if
 
   call Fourier_tr

@@ -19,7 +19,6 @@ subroutine write_density(it,action)
   implicit none
   integer :: it
   character(2) :: action
-!  character(*) :: position_option
 
   if(action=='gs') then
     select case(format3d)
@@ -65,7 +64,6 @@ subroutine write_density(it,action)
   endif
 
 end subroutine write_density
-
 
 subroutine write_density_cube(fh, write_difference)
   use Global_Variables, only: NLx,NLy,NLz,Hx,Hy,Hz,NI,Kion,Rion,Zatom,Lxyz,rho,rho_gs,rho_gs_t,use_ehrenfest_md
@@ -160,9 +158,3 @@ end subroutine write_density_vtk
 !  !todo: please create exporter for "avs express"
 !end subroutine write_density_avs
 
-
-
-
-  
-  
-  
