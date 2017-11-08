@@ -201,6 +201,7 @@ if(iflag_ps==1) then
   do iob=1,iobmax
     do iatom=1,MI
     ikoa=Kion(iatom)
+!$OMP parallel do private(jj,lm)
       do jj=1,Mps(iatom)
         do lm=1,(Mlps(ikoa)+1)**2
           htpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,1)= &
