@@ -17,17 +17,15 @@ subroutine deallocate_sendrecv
 use scf_data
 implicit none
 
-if(iSCFRT==1)then
-  deallocate(srmatbox1_x_3d,srmatbox1_y_3d,srmatbox1_z_3d)
-  deallocate(srmatbox2_x_3d,srmatbox2_y_3d,srmatbox2_z_3d)
-  deallocate(srmatbox3_x_3d,srmatbox3_y_3d,srmatbox3_z_3d)
-  deallocate(srmatbox4_x_3d,srmatbox4_y_3d,srmatbox4_z_3d)
+deallocate(srmatbox1_x_3d,srmatbox1_y_3d,srmatbox1_z_3d)
+deallocate(srmatbox2_x_3d,srmatbox2_y_3d,srmatbox2_z_3d)
+deallocate(srmatbox3_x_3d,srmatbox3_y_3d,srmatbox3_z_3d)
+deallocate(srmatbox4_x_3d,srmatbox4_y_3d,srmatbox4_z_3d)
 
-  deallocate(scmatbox1_x_3d,scmatbox1_y_3d,scmatbox1_z_3d)
-  deallocate(scmatbox2_x_3d,scmatbox2_y_3d,scmatbox2_z_3d)
-  deallocate(scmatbox3_x_3d,scmatbox3_y_3d,scmatbox3_z_3d)
-  deallocate(scmatbox4_x_3d,scmatbox4_y_3d,scmatbox4_z_3d)
-end if
+deallocate(scmatbox1_x_3d,scmatbox1_y_3d,scmatbox1_z_3d)
+deallocate(scmatbox2_x_3d,scmatbox2_y_3d,scmatbox2_z_3d)
+deallocate(scmatbox3_x_3d,scmatbox3_y_3d,scmatbox3_z_3d)
+deallocate(scmatbox4_x_3d,scmatbox4_y_3d,scmatbox4_z_3d)
 
 if(iSCFRT==1.and.icalcforce==1)then
   deallocate(srmatbox1_x_5d,srmatbox1_y_5d,srmatbox1_z_5d)

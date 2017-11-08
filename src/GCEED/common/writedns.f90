@@ -61,8 +61,8 @@ subroutine writedns
   if(iSCFRT==1)then 
     suffix = "dns"
   else if(iSCFRT==2)then
-    write(filenum, '(i8)') itt
-    suffix = "dns"//adjustl(filenum)
+    write(filenum, '(i6.6)') itt
+    suffix = "dns_"//adjustl(filenum)
   end if
   phys_quantity = "dns"
   if(format3d=='avs')then
@@ -104,8 +104,8 @@ subroutine writedns
 
     call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
 
-    write(filenum, '(i8)') itt
-    suffix = "dnsdiff"//adjustl(filenum)
+    write(filenum, '(i6.6)') itt
+    suffix = "dnsdiff_"//adjustl(filenum)
     phys_quantity = "dnsdiff"
     if(format3d=='avs')then
       header_unit='A**(-3)'
