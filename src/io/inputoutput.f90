@@ -337,7 +337,12 @@ contains
       & nksplit, &
       & nxysplit, &
       & nxvacl_m, &
-      & nxvacr_m
+      & nxvacr_m, &
+      & nx_origin_m, &
+      & ny_origin_m, &
+      & nz_origin_m, &
+      & file_macropoint, &
+      & num_macropoint
 
     namelist/analysis/ &
       & projection_option, &
@@ -361,6 +366,7 @@ contains
       & out_estatic_rt, &
       & out_estatic_rt_step, &
       & out_projection_step, &
+      & out_ms_step, &
       & format3d, &
       & numfiles_out_3d, &
       & timer_process
@@ -594,13 +600,17 @@ contains
     nx_m       = 1
     ny_m       = 1
     nz_m       = 1
-    hx_m       = 1d0
-    hy_m       = 1d0
-    hz_m       = 1d0
-    nksplit    = 1
-    nxysplit   = 1
-    nxvacl_m   = 0
+    hx_m       = 0d0
+    hy_m       = 0d0
+    hz_m       = 0d0
+    nksplit    = 0
+    nxysplit   = 0
+    nxvacl_m   = 1
     nxvacr_m   = 0
+    nx_origin_m = 1
+    ny_origin_m = 1
+    nz_origin_m = 1
+    file_macropoint = ''
 !! == default for &analysis
     projection_option   = 'no'
     nenergy             = 1000
@@ -623,6 +633,7 @@ contains
     out_estatic_rt      = 'n'
     out_estatic_rt_step = 50
     out_projection_step = 100
+    out_ms_step      = 100
     format3d            = 'cube'
     numfiles_out_3d     = 1
     timer_process       = 'n'
@@ -911,6 +922,14 @@ contains
     call comm_bcast(nxysplit,nproc_group_global)
     call comm_bcast(nxvacl_m,nproc_group_global)
     call comm_bcast(nxvacr_m,nproc_group_global)
+    call comm_bcast(nx_origin_m,nproc_group_global)
+    call comm_bcast(ny_origin_m,nproc_group_global)
+    call comm_bcast(nz_origin_m,nproc_group_global)
+    call comm_bcast(file_macropoint,nproc_group_global)
+    call comm_bcast(num_macropoint,nproc_group_global)
+    
+    
+    
 !! == bcast for &analysis
     call comm_bcast(projection_option,nproc_group_global)
     call comm_bcast(nenergy          ,nproc_group_global)
@@ -937,6 +956,7 @@ contains
     call comm_bcast(out_estatic_rt     ,nproc_group_global)
     call comm_bcast(out_estatic_rt_step,nproc_group_global)
     call comm_bcast(out_projection_step,nproc_group_global)
+    call comm_bcast(out_ms_step     ,nproc_group_global)
     call comm_bcast(format3d           ,nproc_group_global)
     call comm_bcast(numfiles_out_3d    ,nproc_group_global)
     call comm_bcast(timer_process      ,nproc_group_global)
@@ -1419,6 +1439,12 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'nxysplit', nxysplit
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nxvacl_m', nxvacl_m
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nxvacr_m', nxvacr_m
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nx_origin_m', nx_origin_m
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nx_origin_m', nx_origin_m
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'ny_origin_m', ny_origin_m
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nz_origin_m', nz_origin_m
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_macropoint', file_macropoint
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'num_macropoint', num_macropoint
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis
@@ -1443,6 +1469,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_estatic_rt', out_estatic_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_estatic_rt_step', out_estatic_rt_step
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_projection_step', out_projection_step
+      write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_ms_step', out_ms_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'format3d', format3d
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'numfiles_out_3d', numfiles_out_3d
       write(fh_variables_log, '("#",4X,A,"=",A)') 'timer_process', timer_process

@@ -61,7 +61,7 @@ contains
     end select
 
 
-    if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. NXY_s == 0))then
+    if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. nmacro_s == 0))then
       do ik=NK_s,NK_e
         
         write (gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
@@ -79,7 +79,7 @@ contains
     if(iflag_read_write==iflag_write)return
 
     if(use_ms_maxwell == 'y')then
-      nproc_group_kpoint_ms = comm_create_group(nproc_group_global, NK_s, NXY_s)
+      nproc_group_kpoint_ms = comm_create_group(nproc_group_global, NK_s, nmacro_s)
       call comm_get_groupinfo(nproc_group_kpoint_ms, nproc_id_kpoint_ms, nproc_size_kpoint_ms)
       call comm_bcast(zu_GS,nproc_group_kpoint_ms)
     end if
@@ -144,7 +144,7 @@ contains
 
    end if
       
-   if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. NXY_s == 0))then
+   if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. nmacro_s == 0))then
 
      allocate(zu_GS1(NL,NB,1))
      if(comm_is_root(nproc_id_global))then
