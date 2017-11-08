@@ -40,12 +40,8 @@ real(8) :: mrcurden(mg_sta(1):mg_end(1),   &
 real(8) :: gradpsi(3,mg_sta(1):mg_end(1),   &
                      mg_sta(2):mg_end(2),   &
                      mg_sta(3):mg_end(3))
-complex(8) :: tzpsi(mg_sta(1):mg_end(1),   &
-                    mg_sta(2):mg_end(2),   &
-                    mg_sta(3):mg_end(3))
-complex(8) :: gradzpsi(3,mg_sta(1):mg_end(1),   &
-                       mg_sta(2):mg_end(2),   &
-                       mg_sta(3):mg_end(3))
+complex(8) :: tcgrad_wk(mg_sta(1):mg_end(1)+1,mg_sta(2):mg_end(2),mg_sta(3):mg_end(3), &
+                       1:iobnum,1,3)
 real(8) :: gradrho(3,mg_sta(1):mg_end(1),   &
                      mg_sta(2):mg_end(2),   &
                      mg_sta(3):mg_end(3))
@@ -115,68 +111,57 @@ if(iSCFRT==1)then
 
 else if(iSCFRT==2)then
 
-  do iob=1,iobnum
-    if(itt==0)then
-      !$OMP parallel do collapse(2) private(iz,iy,ix)
+  if(mod(itt,2)==1)then
+    call calc_gradient_fast_c(zpsi_out,tcgrad_wk)
+
+    do iob=1,iobnum
+!$OMP parallel do collapse(2) private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        tzpsi(ix,iy,iz)=zpsi_in(ix,iy,iz,iob,1)
-      end do
-      end do
-      end do
-    else
-      if(mod(itt,2)==1)then
-      !$OMP parallel do collapse(2) private(iz,iy,ix)
-        do iz=mg_sta(3),mg_end(3)
-        do iy=mg_sta(2),mg_end(2)
-        do ix=mg_sta(1),mg_end(1)
-          tzpsi(ix,iy,iz)=zpsi_out(ix,iy,iz,iob,1)
-        end do
-        end do
-        end do
-      else
-      !$OMP parallel do collapse(2) private(iz,iy,ix)
-        do iz=mg_sta(3),mg_end(3)
-        do iy=mg_sta(2),mg_end(2)
-        do ix=mg_sta(1),mg_end(1)
-          tzpsi(ix,iy,iz)=zpsi_in(ix,iy,iz,iob,1)
-        end do
-        end do
-        end do
-      end if
-    end if
-    
-    call calc_gradient(tzpsi,gradzpsi)
 
-    elp3(807)=get_wtime()
+        mrelftau(ix,iy,iz)=mrelftau(ix,iy,iz)+abs(tcgrad_wk(ix,iy,iz,iob,1,1))**2      &
+                           +abs(tcgrad_wk(ix,iy,iz,iob,1,2))**2      &
+                           +abs(tcgrad_wk(ix,iy,iz,iob,1,3))**2
 
+        mrcurden(ix,iy,iz)=mrcurden(ix,iy,iz)      &
+             +( abs(conjg(zpsi_out(ix,iy,iz,iob,1))*tcgrad_wk(ix,iy,iz,iob,1,1)      &
+                  -zpsi_out(ix,iy,iz,iob,1)*conjg(tcgrad_wk(ix,iy,iz,iob,1,1)))**2      &
+               +abs(conjg(zpsi_out(ix,iy,iz,iob,1))*tcgrad_wk(ix,iy,iz,iob,1,2)      &
+                  -zpsi_out(ix,iy,iz,iob,1)*conjg(tcgrad_wk(ix,iy,iz,iob,1,2)))**2      &
+               +abs(conjg(zpsi_out(ix,iy,iz,iob,1))*tcgrad_wk(ix,iy,iz,iob,1,3)      &
+                  -zpsi_out(ix,iy,iz,iob,1)*conjg(tcgrad_wk(ix,iy,iz,iob,1,3)))**2 )/4.d0
+
+      end do
+      end do
+      end do
+    end do
+  else
+    call calc_gradient_fast_c(zpsi_in,tcgrad_wk)
+
+    do iob=1,iobnum
 !$OMP parallel do collapse(2) private(iz,iy,ix)
-    do iz=mg_sta(3),mg_end(3)
-    do iy=mg_sta(2),mg_end(2)
-    do ix=mg_sta(1),mg_end(1)
+      do iz=mg_sta(3),mg_end(3)
+      do iy=mg_sta(2),mg_end(2)
+      do ix=mg_sta(1),mg_end(1)
 
-      mrelftau(ix,iy,iz)=mrelftau(ix,iy,iz)+abs(gradzpsi(1,ix,iy,iz))**2      &
-                         +abs(gradzpsi(2,ix,iy,iz))**2      &
-                         +abs(gradzpsi(3,ix,iy,iz))**2
+        mrelftau(ix,iy,iz)=mrelftau(ix,iy,iz)+abs(tcgrad_wk(ix,iy,iz,iob,1,1))**2      &
+                           +abs(tcgrad_wk(ix,iy,iz,iob,1,2))**2      &
+                           +abs(tcgrad_wk(ix,iy,iz,iob,1,3))**2
 
-      mrcurden(ix,iy,iz)=mrcurden(ix,iy,iz)      &
-           +( abs(conjg(tzpsi(ix,iy,iz))*gradzpsi(1,ix,iy,iz)      &
-                -tzpsi(ix,iy,iz)*conjg(gradzpsi(1,ix,iy,iz)))**2      &
-             +abs(conjg(tzpsi(ix,iy,iz))*gradzpsi(2,ix,iy,iz)      &
-                -tzpsi(ix,iy,iz)*conjg(gradzpsi(2,ix,iy,iz)))**2      &
-             +abs(conjg(tzpsi(ix,iy,iz))*gradzpsi(3,ix,iy,iz)      &
-                -tzpsi(ix,iy,iz)*conjg(gradzpsi(3,ix,iy,iz)))**2 )/4.d0
+        mrcurden(ix,iy,iz)=mrcurden(ix,iy,iz)      &
+             +( abs(conjg(zpsi_in(ix,iy,iz,iob,1))*tcgrad_wk(ix,iy,iz,iob,1,1)      &
+                  -zpsi_in(ix,iy,iz,iob,1)*conjg(tcgrad_wk(ix,iy,iz,iob,1,1)))**2      &
+               +abs(conjg(zpsi_in(ix,iy,iz,iob,1))*tcgrad_wk(ix,iy,iz,iob,1,2)      &
+                  -zpsi_in(ix,iy,iz,iob,1)*conjg(tcgrad_wk(ix,iy,iz,iob,1,2)))**2      &
+               +abs(conjg(zpsi_in(ix,iy,iz,iob,1))*tcgrad_wk(ix,iy,iz,iob,1,3)      &
+                  -zpsi_in(ix,iy,iz,iob,1)*conjg(tcgrad_wk(ix,iy,iz,iob,1,3)))**2 )/4.d0
 
+      end do
+      end do
+      end do
     end do
-    end do
-    end do
-    
-    elp3(808)=get_wtime()
-    elp3(838)=elp3(838)+elp3(808)-elp3(807)
-
-  end do
-
+  end if
 elp3(809)=get_wtime()
 elp3(839)=elp3(839)+elp3(809)-elp3(808)
 

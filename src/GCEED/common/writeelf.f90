@@ -27,8 +27,8 @@ subroutine writeelf
   if(iSCFRT==1)then 
     suffix = "elf"
   else if(iSCFRT==2)then
-    write(filenum, '(i8)') itt
-    suffix = "elf"//adjustl(filenum)
+    write(filenum, '(i6.6)') itt
+    suffix = "elf_"//adjustl(filenum)
   end if
   phys_quantity = "elf"
   if(format3d=='avs')then
