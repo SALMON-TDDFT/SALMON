@@ -154,6 +154,7 @@ F_SRC_GCEED=$(addprefix GCEED/, \
 	common/setcN.f90 \
 	common/writeavs.f90 \
 	common/writecube.f90 \
+	common/writevtk.f90 \
 	modules/allocate_mat.f90 \
 	modules/copyVlocal.f90 \
 	modules/new_world.f90 \
