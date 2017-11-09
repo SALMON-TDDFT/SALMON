@@ -10,8 +10,6 @@
 &system
   iperiodic = 3
   al = 10.26d0,10.26d0,10.26d0
-  isym = 8 
-  crystal_structure = 'diamond'
   nstate = 32
   nelec = 32
   nelem = 1
@@ -65,8 +63,6 @@
   nx_m  = 4
   ny_m  = 1
   hX_m = 250d0
-  nksplit = 2
-  nxysplit = 1
   nxvacl_m = -2000
   nxvacr_m = 256
 /

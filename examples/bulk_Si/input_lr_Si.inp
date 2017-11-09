@@ -9,8 +9,6 @@
 &system
   iperiodic = 3
   al = 10.26d0,10.26d0,10.26d0
-  isym = 8 
-  crystal_structure = 'diamond'
   nstate = 32
   nelec = 32
   nelem = 1
