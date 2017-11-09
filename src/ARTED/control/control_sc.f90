@@ -33,7 +33,7 @@ subroutine tddft_sc
   use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac,  t_unit_eac
   use restart, only: prep_restart_write
   implicit none
-  integer :: iter,ik,ib,ia,i,ixyz
+  integer :: iter,ia,i,ixyz  !,ib,ik
   integer :: fh_rt_data
   real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI),fac_vscaling
   parameter( kB = 1.38064852d-23 ) ![J/K]
@@ -85,20 +85,7 @@ subroutine tddft_sc
 
 
   ! Export electronic density
-  if (out_dns == 'y') then
-    select case(format3d)
-    case ('cube')
-      write(file_dns_gs, '(2A,"_dns_gs.cube")') trim(directory), trim(SYSname)
-      open(502,file=file_dns_gs,position = position_option)
-      call write_density_cube(502, .false.)
-      close(502)
-    case ('vtk')
-      write(file_dns_gs, '(2A,"_dns_gs.vtk")') trim(directory), trim(SYSname)
-      open(502,file=file_dns_gs,position = position_option)
-      call write_density_vtk(502, .false.)
-      close(502)
-    end select
-  end if
+  if (out_dns == 'y') call write_density(iter,'gs')
 
 
   if (comm_is_root(nproc_id_global)) then
@@ -108,6 +95,7 @@ subroutine tddft_sc
     if (projection_option /= 'no') then 
       open(404,file=file_ovlp,position = position_option) 
       open(408,file=file_nex, position = position_option) 
+      open(409,file=file_last_band_map,position = position_option) 
     end if
     
   endif
@@ -211,7 +199,8 @@ subroutine tddft_sc
     endif
     Eall=Eall+Tion
 
-!write section
+!---Write section---
+    ! Export to file_epst,file_force_dR, file_trj
     if (iter/10*10 == iter.and.comm_is_root(nproc_id_global)) then
     if (use_ehrenfest_md == 'y') then
       write(*,'(1x,f10.4,8f12.6,f22.14,f18.5)') iter*dt,&
@@ -236,43 +225,27 @@ subroutine tddft_sc
     endif
       write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI),((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
     endif
-!Dynamical Density
+
+    ! Export Dynamical Density (file_dns)
     if (iter/100*100 == iter.and.comm_is_root(nproc_id_global)) then
       write(8,'(1x,i10)') iter
       do i=1,NL
         write(8,'(1x,2e16.6E3)') rho(i),(rho(i)-rho_gs(i))
       enddo
     endif
-    
-    ! Export electronic density
-    if (out_dns_rt == 'y') then
-      if (mod(iter, out_dns_rt_step) == 0) then
-        select case(format3d)
-        case ('cube')
-          write(file_dns_rt, '(2A,"_dns_rt_",I6.6,".cube")') trim(directory), trim(SYSname), iter
-          write(file_dns_dlt, '(2A,"_dns_dlt_",I6.6,".cube")') trim(directory), trim(SYSname), iter
-          open(501,file=file_dns_rt,position = position_option)
-          call write_density_cube(501, .false.)
-          close(501)
-          open(501,file=file_dns_dlt,position = position_option)
-          call write_density_cube(501, .true.)
-          close(501)
-        case ('vtk')          
-          write(file_dns_rt, '(2A,"_dns_rt_",I6.6,".vtk")') trim(directory), trim(SYSname), iter
-          write(file_dns_dlt, '(2A,"_dns_dlt_",I6.6,".vtk")') trim(directory), trim(SYSname), iter
-          open(501,file=file_dns_rt,position = position_option)
-          call write_density_vtk(501, .false.)
-          close(501)
-          open(501,file=file_dns_dlt,position = position_option)
-          call write_density_vtk(501, .true.)
-          close(501)
-        end select
-      end if
+
+    ! Export electronic density (cube or vtk)
+    if(out_dns_rt=='y' .and. mod(iter,out_dns_rt_step)==0) then
+       call write_density(iter,'rt')
     end if
-    
+
+    ! Export analysis data(Adiabatic evolution) to file_ovlp,file_nex
+    if(projection_option /='no' .and. mod(iter,out_projection_step)==0)then
+      call k_shift_wf(Rion_update_rt,Nscf,zu_t,iter,"projection")
+    end if
 
 
-!j_Ac writing
+    ! Export j_Ac
     if(comm_is_root(nproc_id_global))then
       if (iter/1000*1000 == iter .or. iter == Nt) then
         open(407,file=file_j_ac)
@@ -330,23 +303,6 @@ subroutine tddft_sc
       end if
     end if
   
-!Adiabatic evolution
-    if (projection_option /= 'no' .and. mod(iter,out_projection_step) == 0) then
-      call k_shift_wf(Rion_update_rt,5,zu_t)
-      if (comm_is_root(nproc_id_global)) then
-        do ia=1,NI
-          write(*,'(1x,i7,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
-        end do
-        write(404,'(1x,i10)') iter
-        do ik=1,NK
-          write(404,'(1x,i5,500e16.6)')ik,(ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
-        enddo
-        write(408,'(1x,3e16.6E3)') iter*dt,sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
-        write(*,*) 'number of excited electron',sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
-        write(*,*) 'var_tot,var_max=',sum(esp_var(:,:))/(NK*Nelec/2),maxval(esp_var(:,:)) 
-      end if
-    end if
-
 
 !Timer
     if (iter/1000*1000 == iter.and.comm_is_root(nproc_id_global)) then
@@ -420,7 +376,8 @@ subroutine tddft_sc
     close(9)
     if (projection_option /= 'no') then
       close(404)
-      close(408)                                                      
+      close(408)
+      close(409)
     end if
   endif
 
@@ -433,9 +390,9 @@ subroutine tddft_sc
 !====RT calculation===========================
 !====Analyzing calculation====================
 
-!Adiabatic evolution
+  ! Export analysis data:Adiabatic evolution to file_last_band_map
   if (projection_option /= 'no') then
-    call k_shift_wf_last(Rion_update_rt,10,zu_t)
+    call k_shift_wf(Rion_update_rt,Nscf,zu_t,iter,"proj_last ")
   end if
 
   call Fourier_tr
@@ -823,6 +780,7 @@ contains
     call Total_Energy_omp(rion_update_on,calc_mode_gs)
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     Eall0=Eall
+    Eall_GS0=Eall
 
   end subroutine
 

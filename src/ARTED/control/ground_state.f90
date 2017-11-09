@@ -144,8 +144,8 @@ contains
 
        if (PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
           write(*,*) 'Total Energy = ',Eall_GS(iter),Eall_GS(iter)-Eall_GS(iter-1)
-          write(*,'(a28,3e15.6)') 'jav(1),jav(2),jav(3)= ',jav(1),jav(2),jav(3)
-          write(*,*) '(orbital eigen energies)'
+          write(*,'(a,3e15.6)') 'jav(1),jav(2),jav(3)= ',jav(1),jav(2),jav(3)
+          write(*,*) '(orbital eigen energies of 1th k-point)'
           write(*,'(4(i3,f12.6,2x))') (ib,esp(ib,1),ib=1,NB)
           write(*,*) '(forces on atoms)'
           do ia=1,NI

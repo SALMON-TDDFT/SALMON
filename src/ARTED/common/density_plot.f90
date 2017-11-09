@@ -13,9 +13,60 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
+subroutine write_density(it,action)
+  use Global_Variables
+  use salmon_global, only: format3d
+  implicit none
+  integer :: it
+  character(2) :: action
+
+  if(action=='gs') then
+    select case(format3d)
+    case ('cube')
+      write(file_dns_gs,'(2A,"_dns_gs.cube")') trim(directory),trim(SYSname)
+      open(502,file=file_dns_gs,position = position_option)
+      call write_density_cube(502, .false.)
+      close(502)
+    case ('vtk')
+      write(file_dns_gs,'(2A,"_dns_gs.vtk")') trim(directory),trim(SYSname)
+      open(502,file=file_dns_gs,position = position_option)
+      call write_density_vtk(502, .false.)
+      close(502)
+    end select
+  endif
+
+  if(action=='rt') then
+     select case(format3d)
+        case ('cube')
+          write(file_dns_rt,200) trim(directory),trim(SYSname),"_dns_rt_", it,".cube"
+          write(file_dns_dlt,200)trim(directory),trim(SYSname),"_dns_dlt_",it,".cube"
+          open(501,file=file_dns_rt,position = position_option)
+          call write_density_cube(501, .false.)
+          close(501)
+          if(use_ehrenfest_md=='y') then
+             call k_shift_wf(Rion_update_rt,Nscf,zu_t,it,"get_dns_gs")
+          endif
+          open(501,file=file_dns_dlt,position = position_option)
+          call write_density_cube(501, .true.)
+          close(501)
+        case ('vtk')          
+          write(file_dns_rt,200) trim(directory),trim(SYSname),"_dns_rt_", it,".vtk"
+          write(file_dns_dlt,200)trim(directory),trim(SYSname),"_dns_dlt_",it,".vtk"
+          open(501,file=file_dns_rt,position = position_option)
+          call write_density_vtk(501, .false.)
+          close(501)
+          open(501,file=file_dns_dlt,position = position_option)
+          call write_density_vtk(501, .true.)
+          close(501)
+     end select
+200  format(3A,I6.6,A)
+
+  endif
+
+end subroutine write_density
 
 subroutine write_density_cube(fh, write_difference)
-  use Global_Variables, only: NLx, NLy, NLz,  Hx, Hy, Hz,  NI, Kion, Rion, Zatom, Lxyz, Rho, Rho_gs 
+  use Global_Variables, only: NLx,NLy,NLz,Hx,Hy,Hz,NI,Kion,Rion,Zatom,Lxyz,rho,rho_gs,rho_gs_t,use_ehrenfest_md
   implicit none
   integer, intent(in) :: fh
   logical, intent(in) :: write_difference
@@ -35,30 +86,36 @@ subroutine write_density_cube(fh, write_difference)
   end do
   
   ! Gaussian .cube file (x-slowest index, z-fastest index)
-  i = 1
+  i=1
   do ix=0, NLx-1
-    do iy=0, NLy-1
-      do iz=0, NLz-1
-        if (write_difference) then
-          r = Rho(Lxyz(ix, iy, iz)) - Rho_gs(Lxyz(ix, iy, iz))
+  do iy=0, NLy-1
+  do iz=0, NLz-1
+     if (write_difference) then
+        if(use_ehrenfest_md=='y') then
+           r = rho(Lxyz(ix,iy,iz)) - rho_gs_t(Lxyz(ix,iy,iz))
         else
-          r = Rho(Lxyz(ix, iy, iz))
-        end if
-        if (mod(i, 6) == 0) then
-          write(fh, '(ES12.4)') r
-        else
-          write(fh, '(ES12.4)', advance='no') r
+           r = rho(Lxyz(ix,iy,iz)) - rho_gs(Lxyz(ix,iy,iz))
         endif
-        i = i + 1
-      end do
-    end do
+     else
+        r = rho(Lxyz(ix,iy,iz))
+     end if
+     if(mod(i,6)==0) then
+        write(fh,10) r
+     else
+        write(fh,10,advance='no') r
+     endif
+     i=i+1
   end do
+  end do
+  end do
+
+10 format(ES12.4)
+  return
 end subroutine write_density_cube
 
 
-
 subroutine write_density_vtk(fh, write_difference)
-  use Global_Variables, only: NLx, NLy, NLz, Hx, Hy, Hz, Lxyz, Rho, Rho_gs 
+  use Global_Variables, only: NLx, NLy, NLz, Hx, Hy, Hz, Lxyz, rho, rho_gs 
   implicit none
   integer, intent(in) :: fh
   logical, intent(in) :: write_difference
@@ -77,16 +134,17 @@ subroutine write_density_vtk(fh, write_difference)
   
   ! VTK file (x-fastest index, z-slowest index)
   do iz=0, NLz-1
-    do iy=0, NLy-1
-      do ix=0, NLx-1
-        if (write_difference) then
-          write(fh, '(ES12.5)') Rho(Lxyz(ix, iy, iz)) - Rho_gs(Lxyz(ix, iy, iz))
-        else
-          write(fh, '(ES12.5)') Rho(Lxyz(ix, iy, iz))
-        end if
-      end do
-    end do
+  do iy=0, NLy-1
+  do ix=0, NLx-1
+     if (write_difference) then
+        write(fh,10) rho(Lxyz(ix,iy,iz)) - rho_gs(Lxyz(ix,iy,iz))
+     else
+        write(fh,10) rho(Lxyz(ix,iy,iz))
+     end if
   end do
+  end do
+  end do
+10 format(ES12.5)
   return
 end subroutine write_density_vtk
   
@@ -100,9 +158,3 @@ end subroutine write_density_vtk
 !  !todo: please create exporter for "avs express"
 !end subroutine write_density_avs
 
-
-
-
-  
-  
-  
