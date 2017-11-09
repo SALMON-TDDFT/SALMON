@@ -36,6 +36,8 @@ subroutine writeelf
     call writeavs(103,suffix,header_unit,elf)
   else if(format3d=='cube')then
     call writecube(103,suffix,phys_quantity,elf)
+  else if(format3d=='vtk')then
+    call writevtk(103,suffix,elf)
   end if
   
 end subroutine writeelf

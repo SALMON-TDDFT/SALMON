@@ -51,6 +51,7 @@ set(SOURCES
     writeelf.f90
     writeestatic.f90
     writepsi.f90
+    writevtk.f90
     xc.f90
     ylm.f90
     )

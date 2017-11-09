@@ -96,6 +96,8 @@ subroutine writeestatic
       call writeavs(103,suffix,header_unit,matbox_l2)
     else if(format3d=='cube')then
       call writecube(103,suffix,phys_quantity,matbox_l2)
+    else if(format3d=='vtk')then
+      call writevtk(103,suffix,matbox_l2)
     end if
 
   end do  
