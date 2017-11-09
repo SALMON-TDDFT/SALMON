@@ -23,7 +23,7 @@
 /
 
 &functional
-  xc ='BJ_PW'
+  xc ='PZ'
   cval = 1d0
 /
 
@@ -32,7 +32,7 @@
 /
 
 &kgrid
-  num_kgrid = 8,8,8
+  num_kgrid = 4,4,4
 /
 
 &tgrid
