@@ -101,7 +101,7 @@ subroutine tddft_maxwell_ms
   end if
   
   ! Output filename
-  write(file_energy_transfer, "(A,'energy-transfer.out')") trim(directory)
+  write(file_energy_transfer, "(A,'energy-transfer.data')") trim(directory)
   
 !$acc enter data copyin(ik_table,ib_table)
 !$acc enter data copyin(lapx,lapy,lapz)
@@ -584,7 +584,7 @@ contains
     iproc = mod(index, nproc_size_global)
     ipos = (index - iproc) / nproc_size_global
     if (iproc == nproc_id_global) then
-      write(file_ac, "(A,A,'_Ac_',I6.6,'.out')") trim(process_directory), trim(SYSname),  out_ms_step * index
+      write(file_ac, "(A,A,'_Ac_',I6.6,'.data')") trim(process_directory), trim(SYSname),  out_ms_step * index
       fh = open_filehandle(file_ac)
       write(fh, '("#",99(A:1X))') "IX", "IY", "IZ", &
         & "A_x/c[au]", "A_y/c[au]", "A_z/c[au]", &
@@ -711,7 +711,7 @@ contains
     character(100) :: file_ac_m
     if(comm_is_root(nproc_id_tdks)) then
       do iimacro = nmacro_s, nmacro_e
-        write(file_ac_m, "(A, A, '_Ac_M_',I6.6,'.out')") &
+        write(file_ac_m, "(A, A, '_Ac_M_',I6.6,'.data')") &
           & trim(process_directory), trim(SYSname), iimacro
         fh = open_filehandle(file_ac_m)
         write(fh, "('#',A,3(1X,I6))") "Data of macro point coord:", macropoint(1:3, iimacro)
@@ -738,7 +738,7 @@ contains
     character(100) :: file_ac_vac
     
     if (comm_is_root(nproc_id_global)) then
-      write(file_ac_vac, "(A, A, '_Ac_vac.out')") &
+      write(file_ac_vac, "(A, A, '_Ac_vac.data')") &
         & trim(process_directory), trim(SYSname)
       fh = open_filehandle(file_ac_vac)
       write(fh, "('#',A)") "Data of Ac_m field at the end of media"
