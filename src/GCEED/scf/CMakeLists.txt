@@ -20,6 +20,7 @@ set(SOURCES
     structure_opt.f90
     subdgemm_lapack.f90
     subspace_diag.f90
+    write_eigen.f90
     ybcg.f90
     )
 

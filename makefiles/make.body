@@ -226,6 +226,7 @@ F_SRC_GCEED=$(addprefix GCEED/, \
 	scf/calc_dos.f90 \
 	scf/calc_pdos.f90 \
 	scf/rmmdiis_eigen.f90 \
+	scf/write_eigen.f90 \
 	modules/sendrecv.f90 \
 	modules/sendrecv_groupob.f90 \
 	modules/sendrecvh.f90 \
