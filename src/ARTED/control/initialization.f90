@@ -137,21 +137,22 @@ contains
        write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
        write(*,*) 'PSmask_option =',PSmask_option
        write(*,*) 'alpha_mask, gamma_mask, eta_mask =',real(alpha_mask), real(gamma_mask), real(eta_mask)
-       file_GS=trim(directory)//trim(SYSname)//'_GS.out'
-       file_RT=trim(directory)//trim(SYSname)//'_RT.out'
-       file_epst=trim(directory)//trim(SYSname)//'_t.out'
-       file_epse=trim(directory)//trim(SYSname)//'_e.out'
-       file_force_dR=trim(directory)//trim(SYSname)//'_force_dR.out'
-       file_j_ac=trim(directory)//trim(SYSname)//'_j_ac.out'
-       file_DoS=trim(directory)//trim(SYSname)//'_DoS.out'
-       file_band=trim(directory)//trim(SYSname)//'_band.out'
-       file_dns=trim(directory)//trim(SYSname)//'_dns.out'
-       file_ovlp=trim(directory)//trim(SYSname)//'_ovlp.out'
-       file_nex=trim(directory)//trim(SYSname)//'_nex.out'
-       file_last_band_map=trim(directory)//trim(SYSname)//'_last_band_map.out'
-       file_k_data=trim(directory) // trim(SYSname) // '_k.data'
-       file_eigen_data=trim(directory) // trim(SYSname) // '_eigen.data'
-       file_rt_data=trim(directory) // trim(SYSname) // '_rt.data'
+       write(file_GS,"(2A,'_GS.info')") trim(directory),trim(SYSname)
+       write(file_RT,"(2A,'_RT.info')") trim(directory),trim(SYSname)
+       write(file_epst,"(2A,'_t.data')") trim(directory),trim(SYSname)
+       write(file_epse,"(2A,'_e.data')") trim(directory),trim(SYSname)
+       write(file_force_dR,"(2A,'_force_dR.data')") trim(directory),trim(SYSname)
+       write(file_j_ac,"(2A,'_j_ac.data')") trim(directory),trim(SYSname)
+       write(file_DoS,"(2A,'_dos.data')") trim(directory),trim(SYSname)
+       write(file_band,"(2A,'_band.data')") trim(directory),trim(SYSname)
+       write(file_dns,"(2A,'_dns.data')") trim(directory),trim(SYSname)
+       write(file_ovlp,"(2A,'_ovlp.data')") trim(directory),trim(SYSname)
+       write(file_nex,"(2A,'_nex.data')") trim(directory),trim(SYSname)
+       write(file_last_band_map,"(2A,'_last_band_map.data')") trim(directory),trim(SYSname)
+       write(file_k_data,"(2A,'_k.data')") trim(directory),trim(SYSname)
+       write(file_eigen_data,"(2A,'_eigen.data')") trim(directory),trim(SYSname)
+       write(file_rt_data,"(2A,'_rt.data')") trim(directory),trim(SYSname)
+       write(file_lr_data,"(2A,'_lr.data')") trim(directory),trim(SYSname)
        
        write(*,*) 'al(1),al(2),al(3)=',real(al(1)),real(al(2)),real(al(3))
        write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym

@@ -28,10 +28,7 @@ Subroutine Fourier_tr
   integer :: fh_lr
 
   if (comm_is_root(nproc_id_global)) then
-    open(7,file=file_epse)
-    fh_lr = open_filehandle( &
-    & trim(directory) // trim(SYSname) // '_lr.data' &
-    & )
+    fh_lr = open_filehandle(file_lr_data)
   endif
   
   if (KbTev < 0d0) then
@@ -68,15 +65,10 @@ Subroutine Fourier_tr
       
     if (comm_is_root(nproc_id_global)) then
       if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
-        write(7,'(1x,f13.7,6f22.14)') hw&
+        write(fh_lr,'(1x,f13.7,6f22.14)') hw&
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
-        write(7,'(1x,f13.7,12f22.14)') hw&
-             &,(real(zsigma_w(ixyz)),ixyz=1,3)&
-             &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
-             &,(real(zeps(ixyz)),ixyz=1,3)&
-             &,(aimag(zeps(ixyz)),ixyz=1,3)
          write(fh_lr,'(1x,f13.7,12f22.14)') &
              & hw &
              &,(real(zsigma_w(ixyz)),ixyz=1,3)&
@@ -84,7 +76,7 @@ Subroutine Fourier_tr
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else
-        write(7,'(1x,f13.7,18f22.14)') hw&
+        write(fh_lr,'(1x,f13.7,18f22.14)') hw&
              &,(real(jav_w(ixyz)),ixyz=1,3)&
              &,(aimag(jav_w(ixyz)),ixyz=1,3)&
              &,(real(E_ext_w(ixyz)),ixyz=1,3)&
@@ -96,7 +88,6 @@ Subroutine Fourier_tr
   enddo
  
   if (comm_is_root(nproc_id_global)) then
-    close(7)
     close(fh_lr)
   endif
 
