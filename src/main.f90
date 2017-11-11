@@ -2,7 +2,10 @@ program main
   use salmon_global
   use salmon_parallel
   use inputoutput
+  use math_constants
   implicit none
+
+  call set_math_constants
 
   call setup_parallel
   if (nproc_id_global == 0) then
