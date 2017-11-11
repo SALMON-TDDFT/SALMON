@@ -36,6 +36,7 @@ F_SRC_IO=$(addprefix io/, \
 )
 
 F_SRC_MATH=$(addprefix math/, \
+	math_constants.f90 \
 	salmon_math.f90 \
 )
 
