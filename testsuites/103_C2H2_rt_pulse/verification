@@ -13,7 +13,7 @@ print("#" * 60)
 print("# Verification start") 
 
 filelist = [ 
-    "C2H2-RT.data", 
+    "C2H2_p.data", 
 ] 
 
 checklist = { 
@@ -33,8 +33,8 @@ for item in filelist:
 
 print("# Checking calculated result")
 result = {}
-for linecount, line in enumerate(open("C2H2-RT.data")):
-    if linecount == 4703: # corresponds to a line of 5.8763fs
+for linecount, line in enumerate(open("C2H2_p.data")):
+    if linecount == 4702: # corresponds to a line of 5.8763fs
         name = "Dipole Moment"
         data = line.split()
         result[name] = float(data[3])
