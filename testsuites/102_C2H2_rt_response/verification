@@ -13,7 +13,7 @@ print("#" * 60)
 print("# Verification start") 
 
 filelist = [ 
-    "C2H2-ALP.data", 
+    "C2H2_lr.data", 
 ] 
 
 checklist = { 
@@ -34,7 +34,7 @@ for item in filelist:
 print("# Checking calculated result")
 result = {}
 linecount = 0
-for line in open("C2H2-ALP.data"):
+for line in open("C2H2_lr.data"):
     linecount += 1
     if linecount == 930: # corresponds to a line of 9.28eV
         for name, [resval, refval, error] in checklist.items(): 

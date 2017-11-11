@@ -565,6 +565,8 @@ end do Structure_Optimization_Iteration
 
 !---------------------------------------- Output
 
+call write_eigen
+
 if(out_psi=='y') then
   call writepsi
 end if

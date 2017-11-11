@@ -13,7 +13,7 @@ print("#" * 60)
 print("# Verification start")
 
 filelist = [
-    "C2H2.info",
+    "C2H2_info.data",
 ]
 
 print("# Checking the existance of outputfile")

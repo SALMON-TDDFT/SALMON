@@ -225,6 +225,7 @@ complex(8), allocatable :: zc(:)
 real(8), allocatable :: Dp(:,:), Dp2(:,:,:)
 real(8), allocatable :: Qp(:,:,:), Qp2(:,:,:,:)
 real(8), allocatable :: rIe(:), rIe2(:,:)
+real(8), allocatable :: tene(:)
 real(8) :: vecDs(3)
 real(8),allocatable :: vecDs2(:,:)
 real(8) :: vecQs(3,3)
@@ -404,8 +405,10 @@ integer :: iflag_ELF
 character(100) :: file_OUT
 character(100) :: file_IN
 character(100) :: LDA_Info
+character(100) :: file_eigen
 character(100) :: file_RT
-character(100) :: file_alpha
+character(100) :: file_alpha_lr
+character(100) :: file_alpha_pulse
 character(100) :: file_RT_q
 character(100) :: file_alpha_q
 character(100) :: file_RT_e
