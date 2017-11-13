@@ -29,6 +29,7 @@ subroutine tddft_maxwell_ms
   use salmon_communication
   use salmon_file
   use misc_routines
+  use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac
   use restart, only: prep_restart_write
 
   implicit none
@@ -578,33 +579,60 @@ contains
   subroutine write_data_out(index)
     implicit none
     integer, intent(in) :: index
-    integer :: iix_m, iiy_m, iiz_m, fh
+    integer :: iix_m, iiy_m, iiz_m, fh_ac
     integer :: iproc, ipos
     
     iproc = mod(index, nproc_size_global)
     ipos = (index - iproc) / nproc_size_global
     if (iproc == nproc_id_global) then
-      write(file_ac, "(A,A,'_Ac_',I6.6,'.data')") trim(process_directory), trim(SYSname),  out_ms_step * index
-      fh = open_filehandle(file_ac)
-      write(fh, '("#",99(A:1X))') "IX", "IY", "IZ", &
-        & "A_x/c[au]", "A_y/c[au]", "A_z/c[au]", &
-        & "E_x[au]", "E_y[au]", "E_z[au]", &
-        & "B_x[au]", "B_y[au]", "B_z[au]", &
-        & "Jm_x[au]", "Jm_y[au]", "Jm_z[au]", &
-        & "Eex[au/cell]", &
-        & "Eabs[au/cell]", &
-        & "Eemf[au/cell]"
+      write(file_ac, "(A,A,'_Ac_',I6.6,'.data')") & 
+        & trim(process_directory), trim(SYSname),  out_ms_step * index
       
+      fh_ac = open_filehandle(file_ac)
+      write(fh_ac, '("#",1X,A)') "Macroscopic field distribution"
+      
+      write(fh_ac, '("#",1X,A,":",1X,A)') "IX,IY,IZ", "Coordinate"
+      write(fh_ac, '("#",1X,A,":",1X,A)') "Ac", "Vector potential field"
+      write(fh_ac, '("#",1X,A,":",1X,A)') "E", "Electric field"
+      write(fh_ac, '("#",1X,A,":",1X,A)') "B", "Magnetic field"
+      write(fh_ac, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
+      write(fh_ac, '("#",1X,A,":",1X,A)') "Eex", "Electron excitation energy"
+      write(fh_ac, '("#",1X,A,":",1X,A)') "Eabs", "Absorbed energy"
+      write(fh_ac, '("#",1X,A,":",1X,A)') "Eemf", "Total EM field energy"
+      
+      write(fh_ac, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "Ix", "none", &
+        & 2, "Iy", "none", &
+        & 3, "Iz", "none", &
+        & 4, "Ac_x", "a.u.", & !!, trim(t_unit_ac%name), &
+        & 5, "Ac_y", "a.u.", & !!, trim(t_unit_ac%name), &
+        & 6, "Ac_z", "a.u.", & !!, trim(t_unit_ac%name), &
+        & 7, "E_x", "a.u.", & !!, trim(t_unit_current%name), &
+        & 8, "E_y", "a.u.", & !!, trim(t_unit_current%name), &
+        & 9, "E_z", "a.u.", & !!, trim(t_unit_current%name), &
+        & 10, "B_x", "a.u.", & !!, trim(t_unit_current%name), &
+        & 11, "B_y", "a.u.", & !!, trim(t_unit_current%name), &
+        & 12, "B_z", "a.u.", & !!, trim(t_unit_current%name), &
+        & 13, "Jm_x", "a.u.", & !!, trim(t_unit_current%name), &
+        & 14, "Jm_y", "a.u.", & !!, trim(t_unit_current%name), &
+        & 15, "Jm_z", "a.u.", & !!, trim(t_unit_current%name), &
+        & 16, "Eex", "a.u./unitcell", & !!, trim(t_unit_current%name), &
+        & 17, "Eabs", "a.u./unitcell", & !!, trim(t_unit_current%name), &
+        & 18, "Eemf", "a.u./unitcell" !!, trim(t_unit_current%name)
+      !! TODO: Support the automatic unit-system conversion of _ac.data files
+
       do iiz_m = nz1_m, nz2_m
         do iiy_m = ny1_m, ny2_m
           do iix_m = nx1_m, nx2_m
-            write(fh,'(2X,3I6,99(ES22.14E3:1X))')  iix_m, iiy_m, iiz_m, &
-            &    data_out(1:ndata_out_column, iix_m, iiy_m, iiz_m, ipos)
+            write(fh_ac,'(I6,1X,I6,1X,I6,99(1X,ES22.14E3))')  &
+              & iix_m, iiy_m, iiz_m, &
+              & data_out(1:ndata_out_column, iix_m, iiy_m, iiz_m, ipos)
           end do
         end do
       end do
     end if
-    close(fh)
+    close(fh_ac)
+    
     return
   end subroutine write_data_out
 
@@ -706,57 +734,77 @@ contains
   subroutine write_data_local_ac_jm()
     use salmon_file
     implicit none
-    integer :: fh
+    integer :: fh_ac_m
     integer :: iimacro, iiter
     character(100) :: file_ac_m
     if(comm_is_root(nproc_id_tdks)) then
       do iimacro = nmacro_s, nmacro_e
         write(file_ac_m, "(A, A, '_Ac_M_',I6.6,'.data')") &
           & trim(process_directory), trim(SYSname), iimacro
-        fh = open_filehandle(file_ac_m)
-        write(fh, "('#',A,3(1X,I6))") "Data of macro point coord:", macropoint(1:3, iimacro)
-        write(fh, "('#',7(1X,A))") "Time[au]", &
-          & "A_x/c[au]", "A_y/c[au]", "A_z/c[au]", &
-          & "Jmatter_x[au]", "Jmatter_y[au]", "Jmatter_z[au]"
+        fh_ac_m = open_filehandle(file_ac_m)
+        write(fh_ac_m, '("#",1X,A)') "Local variable at macro point"
+        
+        write(fh_ac_m, "('#',1X,A,':',3(1X,I6))") "Macropoint", macropoint(1:3, iimacro)
+        write(fh_ac_m, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
+        write(fh_ac_m, '("#",1X,A,":",1X,A)') "Ac", "External vector potential field"
+        
+        write(fh_ac_m, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+          & 1, "Time", trim(t_unit_time%name), &
+          & 2, "Ac_x", trim(t_unit_ac%name), &
+          & 3, "Ac_y", trim(t_unit_ac%name), &
+          & 4, "Ac_z", trim(t_unit_ac%name), &
+          & 5, "Jm_x", trim(t_unit_current%name), &
+          & 6, "Jm_y", trim(t_unit_current%name), &
+          & 7, "Jm_z", trim(t_unit_current%name)
         do iiter = 0, Nt
-          write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
-            & iiter*dt, &
-            & data_local_Ac(1:3, iimacro, iiter), &
-            & data_local_jm(1:3, iimacro, iiter)
+          write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))") &
+            & iiter * dt * t_unit_time%conv, &
+            & data_local_Ac(1:3, iimacro, iiter) * t_unit_ac%conv, &
+            & data_local_jm(1:3, iimacro, iiter) * t_unit_current%conv
         end do
       end do
-      close(fh)
+      close(fh_ac_m)
     end if
+    call comm_sync_all
   end subroutine
   
   
   subroutine write_data_vac_ac()
     use salmon_file
     implicit none
-    integer :: fh
+    integer :: fh_ac_vac
     integer :: iiter
     character(100) :: file_ac_vac
     
     if (comm_is_root(nproc_id_global)) then
       write(file_ac_vac, "(A, A, '_Ac_vac.data')") &
         & trim(process_directory), trim(SYSname)
-      fh = open_filehandle(file_ac_vac)
-      write(fh, "('#',A)") "Data of Ac_m field at the end of media"
-      write(fh, "('#',2('(',3I6,'),'))") &
-        & ix_detect_l, iy_detect, iz_detect, &
-        & ix_detect_r, iy_detect, iz_detect
-      write(fh, "('#',7(1X,A))") "Time[au]", &
-        & "A_x/c(0)[au]", "A_y/c(0)[au]", "A_z/c(0)[au]", &
-        & "A_x/c(L)[au]", "A_y/c(L)[au]", "A_z/c(L)[au]"
-      do iiter=0,Nt
-        write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
-          & iiter * dt, &
-          & data_vac_Ac(1:3, 1, iiter), &
-          & data_vac_Ac(1:3, 2, iiter)
+      fh_ac_vac = open_filehandle(file_ac_vac)
+      write(fh_ac_vac, '("#",1X,A)') "Ac vacuum region"
+      write(fh_ac_vac, '("#",1X,A)') "Data of Ac field at the end of media"
+      
+      write(fh_ac_vac, "('#',1X,A,':',3(1X,I6))") "L", ix_detect_l, iy_detect, iz_detect
+      write(fh_ac_vac, "('#',1X,A,':',3(1X,I6))") "R", ix_detect_r, iy_detect, iz_detect
+      
+      write(fh_ac_vac, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "Time", trim(t_unit_time%name), &
+        & 2, "Ac_x(L)", trim(t_unit_ac%name), &
+        & 3, "Ac_y(L)", trim(t_unit_ac%name), &
+        & 4, "Ac_z(L)", trim(t_unit_ac%name), &
+        & 5, "Ac_x(R)", trim(t_unit_ac%name), &
+        & 6, "Ac_y(R)", trim(t_unit_ac%name), &
+        & 7, "Ac_z(R)", trim(t_unit_ac%name)
+      do iiter = 0, Nt
+        write(fh_ac_vac, "(F16.8,6(1X,ES22.14E3,1X))") &
+          & iiter * dt * t_unit_time%conv, &
+          & data_vac_Ac(1:3, 1, iiter) * t_unit_ac%conv, &
+          & data_vac_Ac(1:3, 2, iiter) * t_unit_ac%conv
       end do
-      close(fh)
+      close(fh_ac_vac)
     end if
+    call comm_sync_all  
   end subroutine write_data_vac_ac
+  
 end subroutine tddft_maxwell_ms
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 

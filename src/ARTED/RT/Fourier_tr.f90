@@ -19,6 +19,7 @@ Subroutine Fourier_tr
   use salmon_file, only: open_filehandle
   use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root
+  use inputoutput, only: t_unit_current, t_unit_energy, t_unit_elec
   implicit none
   integer :: ihw,ixyz,iter
   real(8) :: hw,tt
@@ -29,27 +30,61 @@ Subroutine Fourier_tr
 
   if (comm_is_root(nproc_id_global)) then
     fh_lr = open_filehandle(file_lr_data)
+
+    write(fh_lr, '("#",1X,A)') "Linear response calculation"
+
     if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
-      write(fh_lr,"('#',99(1X,A))") &
-        & "Frequency[au]", &
-        & "Re(eps_x)", "Re(eps_y)", "Re(eps_z)", & 
-        & "Im(eps_x)", "Im(eps_y)", "Im(eps_z)"
+      write(fh_lr, '("#",1X,A,":",1X,A)') "eps", "Dielectric constant"
+      write(fh_lr, '("#",1X,A,":",1X,A)') "sigma", "Conductivity"
+      write(fh_lr, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "Frequency", trim(t_unit_energy%name), &
+        & 2, "Re(eps_x)", "none", &
+        & 3, "Re(eps_y)", "none", &
+        & 4, "Re(eps_z)", "none", &
+        & 5, "Im(eps_x)", "none", &
+        & 6, "Im(eps_y)", "none", &
+        & 7, "Im(eps_z)", "none"
     else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
-      write(fh_lr,"('#',99(1X,A))") &
-        & "Frequency[au]", &
-        & "Re(sigma_x)[au]", "Re(sigma_y)[au]", "Re(sigma_z)[au]", & 
-        & "Im(sigma_x)[au]", "Im(sigma_y)[au]", "Im(sigma_z)[au]", &
-        & "Re(eps_x)", "Re(eps_y)", "Re(eps_z)", & 
-        & "Im(eps_x)", "Im(eps_y)", "Im(eps_z)"
+      write(fh_lr, '("#",1X,A,":",1X,A)') "sigma", "Conductivity"
+      write(fh_lr, '("#",1X,A,":",1X,A)') "eps", "Dielectric constant"
+      write(fh_lr, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "Frequency", trim(t_unit_energy%name), &
+        & 2, "Re(sigma_x)", "a.u.", &
+        & 3, "Re(sigma_y)", "a.u.", &
+        & 4, "Re(sigma_z)", "a.u.", &
+        & 5, "Im(sigma_x)", "a.u.", &
+        & 6, "Im(sigma_y)", "a.u.", &
+        & 7, "Im(sigma_z)", "a.u.", &
+        & 8, "Re(eps_x)", "none", &
+        & 9, "Re(eps_y)", "none", &
+        & 10, "Re(eps_z)", "none", &
+        & 11, "Im(eps_x)", "none", &
+        & 12, "Im(eps_y)", "none", &
+        & 13, "Im(eps_z)", "none"
     else
-      write(fh_lr,"('#',99(1X,A))") &
-        & "Frequency[au]", &
-        & "Re(jmatter_x)[au]", "Re(jmatter_y)[au]", "Re(jmatter_z)[au]", &
-        & "Im(jmatter_x)[au]", "Im(jmatter_y)[au]", "Im(jmatter_z)[au]", &
-        & "Re(E_ext_x)[au]", "Re(E_ext_y)[au]", "Re(E_ext_z)[au]", &
-        & "Im(E_ext_x)[au]", "Im(E_ext_y)[au]", "Im(E_ext_z)[au]", &
-        & "Re(E_tot_x)[au]", "Re(E_tot_y)[au]", "Re(E_tot_z)[au]", &
-        & "Im(E_tot_x)[au]", "Im(E_tot_y)[au]", "Im(E_tot_z)[au]"
+      write(fh_lr, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
+      write(fh_lr, '("#",1X,A,":",1X,A)') "E_ext", "External electric field"
+      write(fh_lr, '("#",1X,A,":",1X,A)') "E_tot", "Total electric potential field"
+      write(fh_lr, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "Frequency", trim(t_unit_energy%name), &
+        & 2, "Re(Jm_x)", trim(t_unit_current%name), &
+        & 3, "Re(Jm_y)", trim(t_unit_current%name), &
+        & 4, "Re(Jm_z)", trim(t_unit_current%name), &
+        & 5, "Im(Jm_x)", trim(t_unit_current%name), &
+        & 6, "Im(Jm_y)", trim(t_unit_current%name), &
+        & 7, "Im(Jm_z)", trim(t_unit_current%name), &
+        & 8, "Re(E_ext_x)", trim(t_unit_elec%name), &
+        & 9, "Re(E_ext_y)", trim(t_unit_elec%name), &
+        & 10, "Re(E_ext_z)", trim(t_unit_elec%name), &
+        & 11, "Im(E_ext_x)", trim(t_unit_elec%name), &
+        & 12, "Im(E_ext_y)", trim(t_unit_elec%name), &
+        & 13, "Im(E_ext_z)", trim(t_unit_elec%name), &
+        & 14, "Re(E_tot_x)", trim(t_unit_elec%name), &
+        & 15, "Re(E_tot_y)", trim(t_unit_elec%name), &
+        & 16, "Re(E_tot_z)", trim(t_unit_elec%name), &
+        & 17, "Im(E_tot_x)", trim(t_unit_elec%name), &
+        & 18, "Im(E_tot_y)", trim(t_unit_elec%name), &
+        & 19, "Im(E_tot_z)", trim(t_unit_elec%name)
     endif
   endif
   
@@ -84,26 +119,25 @@ Subroutine Fourier_tr
         zeps=epdir_re1(:)+zI*4.d0*pi*zsigma_w(:)/hw
       end if
     end if
-      write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
     if (comm_is_root(nproc_id_global)) then
       if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
-        write(fh_lr,'(ES15.6E3,99(1X,ES22.14E3))') hw &
+        write(fh_lr,'(F16.8,99(1X,ES22.14E3))') hw * t_unit_energy%conv &
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
-        write(fh_lr,'(ES15.6E3,99(1X,ES22.14E3))') hw &
+        write(fh_lr,'(F16.8,99(1X,ES22.14E3))') hw * t_unit_energy%conv &
              &,(real(zsigma_w(ixyz)),ixyz=1,3)&
              &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else
-        write(fh_lr,'(ES15.6E3,99(1X,ES22.14E3))') hw &
-             &,(real(jav_w(ixyz)),ixyz=1,3)&
-             &,(aimag(jav_w(ixyz)),ixyz=1,3)&
-             &,(real(E_ext_w(ixyz)),ixyz=1,3)&
-             &,(aimag(E_ext_w(ixyz)),ixyz=1,3)&
-             &,(real(E_tot_w(ixyz)),ixyz=1,3)&
-             &,(aimag(E_tot_w(ixyz)),ixyz=1,3)
+        write(fh_lr,'(F16.8,99(1X,ES22.14E3))') hw * t_unit_energy%conv &
+             &,(real(jav_w(ixyz)) * t_unit_current%conv, ixyz=1,3)&
+             &,(aimag(jav_w(ixyz)) * t_unit_current%conv, ixyz=1,3)&
+             &,(real(E_ext_w(ixyz)) * t_unit_elec%conv ,ixyz=1,3)&
+             &,(aimag(E_ext_w(ixyz)) * t_unit_elec%conv ,ixyz=1,3)&
+             &,(real(E_tot_w(ixyz)) * t_unit_elec%conv ,ixyz=1,3)&
+             &,(aimag(E_tot_w(ixyz)) * t_unit_elec%conv ,ixyz=1,3)
       endif
     endif
   enddo

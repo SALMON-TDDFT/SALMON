@@ -25,7 +25,7 @@ Subroutine write_GS_data
                          & out_dos_fshift
   use inputoutput, only: unit_length, t_unit_energy_inv, t_unit_energy
   use salmon_parallel, only: nproc_group_global, nproc_id_global, nproc_group_tdks
-  use salmon_communication, only: comm_is_root,comm_summation, comm_bcast
+  use salmon_communication, only: comm_is_root,comm_summation, comm_bcast, comm_sync_all
   use salmon_file, only: open_filehandle
   implicit none
   integer ik,ib,ia,iter,j
@@ -110,7 +110,7 @@ Subroutine write_GS_data
   end if
 
   
-  if(out_dos == 'y')call dos_write
+  if(out_dos == 'y')call write_dos_data
 
   call write_k_data
   call write_eigen_data
@@ -119,8 +119,9 @@ Subroutine write_GS_data
   contains
 
 
-    subroutine dos_write
+    subroutine write_dos_data
       implicit none
+      integer :: fh_dos
       real(8) :: vbmax, cbmin, emax, emin, efermi, eshift
       real(8) :: ww, fk, dw
       integer :: iw
@@ -179,75 +180,91 @@ Subroutine write_GS_data
       call comm_summation(dos_l,dos,iout_dos_nenergy,nproc_group_tdks)
 
       if (comm_is_root(nproc_id_global)) then
-        open(404,file=file_DoS)
-        write(404,"(A)") '#Density of states'
-        write(404,"(6A)") '# energy (', trim(t_unit_energy%name) ,'),', &
-                        & ' dos (',  trim(t_unit_energy_inv%name)  ,')'
+        fh_dos = open_filehandle(file_dos)
+        write(fh_dos, '("#",1X,A)') "Density of States"
+        
+        write(fh_dos, '("#",1X,A,":",1X,A)') "Energy", "Electron energy"
+        write(fh_dos, '("#",1X,A,":",1X,A)') "DoS", "Density of States"
+        
+        write(fh_dos, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+          & 1, "Energy", trim(t_unit_energy%name), &
+          & 2, "DoS", trim(t_unit_energy_inv%name)
         do iw = 1, iout_dos_nenergy
           ww =  out_dos_start + (iw-1) * dw 
-          write(404,"(2e26.16e3)") ww * t_unit_energy%conv, &
-                                 & dos(iw) * t_unit_energy_inv%conv
+          write(fh_dos,'(F16.8,99(1X,ES22.14E3))') &
+            & ww * t_unit_energy%conv, &
+            & dos(iw) * t_unit_energy_inv%conv
         end do
-        close(404)
+        close(fh_dos)
       end if
-    end subroutine dos_write
+      call comm_sync_all
+      
+    end subroutine write_dos_data
 
 !--------------------------------------------------------------------------------
 !! export SYSNAME_k.data file
     subroutine write_k_data()
       implicit none
-      integer :: fh_k_data
+      integer :: fh_k
       integer :: ik
 
       if (comm_is_root(nproc_id_global)) then
-        fh_k_data = open_filehandle(file_k_data, status="replace")
-        write(fh_k_data,'(A)')'# ik           : k-point index'
-        write(fh_k_data,'(A)')'# (kx, ky, kz) : Reduced coordinate of k-point'
-        write(fh_k_data,'(A)')'# kw           : Weight of k-point'
-        write(fh_k_data, '(a)') "#" // & 
-          & " ik" // & 
-          & " kx" // & 
-          & " ky" // & 
-          & " kz" // & 
-          & " kw"
+        fh_k = open_filehandle(file_k_data, status="replace")
+        write(fh_k, '("#",1X,A)') "k-point distribution"
+        
+        write(fh_k, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+        write(fh_k, '("#",1X,A,":",1X,A)') "kx,ky,kz", "Reduced coordinate of k-points"
+        write(fh_k, '("#",1X,A,":",1X,A)') "wk", "Weight of k-point"
+        
+        write(fh_k, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+          & 1, "ik", "none", &
+          & 2, "kx", "none", &
+          & 3, "ky", "none", &
+          & 4, "kz", "none", &
+          & 5, "wk", "none"
         do ik = 1, NK
-          write(fh_k_data, '(I6,4(1X,E26.16E3))') &
+          write(fh_k, '(I6,99(1X,ES22.14E3))') &
             & ik, & 
             & kAc0(ik,1) / bLx, &
             & kAc0(ik,2) / bLy, &
             & kAc0(ik,3) / bLz, &
             & wk(ik)
         end do !ik
-        close(fh_k_data)
+        close(fh_k)
       end if
+      call comm_sync_all
     end subroutine write_k_data
 
   !--------------------------------------------------------------------------------
   !! export SYSNAME_eigen.data file
     subroutine write_eigen_data()
       implicit none
-      integer :: fh_eigen_data
+      integer :: fh_eigen
       integer :: ik, ib
     
       if (comm_is_root(nproc_id_global)) then
-        fh_eigen_data = open_filehandle(file_eigen_data, status="replace")
-        write(fh_eigen_data,'(A)')'# ik           : k-point index'
-        write(fh_eigen_data,'(A)')'# ib           : band index'
-        write(fh_eigen_data,'(A)')'# energy       : electron eigenenergy'
-        write(fh_eigen_data,'(A)')'# occup        : electron occupation'
-        write(fh_eigen_data, '(a)') "#" // & 
-          & " ik" // & 
-          & " ib" // & 
-          & " energy [" // trim(t_unit_energy%name) // "]" // & 
-          & " occup" 
+        fh_eigen = open_filehandle(file_eigen_data, status="replace")
+        write(fh_eigen, '("#",1X,A)') "Ground state eigenenergies"
+        
+        write(fh_eigen, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+        write(fh_eigen, '("#",1X,A,":",1X,A)') "ib", "Band index"
+        write(fh_eigen, '("#",1X,A,":",1X,A)') "energy", "Eigenenergy"
+        write(fh_eigen, '("#",1X,A,":",1X,A)') "occup", "Occupation"
+        
+        write(fh_eigen, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+          & 1, "ik", "none", &
+          & 2, "ib", "none", &
+          & 3, "energy", trim(t_unit_energy%name), &
+          & 4, "occup", "none"
         do ik = 1, NK
           do ib = 1, NB
-            write(fh_eigen_data, '(I6,1X,I6,2(1X,E26.16E3))') &
+            write(fh_eigen, '(I6,1X,I6,99(1X,ES22.14E3))') &
               & ik, ib, esp(ib,ik)*t_unit_energy%conv, occ(ib,ik)/wk(ik)*NKxyz
           end do !ib
         end do !ik
-        close(fh_eigen_data)
+        close(fh_eigen)
       end if
+      call comm_sync_all
     end subroutine write_eigen_data
     
 End Subroutine write_GS_data

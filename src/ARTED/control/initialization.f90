@@ -137,8 +137,7 @@ contains
        write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
        write(*,*) 'PSmask_option =',PSmask_option
        write(*,*) 'alpha_mask, gamma_mask, eta_mask =',real(alpha_mask), real(gamma_mask), real(eta_mask)
-       write(file_GS,"(2A,'_GS.info')") trim(directory),trim(SYSname)
-       write(file_RT,"(2A,'_RT.info')") trim(directory),trim(SYSname)
+       write(file_GS,"(2A,'_GS_info.data')") trim(directory),trim(SYSname)
        write(file_epst,"(2A,'_t.data')") trim(directory),trim(SYSname)
        write(file_epse,"(2A,'_e.data')") trim(directory),trim(SYSname)
        write(file_force_dR,"(2A,'_force_dR.data')") trim(directory),trim(SYSname)
@@ -301,20 +300,19 @@ contains
        write(*,*) 'NXvacL_m,NXvacR_m=',NXvacL_m,NXvacR_m
        write(*,*) 'NKsplit,NXYsplit=',NKsplit,NXYsplit
      end if
+     ! Create communicator "nproc_group_tdks"
+     kRANK = mod(nproc_id_global, NKsplit)
+     macRANK = (nproc_id_global - kRANK) / NKsplit
+     nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
+     call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
    else
      nmacro = 1; NKsplit = 1; NXYsplit = 1
    end if
 
-    ! Create communicator "nproc_group_tdks"
-    kRANK = mod(nproc_id_global, NKsplit)
-    macRANK = (nproc_id_global - kRANK) / NKsplit
-    nproc_group_tdks = comm_create_group(nproc_group_global, macRANK, kRANK)
-    call comm_get_groupinfo(nproc_group_tdks, nproc_id_tdks, nproc_size_tdks)
-
     NK_ave=NK/nproc_size_tdks; NK_remainder=NK-NK_ave*nproc_size_tdks
     NG_ave=NG/nproc_size_tdks; NG_remainder=NG-NG_ave*nproc_size_tdks
     
-1    if(is_symmetric_mode() == 1 .and. ENABLE_LOAD_BALANCER == 1) then
+    if(is_symmetric_mode() == 1 .and. ENABLE_LOAD_BALANCER == 1) then
        call symmetric_load_balancing(NK,NK_ave,NK_s,NK_e,NK_remainder,nproc_id_tdks,nproc_size_tdks)
     else
        if (NK/nproc_size_tdks*nproc_size_tdks == NK) then
@@ -429,6 +427,8 @@ contains
     call comm_sync_all
     
     allocate(javt(0:Nt+1,3))
+    allocate(Eall_t(0:Nt+1),Tion_t(0:Nt+1),Temperature_ion_t(0:Nt+1))
+    Eall_t = 0d0; Tion_t = 0d0; Temperature_ion_t = 0d0;
     allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
     allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
     

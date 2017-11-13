@@ -22,6 +22,7 @@ Subroutine k_shift_wf(Rion_xyz_update,iter_GS_max,zu,it,action)
   use Global_Variables
   use salmon_parallel, only: nproc_group_tdks, nproc_id_global
   use salmon_communication, only: comm_summation, comm_is_root
+  use inputoutput, only: t_unit_time, t_unit_energy
   implicit none
   integer,intent(in) :: iter_GS_max
   logical,intent(in) :: Rion_xyz_update
@@ -104,7 +105,7 @@ Subroutine k_shift_wf(Rion_xyz_update,iter_GS_max,zu,it,action)
 
         if(action=="proj_last ") then
            do ik=1,NK
-              write(409,'(i6,1000e26.16E3)')ik,(esp_all(ib,ik),ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
+              write(409,'(i6,1000e26.16E3)')ik,(esp_all(ib,ik)*t_unit_energy%conv,ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
            end do
         else &
         if(action=="projection") then
@@ -112,7 +113,7 @@ Subroutine k_shift_wf(Rion_xyz_update,iter_GS_max,zu,it,action)
            do ik=1,NK
               write(404,'(i6,500e16.6)')ik,(ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
            enddo
-           write(408,'(1x,3e16.6E3)')it*dt,sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
+           write(408,'(1x,3e16.6E3)')it*dt**t_unit_time%conv,sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
         end if
 
         write(*,*) 'forces on atoms:'
@@ -147,4 +148,3 @@ Subroutine k_shift_wf(Rion_xyz_update,iter_GS_max,zu,it,action)
 
   return
 End Subroutine k_shift_wf
-

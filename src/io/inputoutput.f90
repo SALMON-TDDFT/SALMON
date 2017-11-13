@@ -106,7 +106,7 @@ module inputoutput
   type(unit_t) :: t_unit_time_inv
   type(unit_t) :: t_unit_current
   type(unit_t) :: t_unit_ac
-  type(unit_t) :: t_unit_eac
+  type(unit_t) :: t_unit_elec
 
 contains
   subroutine read_input
@@ -1246,16 +1246,19 @@ contains
       t_unit_ac%conv     = 1d0
     end if
 
-    !! prepare type(unit_t) :: t_unit_eac
-    t_unit_eac%conv = utime_from_au*uenergy_from_au/ulength_from_au
+    !! prepare type(unit_t) :: t_unit_elec
     if(iflag_unit_time == ntype_unit_time_fs .and. &
        iflag_unit_length == ntype_unit_length_aa .and. &
-       iflag_unit_energy == ntype_unit_energy_ev)then
-      t_unit_eac%name     = 'fs*eV/Angstrom'
+       iflag_unit_energy == ntype_unit_energy_ev .and. &
+       iflag_unit_charge == ntype_unit_charge_au &
+         )then
+      t_unit_elec%name     = 'V/Angstrom'
+      t_unit_elec%conv     = 51.42206707d0
     else 
-      t_unit_ac%name     = 'a.u.'
-      t_unit_ac%conv     = 1d0
+      t_unit_elec%name     = 'a.u.'
+      t_unit_elec%conv     = 1d0
     end if
+
 
   end subroutine initialize_inputoutput_units
 
