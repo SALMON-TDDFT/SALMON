@@ -29,6 +29,28 @@ Subroutine Fourier_tr
 
   if (comm_is_root(nproc_id_global)) then
     fh_lr = open_filehandle(file_lr_data)
+    if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
+      write(fh_lr,"('#',99(1X,A))") &
+        & "Frequency[au]", &
+        & "Re(eps_x)", "Re(eps_y)", "Re(eps_z)", & 
+        & "Im(eps_x)", "Im(eps_y)", "Im(eps_z)"
+    else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
+      write(fh_lr,"('#',99(1X,A))") &
+        & "Frequency[au]", &
+        & "Re(sigma_x)[au]", "Re(sigma_y)[au]", "Re(sigma_z)[au]", & 
+        & "Im(sigma_x)[au]", "Im(sigma_y)[au]", "Im(sigma_z)[au]", &
+        & "Re(eps_x)", "Re(eps_y)", "Re(eps_z)", & 
+        & "Im(eps_x)", "Im(eps_y)", "Im(eps_z)"
+    else
+      write(fh_lr,"('#',99(1X,A))") &
+        & "Frequency[au]", &
+        & "Re(jmatter_x)[au]", "Re(jmatter_y)[au]", "Re(jmatter_z)[au]", &
+        & "Im(jmatter_x)[au]", "Im(jmatter_y)[au]", "Im(jmatter_z)[au]", &
+        & "Re(E_ext_x)[au]", "Re(E_ext_y)[au]", "Re(E_ext_z)[au]", &
+        & "Im(E_ext_x)[au]", "Im(E_ext_y)[au]", "Im(E_ext_z)[au]", &
+        & "Re(E_tot_x)[au]", "Re(E_tot_y)[au]", "Re(E_tot_z)[au]", &
+        & "Im(E_tot_x)[au]", "Im(E_tot_y)[au]", "Im(E_tot_z)[au]"
+    endif
   endif
   
   if (KbTev < 0d0) then
@@ -62,21 +84,20 @@ Subroutine Fourier_tr
         zeps=epdir_re1(:)+zI*4.d0*pi*zsigma_w(:)/hw
       end if
     end if
-      
+      write(fh, "(ES15.6E3,6(1X,ES22.14E3,1X))") &
     if (comm_is_root(nproc_id_global)) then
       if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
-        write(fh_lr,'(1x,f13.7,6f22.14)') hw&
+        write(fh_lr,'(ES15.6E3,99(1X,ES22.14E3))') hw &
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
-         write(fh_lr,'(1x,f13.7,12f22.14)') &
-             & hw &
+        write(fh_lr,'(ES15.6E3,99(1X,ES22.14E3))') hw &
              &,(real(zsigma_w(ixyz)),ixyz=1,3)&
              &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else
-        write(fh_lr,'(1x,f13.7,18f22.14)') hw&
+        write(fh_lr,'(ES15.6E3,99(1X,ES22.14E3))') hw &
              &,(real(jav_w(ixyz)),ixyz=1,3)&
              &,(aimag(jav_w(ixyz)),ixyz=1,3)&
              &,(real(E_ext_w(ixyz)),ixyz=1,3)&
