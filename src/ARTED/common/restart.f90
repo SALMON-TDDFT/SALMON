@@ -755,6 +755,8 @@ contains
     deallocate(tmp2)
 
     ! data_local_Ac
+    if (use_ms_maxwell == 'y') then
+    
     mt = min(Nt, ubound(data_local_Ac,3))
     allocate(tmp3(3,nmacro_s:nmacro_e,0:Nt))
     tmp3(:,:,:) = 0.d0
@@ -793,6 +795,8 @@ contains
     allocate(data_out(1:15, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m, 0:Ndata_out_per_proc))
     data_out(:,:,:,:,:) = tmp4(:,:,:,:,:)
     deallocate(tmp4)
+    
+    end if
 
     ! dRion
     mt = min(Nt+1, ubound(dRion,3))
