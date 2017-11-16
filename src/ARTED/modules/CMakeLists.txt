@@ -5,7 +5,6 @@ set(SOURCES
     global_variables.f90
     opt_variables.f90
     performance_analyzer.f90
-    papi_wrap.c
     nvtx.f90
     )
 #if (USE_NVTX)

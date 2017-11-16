@@ -83,7 +83,6 @@ parser.add_option_group(group)
 
 group = OptionGroup(parser, 'Debug options')
 group.add_option('-d', '--debug', action='store_true', default=False, dest='debug', help='enable debug build.')
-group.add_option('--papi',        action='store_true',                dest='papi',  help='use PAPI profiling (SC only).')
 group.add_option('--nvtx',        action='store_true',                dest='nvtx',  help='use NVIDIA Tools Extention Library.')
 group.add_option('--hpsi_test',   action='store_true',                dest='hpsi_test',  help='use joint hpsi subroutine (test).')
 parser.add_option_group(group)
@@ -110,7 +109,6 @@ add_option(dict, 'LOOP_BLOCKING',       options.loop_blocking)
 add_option(dict, 'SW_PREFETCH',         options.swp)
 add_option(dict, 'REDUCE_FOR_MANYCORE', options.reduce_manycore)
 
-add_option(dict, 'USE_PAPI',            options.papi)
 add_option(dict, 'USE_NVTX',            options.nvtx)
 add_option(dict, 'HPSI_TEST',           options.hpsi_test)
 if options.simd is not None:

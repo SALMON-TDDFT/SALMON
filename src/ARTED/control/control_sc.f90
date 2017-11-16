@@ -111,10 +111,6 @@ subroutine tddft_sc
 
 !$acc enter data create(kAc)
 
-#ifdef ARTED_USE_PAPI
-  call papi_begin
-#endif
-
   call timer_begin(LOG_DYNAMICS)
 !$acc enter data copyin(zu)
   do iter=entrance_iter+1,Nt
@@ -343,14 +339,7 @@ subroutine tddft_sc
 !$acc exit data copyout(zu)
   call timer_end(LOG_DYNAMICS)
 
-#ifdef ARTED_USE_PAPI
-  call papi_end
-#endif
-
   if(comm_is_root(nproc_id_global)) then
-#ifdef ARTED_USE_PAPI
-    call papi_result(timer_get(LOG_DYNAMICS))
-#endif
     call timer_show_hour('dynamics time      :', LOG_DYNAMICS)
     call timer_show_min ('dt_evolve time     :', LOG_DT_EVOLVE)
     call timer_show_min ('hpsi time          :', LOG_HPSI)
