@@ -251,7 +251,7 @@ contains
     ioffset = 0
     do i=1,NI
       pseudo_start_idx(i) = ioffset
-      idx_proj(ioffset+1:ioffset+1+Mps(i)) = zJxyz(1:Mps(i),i)
+      idx_proj(ioffset+1:ioffset+Mps(i)) = zJxyz(1:Mps(i),i)
       ioffset = ioffset + Mps(i)
     end do
   end subroutine
