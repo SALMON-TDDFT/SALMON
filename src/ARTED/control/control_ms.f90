@@ -63,14 +63,12 @@ subroutine tddft_maxwell_ms
     end if
 
 !====RT calculation============================
-    if ( .not. (restart_option == 'restart')) then
-      if (trim(FDTDdim) == '2DC') then
-        ! TODO: FIx the initialization routine
-        call init_Ac_ms_2dc()
-      else
-        call init_Ac_ms
-      endif
-    end if
+    if (trim(FDTDdim) == '2DC') then
+      ! TODO: FIx the initialization routine
+      call init_Ac_ms_2dc()
+    else
+      call init_Ac_ms
+    endif
 
     rho_gs(:)=rho(:)
     
