@@ -23,7 +23,6 @@ subroutine tddft_sc
   use Global_Variables
   use timer
   use opt_variables
-  use environment
   use performance_analyzer
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
@@ -425,7 +424,6 @@ subroutine calc_opt_ground_state
   use Global_Variables
   use timer
   use opt_variables
-  use environment
   use performance_analyzer
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root

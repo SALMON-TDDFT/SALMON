@@ -23,7 +23,6 @@ subroutine tddft_maxwell_ms
   use Global_Variables
   use timer
   use opt_variables
-  use environment
   use performance_analyzer
   use salmon_parallel
   use salmon_communication

@@ -3,10 +3,8 @@
 ###
 set(SOURCES
     global_variables.f90
-    env_variables.f90
     opt_variables.f90
     performance_analyzer.f90
-    env_variables_internal.c
     papi_wrap.c
     nvtx.f90
     )
