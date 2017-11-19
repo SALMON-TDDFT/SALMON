@@ -88,8 +88,7 @@ subroutine tddft_sc
 
 
   if (comm_is_root(nproc_id_global)) then
-    open(7,file=file_epst,    position = position_option) !! TODO: disable output of "_t.out" file future
-    open(8,file=file_dns,     position = position_option) !! TODO: disable output of "_dns.out" file future
+    ! open(7,file=file_epst,    position = position_option) !! TODO: remove output of "_t.out" file future
     
     open(9,file=file_force_dR,position = position_option)
     write(9, '("#",1X,A)') "Force calculatio"
@@ -139,6 +138,10 @@ subroutine tddft_sc
         & 1, "ik", "none", &
         & 2, "energy(NB)", trim(t_unit_energy%name), &
         & 2 + NB, "ovlp_occup(NB)", "none"      
+    end if
+
+    if (out_old_dns == 'y') then
+      open(8,file=file_dns,     position = position_option)
     end if
     
   endif
@@ -258,9 +261,9 @@ subroutine tddft_sc
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion, Temperature_ion
       !! TODO: exclude _t.out file future implementation
-      write(7,'(1x,100e16.6E3)') iter*dt,&
-           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-           &  Eall, Eall-Eall0, Tion, Temperature_ion
+      ! write(7,'(1x,100e16.6E3)') iter*dt,&
+      !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+      !      &  Eall, Eall-Eall0, Tion, Temperature_ion
       write(comment_line,110) iter, iter*dt
 110   format("#md   step=",i4,"   time",e16.6)
       call write_xyz(comment_line,"add","rv ")
@@ -268,9 +271,9 @@ subroutine tddft_sc
       write(*,'(1x,f10.4,8f12.6,f22.14)') iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion
-      write(7,'(1x,100e16.6E3)') iter*dt,&
-           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-           &  Eall, Eall-Eall0, Tion
+      ! write(7,'(1x,100e16.6E3)') iter*dt,&
+      !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+      !      &  Eall, Eall-Eall0, Tion
            !&E_ext(iter,1),E_tot(iter,1),&
            !&E_ext(iter,2),E_tot(iter,2),&
            !&E_ext(iter,3),E_tot(iter,3),&
@@ -278,14 +281,18 @@ subroutine tddft_sc
       write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI),((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
     endif
 
-    ! Export Dynamical Density (file_dns)
-    if (iter/100*100 == iter.and.comm_is_root(nproc_id_global)) then
-      write(8,'(1x,i10)') iter
-      do i=1,NL
-        write(8,'(1x,2e16.6E3)') rho(i),(rho(i)-rho_gs(i))
-      enddo
-    endif
-
+    !! Export Dynamical Density (file_dns)
+    !! NOTE: The support for _dns.file will be disabled in future release...
+    if (out_old_dns == 'y' .and. mod(iter, out_dns_rt_step) == 0) then
+      if (comm_is_root(nproc_id_global)) then
+        write(8,'(1x,i10)') iter
+        do i=1,NL
+          write(8,'(1x,2e16.6E3)') rho(i),(rho(i)-rho_gs(i))
+        enddo
+      endif
+      call comm_sync_all()
+    end if
+    
     ! Export electronic density (cube or vtk)
     if(out_dns_rt=='y' .and. mod(iter,out_dns_rt_step)==0) then
        call write_density(iter,'rt')
@@ -296,38 +303,38 @@ subroutine tddft_sc
       call k_shift_wf(Rion_update_rt,Nscf,zu_t,iter,"projection")
     end if
 
-    !! TODO: Disable the outpit of "j_ac.out" file future...
-    if(comm_is_root(nproc_id_global))then
-      if (iter/1000*1000 == iter .or. iter == Nt) then
-        open(407,file=file_j_ac)
-        write(407,'(A)')'# J     : Matter current density'
-        write(407,'(A)')'# Ac_ext: External vector-potential devided by light-velocity'
-        write(407,'(A)')'# Ac_tot: Total Vector-potential devided by light-velocity'
-        write(407,'(A1,A25,9A26)')'#','Time ['//trim(t_unit_time%name)//']', &
-             'Jx ['//trim(t_unit_current%name)//']', &
-             'Jy ['//trim(t_unit_current%name)//']', &
-             'Jz ['//trim(t_unit_current%name)//']', &
-             'Ac_ext_x ['//trim(t_unit_ac%name)//']', &
-             'Ac_ext_y ['//trim(t_unit_ac%name)//']', &
-             'Ac_ext_z ['//trim(t_unit_ac%name)//']', &
-             'Ac_tot_x ['//trim(t_unit_ac%name)//']', &
-             'Ac_tot_y ['//trim(t_unit_ac%name)//']', &
-             'Ac_tot_z ['//trim(t_unit_ac%name)//']'
-        do i=0,Nt
-          write(407,'(100e26.16E3)') i*dt*t_unit_time%conv, &
-                                     javt(i,1)*t_unit_current%conv, &
-                                     javt(i,2)*t_unit_current%conv, &
-                                     javt(i,3)*t_unit_current%conv, &
-                                     Ac_ext(i,1)*t_unit_ac%conv, &
-                                     Ac_ext(i,2)*t_unit_ac%conv, &
-                                     Ac_ext(i,3)*t_unit_ac%conv, &
-                                     Ac_tot(i,1)*t_unit_ac%conv, &
-                                     Ac_tot(i,2)*t_unit_ac%conv, &
-                                     Ac_tot(i,3)*t_unit_ac%conv
-        end do
-        close(407)
-      end if
-    end if
+    !! TODO: Remove the outpit of "j_ac.out" file future...
+    ! if(comm_is_root(nproc_id_global))then
+    !   if (iter/1000*1000 == iter .or. iter == Nt) then
+    !     open(407,file=file_j_ac)
+    !     write(407,'(A)')'# J     : Matter current density'
+    !     write(407,'(A)')'# Ac_ext: External vector-potential devided by light-velocity'
+    !     write(407,'(A)')'# Ac_tot: Total Vector-potential devided by light-velocity'
+    !     write(407,'(A1,A25,9A26)')'#','Time ['//trim(t_unit_time%name)//']', &
+    !          'Jx ['//trim(t_unit_current%name)//']', &
+    !          'Jy ['//trim(t_unit_current%name)//']', &
+    !          'Jz ['//trim(t_unit_current%name)//']', &
+    !          'Ac_ext_x ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_ext_y ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_ext_z ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_tot_x ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_tot_y ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_tot_z ['//trim(t_unit_ac%name)//']'
+    !     do i=0,Nt
+    !       write(407,'(100e26.16E3)') i*dt*t_unit_time%conv, &
+    !                                  javt(i,1)*t_unit_current%conv, &
+    !                                  javt(i,2)*t_unit_current%conv, &
+    !                                  javt(i,3)*t_unit_current%conv, &
+    !                                  Ac_ext(i,1)*t_unit_ac%conv, &
+    !                                  Ac_ext(i,2)*t_unit_ac%conv, &
+    !                                  Ac_ext(i,3)*t_unit_ac%conv, &
+    !                                  Ac_tot(i,1)*t_unit_ac%conv, &
+    !                                  Ac_tot(i,2)*t_unit_ac%conv, &
+    !                                  Ac_tot(i,3)*t_unit_ac%conv
+    !     end do
+    !     close(407)
+    !   end if
+    ! end if
     
 !Timer
     if (iter/1000*1000 == iter.and.comm_is_root(nproc_id_global)) then
@@ -396,8 +403,10 @@ subroutine tddft_sc
   call write_performance(trim(directory)//'sc_performance')
 
   if(comm_is_root(nproc_id_global)) then
-    close(7) !! TODO: Disable output of "_t.out" file 
-    close(8) !! TODO: Disable output of "_dns.out" file 
+    ! close(7) !! TODO: Remove output of "_t.out" file future
+    if (out_old_dns == 'y') then
+      close(8) !! TODO: Disable output of "_dns.out" file for future release
+    end if
     close(9)
     if (projection_option /= 'no') then
       close(404)
@@ -482,7 +491,7 @@ contains
         & 17, "Eall", trim(t_unit_energy%name), &
         & 18, "Eall-Eall0", trim(t_unit_energy%name), &
         & 19, "Tion", trim(t_unit_energy%name), &
-        & 20, "Temperature_ion", trim(t_unit_energy%name)
+        & 20, "Temperature_ion", "K"
         
       do iiter = 0, niter
         write(fh_rt, "(F16.8,99(1X,ES22.14E3))") &
@@ -495,7 +504,7 @@ contains
           & Eall_t(iiter) * t_unit_energy%conv, &
           & (Eall_t(iiter) - Eall0) * t_unit_energy%conv, &
           & Tion_t(iiter) * t_unit_energy%conv, &
-          & Temperature_ion_t(iiter) * t_unit_energy%conv
+          & Temperature_ion_t(iiter)
       end do
       close(fh_rt)
     end if

@@ -137,7 +137,7 @@ contains
        write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
        write(*,*) 'PSmask_option =',PSmask_option
        write(*,*) 'alpha_mask, gamma_mask, eta_mask =',real(alpha_mask), real(gamma_mask), real(eta_mask)
-       write(file_GS,"(2A,'_info.data')") trim(directory),trim(SYSname)
+       write(file_GS,"(2A,'_gs_info.data')") trim(directory),trim(SYSname)
        write(file_epst,"(2A,'_t.data')") trim(directory),trim(SYSname)
        write(file_epse,"(2A,'_e.data')") trim(directory),trim(SYSname)
        write(file_force_dR,"(2A,'_force_dR.data')") trim(directory),trim(SYSname)

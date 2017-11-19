@@ -1,0 +1,96 @@
+&analysis
+	de=1.000000d-03
+	nenergy=2000
+	projection_option='no'
+/
+&calculation
+	calc_mode='GS_RT'
+	use_ehrenfest_md='n'
+	use_ms_maxwell='n'
+/
+&control
+	backup_frequency=0
+	restart_option='new'
+	sysname='SiO2'
+	time_shutdown=10000000000
+/
+&emfield
+	ae_shape1='impulse'
+	e_impulse=5.000000d-03
+	epdir_re1=0.000000d+00,0.000000d+00,1.000000d+00
+	epdir_re2=0.000000d+00,0.000000d+00,1.000000d+00
+	trans_longi='tr'
+/
+&ewald
+	aewald=5.000000d-01
+	newald=4
+/
+&functional
+	cval=1.000000d+00
+	xc='PZ'
+/
+&kgrid
+	num_kgrid=4,4,4
+/
+&propagation
+	propagator='etrs'
+/
+&pseudo
+	Lloc_ps=2,1
+	alpha_mask=8.000000d-01
+	eta_mask=1.500000d+01
+	gamma_mask=1.800000d+00
+	iZatom=14,8
+	pseudo_file='Si_rps.dat','O_rps.dat'
+	psmask_option='n'
+/
+&rgrid
+	num_rgrid=20,36,52
+/
+&scf
+	alpha_mb=7.500000d-01
+	fsset_option='N'
+	ncg=5
+	nfsset_every=25
+	nfsset_start=75
+	nmemory_mb=8
+	nscf=120
+/
+&system
+	al=9.284900d+00,1.608192d+01,1.021426d+01
+	crystal_structure='diamond'
+	iperiodic=3
+	isym=1
+	natom=18
+	nelec=96
+	nelem=2
+	nstate=52
+	temperature=-1.000000d+00
+/
+&tgrid
+	dt=4.000000d-02
+	nt=25000
+/
+&units
+	unit_system='a.u.'
+/
+&atomic_red_coor
+	'Si' 0.97010 0.50000 0.00000 1
+	'Si' 0.26490 0.73500 0.66670 1
+	'Si' 0.26490 0.26500 0.33330 1
+	'O' 0.77980 0.63380 0.11910 2
+	'O' 0.56080 0.70680 0.54760 2
+	'O' 0.15940 0.57300 0.78580 2
+	'O' 0.15940 0.42700 0.21420 2
+	'O' 0.56080 0.29320 0.45240 2
+	'O' 0.77980 0.36620 0.88090 2
+	'Si' 0.47010 0.00000 0.00000 1
+	'Si' 0.76490 0.23500 0.66670 1
+	'Si' 0.76490 0.76500 0.33330 1
+	'O' 0.27980 0.13380 0.11910 2
+	'O' 0.06080 0.20680 0.54760 2
+	'O' 0.65940 0.07300 0.78580 2
+	'O' 0.65940 0.92700 0.21420 2
+	'O' 0.06080 0.79320 0.45240 2
+	'O' 0.27980 0.86620 0.88090 2
+/

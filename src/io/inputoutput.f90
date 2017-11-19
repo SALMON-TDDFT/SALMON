@@ -359,6 +359,7 @@ contains
       & out_dos_method, &
       & out_dos_fshift, &
       & out_elf, &
+      & out_old_dns, &
       & out_dns_rt, &
       & out_dns_rt_step, &
       & out_elf_rt, &
@@ -626,6 +627,7 @@ contains
     out_pdos            = 'n'
     out_dns             = 'n'
     out_elf             = 'n'
+    out_old_dns         = 'n'
     out_dns_rt          = 'n'
     out_dns_rt_step     = 50
     out_elf_rt          = 'n'
@@ -949,6 +951,7 @@ contains
     call comm_bcast(out_pdos           ,nproc_group_global)
     call comm_bcast(out_dns            ,nproc_group_global)
     call comm_bcast(out_elf            ,nproc_group_global)
+    call comm_bcast(out_old_dns        ,nproc_group_global)
     call comm_bcast(out_dns_rt         ,nproc_group_global)
     call comm_bcast(out_dns_rt_step    ,nproc_group_global)
     call comm_bcast(out_elf_rt         ,nproc_group_global)
@@ -1465,6 +1468,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_pdos', out_pdos
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns', out_dns
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_old_dns', out_old_dns
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns_rt', out_dns_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_dns_rt_step', out_dns_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf_rt', out_elf_rt

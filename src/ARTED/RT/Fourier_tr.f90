@@ -31,7 +31,7 @@ Subroutine Fourier_tr
   if (comm_is_root(nproc_id_global)) then
     fh_lr = open_filehandle(file_lr_data)
 
-    write(fh_lr, '("#",1X,A)') "Linear response calculation"
+    write(fh_lr, '("#",1X,A)') "Fourier-transform spectra"
 
     if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
       write(fh_lr, '("#",1X,A,":",1X,A)') "eps", "Dielectric constant"

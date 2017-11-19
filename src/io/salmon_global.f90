@@ -198,6 +198,7 @@ module salmon_global
   character(1)   :: out_pdos
   character(1)   :: out_dns
   character(1)   :: out_elf
+  character(1)   :: out_old_dns
   character(1)   :: out_dns_rt
   integer        :: out_dns_rt_step
   character(1)   :: out_elf_rt

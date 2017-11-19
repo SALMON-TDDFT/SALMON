@@ -95,17 +95,17 @@ Subroutine write_GS_data
     end do
     close(403)
 
-
-    open(405,file=file_band)
-    write(405,*) '#Bandmap at Ground State'
-    write(405,*) '#(NK,NB)=','(',NK,NB,')'
-    do ik=1,NK
-      do ib=1,NB
-        write(405,'(1x,2i5,5e26.16e3)') ik,ib,kAc(ik,1),kAc(ik,2),kAc(ik,3) &
-          ,esp(ib,ik),occ(ib,ik)
-      enddo
-    enddo
-    close(405)
+    !! NOTE: We have changed the SYSNAME_band.out -> SYSNAME_eigen.data
+    ! open(405,file=file_band)
+    ! write(405,*) '#Bandmap at Ground State'
+    ! write(405,*) '#(NK,NB)=','(',NK,NB,')'
+    ! do ik=1,NK
+    !   do ib=1,NB
+    !     write(405,'(1x,2i5,5e26.16e3)') ik,ib,kAc(ik,1),kAc(ik,2),kAc(ik,3) &
+    !       ,esp(ib,ik),occ(ib,ik)
+    !   enddo
+    ! enddo
+    ! close(405)
 
   end if
 
