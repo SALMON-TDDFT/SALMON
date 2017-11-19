@@ -71,11 +71,11 @@ Module Global_Variables
   real(8) :: Eall,Eall0,Eall_GS0,jav(3),Tion
   real(8) :: Ekin,Eloc,Enl,Eh,Exc,Eion,Eelemag                      
   real(8),allocatable :: javt(:,:)
-  real(8),allocatable :: Vpsl(:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)!yabana
+  real(8),allocatable :: Vpsl(:),Vpsl_ia(:,:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)!yabana
   real(8),allocatable :: Vloc_new(:),Vloc_old(:,:)
   real(8),allocatable :: tmass(:),tjr(:,:),tjr2(:),tmass_t(:),tjr_t(:,:),tjr2_t(:)
 !yabana
-  complex(8),allocatable :: dVloc_G(:,:)
+  complex(8),allocatable :: dVloc_G(:,:), save_dVloc_G(:,:) 
   real(8),allocatable :: rho(:),rho_gs(:),rho_gs_t(:)
   real(8),allocatable :: rho_in(:,:),rho_out(:,:) !MB method
   complex(8),allocatable :: rhoe_G(:),rhoion_G(:)
@@ -87,7 +87,6 @@ Module Global_Variables
   real(8),allocatable :: esp_vb_min(:),esp_vb_max(:) !FS set
   real(8),allocatable :: esp_cb_min(:),esp_cb_max(:) !FS set
   real(8),allocatable :: Eall_GS(:),esp_var_ave(:),esp_var_max(:),ddns(:),ddns_abs_1e(:)
-  complex(8),allocatable :: save_dVloc_G(:,:)
 !Nonlinear core correction
   logical :: flag_nlcc = .false.
   real(8),allocatable :: rho_nlcc_tbl(:,:),tau_nlcc_tbl(:,:)
