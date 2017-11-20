@@ -862,7 +862,17 @@ contains
     use salmon_communication
     implicit none
     character(1024) :: line,keyword
+    integer :: flag_access
+    integer access
 
+    if(comm_is_root(nproc_id_global))then
+      flag_access = access("input_for_restart.inp", "r")
+    end if
+    call comm_bcast(flag_access, nproc_group_global)
+    if(flag_access .ne. 0) then
+      return
+    end if
+    
     if(comm_is_root(nproc_id_global))then
        open(123,file="input_for_restart.inp",status="old",err=999)
        write(*,*) "Opened input_for_restart.inp"
