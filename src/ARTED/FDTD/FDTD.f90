@@ -24,7 +24,7 @@ subroutine write_excited_electron(iter)
   
   write(file_exc_elec,'(A, A,"_exc_elec_",I6.6,".out")') trim(directory), trim(SYSname), iter
   fh = open_filehandle(file_exc_elec)
-  write(fh, '(A)') "# imacro ix_m iy_m iz_m excited_electron"
+  write(fh, '("#",1X,A)') "imacro ix_m iy_m iz_m excited_electron"
   do imacro = 1, nmacro
     ix_m = macropoint(1, imacro)
     iy_m = macropoint(2, imacro)

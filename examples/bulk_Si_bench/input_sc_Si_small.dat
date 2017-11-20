@@ -1,0 +1,93 @@
+&analysis
+	projection_option='no'
+/
+&calculation
+	calc_mode='GS_RT'
+	use_ehrenfest_md='n'
+	use_ms_maxwell='n'
+/
+&control
+	backup_frequency=0
+	restart_option='new'
+	sysname='Si'
+	time_shutdown=10000000000
+/
+&emfield
+	ae_shape1='Acos2'
+	ae_shape2='Acos2'
+	epdir_re1=0.000000d+00,0.000000d+00,1.000000d+00
+	epdir_re2=0.000000d+00,0.000000d+00,1.000000d+00
+	omega1=5.696144d-02
+	omega2=5.696144d-02
+	phi_cep1=9.998705d-01
+	phi_cep2=9.983067d-01
+	pulse_tw1=4.411952d+02
+	pulse_tw2=6.614621d+02
+	rlaser_int_wcm2_1=1.000000d+14
+	rlaser_int_wcm2_2=0.000000d+00
+	t1_t2=7.854862d+02
+	trans_longi='tr'
+/
+&ewald
+	aewald=5.000000d-01
+	newald=4
+/
+&functional
+	cval=1.000000d+00
+	xc='PZ'
+/
+&kgrid
+	num_kgrid=24,24,24
+/
+&propagation
+	propagator='etrs'
+/
+&pseudo
+	Lloc_ps=2
+	alpha_mask=8.000000d-01
+	eta_mask=1.500000d+01
+	gamma_mask=1.800000d+00
+	iZatom=14
+	pseudo_file='Si_rps.dat'
+	psmask_option='n'
+/
+&rgrid
+	num_rgrid=16,16,16
+/
+&scf
+	alpha_mb=7.500000d-01
+	fsset_option='N'
+	ncg=1
+	nfsset_every=25
+	nfsset_start=75
+	nmemory_mb=8
+	nscf=1
+/
+&system
+	al=1.026000d+01,1.026000d+01,1.026000d+01
+	crystal_structure='diamond'
+	iperiodic=3
+	isym=8
+	natom=8
+	nelec=32
+	nelem=1
+	nstate=32
+	temperature=-1.000000d+00
+/
+&tgrid
+	dt=4.000000d-02
+	nt=50
+/
+&units
+	unit_system='a.u.'
+/
+&atomic_red_coor
+	'Si' 0.00000 0.00000 0.00000 1
+	'Si' 0.25000 0.25000 0.25000 1
+	'Si' 0.50000 0.00000 0.50000 1
+	'Si' 0.00000 0.50000 0.50000 1
+	'Si' 0.50000 0.50000 0.00000 1
+	'Si' 0.75000 0.25000 0.75000 1
+	'Si' 0.25000 0.75000 0.75000 1
+	'Si' 0.75000 0.75000 0.25000 1
+/

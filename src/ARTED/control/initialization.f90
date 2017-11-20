@@ -133,11 +133,10 @@ contains
        write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
        write(*,*) 'PSmask_option =',PSmask_option
        write(*,*) 'alpha_mask, gamma_mask, eta_mask =',real(alpha_mask), real(gamma_mask), real(eta_mask)
-       write(file_GS,"(2A,'_GS.info')") trim(directory),trim(SYSname)
-       write(file_RT,"(2A,'_RT.info')") trim(directory),trim(SYSname)
+       write(file_GS,"(2A,'_gs_info.data')") trim(directory),trim(SYSname)
        write(file_epst,"(2A,'_t.data')") trim(directory),trim(SYSname)
        write(file_epse,"(2A,'_e.data')") trim(directory),trim(SYSname)
-       write(file_force_dR,"(2A,'_force_dR.data')") trim(directory),trim(SYSname)
+       write(file_force_dR,"(2A,'_force.data')") trim(directory),trim(SYSname)
        write(file_j_ac,"(2A,'_j_ac.data')") trim(directory),trim(SYSname)
        write(file_DoS,"(2A,'_dos.data')") trim(directory),trim(SYSname)
        write(file_band,"(2A,'_band.data')") trim(directory),trim(SYSname)
@@ -309,6 +308,7 @@ contains
     NK_ave=NK/nproc_size_tdks; NK_remainder=NK-NK_ave*nproc_size_tdks
     NG_ave=NG/nproc_size_tdks; NG_remainder=NG-NG_ave*nproc_size_tdks
     
+
     if (NK/nproc_size_tdks*nproc_size_tdks == NK) then
        NK_s=NK_ave*nproc_id_tdks+1
        NK_e=NK_ave*(nproc_id_tdks+1)
@@ -420,6 +420,8 @@ contains
     call comm_sync_all
     
     allocate(javt(0:Nt+1,3))
+    allocate(Eall_t(0:Nt+1),Tion_t(0:Nt+1),Temperature_ion_t(0:Nt+1))
+    Eall_t = 0d0; Tion_t = 0d0; Temperature_ion_t = 0d0;
     allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
     allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
     
