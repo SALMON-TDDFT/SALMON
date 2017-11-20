@@ -157,4 +157,3 @@ end subroutine write_density_vtk
 !  
 !  !todo: please create exporter for "avs express"
 !end subroutine write_density_avs
-

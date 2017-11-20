@@ -30,7 +30,6 @@ option_set(LOOP_BLOCKING           "Enable loop blocking at the stencil"        
 option_set(SW_PREFETCH             "Enable software prefetch in the explicit vec of the stencil"                       OFF)
 
 ## Debug
-option_set(USE_PAPI                "Use Performance API"                OFF)
 option_set(USE_NVTX                "Use NVIDIA Tools Extension Library" OFF)
 
 ## test: joint hpsi subroutine
@@ -109,12 +108,6 @@ set(EXTERNAL_LIBS          "")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR})
-
-### Performance API from ICL, Univ. TENNESSEE
-if (USE_PAPI)
-  add_definitions(-DARTED_USE_PAPI)
-  set(EXTERNAL_LIBS ${EXTERNAL_LIBS} papi)
-endif ()
 
 ### NVIDIA Tools Extension Library
 if (USE_NVTX)

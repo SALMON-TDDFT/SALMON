@@ -70,8 +70,8 @@ if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc_size_global)then
     end do
     inum_Mxin_datafile(:)=iend_Mxin_datafile(:)-ista_Mxin_datafile(:)+1
 
-    write(fileNumber_data, '(i8)') nproc_id_global_datafiles
-    file_Out_rt_data = trim(file_Out_rt)//"."//adjustl(fileNumber_data)
+    write(fileNumber_data, '(i6.6)') nproc_id_global_datafiles
+    file_Out_rt_data = trim(adjustl(sysname))//"_rt_"//trim(adjustl(fileNumber_data))//".bin"
     open(89,file=file_Out_rt_data,form='unformatted')
 
   end if
@@ -237,6 +237,9 @@ if(comm_is_root(nproc_id_global)) then
   do it2=1,itotNtime
      write(99) (Dp(jj,it2),jj=1,3)
   end do
+  do it2=1,itotNtime
+     write(99) tene(it2)
+  end do
   if(iflag_dip2==1)then
     write(99) ((vecDs2(jj,kk),jj=1,3),kk=1,num_dip2)
     do it2=1,itotNtime
@@ -287,6 +290,7 @@ itotNtime=Ntime+Miter_rt
 
 allocate(rIe(0:itotNtime))
 allocate(Dp(3,0:itotNtime))
+allocate(tene(0:itotNtime))
 if(iflag_dip2==1) then
     allocate(rIe2(0:itotNtime,1:num_dip2))
     allocate(Dp2(3,0:itotNtime,1:num_dip2))
@@ -326,8 +330,8 @@ if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc_size_global)then
     end do
     inum_Mxin_datafile(:)=iend_Mxin_datafile(:)-ista_Mxin_datafile(:)+1
 
-    write(fileNumber_data, '(i8)') nproc_id_global_datafiles
-    file_IN_rt_data = trim(file_IN_rt)//"."//adjustl(fileNumber_data)
+    write(fileNumber_data, '(i6.6)') nproc_id_global_datafiles
+    file_IN_rt_data = trim(adjustl(sysname))//"_rt_"//trim(adjustl(fileNumber_data))//".bin"
     open(88,file=file_IN_rt_data,form='unformatted')
 
   end if
@@ -477,6 +481,9 @@ if(comm_is_root(nproc_id_global))then
   do it2=1,Miter_rt
     read(98) (Dp(jj,it2),jj=1,3)
   end do
+  do it2=1,Miter_rt
+    read(98) tene(it2)
+  end do
 end if
 
 call comm_bcast(vecDs,nproc_group_global)
@@ -485,6 +492,9 @@ do jj=1,3
 do it2=1,Miter_rt
    call comm_bcast(Dp(jj,it2),nproc_group_global)
 end do
+end do
+do it2=1,Miter_rt
+   call comm_bcast(tene(it2),nproc_group_global)
 end do
 
 if(iflag_dip2==1)then

@@ -21,9 +21,6 @@ subroutine print_optimize_message
 #ifdef ARTED_USE_TLOG
   print *, '  ARTED_USE_TLOG'
 #endif
-#ifdef ARTED_USE_PAPI
-  print *, '  ARTED_USE_PAPI'
-#endif
 #ifdef ARTED_CURRENT_PREPROCESSING
   print *, '  ARTED_CURRENT_PREPROCESSING'
 #endif

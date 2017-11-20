@@ -23,18 +23,16 @@ subroutine tddft_sc
   use Global_Variables
   use timer
   use opt_variables
-  use environment
   use performance_analyzer
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
   use misc_routines, only: get_wtime
   use salmon_global, only: format3d, out_dns, out_dns_rt, out_dns_rt_step
   use salmon_file, only: open_filehandle
-  use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac,  t_unit_eac
+  use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac,  t_unit_energy, t_unit_elec
   use restart, only: prep_restart_write
   implicit none
   integer :: iter,ia,i,ixyz  !,ib,ik
-  integer :: fh_rt_data
   real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI),fac_vscaling
   parameter( kB = 1.38064852d-23 ) ![J/K]
   parameter( hartree2J = 4.359744650d-18 )
@@ -89,18 +87,63 @@ subroutine tddft_sc
 
 
   if (comm_is_root(nproc_id_global)) then
-    open(7,file=file_epst,    position = position_option)
-    open(8,file=file_dns,     position = position_option)
+    ! open(7,file=file_epst,    position = position_option) !! TODO: remove output of "_t.out" file future
+    
     open(9,file=file_force_dR,position = position_option)
+    write(9, '("#",1X,A)') "Force calculatio"
+    
+    write(9, '("#",1X,A,":",1X,A)') "force", "Force"
+    ! write(9, '("#",1X,A,":",1X,A)') "dRion", "Atomic position"
+    
+    write(9, '("#",99(1X,A,"[",A,"]"))') &
+      & "time", trim(t_unit_time%name), &
+      & "force", "a.u." !, &
+      ! & "dRion", "a.u."
+
+    
     if (projection_option /= 'no') then 
-      open(404,file=file_ovlp,position = position_option) 
-      open(408,file=file_nex, position = position_option) 
-      open(409,file=file_last_band_map,position = position_option) 
+      
+      open(404, file=file_ovlp,position = position_option) 
+      write(404, '("#",1X,A)') "Projection"
+      
+      write(404, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+      write(404, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
+      write(404, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
+      
+      write(404, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "ik", "none", &
+        & 2, "ovlp_occup(NB)", "none"
+        
+      open(408, file=file_nex, position = position_option) 
+      write(408, '("#",1X,A)') "Excitation"
+      
+      write(408, '("#",1X,A,":",1X,A)') "nelec", "Number of excited electrons"
+      write(408, '("#",1X,A,":",1X,A)') "nhole", "Number of excited holes"
+      
+      write(408, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "time", trim(t_unit_time%name), &
+        & 2, "nelec", "none", &
+        & 3, "nhole", "none"
+      
+      open(409, file=file_last_band_map,position = position_option) 
+      write(409, '("#",1X,A)') "Last bandmap"
+      
+      write(409, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+      write(409, '("#",1X,A,":",1X,A)') "energy", "Electron energy"
+      write(409, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
+      write(409, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
+      
+      write(409, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "ik", "none", &
+        & 2, "energy(NB)", trim(t_unit_energy%name), &
+        & 2 + NB, "ovlp_occup(NB)", "none"      
+    end if
+
+    if (out_old_dns == 'y') then
+      open(8,file=file_dns,     position = position_option)
     end if
     
   endif
-
-
   call comm_sync_all
 
 !$acc enter data copyin(ik_table,ib_table)
@@ -111,10 +154,6 @@ subroutine tddft_sc
 !$acc enter data copyin(uV,iuV)
 
 !$acc enter data create(kAc)
-
-#ifdef ARTED_USE_PAPI
-  call papi_begin
-#endif
 
   call timer_begin(LOG_DYNAMICS)
 !$acc enter data copyin(zu)
@@ -143,13 +182,14 @@ subroutine tddft_sc
     if (use_ehrenfest_md == 'y') then
 !$acc update self(zu)
       call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
-      if (iter/10*10 == iter) then
+      ! if (iter/10*10 == iter) then
         call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
-      end if
+      ! end if
     else
-      if (iter/10*10 == iter) then
 !$acc update self(zu)
-        call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
+      call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
+      if (iter/10*10 == iter) then
+        ! call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
         call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
       end if
     end if
@@ -198,17 +238,27 @@ subroutine tddft_sc
       Tion=0.d0
     endif
     Eall=Eall+Tion
+    
+    Eall_t(iter) = Eall
+    Tion_t(iter) = Tion
+    Temperature_ion_t(iter) = Temperature_ion
 
 !---Write section---
-    ! Export to file_epst,file_force_dR, file_trj
+    ! Export to file_rt_data
+    if (mod(iter, 1000) == 0 .or. iter == Nt) then
+      call write_rt_data(iter)
+    end if
+
+    ! Export to file_force_dR, file_trj
     if (iter/10*10 == iter.and.comm_is_root(nproc_id_global)) then
     if (use_ehrenfest_md == 'y') then
       write(*,'(1x,f10.4,8f12.6,f22.14,f18.5)') iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion, Temperature_ion
-      write(7,'(1x,100e16.6E3)') iter*dt,&
-           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-           &  Eall, Eall-Eall0, Tion, Temperature_ion
+      !! TODO: exclude _t.out file future implementation
+      ! write(7,'(1x,100e16.6E3)') iter*dt,&
+      !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+      !      &  Eall, Eall-Eall0, Tion, Temperature_ion
       write(comment_line,110) iter, iter*dt
 110   format("#md   step=",i4,"   time",e16.6)
       call write_xyz(comment_line,"add","rv ")
@@ -216,24 +266,28 @@ subroutine tddft_sc
       write(*,'(1x,f10.4,8f12.6,f22.14)') iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion
-      write(7,'(1x,100e16.6E3)') iter*dt,&
-           & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-           &  Eall, Eall-Eall0, Tion
+      ! write(7,'(1x,100e16.6E3)') iter*dt,&
+      !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+      !      &  Eall, Eall-Eall0, Tion
            !&E_ext(iter,1),E_tot(iter,1),&
            !&E_ext(iter,2),E_tot(iter,2),&
            !&E_ext(iter,3),E_tot(iter,3),&
     endif
-      write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI),((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
+      write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI)!!,((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
     endif
 
-    ! Export Dynamical Density (file_dns)
-    if (iter/100*100 == iter.and.comm_is_root(nproc_id_global)) then
-      write(8,'(1x,i10)') iter
-      do i=1,NL
-        write(8,'(1x,2e16.6E3)') rho(i),(rho(i)-rho_gs(i))
-      enddo
-    endif
-
+    !! Export Dynamical Density (file_dns)
+    !! NOTE: The support for _dns.file will be disabled in future release...
+    if (out_old_dns == 'y' .and. mod(iter, out_dns_rt_step) == 0) then
+      if (comm_is_root(nproc_id_global)) then
+        write(8,'(1x,i10)') iter
+        do i=1,NL
+          write(8,'(1x,2e16.6E3)') rho(i),(rho(i)-rho_gs(i))
+        enddo
+      endif
+      call comm_sync_all()
+    end if
+    
     ! Export electronic density (cube or vtk)
     if(out_dns_rt=='y' .and. mod(iter,out_dns_rt_step)==0) then
        call write_density(iter,'rt')
@@ -244,66 +298,39 @@ subroutine tddft_sc
       call k_shift_wf(Rion_update_rt,Nscf,zu_t,iter,"projection")
     end if
 
-
-    ! Export j_Ac
-    if(comm_is_root(nproc_id_global))then
-      if (iter/1000*1000 == iter .or. iter == Nt) then
-        open(407,file=file_j_ac)
-        write(407,'(A)')'# J     : Matter current density'
-        write(407,'(A)')'# Ac_ext: External vector-potential devided by light-velocity'
-        write(407,'(A)')'# Ac_tot: Total Vector-potential devided by light-velocity'
-        write(407,'(A1,A25,9A26)')'#','Time ['//trim(t_unit_time%name)//']', &
-             'Jx ['//trim(t_unit_current%name)//']', &
-             'Jy ['//trim(t_unit_current%name)//']', &
-             'Jz ['//trim(t_unit_current%name)//']', &
-             'Ac_ext_x ['//trim(t_unit_ac%name)//']', &
-             'Ac_ext_y ['//trim(t_unit_ac%name)//']', &
-             'Ac_ext_z ['//trim(t_unit_ac%name)//']', &
-             'Ac_tot_x ['//trim(t_unit_ac%name)//']', &
-             'Ac_tot_y ['//trim(t_unit_ac%name)//']', &
-             'Ac_tot_z ['//trim(t_unit_ac%name)//']'
-        do i=0,Nt
-          write(407,'(100e26.16E3)') i*dt*t_unit_time%conv, &
-                                     javt(i,1)*t_unit_current%conv, &
-                                     javt(i,2)*t_unit_current%conv, &
-                                     javt(i,3)*t_unit_current%conv, &
-                                     Ac_ext(i,1)*t_unit_ac%conv, &
-                                     Ac_ext(i,2)*t_unit_ac%conv, &
-                                     Ac_ext(i,3)*t_unit_ac%conv, &
-                                     Ac_tot(i,1)*t_unit_ac%conv, &
-                                     Ac_tot(i,2)*t_unit_ac%conv, &
-                                     Ac_tot(i,3)*t_unit_ac%conv
-        end do
-        close(407)
-        
-        ! Exporting SYSNAME_rt.data file
-        fh_rt_data = open_filehandle(file_rt_data)
-        write(fh_rt_data,'(A)')'# J   : Matter current density'
-        write(fh_rt_data,'(A)')'# E   : Total Electric Field'
-        write(fh_rt_data,'(A)')'# eAc : Total Vector-potential'
-        write(fh_rt_data,'(A)')'#' // &
-          & ' Time ['//trim(t_unit_time%name)//']' // &
-          & ' Ex ['//trim(t_unit_ac%name)//']' // &
-          & ' Ey ['//trim(t_unit_ac%name)//']' // &
-          & ' Ez ['//trim(t_unit_ac%name)//']' // &
-          & ' Jx ['//trim(t_unit_current%name)//']' // &
-          & ' Jy ['//trim(t_unit_current%name)//']' // &
-          & ' Jz ['//trim(t_unit_current%name)//']' // &
-          & ' eAcx ['//trim(t_unit_ac%name)//']' // &
-          & ' eAcy ['//trim(t_unit_ac%name)//']' // &
-          & ' eAcz ['//trim(t_unit_ac%name)//']'
-        do i=0,Nt
-          write(fh_rt_data,'(100e26.16E3)') &
-            & i*dt*t_unit_time%conv, &
-            & E_tot(iter,1:3), &
-            & javt(i,1:3)*t_unit_current%conv, &
-            & Ac_tot(i,1:3)*t_unit_eac%conv
-        end do
-        close(fh_rt_data)
-      end if
-    end if
-  
-
+    !! TODO: Remove the outpit of "j_ac.out" file future...
+    ! if(comm_is_root(nproc_id_global))then
+    !   if (iter/1000*1000 == iter .or. iter == Nt) then
+    !     open(407,file=file_j_ac)
+    !     write(407,'(A)')'# J     : Matter current density'
+    !     write(407,'(A)')'# Ac_ext: External vector-potential devided by light-velocity'
+    !     write(407,'(A)')'# Ac_tot: Total Vector-potential devided by light-velocity'
+    !     write(407,'(A1,A25,9A26)')'#','Time ['//trim(t_unit_time%name)//']', &
+    !          'Jx ['//trim(t_unit_current%name)//']', &
+    !          'Jy ['//trim(t_unit_current%name)//']', &
+    !          'Jz ['//trim(t_unit_current%name)//']', &
+    !          'Ac_ext_x ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_ext_y ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_ext_z ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_tot_x ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_tot_y ['//trim(t_unit_ac%name)//']', &
+    !          'Ac_tot_z ['//trim(t_unit_ac%name)//']'
+    !     do i=0,Nt
+    !       write(407,'(100e26.16E3)') i*dt*t_unit_time%conv, &
+    !                                  javt(i,1)*t_unit_current%conv, &
+    !                                  javt(i,2)*t_unit_current%conv, &
+    !                                  javt(i,3)*t_unit_current%conv, &
+    !                                  Ac_ext(i,1)*t_unit_ac%conv, &
+    !                                  Ac_ext(i,2)*t_unit_ac%conv, &
+    !                                  Ac_ext(i,3)*t_unit_ac%conv, &
+    !                                  Ac_tot(i,1)*t_unit_ac%conv, &
+    !                                  Ac_tot(i,2)*t_unit_ac%conv, &
+    !                                  Ac_tot(i,3)*t_unit_ac%conv
+    !     end do
+    !     close(407)
+    !   end if
+    ! end if
+    
 !Timer
     if (iter/1000*1000 == iter.and.comm_is_root(nproc_id_global)) then
       call timer_show_current_hour('dynamics time      :', LOG_DYNAMICS)
@@ -344,14 +371,7 @@ subroutine tddft_sc
 !$acc exit data copyout(zu)
   call timer_end(LOG_DYNAMICS)
 
-#ifdef ARTED_USE_PAPI
-  call papi_end
-#endif
-
   if(comm_is_root(nproc_id_global)) then
-#ifdef ARTED_USE_PAPI
-    call papi_result(timer_get(LOG_DYNAMICS))
-#endif
     call timer_show_hour('dynamics time      :', LOG_DYNAMICS)
     call timer_show_min ('dt_evolve time     :', LOG_DT_EVOLVE)
     call timer_show_min ('hpsi time          :', LOG_HPSI)
@@ -371,8 +391,10 @@ subroutine tddft_sc
   call write_performance(trim(directory)//'sc_performance')
 
   if(comm_is_root(nproc_id_global)) then
-    close(7)
-    close(8)
+    ! close(7) !! TODO: Remove output of "_t.out" file future
+    if (out_old_dns == 'y') then
+      close(8) !! TODO: Disable output of "_dns.out" file for future release
+    end if
     close(9)
     if (projection_option /= 'no') then
       close(404)
@@ -415,6 +437,71 @@ contains
       call timer_reset(i)
     end do
   end subroutine
+  
+  
+  subroutine write_rt_data(niter)
+    implicit none
+    integer, intent(in) :: niter
+    integer :: fh_rt, iiter
+
+    if (comm_is_root(nproc_id_global)) then
+      fh_rt = open_filehandle(file_rt_data)
+      
+      write(fh_rt, '("#",1X,A)') "Real time calculation"
+      
+      write(fh_rt, '("#",1X,A,":",1X,A)') "Ac_ext", "External vector potential field"
+      write(fh_rt, '("#",1X,A,":",1X,A)') "E_ext", "External electric field"
+      write(fh_rt, '("#",1X,A,":",1X,A)') "Ac_tot", "Total vector potential field"
+      write(fh_rt, '("#",1X,A,":",1X,A)') "E_tot", "Total electric field"
+      write(fh_rt, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
+      write(fh_rt, '("#",1X,A,":",1X,A)') "Eall", "Total energy"
+      write(fh_rt, '("#",1X,A,":",1X,A)') "Eall0", "Initial energy"
+      write(fh_rt, '("#",1X,A,":",1X,A)') "Tion", "Kinetic energy of ions"
+      ! write(fh_rt, '("#",1X,A,":",1X,A)') "Temperature_ion", "Temperature of ions"
+      
+      write(fh_rt, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        & 1, "Time", trim(t_unit_time%name), &
+        & 2, "Ac_ext_x", trim(t_unit_ac%name), &
+        & 3, "Ac_ext_y", trim(t_unit_ac%name), &
+        & 4, "Ac_ext_z", trim(t_unit_ac%name), &
+        & 5, "E_ext_x", trim(t_unit_elec%name), &
+        & 6, "E_ext_y", trim(t_unit_elec%name), &
+        & 7, "E_ext_z", trim(t_unit_elec%name), &
+        & 8, "Ac_tot_x", trim(t_unit_ac%name), &
+        & 9, "Ac_tot_y", trim(t_unit_ac%name), &
+        & 10, "Ac_tot_z", trim(t_unit_ac%name), &
+        & 11, "E_tot_x", trim(t_unit_elec%name), &
+        & 12, "E_tot_y", trim(t_unit_elec%name), &
+        & 13, "E_tot_z", trim(t_unit_elec%name), &
+        & 14, "Jm_x", trim(t_unit_current%name), &
+        & 15, "Jm_y", trim(t_unit_current%name), &
+        & 16, "Jm_z", trim(t_unit_current%name), &
+        & 17, "Eall", trim(t_unit_energy%name), &
+        & 18, "Eall-Eall0", trim(t_unit_energy%name), &
+        & 19, "Tion", trim(t_unit_energy%name), &
+        & 20, "Temperature_ion", "K"
+        
+      do iiter = 0, niter
+        write(fh_rt, "(F16.8,99(1X,ES22.14E3))") &
+          & iiter * dt * t_unit_time%conv, &
+          & Ac_ext(iiter, 1:3) * t_unit_ac%conv, &
+          & E_ext(iiter, 1:3) * t_unit_elec%conv, &
+          & Ac_tot(iiter, 1:3) * t_unit_ac%conv, &
+          & E_tot(iiter, 1:3) * t_unit_elec%conv, &
+          & javt(iiter, 1:3) * t_unit_current%conv, &
+          & Eall_t(iiter) * t_unit_energy%conv, &
+          & (Eall_t(iiter) - Eall0) * t_unit_energy%conv, &
+          & Tion_t(iiter) * t_unit_energy%conv, &
+          & Temperature_ion_t(iiter)
+      end do
+      close(fh_rt)
+    end if
+    call comm_sync_all
+    return
+  end subroutine write_rt_data
+  
+  
+  
 end subroutine tddft_sc
 
 !-----------------------------------------------------------------
@@ -425,7 +512,6 @@ subroutine calc_opt_ground_state
   use Global_Variables
   use timer
   use opt_variables
-  use environment
   use performance_analyzer
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root

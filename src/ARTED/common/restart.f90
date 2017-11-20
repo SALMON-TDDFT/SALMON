@@ -230,6 +230,7 @@ subroutine prep_backup_values(is_backup)
   BACKUP(out_pdos)
   BACKUP(out_dns)
   BACKUP(out_elf)
+  BACKUP(out_old_dns)
   BACKUP(out_dns_rt)
   BACKUP(out_dns_rt_step)
   BACKUP(out_elf_rt)
@@ -273,6 +274,8 @@ subroutine prep_backup_values(is_backup)
   BACKUP(t_unit_current%conv)
   BACKUP(t_unit_ac%name)
   BACKUP(t_unit_ac%conv)
+  BACKUP(t_unit_elec%name)
+  BACKUP(t_unit_elec%conv)
 
 !! global_variables of ARTED
 
@@ -377,6 +380,9 @@ subroutine prep_backup_values(is_backup)
   BACKUP(Eion)
   BACKUP(Eelemag)
   BACKUP(javt)
+  BACKUP(Eall_t)
+  BACKUP(Tion_t)
+  BACKUP(Temperature_ion_t)
   BACKUP(Vpsl)
   BACKUP(Vh)
   BACKUP(Vexc)
@@ -475,6 +481,7 @@ subroutine prep_backup_values(is_backup)
   BACKUP(file_dns)
   BACKUP(file_ovlp)
   BACKUP(file_nex)
+  BACKUP(file_last_band_map)
   BACKUP(file_k_data)
   BACKUP(file_eigen_data)
   BACKUP(file_rt_data)
@@ -681,7 +688,7 @@ contains
   ! TODO: An array resizing subroutine should be provided.
   subroutine resize_arrays
     implicit none
-    real(8), allocatable :: tmp2(:,:),tmp3(:,:,:),tmp4(:,:,:,:,:)
+    real(8), allocatable :: tmp1(:), tmp2(:,:),tmp3(:,:,:),tmp4(:,:,:,:,:)
     integer :: mt
 
     ! javt
@@ -693,6 +700,36 @@ contains
     allocate(javt(0:Nt+1,3))
     javt(:,:) = tmp2(:,:)
     deallocate(tmp2)
+    
+    ! Eall_t
+    mt = min(Nt+1, ubound(Eall_t, 1))
+    allocate(tmp1(0:Nt+1))
+    tmp1(:) = 0.d0
+    tmp1(0:mt) = Eall_t(0:mt)
+    deallocate(Eall_t)
+    allocate(Eall_t(0:Nt+1))
+    Eall_t(:) = tmp1(:)
+    deallocate(tmp1)
+    
+    ! Tion_t
+    mt = min(Nt+1, ubound(Tion_t, 1))
+    allocate(tmp1(0:Nt+1))
+    tmp1(:) = 0.d0
+    tmp1(0:mt) = Tion_t(0:mt)
+    deallocate(Tion_t)
+    allocate(Tion_t(0:Nt+1))
+    Tion_t(:) = tmp1(:)
+    deallocate(tmp1)
+  
+    ! Temperature_ion_t
+    mt = min(Nt+1, ubound(Temperature_ion_t, 1))
+    allocate(tmp1(0:Nt+1))
+    tmp1(:) = 0.d0
+    tmp1(0:mt) = Temperature_ion_t(0:mt)
+    deallocate(Temperature_ion_t)
+    allocate(Temperature_ion_t(0:Nt+1))
+    Temperature_ion_t(:) = tmp1(:)
+    deallocate(tmp1)
 
     ! E_ext
     mt = min(Nt, ubound(E_ext, 1))

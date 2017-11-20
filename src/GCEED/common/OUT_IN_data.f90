@@ -140,8 +140,8 @@ if(OC<=2)then
       end do
       inum_Mxin_datafile(:)=iend_Mxin_datafile(:)-ista_Mxin_datafile(:)+1
 
-      write(fileNumber_data, '(i8)') myrank_datafiles
-      file_OUT_data = trim(file_OUT)//"."//adjustl(fileNumber_data)
+      write(fileNumber_data, '(i6.6)') myrank_datafiles
+      file_OUT_data = trim(adjustl(sysname))//"_gs_"//trim(adjustl(fileNumber_data))//".bin"
       open(87,file=file_OUT_data,form='unformatted')
     end if
   end if
@@ -806,8 +806,8 @@ if(IC<=2)then
       inum_Mxin_datafile(:)=iend_Mxin_datafile(:)-ista_Mxin_datafile(:)+1
 
       if(num_datafiles_IN>=2.and.nproc_id_global<num_datafiles_IN)then
-        write(fileNumber_data, '(i8)') myrank_datafiles
-        file_IN_data = trim(file_IN)//"."//adjustl(fileNumber_data)
+        write(fileNumber_data, '(i6.6)') myrank_datafiles
+        file_IN_data = trim(adjustl(sysname))//"_gs_"//trim(adjustl(fileNumber_data))//".bin"
         open(86,file=file_IN_data,form='unformatted')
       end if
     end if
