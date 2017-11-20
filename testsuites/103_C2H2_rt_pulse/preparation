@@ -8,7 +8,7 @@
 
 cp ../pseudo/C_rps.dat ./
 cp ../pseudo/H_rps.dat ./
-cp ../101_C2H2_gs/C2H2.data ./
+cp ../101_C2H2_gs/C2H2_gs.bin ./
 if [ -e C2H2-RT.data ]; then
   rm C2H2-RT.data
 fi
