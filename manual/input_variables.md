@@ -1160,7 +1160,7 @@ A variable to check whether reentrance is done or not in the time propagation ca
 Default is <code>0</code> 
 </dd>
 
-<dt>oc; <code>Integer</code>; 0d</dt>
+<dt>oc_rt; <code>Integer</code>; 0d</dt>
 <dd>
 A variable to check whether intermediate files are generated in the time propagation calculation. 
 Default is <code>0</code>.

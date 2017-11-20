@@ -19,13 +19,13 @@ subroutine set_filename
   use scf_data
   implicit none
   
-  file_IN=trim(sysname)//".data"
-  file_OUT=trim(sysname)//".data"
+  file_IN=trim(sysname)//"_gs.bin"
+  file_OUT=trim(sysname)//"_gs.bin"
   LDA_Info=trim(sysname)//"_info.data"
   file_eigen=trim(sysname)//"_eigen.data"
 
-  file_OUT_rt=trim(sysname)//"_rtreent.data"
-  file_IN_rt=trim(sysname)//"_rtreent.data"
+  file_OUT_rt=trim(sysname)//"_rt.bin"
+  file_IN_rt=trim(sysname)//"_rt.bin"
 
   file_RT=trim(sysname)//"_p.data"
   file_alpha_lr=trim(sysname)//"_lr.data"
