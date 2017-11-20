@@ -60,8 +60,7 @@ contains
       call comm_bcast(occ,nproc_group_global)
     end select
 
-
-    if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. nmacro_s == 0))then
+    if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. nmacro_s == 1))then
       do ik=NK_s,NK_e
         
         write (gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
@@ -175,4 +174,3 @@ contains
 
   end subroutine modify_initial_guess_copy_1stk_to_all
 end module io_gs_wfn_k
-
