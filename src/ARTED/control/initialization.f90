@@ -140,7 +140,7 @@ contains
        write(file_GS,"(2A,'_gs_info.data')") trim(directory),trim(SYSname)
        write(file_epst,"(2A,'_t.data')") trim(directory),trim(SYSname)
        write(file_epse,"(2A,'_e.data')") trim(directory),trim(SYSname)
-       write(file_force_dR,"(2A,'_force_dR.data')") trim(directory),trim(SYSname)
+       write(file_force_dR,"(2A,'_force.data')") trim(directory),trim(SYSname)
        write(file_j_ac,"(2A,'_j_ac.data')") trim(directory),trim(SYSname)
        write(file_DoS,"(2A,'_dos.data')") trim(directory),trim(SYSname)
        write(file_band,"(2A,'_band.data')") trim(directory),trim(SYSname)

@@ -94,12 +94,12 @@ subroutine tddft_sc
     write(9, '("#",1X,A)') "Force calculatio"
     
     write(9, '("#",1X,A,":",1X,A)') "force", "Force"
-    write(9, '("#",1X,A,":",1X,A)') "dRion", "Atomic position"
+    ! write(9, '("#",1X,A,":",1X,A)') "dRion", "Atomic position"
     
     write(9, '("#",99(1X,A,"[",A,"]"))') &
       & "time", trim(t_unit_time%name), &
-      & "force", "a.u.", &
-      & "dRion", "a.u."
+      & "force", "a.u." !, &
+      ! & "dRion", "a.u."
 
     
     if (projection_option /= 'no') then 
@@ -278,7 +278,7 @@ subroutine tddft_sc
            !&E_ext(iter,2),E_tot(iter,2),&
            !&E_ext(iter,3),E_tot(iter,3),&
     endif
-      write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI),((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
+      write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI)!!,((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
     endif
 
     !! Export Dynamical Density (file_dns)
