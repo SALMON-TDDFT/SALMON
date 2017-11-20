@@ -29,7 +29,6 @@ contains
     use opt_variables
     use salmon_parallel
     use salmon_communication
-    use environment
     use misc_routines
     use inputfile,only: transfer_input
     use restart,only: prep_restart_read
@@ -38,8 +37,6 @@ contains
 !$ integer :: omp_get_max_threads  
 
     call timer_initialize
-
-    call load_environments
 
     if(comm_is_root(nproc_id_global)) then
        write(*,'(A)') "Welcome to SALMON-TDDFT"
@@ -105,7 +102,6 @@ contains
     use salmon_global
     use Global_Variables
     use opt_variables
-    use environment
     use salmon_parallel
     use salmon_communication
     use salmon_file
@@ -312,23 +308,20 @@ contains
     NK_ave=NK/nproc_size_tdks; NK_remainder=NK-NK_ave*nproc_size_tdks
     NG_ave=NG/nproc_size_tdks; NG_remainder=NG-NG_ave*nproc_size_tdks
     
-    if(is_symmetric_mode() == 1 .and. ENABLE_LOAD_BALANCER == 1) then
-       call symmetric_load_balancing(NK,NK_ave,NK_s,NK_e,NK_remainder,nproc_id_tdks,nproc_size_tdks)
+
+    if (NK/nproc_size_tdks*nproc_size_tdks == NK) then
+       NK_s=NK_ave*nproc_id_tdks+1
+       NK_e=NK_ave*(nproc_id_tdks+1)
     else
-       if (NK/nproc_size_tdks*nproc_size_tdks == NK) then
+       if (nproc_id_tdks < (nproc_size_tdks-1) - NK_remainder + 1) then
           NK_s=NK_ave*nproc_id_tdks+1
           NK_e=NK_ave*(nproc_id_tdks+1)
        else
-          if (nproc_id_tdks < (nproc_size_tdks-1) - NK_remainder + 1) then
-             NK_s=NK_ave*nproc_id_tdks+1
-             NK_e=NK_ave*(nproc_id_tdks+1)
-          else
-             NK_s=NK-(NK_ave+1)*((nproc_size_tdks-1)-nproc_id_tdks)-NK_ave
-             NK_e=NK-(NK_ave+1)*((nproc_size_tdks-1)-nproc_id_tdks)
-          end if
+          NK_s=NK-(NK_ave+1)*((nproc_size_tdks-1)-nproc_id_tdks)-NK_ave
+          NK_e=NK-(NK_ave+1)*((nproc_size_tdks-1)-nproc_id_tdks)
        end if
-       if(nproc_id_tdks == nproc_size_tdks-1 .and. NK_e /= NK) call err_finalize('prep. NK_e error')
-    endif
+    end if
+    if(nproc_id_tdks == nproc_size_tdks-1 .and. NK_e /= NK) call err_finalize('prep. NK_e error')
     
     if (NG/nproc_size_tdks*nproc_size_tdks == NG) then
        NG_s=NG_ave*nproc_id_tdks+1
@@ -858,12 +851,21 @@ contains
   Subroutine read_external_input_for_restart
     use salmon_global
     use Global_Variables
-    use environment
     use salmon_parallel
     use salmon_communication
     implicit none
     character(1024) :: line,keyword
+    integer :: flag_access
+    integer access
 
+    if(comm_is_root(nproc_id_global))then
+      flag_access = access("input_for_restart.inp", "r")
+    end if
+    call comm_bcast(flag_access, nproc_group_global)
+    if(flag_access .ne. 0) then
+      return
+    end if
+    
     if(comm_is_root(nproc_id_global))then
        open(123,file="input_for_restart.inp",status="old",err=999)
        write(*,*) "Opened input_for_restart.inp"

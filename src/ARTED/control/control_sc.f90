@@ -23,7 +23,6 @@ subroutine tddft_sc
   use Global_Variables
   use timer
   use opt_variables
-  use environment
   use performance_analyzer
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
@@ -155,10 +154,6 @@ subroutine tddft_sc
 !$acc enter data copyin(uV,iuV)
 
 !$acc enter data create(kAc)
-
-#ifdef ARTED_USE_PAPI
-  call papi_begin
-#endif
 
   call timer_begin(LOG_DYNAMICS)
 !$acc enter data copyin(zu)
@@ -376,14 +371,7 @@ subroutine tddft_sc
 !$acc exit data copyout(zu)
   call timer_end(LOG_DYNAMICS)
 
-#ifdef ARTED_USE_PAPI
-  call papi_end
-#endif
-
   if(comm_is_root(nproc_id_global)) then
-#ifdef ARTED_USE_PAPI
-    call papi_result(timer_get(LOG_DYNAMICS))
-#endif
     call timer_show_hour('dynamics time      :', LOG_DYNAMICS)
     call timer_show_min ('dt_evolve time     :', LOG_DT_EVOLVE)
     call timer_show_min ('hpsi time          :', LOG_HPSI)
@@ -524,7 +512,6 @@ subroutine calc_opt_ground_state
   use Global_Variables
   use timer
   use opt_variables
-  use environment
   use performance_analyzer
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
