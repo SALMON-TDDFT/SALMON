@@ -343,4 +343,56 @@ contains
     STENCIL_BLOCKING_X = floor_pow2(min(sq, PNLx))
     STENCIL_BLOCKING_Y = floor_pow2(min(sq, PNLy))
   end subroutine
+
+  subroutine opt_vars_reinitialize
+    implicit none
+
+    call opt_vars_finalize
+    call opt_vars_initialize_p1
+    call opt_vars_initialize_p2
+  end subroutine
+
+  subroutine opt_vars_finalize
+    implicit none
+
+#define SAFE_DEALLOCATE(var) if(allocated(var)) deallocate(var)
+
+    SAFE_DEALLOCATE(zhtpsi)
+    SAFE_DEALLOCATE(zttpsi)
+
+    SAFE_DEALLOCATE(zrhotmp)
+    SAFE_DEALLOCATE(zJxyz)
+    SAFE_DEALLOCATE(zKxyz)
+
+    SAFE_DEALLOCATE(modx)
+    SAFE_DEALLOCATE(mody)
+    SAFE_DEALLOCATE(modz)
+
+    SAFE_DEALLOCATE(zcx)
+    SAFE_DEALLOCATE(zcy)
+    SAFE_DEALLOCATE(zcz)
+
+    SAFE_DEALLOCATE(nprojector)
+    SAFE_DEALLOCATE(idx_proj)
+    SAFE_DEALLOCATE(idx_lma)
+    SAFE_DEALLOCATE(pseudo_start_idx)
+
+#ifdef ARTED_STENCIL_ORIGIN
+    SAFE_DEALLOCATE(zifdx)
+    SAFE_DEALLOCATE(zifdy)
+    SAFE_DEALLOCATE(zifdz)
+#endif
+
+#ifdef ARTED_LBLK
+    SAFE_DEALLOCATE(t4ppt_nlma)
+    SAFE_DEALLOCATE(t4ppt_i2vi)
+    SAFE_DEALLOCATE(t4ppt_vi2i)
+    SAFE_DEALLOCATE(t4ppt_ilma)
+    SAFE_DEALLOCATE(t4ppt_j)
+
+    SAFE_DEALLOCATE(t4cp_uVpsix)
+    SAFE_DEALLOCATE(t4cp_uVpsiy)
+    SAFE_DEALLOCATE(t4cp_uVpsiz)
+#endif
+  end subroutine
 end module opt_variables
