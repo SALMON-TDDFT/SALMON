@@ -30,13 +30,17 @@ Subroutine input_pseudopotential_YS
   integer :: ik,Mr,l,i
   real(8) :: rRC(0:Lmax0)
   real(8) :: r1,r2,r3,r4
-  real(8) :: vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0)   !zero in radial index for taking derivative
-  real(8) :: dvpp(0:Nrmax0,0:Lmax0),dupp(0:Nrmax0,0:Lmax0) !zero in radial index for taking derivative
-  real(8) :: rhor_nlcc(0:Nrmax0,0:2)   !zero in radial index for taking derivative
+  real(8),allocatable :: vpp(:,:),upp(:,:)   !zero in radial index for taking derivative
+  real(8),allocatable :: dvpp(:,:),dupp(:,:) !zero in radial index for taking derivative
+  real(8),allocatable :: rhor_nlcc(:,:)   !zero in radial index for taking derivative
   character(2) :: atom_symbol
   character(256) :: ps_file
   integer :: ips_type,nlen_psf
   logical,allocatable :: flag_nlcc_element(:)
+
+  allocate(vpp(0:Nrmax0,0:Lmax0),upp(0:Nrmax0,0:Lmax0))
+  allocate(dvpp(0:Nrmax0,0:Lmax0),dupp(0:Nrmax0,0:Lmax0))
+  allocate(rhor_nlcc(0:Nrmax0,0:2))
 
 ! Nonlinear core correction
   allocate(rho_nlcc_tbl(Nrmax,NE),tau_nlcc_tbl(Nrmax,NE))
