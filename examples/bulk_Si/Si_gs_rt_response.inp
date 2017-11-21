@@ -6,42 +6,44 @@
   sysname = 'Si'
 /
 
+&units
+  unit_system = 'a.u.'
+/
+
 &system
   iperiodic = 3
-  al = 10.26d0,10.26d0,10.26d0
+  al = 10.26d0, 10.26d0, 10.26d0
   nstate = 32
   nelec = 32
   nelem = 1
   natom = 8
 /
 
-
 &pseudo
-  iZatom(1)=14
+  izatom(1) = 14
   pseudo_file(1) = './Si_rps.dat'
-  Lloc_ps(1)=2
+  lloc_ps(1) = 2
 /
 
 &functional
-  xc ='PZ'
-  cval = 1d0
+  xc = 'PZ'
 /
 
 &rgrid
-  num_rgrid = 12,12,12
+  num_rgrid = 12, 12, 12
 /
 
 &kgrid
-  num_kgrid = 4,4,4
+  num_kgrid = 4, 4, 4
 /
 
 &tgrid
- nt=3000
- dt=0.16  
+  nt = 3000
+  dt = 0.16
 /
 
 &propagation
-  propagator='etrs'
+  propagator = 'etrs'
 /
 
 &scf
@@ -52,21 +54,21 @@
 &emfield
   trans_longi = 'tr'
   ae_shape1 = 'impulse'
-  epdir_re1 = 0.,0.,1.
+  epdir_re1 = 0., 0., 1.
 /
 
 &analysis
- nenergy=1000
- de=0.001
+  nenergy = 1000
+  de = 0.001
 /
 
 &atomic_red_coor
-	'Si'	.0	.0	.0	1
-	'Si'	.25	.25	.25	1
-	'Si'	.5	.0	.5	1
-	'Si'	.0	.5	.5	1
-	'Si'	.5	.5	.0	1
-	'Si'	.75	.25	.75	1
-	'Si'	.25	.75	.75	1
-	'Si'	.75	.75	.25	1
-	/
+  'Si'	.0	.0	.0	1
+  'Si'	.25	.25	.25	1
+  'Si'	.5	.0	.5	1
+  'Si'	.0	.5	.5	1
+  'Si'	.5	.5	.0	1
+  'Si'	.75	.25	.75	1
+  'Si'	.25	.75	.75	1
+  'Si'	.75	.75	.25	1
+/
