@@ -250,12 +250,13 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
   Vloc(:) = Vloc_new(:)
 
   kAc=kAc_new
-!$acc update device(kAc)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
   call update_projector(kac)
   NVTX_END()
+
+!$acc update device(kAc,Vloc)
 
 !== predictor-corrector ==
   select case(functional)
