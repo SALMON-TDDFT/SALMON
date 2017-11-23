@@ -39,9 +39,6 @@ contains
     call timer_initialize
 
     if(comm_is_root(nproc_id_global)) then
-       write(*,'(A)') "Welcome to SALMON-TDDFT"
-       write(*,'(A)') "(Preliminary Developers Version)"
-       write(*,'(2A)') "based on ARTED ver. = ",ARTED_ver
        call print_optimize_message
     end if
 

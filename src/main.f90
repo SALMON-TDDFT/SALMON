@@ -31,6 +31,8 @@ contains
     include 'versionf.h'
     print '(A)',       '##############################################################################'
     print '(A)',       '# SALMON: Scalable Ab-initio Light-Matter simulator for Optics and Nanoscience'
+    print '(A)',       '#'
+    print '(A,A,A,A)', '#                             Version 1.0.0                                   '
     if (GIT_FOUND) then
       print '(A)',       '#'
       print '(A,A,A,A)', '#   [Git revision] ', GIT_COMMIT_HASH, ' in ', GIT_BRANCH
