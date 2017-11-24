@@ -9,7 +9,7 @@ set(ScaLAPACK_FLAGS             "-lscalapack -llapack -lblas")
 set(ADDITIONAL_MACRO            "")
 set(ADDITIONAL_OPTIMIZE_FLAGS   "")
 
-set(Fortran_FLAGS_General       "-Mpreprocess -acc -ta=tesla,cc35,ptxinfo,maxregcount:128 -Minfo=acc")
+set(Fortran_FLAGS_General       "-Mpreprocess -acc -ta=tesla,cc35,cc60,ptxinfo,maxregcount:128 -Minfo=acc")
 set(C_FLAGS_General             "")
 
 set(CMAKE_Fortran_COMPILER      "mpif90")
@@ -19,6 +19,7 @@ set(CMAKE_C_COMPILER            "mpicc")
 set(CMAKE_C_FLAGS_DEBUG         "-pg")
 set(CMAKE_C_FLAGS_RELEASE       "-fastsse")
 
+set(ENABLE_OPENACC      ON)
 set(USE_MPI             ON)
 # set(EXPLICIT_VEC        ON)
 # set(REDUCE_FOR_MANYCORE ON)
