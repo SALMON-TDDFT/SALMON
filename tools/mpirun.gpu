@@ -1,0 +1,179 @@
+#! /bin/bash
+#
+#   Copyright 2017 SALMON developers
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+
+BASENAME=$(basename "$0")
+BASEDIR=$(cd $(dirname "$0") && pwd)
+
+function usage() {
+echo "
+${BASENAME} : Wrapper script for GPU+MPI applications using MVAPICH2/OpenMPI in SLURM.
+
+Usage :
+  ${BASENAME} [binary] [arguments for binary...]
+
+Environment Variables 
+  NTHREADS_PER_SOCKET   # of threads / socket
+  NSOCKETS_PER_NODE     # of sockets / compute node
+  NGPUS_PER_NODE        # of GPUs    / compute node
+"
+}
+
+function wrecho () {
+  [[ $SLURM_PROCID -eq 0 ]] && [[ -n "$MPIRUN_GPU_VERBOSE" ]] && echo "[verbose] $1";
+}
+
+function wecho () {
+  [[ -n "$MPIRUN_GPU_VERBOSE" ]] && echo "[verbose] $1";
+}
+
+function abort() {
+  echo "[ABORT] $1" >&2;
+  exit 1;
+}
+
+if [ $# -lt 1 ] ; then
+  usage >&2;
+  exit 1;
+fi
+
+MPIRUN_GPU_VERBOSE=
+MPIRUN_EXECUTE=1
+
+while getopts "vhn" OPTION
+do
+  case $OPTION in
+    h)
+      usage;
+      exit 0;
+      ;;
+    v)
+      MPIRUN_GPU_VERBOSE=1
+      ;;
+    n)
+      MPIRUN_EXECUTE=0
+      ;;
+    \?)
+      usage;
+      exit 1;
+      ;;
+    esac
+done
+shift $((OPTIND - 1))
+mpi_application=$@
+shift $#
+
+##############
+# check SLURM env. variables.
+##############
+if [[ -z "$SLURM_NTASKS_PER_NODE" ]] ; then
+  abort "SLURM_NTASKS_PER_NODE not found."
+fi
+if [[ -z "$SLURM_PROCID" ]] ; then
+  abort "SLURM_PROCID not found."
+fi
+
+##############
+# check MPI.
+##############
+mpichversion_path=`which mpichversion 2> /dev/null`
+ompi_info_path=`which ompi_info 2> /dev/null`
+if [[ -n "${mpichversion_path}" ]]; then
+  mpiname=`exec ${mpichversion_path} | head -n 1 | awk '{print $1}'`
+elif [[ -n "${ompi_info_path}" ]]; then
+  mpiname="OpenMPI"
+fi
+mpiname=${mpiname,,}
+
+if [[ "x${mpiname}" != "xmvapich2" && "x${mpiname}" != "xopenmpi" ]]; then
+  abort "MPI package not found. We support MVAPICH2 and OpenMPI"
+fi
+
+##############
+# get MPI configrations (MPI rank, CPU info)
+##############
+source ${BASEDIR}/get_mpi_configuration
+
+wrecho "# of physical cores par socket = ${NTHREADS_PER_SOCKET}"
+wrecho "# of sockets per node          = ${NSOCKETS_PER_NODE}"
+wrecho "# of GPUs per node             = ${NGPUS_PER_NODE}"
+
+##########################################################################
+
+
+wrecho "###########################################"
+wrecho "${BASENAME} - MPI execution wrapper command"
+wrecho "with ${mpiname}"
+wrecho "###########################################"
+
+##############
+# GPU affinity.
+##############
+source ${BASEDIR}/select_cuda_device
+[[ -n "${MPIRUN_GPU_VERBOSE}" ]] && [[ ${SLURM_PROCID} -lt ${comm_world_local_size} ]] && wecho "Rank: ${SLURM_PROCID} = GPU${CUDA_VISIBLE_DEVICES}"
+
+##############
+# CPU affinity.
+##############
+if [[ ${comm_world_local_size} -gt 1 ]]; then
+  export OMP_NUM_THREADS=$(((NTHREADS_PER_SOCKET * NSOCKETS_PER_NODE) / comm_world_local_size))
+else
+  export OMP_NUM_THREADS=${NTHREADS_PER_SOCKET}
+fi
+
+if [[ "${mpiname}" = "mvapich2" ]]; then
+  MV2_CPU_MAPPING=
+  for((i=0; i<${NSOCKETS_PER_NODE}; i++)); do
+    for((j=0; j<${nprocs_per_socket}; j++)); do
+      nsta=$((i * NTHREADS_PER_SOCKET +  j      * OMP_NUM_THREADS    ))
+      nend=$((i * NTHREADS_PER_SOCKET + (j + 1) * OMP_NUM_THREADS - 1))
+      MV2_CPU_MAPPING="${MV2_CPU_MAPPING}:${nsta}-${nend}"
+    done
+  done
+  export MV2_CPU_MAPPING=${MV2_CPU_MAPPING:1}
+  export MV2_USE_THREAD_WARNING=0
+elif [[ "${mpiname}" = "openmpi" ]]; then
+  mpirun_command=`which mpirun`
+  if [[ $? -eq 0 ]]; then
+    mpirun_command="${mpirun_command} --map-by ppr:${nprocs_per_socket}:socket:PE=${OMP_NUM_THREADS}"
+    mpi_wrapper="${BASEDIR}/get_mpi_configuration ${BASEDIR}/select_cuda_device"
+  else
+    abort "mpirun command not found."
+  fi
+fi
+
+#############
+# Running.
+#############
+if [[ ${MPIRUN_EXECUTE} -eq 1 ]]; then
+  if [[ "${mpiname}" = "mvapich2" ]]; then
+    # MVAPICH2: all processes launch MPI application throughout srun
+    [[ -n "$MPIRUN_GPU_VERBOSE" ]] && export MV2_SHOW_CPU_BINDING=1
+    exec ${mpi_application}
+  elif [[ "${mpiname}" = "openmpi" && ${SLURM_PROCID} -eq 0 ]]; then
+    # OpenMPI: master process launches MPI application throughout mpirun
+    [[ -n "$MPIRUN_GPU_VERBOSE" ]] && mpirun_command="${mpirun_command} --report-bindings"
+    exec ${mpirun_command} ${mpi_wrapper} ${mpi_application}
+  fi
+fi
+
+errorcode=$?
+if [[ ${SLURM_PROCID} -eq 0 ]]; then
+  if [[ ${errorcode} -ne 0 ]] ; then
+    abort "catch error! ret=${errorcode}"
+  fi
+fi
+
