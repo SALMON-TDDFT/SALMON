@@ -16,7 +16,12 @@
 #define ENABLE_NONTEMPORAL_STORE
 
 #if defined(__KNC__) || defined(__AVX512F__) || defined(__HPC_ACE2__)
-# define ENABLE_OPTIMIZED_LOAD
+# if defined(__AVX512VL__)
+! The optimization is not efficient under Skylake-SP.
+! AVX-512VL (Vector Length) extension is implemented since Skylake-SP.
+# else
+#  define ENABLE_OPTIMIZED_LOAD
+# endif
 #endif
 
 subroutine hpsi1_RT_stencil(A,B,C,D,E,F)
