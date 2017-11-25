@@ -48,7 +48,7 @@ subroutine hpsi_acc_KB_RT_LBLK(tpsi,htpsi, ikb_s,ikb_e)
 
 contains
   subroutine pseudo_pt_LBLK(tpsi,htpsi, ikb_s,ikb_e)
-    use Global_Variables, only: Mps,uV,iuV,Hxyz,ekr_omp,Nlma,a_tbl
+    use Global_Variables, only: Mps,iuV,Hxyz,zproj,Nlma,a_tbl
 #ifdef ARTED_STENCIL_PADDING
     use opt_variables, only: zJxyz => zKxyz,PNL
 #else
@@ -68,7 +68,7 @@ contains
 
     !Calculating nonlocal part
 
-!$acc kernels pcopy(tpsi) create(uVpsi) pcopyin(a_tbl,ekr_omp,ik_table,mps,uv,iuv) &
+!$acc kernels pcopy(tpsi) create(uVpsi) pcopyin(a_tbl,zproj,ik_table,mps,iuv) &
 #ifdef ARTED_STENCIL_PADDING
 !$acc& pcopyin(zKxyz) &
 #else
@@ -85,7 +85,7 @@ contains
 !$acc loop vector(128) reduction(+:uVpsi0)
         do j=1,Mps(ia)
           i=zJxyz(j,ia)
-          uVpsi0=uVpsi0 + uV(j,ilma)*ekr_omp(j,ia,ik)*tpsi(i,ikb)
+          uVpsi0=uVpsi0+conjg(zproj(j,ilma,ik))*tpsi(i,ikb)
         enddo
         uVpsi(ilma,ikb)=uVpsi0*Hxyz*iuV(ilma)
       enddo
@@ -104,7 +104,7 @@ contains
           ilma = t4ppt_ilma(vi,n)
           j    = t4ppt_j   (vi,n)
           ia   = a_tbl(ilma)
-          tpsi0= tpsi0+conjg(ekr_omp(j,ia,ik))*uVpsi(ilma,ikb)*uV(j,ilma)
+          tpsi0= tpsi0+zproj(j,ilma,ik)*uVpsi(ilma,ikb)
         enddo
         i = t4ppt_vi2i(vi)
         htpsi(i,ikb)=htpsi(i,ikb)+tpsi0

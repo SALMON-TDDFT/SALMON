@@ -108,6 +108,7 @@ subroutine tddft_maxwell_ms
 !$acc enter data copyin(zJxyz,zKxyz)
 !$acc enter data copyin(uV,iuV)
 !$acc enter data copyin(kAc)
+!$acc enter data copyin(zproj)
 !$acc enter data copyin(ik_table,ib_table)
 
 !$acc enter data create(kAc_new)
