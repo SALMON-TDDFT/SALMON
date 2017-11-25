@@ -22,7 +22,10 @@ Subroutine prep_ps_periodic(property)
   use salmon_parallel, only: nproc_id_global, nproc_group_tdks
   use salmon_communication, only: comm_summation, comm_is_root
   use salmon_math
-  use opt_variables, only: zJxyz,zKxyz,init_for_padding
+  use opt_variables, only: zJxyz,zKxyz,init_for_padding, nprojector,idx_proj,idx_lma,pseudo_start_idx, init_projector
+#ifdef ARTED_LBLK
+  use opt_variables, only: t4ppt_nlma,t4ppt_nlma,t4ppt_i2vi,t4ppt_vi2i,t4ppt_ilma,t4ppt_j,  opt_vars_init_t4ppt
+#endif
   implicit none
   character(11) :: property
   logical :: flag_alloc1, flag_alloc2
@@ -41,9 +44,23 @@ Subroutine prep_ps_periodic(property)
   real(8) :: vloc_av
   real(8) :: ratio1,ratio2,rc
 
+
   !(Local pseudopotential in G-space (radial part))
   if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
      dVloc_G(:,:)=save_dVloc_G(:,:)
+
+#define SAFE_DEALLOCATE(var) if(allocated(var)) deallocate(var)
+#ifdef ARTED_LBLK
+    SAFE_DEALLOCATE(t4ppt_nlma)
+    SAFE_DEALLOCATE(t4ppt_i2vi)
+    SAFE_DEALLOCATE(t4ppt_vi2i)
+    SAFE_DEALLOCATE(t4ppt_ilma)
+    SAFE_DEALLOCATE(t4ppt_j)
+#endif
+    SAFE_DEALLOCATE(nprojector)
+    SAFE_DEALLOCATE(idx_proj)
+    SAFE_DEALLOCATE(idx_lma)
+    SAFE_DEALLOCATE(pseudo_start_idx)
   else 
 
 !$omp parallel
@@ -412,6 +429,17 @@ Subroutine prep_ps_periodic(property)
       end do; end do; end do
     end do
   end if
+
+  if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
+#ifdef ARTED_STENCIL_PADDING
+    call init_projector(zKxyz)
+#else
+    call init_projector(zJxyz)
+#endif
+#ifdef ARTED_LBLK
+     call opt_vars_init_t4ppt
+#endif
+  endif
 
   return
 End Subroutine prep_ps_periodic
