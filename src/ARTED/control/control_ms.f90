@@ -114,7 +114,7 @@ subroutine tddft_maxwell_ms
 !$acc enter data create(ghtpsi)
 
   call timer_begin(LOG_DYNAMICS)
-!$acc enter data copyin(zu_t)
+!$acc enter data copyin(zu_m)
   RTiteratopm : do iter=entrance_iter+1, Nt ! sato
     
     !! NOTE: flg_out_ms_step (the macroscopic field will exported in this step)
@@ -242,7 +242,7 @@ subroutine tddft_maxwell_ms
       kAc(:,3) = kAc0(:,3) + Ac_new_m(3,imacro)
 
       !===========================================================================
-!$acc update device(kAc)
+!$acc update device(kAc,kAc_new)
       call current_RT_MS(imacro) ! Timer: LOG_CURRENT
       !===========================================================================
 
@@ -259,14 +259,14 @@ subroutine tddft_maxwell_ms
       !===========================================================================
 
       if (use_ehrenfest_md == 'y') then
-!$acc update self(zu_t)
+!$acc update self(zu_m(:,:,:,imacro))
         call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
         if (flg_out_ms_next_step) then
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
       else
         if (flg_out_ms_next_step) then
-!$acc update self(zu_t)
+!$acc update self(zu_m(:,:,:,imacro))
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
           call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
@@ -288,6 +288,7 @@ subroutine tddft_maxwell_ms
       ! Calculate + store excitation number (if required in the next iteration..)
       call timer_begin(LOG_K_SHIFT_WF)
       if (flg_out_projection_next_step) then
+!$acc update self(zu_m(:,:,:,imacro))
         call k_shift_wf(Rion_update_rt,Nscf,zu_m(:,:,:,imacro),iter,"projection")
         if(comm_is_root(nproc_id_tdks))then ! sato
           excited_electron_new_m_tmp(imacro) = sum(occ) - sum(ovlp_occ(1:NBoccmax,:))
@@ -340,7 +341,7 @@ subroutine tddft_maxwell_ms
       call comm_sync_all
       write(*,*) nproc_id_global,'iter =',iter
       iter_now=iter
-!$acc update self(zu_t)
+!$acc update self(zu_m)
       call timer_end(LOG_DYNAMICS)
       call prep_restart_write
       go to 1
@@ -370,7 +371,7 @@ subroutine tddft_maxwell_ms
     end if
     
   enddo RTiteratopm !end of RT iteraction========================
-!$acc exit data copyout(zu_t)
+!$acc exit data copyout(zu_m)
   call timer_end(LOG_DYNAMICS)
   
   if(comm_is_root(nproc_id_global)) then
