@@ -942,6 +942,8 @@ Subroutine rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
   complex(8) :: zs(3)
   integer :: thr_id,omp_get_thread_num
 
+!$acc update self(zu) if_present
+
 !  allocate(tau_s_l_omp(NL,0:NUMBER_THREADS-1),j_s_l_omp(NL,3,0:NUMBER_THREADS-1)) ! sato
   rho_s=rho*0.5d0
   if(flag_nlcc)rho_s = rho_s + 0.5d0*rho_nlcc

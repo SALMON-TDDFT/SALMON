@@ -307,6 +307,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
         zu(:,ib,ik)=zu_GS(:,ib,ik)
      end do
 
+!$acc update device(zu, vloc)
   end select
 
 
@@ -414,6 +415,7 @@ Subroutine dt_evolve_omp_KB_MS(zu)
     zu(:,ib,ik)=zu_GS(:,ib,ik)
   end do
 
+!$acc update device(zu, vloc)
   end select
 ! yabana
 
