@@ -419,7 +419,7 @@ if(comm_is_root(nproc_id_global))then
 ! Alpha
   if(ae_shape1=='impulse')then
     open(1,file=file_alpha_lr)
-    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], S(x,y,z)[1/eV]" 
+    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], df/dE(x,y,z)[1/eV]" 
     do iene=0,Nenergy
       Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
       write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
@@ -429,7 +429,7 @@ if(comm_is_root(nproc_id_global))then
     end do
   else
     open(1,file=file_alpha_pulse)
-    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A*fs], Im[alpha](x,y,z)[A*fs], I(x,y,z)[A**2*fs**2]"
+    write(1,*) "# energy[eV], Re[d(w)](x,y,z)[A*fs],  Im[d(w)](x,y,z)[A*fs],  |d(w)|^2(x,y,z)[A**2*fs**2]"
     do iene=0,Nenergy
       write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
       write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
@@ -442,7 +442,7 @@ if(comm_is_root(nproc_id_global))then
 
   if(quadrupole=='y')then
     open(1,file=file_alpha_q)
-    write(1,*) "# energy[eV], Re[alpha](xx,yy,zz,xy,yz,zx)[A*fs], Im[alpha](xx,yy,zz,xy,yz,zx)[A*fs]" 
+    write(1,*) "# energy[eV], Re[d(w)](xx,yy,zz,xy,yz,zx)[A*fs],  Im[d(w)](xx,yy,zz,xy,yz,zx)[A*fs]" 
      do iene=0,Nenergy
        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
        write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
@@ -460,7 +460,7 @@ if(comm_is_root(nproc_id_global))then
   if(iflag_dip2==1)then
     open(1,file=file_alpha_dip2)
     if(ae_shape1=='impulse')then
-      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], S1(x,y,z)[1/eV],",  &
+      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], df1/dE (x,y,z)[1/eV],",  &
                  " Re[alpha2](x,y,z)[A**3], ..."
       do jj=1,num_dip2
         Dp_box(:,:)=Dp2(:,:,jj)
@@ -481,8 +481,8 @@ if(comm_is_root(nproc_id_global))then
         write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
       end do
     else
-      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A*fs], Im[alpha1](x,y,z)[A*fs], I1(x,y,z)[A**2*fs**2], ", &
-                 " Re[alpha2](x,y,z)[A*fs], ..."
+      write(1,*) "# energy[eV], Re[d1(w)](x,y,z)[A*fs],  Im[d1(w)](x,y,z)[A*fs],  |d(w)|^2(x,y,z)[A**2*fs**2], ", &
+                 " Re[d2(w)](x,y,z)[A*fs],  ..."
       do jj=1,num_dip2
         Dp_box(:,:)=Dp2(:,:,jj)
         call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
@@ -508,7 +508,7 @@ if(comm_is_root(nproc_id_global))then
 
     if(quadrupole=='y')then
       open(1,file=file_alpha_dip2_q)
-      write(1,*) "# energy[eV], Im[alpha1](x,y,z)[A*fs], Im[alpha2](x,y,z)[A*fs], ..."
+      write(1,*) "# energy[eV], Im[d1(w)](x,y,z)[A*fs],  Im[d2(w)](x,y,z)[A*fs],  ..."
       do jj=1,num_dip2
         Qp_box(:,:,:)=Qp2(:,:,:,jj)
         do iii=1,3
