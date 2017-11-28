@@ -481,7 +481,7 @@ if(comm_is_root(nproc_id_global))then
         write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
       end do
     else
-      write(1,*) "# energy[eV], Re[d1(w)](x,y,z)[A*fs],  Im[d1(w)](x,y,z)[A*fs],  |d(w)|^2(x,y,z)[A**2*fs**2], ", &
+      write(1,*) "# energy[eV], Re[d1(w)](x,y,z)[A*fs],  Im[d1(w)](x,y,z)[A*fs],  |d1(w)|^2(x,y,z)[A**2*fs**2], ", &
                  " Re[d2(w)](x,y,z)[A*fs],  ..."
       do jj=1,num_dip2
         Dp_box(:,:)=Dp2(:,:,jj)
