@@ -460,7 +460,7 @@ if(comm_is_root(nproc_id_global))then
   if(iflag_dip2==1)then
     open(1,file=file_alpha_dip2)
     if(ae_shape1=='impulse')then
-      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], df1/dE (x,y,z)[1/eV],",  &
+      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], df1/dE(x,y,z)[1/eV],",  &
                  " Re[alpha2](x,y,z)[A**3], ..."
       do jj=1,num_dip2
         Dp_box(:,:)=Dp2(:,:,jj)
