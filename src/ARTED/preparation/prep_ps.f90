@@ -41,12 +41,12 @@ Subroutine prep_ps_periodic(property)
   real(8) :: udVtbl_c(Nrmax,0:Lmax),dudVtbl_c(Nrmax,0:Lmax)
   real(8) :: udVtbl_d(Nrmax,0:Lmax),dudVtbl_d(Nrmax,0:Lmax)
   real(8),allocatable :: xn(:),yn(:),an(:),bn(:),cn(:),dn(:)  
-  real(8) :: vloc_av
-  real(8) :: ratio1,ratio2,rc
+  real(8) :: vloc_av, ratio1,ratio2,rc
 
 
   !(Local pseudopotential in G-space (radial part))
-  if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
+ !if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
+  if(property == 'not_initial') then
      dVloc_G(:,:)=save_dVloc_G(:,:)
 
 #define SAFE_DEALLOCATE(var) if(allocated(var)) deallocate(var)
@@ -188,7 +188,7 @@ Subroutine prep_ps_periodic(property)
      flag_alloc1=.true.
   else if(property == 'not_initial') then
      narray=ubound(Jxyz,1)
-     if(Nps.gt.narray)then
+     if(Nps.ne.narray)then
         deallocate(Jxyz,Jxx,Jyy,Jzz,zJxyz)
         deallocate(ekr,ekr_omp)
 #ifdef ARTED_STENCIL_PADDING
@@ -281,7 +281,7 @@ Subroutine prep_ps_periodic(property)
      flag_alloc2=.true.
   else if(property == 'not_initial') then
      narray=ubound(a_tbl,1)
-     if(Nlma.gt.narray .or. flag_alloc1)then
+     if(Nlma.ne.narray .or. flag_alloc1)then
         deallocate(a_tbl,uV,duV,iuV,zproj)
         flag_alloc2=.true.
      else
@@ -319,7 +319,7 @@ Subroutine prep_ps_periodic(property)
        allocate(xn(0:NRps(ik)-1),yn(0:NRps(ik)-1),an(0:NRps(ik)-2) &
                ,bn(0:NRps(ik)-2),cn(0:NRps(ik)-2),dn(0:NRps(ik)-2))
     endif
-    
+
     xn(0:NRps(ik)-1) = radnl(1:NRps(ik),ik)
     do l=0,Mlps(ik)
        yn(0:NRps(ik)-1) = udVtbl(1:NRps(ik),l,ik)
@@ -329,14 +329,16 @@ Subroutine prep_ps_periodic(property)
        udVtbl_c(1:NRps(ik)-1,l) = cn(0:NRps(ik)-2)
        udVtbl_d(1:NRps(ik)-1,l) = dn(0:NRps(ik)-2)
 
+       if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
        yn(0:NRps(ik)-1) = dudVtbl(1:NRps(ik),l,ik)
        call spline(NRps(ik),xn,yn,an,bn,cn,dn)
        dudVtbl_a(1:NRps(ik)-1,l) = an(0:NRps(ik)-2)
        dudVtbl_b(1:NRps(ik)-1,l) = bn(0:NRps(ik)-2)
        dudVtbl_c(1:NRps(ik)-1,l) = cn(0:NRps(ik)-2)
        dudVtbl_d(1:NRps(ik)-1,l) = dn(0:NRps(ik)-2)        
+       endif
     end do
-    
+
 !$omp parallel
 !$omp do private(j,x,y,z,r,ir,intr,xx,l,lm,m,uVr,duVr,ilma)
     do j=1,Mps(a)
@@ -353,9 +355,12 @@ Subroutine prep_ps_periodic(property)
       do l=0,Mlps(ik)
          uVr(l) = udVtbl_a(intr,l)*xx**3 + udVtbl_b(intr,l)*xx**2 &
                  +udVtbl_c(intr,l)*xx    + udVtbl_d(intr,l)
+         if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
          duVr(l)=dudVtbl_a(intr,l)*xx**3 +dudVtbl_b(intr,l)*xx**2 &
                 +dudVtbl_c(intr,l)*xx    +dudVtbl_d(intr,l)         
+         endif
       enddo
+
       lm=0
       do l=0,Mlps(ik)
         if(inorm(l,ik)==0) cycle
@@ -363,6 +368,7 @@ Subroutine prep_ps_periodic(property)
           lm=lm+1
           ilma=lma_tbl(lm,a)
           uV(j,ilma)=uVr(l)*Ylm(x,y,z,l,m)
+          if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
           if(r>1d-6)then
              duV(j,ilma,1) = duVr(l)*(x/r)*Ylm(x,y,z,l,m)+uVr(l)*dYlm(x,y,z,l,m,1)
              duV(j,ilma,2) = duVr(l)*(y/r)*Ylm(x,y,z,l,m)+uVr(l)*dYlm(x,y,z,l,m,2)
@@ -372,11 +378,14 @@ Subroutine prep_ps_periodic(property)
              duV(j,ilma,2) = uVr(l)*dYlm(x,y,z,l,m,2)
              duV(j,ilma,3) = uVr(l)*dYlm(x,y,z,l,m,3)
           end if
+          endif
         enddo
       enddo
+
     enddo
 !$omp end do
 !$omp end parallel
+
     lm=0
     do l=0,Mlps(ik)
       if(inorm(l,ik)==0) cycle
@@ -430,7 +439,8 @@ Subroutine prep_ps_periodic(property)
     end do
   end if
 
-  if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
+ !if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
+  if(property == 'not_initial') then
 #ifdef ARTED_STENCIL_PADDING
     call init_projector(zKxyz)
 #else

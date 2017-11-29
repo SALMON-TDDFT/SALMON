@@ -37,7 +37,7 @@ subroutine Ion_Force_omp(Rion_update,GS_RT,ixy_m)
 contains
   subroutine impl(Rion_update,zutmp,zu_NB)
     use Global_Variables
-    use salmon_parallel, only: nproc_id_global,nproc_group_tdks
+    use salmon_parallel, only: nproc_group_tdks
     use salmon_communication, only: comm_summation, comm_is_root
   use timer
     use salmon_math
@@ -57,9 +57,10 @@ contains
     complex(8)   :: zutmp0_3D(0:NLx-1,0:NLy-1,0:NLz-1)
     complex(8)   :: dzudr0_3D(3,0:NLx-1,0:NLy-1,0:NLz-1)
     complex(8)   :: dzudr(3,NL,NB,NK_s:NK_e),dzudrzu(3),dzuekrdr(3)
-    logical      :: flag_old
 
-    flag_old=.false. !old calculation method (less accurate)
+    !flag_use_grad_wf_on_force is given in Gloval_Variable
+    !if .true.   use gradient of wave-function (better accuracy)
+    !if .false., old way which use gradient of potential is used (less accurate)
 
     call timer_begin(LOG_ION_FORCE)
 
@@ -119,62 +120,11 @@ contains
     call update_projector(kac)
 
 
-    !local pseudopotential
-    if(flag_old)then
+    ! ion-electron 
+    if(flag_use_grad_wf_on_force)then
 
-    ftmp_l = 0.d0
-!$omp parallel private(ia) reduction(+:ftmp_l)
-    do ia=1,NI
-!$omp do private(ik,n,Gvec,G2,Gd)
-    do n=NG_s,NG_e
-      if(n == nGzero) cycle
-      ik=Kion(ia)
-      Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
-      G2=sum(Gvec(:)**2)
-      Gd=sum(Gvec(:)*Rion(:,ia))
-      ftmp_l(:,ia) = ftmp_l(:,ia) &
-      &    + zI*Gvec(:)*(4*Pi/G2)*Zps(ik)*exp(zI*Gd)*rhoe_G(n) &
-      &    + conjg(rhoe_G(n))*dVloc_G(n,ik)*zI*Gvec(:)*exp(-zI*Gd)
-    end do
-!$omp end do
-    end do
-!$omp end parallel
+    ! Use gradient of wave-func for calculating force on ions
 
-    call comm_summation(ftmp_l,Floc,3*NI,nproc_group_tdks)
-
-    !non-local pseudopotential term
-    ftmp_l_kl= 0.d0
-!$omp parallel private(ia) reduction(+:ftmp_l_kl)
-!$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi) collapse(2)
-    do ik=NK_s,NK_e
-    do ib=1,NBoccmax
-      do ilma=1,Nlma
-        ia=a_tbl(ilma)
-        uVpsi=0.d0
-        duVpsi(:)=0.d0
-        do j=1,Mps(ia)
-          i=Jxyz(j,ia)
-          uVpsi=uVpsi+uV(j,ilma)*ekr_omp(j,ia,ik)*zutmp(i,ib,ik)
-          duVpsi(:)=duVpsi(:)+duV(j,ilma,:)*ekr_omp(j,ia,ik)*zutmp(i,ib,ik)
-        end do
-        uVpsi=uVpsi*Hxyz; duVpsi(:)=duVpsi(:)*Hxyz
-        ftmp_l_kl(:,ia,ik)=ftmp_l_kl(:,ia,ik)+(conjg(uVpsi)*duVpsi(:)+uVpsi*conjg(duVpsi(:)))*iuV(ilma)*occ(ib,ik)
-      end do
-    end do
-    end do
-!$omp end do
-!$omp end parallel
-
-    ftmp_l(:,:) = 0.d0
-    do ik=NK_s,NK_e
-      ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
-    end do
-    call comm_summation(ftmp_l,fnl,3*NI,nproc_group_tdks)
-
-    else
-
-
-    !(flag_old=.false.):Newer accurate method
     !(prepare gradient of w.f.)
     ix_s = 0  ;  ix_e = NLx-1
     iy_s = 0  ;  iy_e = NLy-1
@@ -256,8 +206,63 @@ contains
           uVpsi    =uVpsi    *Hxyz
           duVpsi(:)=duVpsi(:)*Hxyz
           ftmp_l_kl(:,ia,ik) = ftmp_l_kl(:,ia,ik) &
-          &                    -2d0* dble(uVpsi*duVpsi(:))*occ(ib,ik)
+          &                  -2d0* dble(uVpsi*duVpsi(:))*iuV(ilma)*occ(ib,ik)
        end do
+    end do
+    end do
+!$omp end do
+!$omp end parallel
+
+    ftmp_l(:,:) = 0.d0
+    do ik=NK_s,NK_e
+      ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
+    end do
+    call comm_summation(ftmp_l,Fnl,3*NI,nproc_group_tdks)
+
+
+    else
+
+    ! Use gradient of potential for calculating force on ions
+    ! (older method, less accurate for larger grid size)
+
+    ftmp_l = 0.d0
+!$omp parallel private(ia) reduction(+:ftmp_l)
+    do ia=1,NI
+!$omp do private(ik,n,Gvec,G2,Gd)
+    do n=NG_s,NG_e
+      if(n == nGzero) cycle
+      ik=Kion(ia)
+      Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
+      G2=sum(Gvec(:)**2)
+      Gd=sum(Gvec(:)*Rion(:,ia))
+      ftmp_l(:,ia) = ftmp_l(:,ia) &
+      &    + zI*Gvec(:)*(4*Pi/G2)*Zps(ik)*exp(zI*Gd)*rhoe_G(n) &
+      &    + conjg(rhoe_G(n))*dVloc_G(n,ik)*zI*Gvec(:)*exp(-zI*Gd)
+    end do
+!$omp end do
+    end do
+!$omp end parallel
+
+    call comm_summation(ftmp_l,Floc,3*NI,nproc_group_tdks)
+
+    !non-local pseudopotential term
+    ftmp_l_kl= 0.d0
+!$omp parallel private(ia) reduction(+:ftmp_l_kl)
+!$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi) collapse(2)
+    do ik=NK_s,NK_e
+    do ib=1,NBoccmax
+      do ilma=1,Nlma
+        ia=a_tbl(ilma)
+        uVpsi=0.d0
+        duVpsi(:)=0.d0
+        do j=1,Mps(ia)
+          i=Jxyz(j,ia)
+          uVpsi=uVpsi+uV(j,ilma)*ekr_omp(j,ia,ik)*zutmp(i,ib,ik)
+          duVpsi(:)=duVpsi(:)+duV(j,ilma,:)*ekr_omp(j,ia,ik)*zutmp(i,ib,ik)
+        end do
+        uVpsi=uVpsi*Hxyz; duVpsi(:)=duVpsi(:)*Hxyz
+        ftmp_l_kl(:,ia,ik)=ftmp_l_kl(:,ia,ik)+(conjg(uVpsi)*duVpsi(:)+uVpsi*conjg(duVpsi(:)))*iuV(ilma)*occ(ib,ik)
+      end do
     end do
     end do
 !$omp end do
@@ -269,21 +274,14 @@ contains
     end do
     call comm_summation(ftmp_l,fnl,3*NI,nproc_group_tdks)
 
-    endif !flg_old
+
+    endif ! flag_use_grad_wf_on_force
 
 
     call timer_end(LOG_ION_FORCE)
     call timer_begin(LOG_ALLREDUCE)
 
     force = Fion + Floc + Fnl
-
-    !for bug check
-    if (comm_is_root(nproc_id_global))then
-       write(*,*) "Fion  Floc  Fnl (F(1,z))"
-       ia=1
-       j =3
-       write(*,*) ia,real(Fion(j,ia)), real(Floc(j,ia)), real(Fnl(j,ia))
-    endif
 
     call timer_end(LOG_ALLREDUCE)
 

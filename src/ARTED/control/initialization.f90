@@ -437,7 +437,7 @@ contains
     allocate(Rion_eq(3,NI),dRion(3,NI,-1:Nt+1))
     dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
     allocate(Zps(NE),NRloc(NE),Rloc(NE),Mass(NE),force(3,NI))
-    allocate(dVloc_G(NG_s:NG_e,NE),force_ion(3,NI))
+    allocate(dVloc_G(NG_s:NG_e,NE),FionAc(3,NI))
     allocate(Mps(NI),Mlps(NE))
     allocate(anorm(0:Lmax,NE),inorm(0:Lmax,NE))
     allocate(rad(Nrmax,NE),vloctbl(Nrmax,NE),dvloctbl(Nrmax,NE))
@@ -498,8 +498,10 @@ contains
     real(8) :: rnd1,rnd2,rnd, sqrt_kT_im, kB,mass_au
     real(8) :: v_com(3), sum_mass, Temperature_ion, scale_v
 
-    write(*,*) "  Initial velocities with maxwell-bolthman distribution was set"
+    if (comm_is_root(nproc_id_global)) then
+    write(*,*) "  Initial velocities with maxwell-boltzmann distribution was set"
     write(*,*) "  Set temperature is ", real(temperature0_ion)
+    endif
 
     kB = 8.6173303d-5 / 27.211396d0 ![au/K]
 
@@ -544,6 +546,7 @@ contains
        v_com(:) = v_com(:) + umass*Mass(Kion(ia)) * velocity(:,ia)
     enddo
     v_com(:) = v_com(:)/sum_mass
+    if (comm_is_root(nproc_id_global)) &
     write(*,*)"    v_com =",real(v_com(:))
 
     !rotation around center of mass is removed (do nothing now)
@@ -566,6 +569,7 @@ contains
        Tion = Tion + 0.5d0 * umass*Mass(Kion(ia)) * sum(velocity(:,ia)**2d0)
     enddo
     Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    if (comm_is_root(nproc_id_global)) &
     write(*,*)"    Initial Temperature: after-scaling",real(Temperature_ion)
 
     call comm_bcast(velocity ,nproc_group_global)

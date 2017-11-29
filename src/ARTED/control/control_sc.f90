@@ -204,9 +204,9 @@ subroutine tddft_sc
     Eelemag=aLxyz*sum(E_tot(iter,:)**2)/(8.d0*Pi)
     Eall=Eall+Eelemag
     do ia=1,NI
-      force_ion(:,ia)=Zps(Kion(ia))*E_tot(iter,:)
+      FionAc(:,ia)=Zps(Kion(ia))*E_tot(iter,:)
     enddo
-    force=force+force_ion
+    force=force+FionAc
 
 !update ion coordinates and pseudo potential (md option)
     if (use_ehrenfest_md == 'y') then
@@ -249,10 +249,10 @@ subroutine tddft_sc
       call write_rt_data(iter)
     end if
 
-    ! Export to file_force_dR, file_trj
-    if (iter/10*10 == iter.and.comm_is_root(nproc_id_global)) then
-    if (use_ehrenfest_md == 'y') then
-      write(*,'(1x,f10.4,8f12.6,f22.14,f18.5)') iter*dt,&
+    ! Export to standard log file, file_force_dR, file_trj
+    if (iter/10*10==iter.and.comm_is_root(nproc_id_global)) then
+    if (use_ehrenfest_md=='y') then
+      write(*,120) iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion, Temperature_ion
       !! TODO: exclude _t.out file future implementation
@@ -260,21 +260,19 @@ subroutine tddft_sc
       !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
       !      &  Eall, Eall-Eall0, Tion, Temperature_ion
       write(comment_line,110) iter, iter*dt
-110   format("#md   step=",i4,"   time",e16.6)
+110   format("#md   step=",i8,"   time",e16.6)
       call write_xyz(comment_line,"add","rv ")
     else
-      write(*,'(1x,f10.4,8f12.6,f22.14)') iter*dt,&
+      write(*,120) iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion
       ! write(7,'(1x,100e16.6E3)') iter*dt,&
       !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
       !      &  Eall, Eall-Eall0, Tion
-           !&E_ext(iter,1),E_tot(iter,1),&
-           !&E_ext(iter,2),E_tot(iter,2),&
-           !&E_ext(iter,3),E_tot(iter,3),&
     endif
       write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI)!!,((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
     endif
+120 format(1x,f10.4,6f12.6,2e20.10E3,e14.6,f14.5)
 
     !! Export Dynamical Density (file_dns)
     !! NOTE: The support for _dns.file will be disabled in future release...
@@ -744,7 +742,7 @@ subroutine calc_opt_ground_state
     enddo
 
     !Force calculation
-    ! Note: force by field is zero now, i.e. E_tot=0 and force_ion=0
+    ! Note: force by field is zero now, i.e. E_tot=0 and FionAc=0
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     !call Total_Energy_omp(rion_update_on,calc_mode_gs)
     call cal_mean_max_forces(NI,force,fave,fmax)
