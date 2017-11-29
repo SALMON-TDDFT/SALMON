@@ -419,7 +419,7 @@ if(comm_is_root(nproc_id_global))then
 ! Alpha
   if(ae_shape1=='impulse')then
     open(1,file=file_alpha_lr)
-    write(1,*) "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], df/dE(x,y,z)[1/eV]" 
+    write(1,'(a)') "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], df/dE(x,y,z)[1/eV]" 
     do iene=0,Nenergy
       Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
       write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
