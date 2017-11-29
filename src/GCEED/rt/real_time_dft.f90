@@ -346,7 +346,7 @@ if(quadrupole=='y')then
 end if
 if(comm_is_root(nproc_id_global))then
   open(1,file=file_RT)
-  write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A],                        Energy[eV]" 
+  write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A],                        Energy[eV]" 
    do nntime=1,itotNtime
       write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
       write(1,'(3e16.8)',advance="no") (Dp(iii,nntime)*a_B, iii=1,3)
@@ -356,7 +356,7 @@ if(comm_is_root(nproc_id_global))then
 
   if(quadrupole=='y')then
     open(1,file=file_RT_q)
-    write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
+    write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
     do nntime=1,itotNtime
        write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
        write(1,'(6e16.8)',advance="yes") (Qp(iii,iii,nntime)*a_B**2, iii=1,3), &
@@ -367,7 +367,7 @@ if(comm_is_root(nproc_id_global))then
 
   if(iflag_intelectron==1)then
     open(1,file=file_RT_e)
-    write(1,*) "# time[fs],    integrated electron density" 
+    write(1,'(a)') "# time[fs],    integrated electron density" 
      do nntime=1,itotNtime
         write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
         write(1,'(e16.8)',advance="yes") rIe(nntime)
@@ -377,7 +377,7 @@ if(comm_is_root(nproc_id_global))then
 
   if(iflag_dip2==1)then
     open(1,file=file_RT_dip2)
-    write(1,*) "# time[fs],    dipoleMoment(x,y,z)[A]" 
+    write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A]" 
       do nntime=1,itotNtime
         write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
         do jj=1,num_dip2-1
@@ -389,7 +389,7 @@ if(comm_is_root(nproc_id_global))then
 
     if(quadrupole=='y')then
       open(1,file=file_RT_dip2_q)
-      write(1,*) "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
+      write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
         do nntime=1,itotNtime
           write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
           do jj=1,num_dip2-1
@@ -404,7 +404,7 @@ if(comm_is_root(nproc_id_global))then
 
     if(iflag_intelectron==1)then
       open(1,file=file_RT_dip2_e)
-      write(1,*) "# time[fs],    integrated electron density" 
+      write(1,'(a)') "# time[fs],    integrated electron density" 
         do nntime=1,itotNtime
           write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
           do jj=1,num_dip2-1
@@ -429,7 +429,7 @@ if(comm_is_root(nproc_id_global))then
     end do
   else
     open(1,file=file_alpha_pulse)
-    write(1,*) "# energy[eV], Re[d(w)](x,y,z)[A*fs],  Im[d(w)](x,y,z)[A*fs],  |d(w)|^2(x,y,z)[A**2*fs**2]"
+    write(1,'(a)') "# energy[eV], Re[d(w)](x,y,z)[A*fs],  Im[d(w)](x,y,z)[A*fs],  |d(w)|^2(x,y,z)[A**2*fs**2]"
     do iene=0,Nenergy
       write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
       write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
@@ -442,7 +442,7 @@ if(comm_is_root(nproc_id_global))then
 
   if(quadrupole=='y')then
     open(1,file=file_alpha_q)
-    write(1,*) "# energy[eV], Re[d(w)](xx,yy,zz,xy,yz,zx)[A*fs],  Im[d(w)](xx,yy,zz,xy,yz,zx)[A*fs]" 
+    write(1,'(a)') "# energy[eV], Re[d(w)](xx,yy,zz,xy,yz,zx)[A*fs],  Im[d(w)](xx,yy,zz,xy,yz,zx)[A*fs]" 
      do iene=0,Nenergy
        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
        write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
@@ -460,7 +460,7 @@ if(comm_is_root(nproc_id_global))then
   if(iflag_dip2==1)then
     open(1,file=file_alpha_dip2)
     if(ae_shape1=='impulse')then
-      write(1,*) "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], df1/dE(x,y,z)[1/eV],",  &
+      write(1,'(a)') "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], df1/dE(x,y,z)[1/eV],",  &
                  " Re[alpha2](x,y,z)[A**3], ..."
       do jj=1,num_dip2
         Dp_box(:,:)=Dp2(:,:,jj)
@@ -481,7 +481,7 @@ if(comm_is_root(nproc_id_global))then
         write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
       end do
     else
-      write(1,*) "# energy[eV], Re[d1(w)](x,y,z)[A*fs],  Im[d1(w)](x,y,z)[A*fs],  |d1(w)|^2(x,y,z)[A**2*fs**2], ", &
+      write(1,'(a)') "# energy[eV], Re[d1(w)](x,y,z)[A*fs],  Im[d1(w)](x,y,z)[A*fs],  |d1(w)|^2(x,y,z)[A**2*fs**2], ", &
                  " Re[d2(w)](x,y,z)[A*fs],  ..."
       do jj=1,num_dip2
         Dp_box(:,:)=Dp2(:,:,jj)
@@ -508,7 +508,7 @@ if(comm_is_root(nproc_id_global))then
 
     if(quadrupole=='y')then
       open(1,file=file_alpha_dip2_q)
-      write(1,*) "# energy[eV], Im[d1(w)](x,y,z)[A*fs],  Im[d2(w)](x,y,z)[A*fs],  ..."
+      write(1,'(a)') "# energy[eV], Im[d1(w)](x,y,z)[A*fs],  Im[d2(w)](x,y,z)[A*fs],  ..."
       do jj=1,num_dip2
         Qp_box(:,:,:)=Qp2(:,:,:,jj)
         do iii=1,3
