@@ -444,9 +444,9 @@ contains
     allocate(radnl(Nrmax,NE))
     allocate(udVtbl(Nrmax,0:Lmax,NE),dudVtbl(Nrmax,0:Lmax,NE))
     allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
+    allocate(save_dVloc_G(NG_s:NG_e,NE))
     if(use_ehrenfest_md=='y')then
        allocate(velocity(3,NI)) ; velocity(:,:)=0d0
-       allocate(save_dVloc_G(NG_s:NG_e,NE))
     endif
     
     select case(iflag_atom_coor)

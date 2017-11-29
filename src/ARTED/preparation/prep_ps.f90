@@ -45,7 +45,6 @@ Subroutine prep_ps_periodic(property)
 
 
   !(Local pseudopotential in G-space (radial part))
- !if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
   if(property == 'not_initial') then
      dVloc_G(:,:)=save_dVloc_G(:,:)
 
@@ -61,6 +60,7 @@ Subroutine prep_ps_periodic(property)
     SAFE_DEALLOCATE(idx_proj)
     SAFE_DEALLOCATE(idx_lma)
     SAFE_DEALLOCATE(pseudo_start_idx)
+
   else 
 
 !$omp parallel
@@ -90,7 +90,8 @@ Subroutine prep_ps_periodic(property)
 !$omp end do
 !$omp end parallel
 
-    if(property == 'initial' .and. use_ehrenfest_md=='y') then
+    !(this save is used only for opt and md options)
+    if(property == 'initial') then
        save_dVloc_G(:,:)=dVloc_G(:,:)
     end if
      
@@ -98,7 +99,7 @@ Subroutine prep_ps_periodic(property)
 
 
   !(Local pseudopotential: Vlocal in G-space(=Vion_G))
-  Vion_G_ia=0.d0 !AY
+  Vion_G_ia=0.d0
   Vion_G   =0.d0
   rhoion_G =0.d0
 !$omp parallel private(a,ik)
@@ -140,7 +141,7 @@ Subroutine prep_ps_periodic(property)
 !$omp end parallel
 
   call comm_summation(Vpsl_l,Vpsl,NL,nproc_group_tdks)
-  call comm_summation(Vpsl_ia_l,Vpsl_ia,NL*NI,nproc_group_tdks) !AY
+  call comm_summation(Vpsl_ia_l,Vpsl_ia,NL*NI,nproc_group_tdks)
 
 
   !(Non-Local pseudopotential)
@@ -439,7 +440,7 @@ Subroutine prep_ps_periodic(property)
     end do
   end if
 
- !if(property == 'not_initial' .and. use_ehrenfest_md=='y') then
+
   if(property == 'not_initial') then
 #ifdef ARTED_STENCIL_PADDING
     call init_projector(zKxyz)
