@@ -41,6 +41,7 @@ end subroutine
 subroutine current_acc_impl(zutmp,jxs,jys,jzs)
   use Global_Variables
   use opt_variables
+  use projector
   implicit none
   complex(8),intent(in) :: zutmp(0:NL-1,NBoccmax,NK_s:NK_e)
   real(8),intent(out)   :: jxs,jys,jzs
@@ -57,23 +58,12 @@ subroutine current_acc_impl(zutmp,jxs,jys,jzs)
 
   IaLxyz = 1.0 / aLxyz
 
-!$acc data pcopyin(zutmp) create(jx,jy,jz) pcopyout(ekr_omp) copyin(nabt) &
+  call update_projector(kac)
+
+!$acc data pcopyin(zutmp) create(jx,jy,jz) copyin(zproj,nabt) &
 !$acc& pcopyin(jxyz,jxx,jyy,jzz,kAc,lx,ly,lz,Mps) 
 
-!Constructing nonlocal part
-!$acc kernels
-!$acc loop collapse(2) independent gang
-  do ik=NK_s,NK_e
-  do ia=1,NI
-!$acc loop independent vector(128)
-  do j=1,Mps(ia)
-    i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
-    kr=kAc(ik,1)*(Lx(i)*Hx-ix*aLx)+kAc(ik,2)*(Ly(i)*Hy-iy*aLy)+kAc(ik,3)*(Lz(i)*Hz-iz*aLz)
-    ekr_omp(j,ia,ik)=exp(zI*kr)
-  end do
-  end do
-  end do
-!$acc end kernels
+!$acc update device(zproj)
 
   do ikb0 = 1, NKB, blk_nkb_current
     num_ikb1 = min(blk_nkb_current, NKB-ikb0+1)
@@ -174,7 +164,7 @@ contains
     integer    :: ikb, ik,ib
 
 !$acc data pcopy(jx,jy,jz) pcopyin(zutmp) create(t4cp_uVpsix,t4cp_uVpsiy,t4cp_uVpsiz) &
-!$acc& pcopyin(ik_table,ib_table,a_tbl,Mps,Jxyz,Jxx,Jyy,Jzz,lx,ly,lz,uV,ekr_omp,iuV,occ)
+!$acc& pcopyin(ik_table,ib_table,a_tbl,Mps,Jxyz,Jxx,Jyy,Jzz,lx,ly,lz,zproj,iuV,occ)
 !$acc kernels
 !$acc loop collapse(2) gang
     do ikb = ikb_s, ikb_e
@@ -191,10 +181,10 @@ contains
         iy=Jyy(j,ia); y=Ly(i)*Hy-iy*aLy
         iz=Jzz(j,ia); z=Lz(i)*Hz-iz*aLz
 
-        uVpsi =uVpsi +uV(j,ilma)*ekr_omp(j,ia,ik)  *zutmp(i,ib,ik)
-        uVpsix=uVpsix+uV(j,ilma)*ekr_omp(j,ia,ik)*x*zutmp(i,ib,ik)
-        uVpsiy=uVpsiy+uV(j,ilma)*ekr_omp(j,ia,ik)*y*zutmp(i,ib,ik)
-        uVpsiz=uVpsiz+uV(j,ilma)*ekr_omp(j,ia,ik)*z*zutmp(i,ib,ik)
+        uVpsi =uVpsi +conjg(zproj(j,ilma,ik))  *zutmp(i,ib,ik)
+        uVpsix=uVpsix+conjg(zproj(j,ilma,ik))*x*zutmp(i,ib,ik)
+        uVpsiy=uVpsiy+conjg(zproj(j,ilma,ik))*y*zutmp(i,ib,ik)
+        uVpsiz=uVpsiz+conjg(zproj(j,ilma,ik))*z*zutmp(i,ib,ik)
       end do
       uVpsi =uVpsi *Hxyz*iuV(ilma)
       uVpsix=uVpsix*Hxyz

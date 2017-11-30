@@ -152,11 +152,15 @@ subroutine tddft_sc
 !$acc enter data copyin(modx,mody,modz)
 !$acc enter data copyin(zJxyz,zKxyz)
 !$acc enter data copyin(uV,iuV)
+!$acc enter data copyin(kAc)
+!$acc enter data copyin(zproj)
+!$acc enter data copyin(ik_table,ib_table)
 
-!$acc enter data create(kAc)
+!$acc enter data create(kAc_new)
+!$acc enter data create(ghtpsi)
 
   call timer_begin(LOG_DYNAMICS)
-!$acc enter data copyin(zu)
+!$acc enter data copyin(zu_t)
   do iter=entrance_iter+1,Nt
 
     if (trans_longi == 'lo') then 
@@ -180,13 +184,13 @@ subroutine tddft_sc
 
     javt(iter+1,:)=jav(:)
     if (use_ehrenfest_md == 'y') then
-!$acc update self(zu)
+!$acc update self(zu_t)
       call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
       ! if (iter/10*10 == iter) then
         call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
       ! end if
     else
-!$acc update self(zu)
+!$acc update self(zu_t)
       call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
       if (iter/10*10 == iter) then
         ! call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
@@ -349,7 +353,7 @@ subroutine tddft_sc
         call comm_sync_all
         write(*,*) nproc_id_global,'iter =',iter
         iter_now=iter
-!$acc update self(zu)
+!$acc update self(zu_t)
         call timer_end(LOG_DYNAMICS)
         call prep_restart_write
         go to 1
@@ -368,7 +372,7 @@ subroutine tddft_sc
       call timer_begin(LOG_DYNAMICS)
     end if
   enddo !end of RT iteraction========================
-!$acc exit data copyout(zu)
+!$acc exit data copyout(zu_t)
   call timer_end(LOG_DYNAMICS)
 
   if(comm_is_root(nproc_id_global)) then

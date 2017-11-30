@@ -20,6 +20,7 @@ module opt_variables
 
   integer                :: PNLx,PNLy,PNLz,PNL
   complex(8),allocatable :: zhtpsi(:,:,:),zttpsi(:,:)
+  complex(8),allocatable :: ghtpsi(:,:,:)
 
   real(8),allocatable :: zrhotmp(:,:)
 
@@ -112,11 +113,10 @@ contains
     PNLz = NLz
     PNL  = PNLx * PNLy * PNLz
 
-#ifndef ARTED_LBLK
     allocate(zhtpsi(0:PNL-1,4,0:NUMBER_THREADS-1))
-#else
+#ifdef ARTED_LBLK
     blk_nkb_hpsi = min(at_least_parallelism/PNL + 1, NKB)
-    allocate(zhtpsi(0:PNL-1, 0:blk_nkb_hpsi-1, 4))
+    allocate(ghtpsi(0:PNL-1, 0:blk_nkb_hpsi-1, 4))
     !write(*,*) "blk_nkb_hpsi:", blk_nkb_hpsi
 
     !blk_nkb_current = min(at_least_parallelism/PNL + 1, NKB)

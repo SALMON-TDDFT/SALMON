@@ -119,19 +119,19 @@ Subroutine dt_evolve_omp_KB(zu)
   NVTX_BEG('dt_evolve_omp_KB()',1)
   call timer_begin(LOG_DT_EVOLVE)
 
-
-
-!$acc data pcopy(zu, vloc) pcopyout(ekr_omp)
+!$acc data pcopy(zu, vloc) pcopyin(zproj)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
   call update_projector(kac)
   NVTX_END()
 
+!$acc update device(zproj)
+
 ! yabana
   select case(functional)
   case('VS98','TPSS','TBmBJ','BJ_PW')
-!$acc update self(zu, ekr_omp, vloc)
+!$acc update self(zu, vloc)
 
 !$omp parallel do private(ik,ib)
   do ikb=1,NKB
@@ -178,6 +178,7 @@ Subroutine dt_evolve_omp_KB(zu)
 ! yabana
 
   NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
+!$acc update device(zproj)
   call hamiltonian(zu,.true.)
   NVTX_END()
 
@@ -233,15 +234,14 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
 
   dt_t = dt; dt = 0.5d0*dt
 
-!$acc data pcopy(zu, vloc) pcopyout(ekr_omp)
+!$acc data pcopy(zu, vloc) pcopyin(zproj)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
   call update_projector(kac)
   NVTX_END()
 
-
-!$acc update self(zu, ekr_omp, vloc)
+!$acc update device(zproj)
 
   NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
   call hamiltonian(zu,.false.)
@@ -255,17 +255,18 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
   Vloc(:) = Vloc_new(:)
 
   kAc=kAc_new
-!$acc update device(kAc)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
   call update_projector(kac)
   NVTX_END()
 
+!$acc update device(kAc,Vloc,zproj)
+
 !== predictor-corrector ==
   select case(functional)
   case('VS98','TPSS','TBmBJ','BJ_PW')
-!$acc update self(zu, ekr_omp, vloc)
+!$acc update self(zu, vloc)
 
 !$omp parallel do private(ik,ib)
      do ikb=1,NKB
@@ -306,6 +307,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
         zu(:,ib,ik)=zu_GS(:,ib,ik)
      end do
 
+!$acc update device(zu, vloc)
   end select
 
 
@@ -359,16 +361,19 @@ Subroutine dt_evolve_omp_KB_MS(zu)
   NVTX_BEG('dt_evolve_omp_KB_MS()',1)
   call timer_begin(LOG_DT_EVOLVE)
 
-!$acc data pcopy(zu, vloc) pcopyout(ekr_omp)
+!$acc data pcopy(zu, vloc) pcopyin(zproj)
 
 !Constructing nonlocal part ! sato
   NVTX_BEG('dt_evolve_omp_KB_MS(): nonlocal part',2)
   call update_projector(kac)
 
+!$acc update device(zproj)
+
+
 ! yabana
   select case(functional)
   case('VS98','TPSS','TBmBJ','BJ_PW')
-!$acc update self(zu, ekr_omp, vloc)
+!$acc update self(zu, vloc)
 
 
 !$omp parallel do private(ik,ib)
@@ -410,6 +415,7 @@ Subroutine dt_evolve_omp_KB_MS(zu)
     zu(:,ib,ik)=zu_GS(:,ib,ik)
   end do
 
+!$acc update device(zu, vloc)
   end select
 ! yabana
 

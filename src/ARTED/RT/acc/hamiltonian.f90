@@ -28,7 +28,7 @@
 #define NVTX_END()
 #endif
 
-subroutine hamiltonian(flag_current)
+subroutine hamiltonian(zu,flag_current)
   use Global_Variables
   use timer
 #ifdef ARTED_USE_NVTX
@@ -41,6 +41,7 @@ subroutine hamiltonian(flag_current)
   complex(8) :: zfac(4)
   integer    :: ikb_s,ikb_e
   integer    :: ikb0,ikb1,num_ikb1
+  complex(8), intent(inout) :: zu(NL,NBoccmax,NK_s:NK_e)
   logical, intent(in) :: flag_current
 
   zfac(1)=(-zI*dt)
@@ -51,18 +52,18 @@ subroutine hamiltonian(flag_current)
   ! NVTX_BEG('dt_evolve_hpsi()',2)
   call timer_begin(LOG_HPSI)
 
-!$acc data pcopy(zu) create(zhtpsi)
+!$acc data pcopy(zu) pcreate(ghtpsi)
   do ikb0=1,NKB, blk_nkb_hpsi
     num_ikb1 = min(blk_nkb_hpsi, NKB-ikb0+1)
     ikb_s = ikb0
     ikb_e = ikb0 + num_ikb1-1
 
-    call init_LBLK(zhtpsi(:,:,4),zu(:,:,:), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,4),zhtpsi(:,:,1), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,1),zhtpsi(:,:,2), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,2),zhtpsi(:,:,3), ikb_s,ikb_e)
-    call hpsi_acc_KB_RT_LBLK(zhtpsi(:,:,3),zhtpsi(:,:,4), ikb_s,ikb_e)
-    call update_LBLK(zfac,zhtpsi(:,:,:),zu(:,:,:), ikb_s,ikb_e)
+    call init_LBLK(ghtpsi(:,:,4),zu(:,:,:), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(ghtpsi(:,:,4),ghtpsi(:,:,1), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(ghtpsi(:,:,1),ghtpsi(:,:,2), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(ghtpsi(:,:,2),ghtpsi(:,:,3), ikb_s,ikb_e)
+    call hpsi_acc_KB_RT_LBLK(ghtpsi(:,:,3),ghtpsi(:,:,4), ikb_s,ikb_e)
+    call update_LBLK(zfac,ghtpsi(:,:,:),zu(:,:,:), ikb_s,ikb_e)
 
 #ifdef ARTED_CURRENT_PREPROCESSING
     if(flag_current) call current_acc_KB_ST_LBLK(zu(:,:,:), ikb_s,ikb_e)

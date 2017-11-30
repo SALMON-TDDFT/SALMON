@@ -1,0 +1,67 @@
+#! /bin/bash
+#
+#   Copyright 2017 SALMON developers
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+
+if [[ "x$MV2_COMM_WORLD_LOCAL_RANK" != "x" ]]; then
+  # MVAPICH2
+  comm_world_local_rank=$MV2_COMM_WORLD_LOCAL_RANK
+  comm_world_local_size=$MV2_COMM_WORLD_LOCAL_SIZE
+elif [[ "x$OMPI_COMM_WORLD_LOCAL_RANK" != "x" ]]; then
+  # OpenMPI
+  comm_world_local_rank=$OMPI_COMM_WORLD_LOCAL_RANK
+  comm_world_local_size=$OMPI_COMM_WORLD_LOCAL_SIZE
+else
+  comm_world_local_rank=$((SLURM_PROCID % SLURM_NTASKS_PER_NODE))
+  comm_world_local_size=${SLURM_NTASKS_PER_NODE}
+fi
+export comm_world_local_rank
+export comm_world_local_size
+
+if [[ "x${NTHREADS_PER_SOCKET}" = "x" ]]; then
+  NTHREADS_PER_SOCKET=`lscpu -p=socket 2> /dev/null | grep -v ^# | grep 0 | wc -l`
+  if [[ ${NTHREADS_PER_SOCKET} -lt 1 ]]; then
+    echo "NTHREADS_PER_SOCKET was not detected."
+    exit 1
+  fi
+fi
+if [[ "x${NSOCKETS_PER_NODE}" = "x" ]]; then
+  NSOCKETS_PER_NODE=`lscpu -p=socket 2> /dev/null | grep -v ^# | uniq | wc -l`
+  if [[ ${NSOCKETS_PER_NODE} -lt 1 ]]; then
+    echo "NSOCKETS_PER_NODE was not detected."
+    exit 1
+  fi
+fi
+if [[ "x${NGPUS_PER_NODE}" = "x" ]]; then
+  NGPUS_PER_NODE=`nvidia-smi -L 2> /dev/null | wc -l`
+  if [[ ${NGPUS_PER_NODE} -lt 1 ]]; then
+    echo "NGPUS_PER_NODE was not detected."
+    exit 1
+  fi
+fi
+export NTHREADS_PER_SOCKET
+export NSOCKETS_PER_NODE
+export NGPUS_PER_NODE
+
+if [[ ${comm_world_local_size} -gt 1 ]]; then
+  nprocs_per_socket=$((comm_world_local_size / NSOCKETS_PER_NODE))
+else
+  nprocs_per_socket=1
+fi
+export nprocs_per_socket
+
+if [[ $# -gt 0 ]]; then
+  exec $@
+fi
