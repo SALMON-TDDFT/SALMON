@@ -38,8 +38,8 @@ contains
   subroutine impl(Rion_update,zutmp,zu_NB)
     use Global_Variables
     use salmon_parallel, only: nproc_group_tdks
-    use salmon_communication, only: comm_summation
-    use timer
+    use salmon_communication, only: comm_summation, comm_is_root
+  use timer
     use salmon_math
     use projector
     implicit none
@@ -48,14 +48,26 @@ contains
     complex(8),intent(inout) :: zutmp(NL,zu_NB,NK_s:NK_e)
 
     integer      :: ia,ib,ilma,ik,ix,iy,iz,n,j,i
-    real(8)      :: rab(3),rab2,Gvec(3),G2,Gd,ftmp_l(3,NI)
+    integer      :: ix_s,ix_e,iy_s,iy_e,iz_s,iz_e
+    integer,allocatable:: idx(:),idy(:),idz(:)
+    real(8)      :: rab(3),rab2,Gvec(3),G2,Gd
+    real(8)      :: ftmp_l(3,NI),ftmp_l_kl(3,NI,NK_s:NK_e)
+    real(8)      :: FionR(3,NI), FionG(3,NI),nabt_wrk(4,3)
     complex(8)   :: uVpsi,duVpsi(3)
-    real(8)      :: ftmp_l_kl(3,NI,NK_s:NK_e)
+    complex(8)   :: zutmp0_3D(0:NLx-1,0:NLy-1,0:NLz-1)
+    complex(8)   :: dzudr0_3D(3,0:NLx-1,0:NLy-1,0:NLz-1)
+    complex(8)   :: dzudr(3,NL,NB,NK_s:NK_e),dzudrzu(3),dzuekrdr(3)
+
+    !flag_use_grad_wf_on_force is given in Gloval_Variable
+    !if .true.   use gradient of wave-function (better accuracy)
+    !if .false., old way which use gradient of potential is used (less accurate)
 
     call timer_begin(LOG_ION_FORCE)
 
-    !ion
+    !ion-ion interaction (point charge Ewald)
     if (Rion_update) then
+
+      !ion-ion: Ewald short interaction term (real space)
       ftmp_l=0.d0
 !$omp parallel do private(ia, ik,ix,iy,iz,ib,rab,rab2) reduction(+:ftmp_l) collapse(5)
       do ia=1,NI
@@ -77,16 +89,144 @@ contains
       end do
       end do
       end do
-      Fion=ftmp_l
+      FionR = ftmp_l
+
+
+      !ion-ion: Ewald long interaction term (wave-number space)
+      ftmp_l=0.d0
+!$omp parallel private(ia) reduction(+:ftmp_l)
+      do ia=1,NI
+!$omp do private(ik,n,Gvec,G2,Gd)
+      do n=NG_s,NG_e
+        if(n == nGzero) cycle
+        ik=Kion(ia)
+        Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
+        G2=sum(Gvec(:)**2)
+        Gd=sum(Gvec(:)*Rion(:,ia))
+        ftmp_l(:,ia) = ftmp_l(:,ia) &
+        &   + Gvec(:)*(4*Pi/G2)*exp(-G2/(4*aEwald))*Zps(ik) &
+        &     *zI*0.5d0*(conjg(rhoion_G(n))*exp(-zI*Gd)-rhoion_G(n)*exp(zI*Gd))
+      end do
+!$omp end do
+      end do
+!$omp end parallel
+
+      call comm_summation(ftmp_l,FionG,3*NI,nproc_group_tdks)
+      Fion = FionR + FionG
+
     end if
 
-    ftmp_l=0.d0
-    ftmp_l_kl=0.d0
+
     call update_projector(kac)
 
-!$omp parallel private(ia) reduction(+:ftmp_l, ftmp_l_kl)
 
-    !loc
+    ! ion-electron 
+    if(flag_use_grad_wf_on_force)then
+
+    ! Use gradient of wave-func for calculating force on ions
+
+    !(prepare gradient of w.f.)
+    ix_s = 0  ;  ix_e = NLx-1
+    iy_s = 0  ;  iy_e = NLy-1
+    iz_s = 0  ;  iz_e = NLz-1
+
+    allocate(idx(ix_s-4:ix_e+4),idy(iy_s-4:iy_e+4),idz(iz_s-4:iz_e+4))
+    do i=ix_s-4,ix_e+4
+      idx(i) = mod(NLx+i,NLx)
+    end do
+    do i=iy_s-4,iy_e+4
+      idy(i) = mod(NLy+i,NLy)
+    end do
+    do i=iz_s-4,iz_e+4
+      idz(i) = mod(NLz+i,NLz)
+    end do
+
+    nabt_wrk(1:4,1) = nabx(1:4)
+    nabt_wrk(1:4,2) = naby(1:4)
+    nabt_wrk(1:4,3) = nabz(1:4)
+
+    do ik=NK_s,NK_e
+    do ib=1,NBoccmax
+       do i=1,NL
+          zutmp0_3D(Lx(i),Ly(i),Lz(i))=zutmp(i,ib,ik)
+       enddo
+       call stencil_C_zu(zutmp0_3D,dzudr0_3D &
+       &                ,ix_s,ix_e,iy_s,iy_e,iz_s,iz_e &
+       &                ,idx,idy,idz,nabt_wrk)
+       do i=1,NL
+          dzudr(:,i,ib,ik)=dzudr0_3D(:,Lx(i),Ly(i),Lz(i))
+       enddo
+    enddo
+    enddo
+
+
+    !Force from Vlocal with wave-func gradient --
+    ftmp_l_kl= 0.d0
+!$omp parallel private(ia) reduction(+:ftmp_l_kl)
+!$omp do private(ik,ib,i,ia,dzudrzu) collapse(3)
+    do ik=NK_s,NK_e
+    do ib=1,NBoccmax
+    do i=1,NL
+
+       dzudrzu(:)=conjg(dzudr(:,i,ib,ik))*zutmp(i,ib,ik)
+       do ia=1,NI
+          ftmp_l_kl(:,ia,ik) = ftmp_l_kl(:,ia,ik) &
+          &  -2d0* dble(dzudrzu(:)*Vpsl_ia(i,ia))*occ(ib,ik)*Hxyz
+       enddo
+
+    enddo
+    enddo
+    enddo
+!$omp end do
+!$omp end parallel
+
+    ftmp_l(:,:) = 0.d0
+    do ik=NK_s,NK_e
+      ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
+    end do
+    call comm_summation(ftmp_l,Floc,3*NI,nproc_group_tdks)
+
+
+    !Non-Local pseudopotential term using gradient of w.f.
+    ftmp_l_kl= 0.d0
+!$omp parallel private(ia) reduction(+:ftmp_l_kl)
+!$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi,dzuekrdr) collapse(2)
+    do ik=NK_s,NK_e
+    do ib=1,NBoccmax
+       do ilma=1,Nlma
+          ia=a_tbl(ilma)
+           uVpsi   =0.d0
+          duVpsi(:)=0.d0
+          do j=1,Mps(ia)
+             i=Jxyz(j,ia)
+            uVpsi      =uVpsi + uV(j,ilma)*ekr_omp(j,ia,ik)*zutmp(i,ib,ik)
+            dzuekrdr(:)=(dzudr(:,i,ib,ik)+zI*kAc(ik,:)*zutmp(i,ib,ik))*ekr_omp(j,ia,ik)
+            duVpsi(:)  =duVpsi(:) + conjg(dzuekrdr(:))*uV(j,ilma)
+          end do
+          uVpsi    =uVpsi    *Hxyz
+          duVpsi(:)=duVpsi(:)*Hxyz
+          ftmp_l_kl(:,ia,ik) = ftmp_l_kl(:,ia,ik) &
+          &                  -2d0* dble(uVpsi*duVpsi(:))*iuV(ilma)*occ(ib,ik)
+       end do
+    end do
+    end do
+!$omp end do
+!$omp end parallel
+
+    ftmp_l(:,:) = 0.d0
+    do ik=NK_s,NK_e
+      ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
+    end do
+    call comm_summation(ftmp_l,Fnl,3*NI,nproc_group_tdks)
+
+
+    else
+
+    ! Use gradient of potential for calculating force on ions
+    ! (older method, less accurate for larger grid size)
+
+    ftmp_l = 0.d0
+!$omp parallel private(ia) reduction(+:ftmp_l)
     do ia=1,NI
 !$omp do private(ik,n,Gvec,G2,Gd)
     do n=NG_s,NG_e
@@ -95,15 +235,19 @@ contains
       Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
       G2=sum(Gvec(:)**2)
       Gd=sum(Gvec(:)*Rion(:,ia))
-      ftmp_l(:,ia)=ftmp_l(:,ia)&
-           &+zI*Gvec(:)*(4*Pi/G2)*Zps(ik)*(rhoe_G(n)*exp(zI*Gd) &
-           &+0.5d0*exp(-G2/(4*aEwald))*(conjg(rhoion_G(n))*exp(-zI*Gd)-rhoion_G(n)*exp(zI*Gd)))&
-           &+conjg(rhoe_G(n))*dVloc_G(n,ik)*zI*Gvec(:)*exp(-zI*Gd)
+      ftmp_l(:,ia) = ftmp_l(:,ia) &
+      &    + zI*Gvec(:)*(4*Pi/G2)*Zps(ik)*exp(zI*Gd)*rhoe_G(n) &
+      &    + conjg(rhoe_G(n))*dVloc_G(n,ik)*zI*Gvec(:)*exp(-zI*Gd)
     end do
 !$omp end do
     end do
+!$omp end parallel
 
+    call comm_summation(ftmp_l,Floc,3*NI,nproc_group_tdks)
 
+    !non-local pseudopotential term
+    ftmp_l_kl= 0.d0
+!$omp parallel private(ia) reduction(+:ftmp_l_kl)
 !$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi) collapse(2)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
@@ -122,20 +266,75 @@ contains
     end do
     end do
 !$omp end do
-
 !$omp end parallel
 
-    ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,NK_s)
-    do ik=NK_s+1,NK_e
+    ftmp_l(:,:) = 0.d0
+    do ik=NK_s,NK_e
       ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
     end do
+    call comm_summation(ftmp_l,fnl,3*NI,nproc_group_tdks)
+
+
+    endif ! flag_use_grad_wf_on_force
+
 
     call timer_end(LOG_ION_FORCE)
-
     call timer_begin(LOG_ALLREDUCE)
-    call comm_summation(ftmp_l,fnl,3*NI,nproc_group_tdks)
-    force=Floc+Fnl+Fion
+
+    force = Fion + Floc + Fnl
+
     call timer_end(LOG_ALLREDUCE)
+
   end subroutine
+
+!Gradient of wave function (du/dr) with nine points formura
+# define DX(dt) idx(ix+(dt)),iy,iz
+# define DY(dt) ix,idy(iy+(dt)),iz
+# define DZ(dt) ix,iy,idz(iz+(dt))
+  subroutine stencil_C_zu(zu0,dzu0dr &
+  &                      ,ix_s,ix_e,iy_s,iy_e,iz_s,iz_e &
+  &                      ,idx,idy,idz,nabt)
+  implicit none
+  integer   ,intent(in)  :: ix_s,ix_e,iy_s,iy_e,iz_s,iz_e
+  integer   ,intent(in)  :: idx(ix_s-4:ix_e+4),idy(iy_s-4:iy_e+4),idz(iz_s-4:iz_e+4)
+  real(8)   ,intent(in)  :: nabt(4,3)
+  complex(8),intent(in)  :: zu0(ix_s:ix_e,iy_s:iy_e,iz_s:iz_e)
+  complex(8),intent(out) :: dzu0dr(3,ix_s:ix_e,iy_s:iy_e,iz_s:iz_e)
+  !
+  integer :: iz,iy,ix
+  complex(8) :: w(3)
+
+!$OMP parallel
+!$OMP do private(iz,iy,ix,w)
+  do iz=iz_s,iz_e
+  do iy=iy_s,iy_e
+  do ix=ix_s,ix_e
+
+    w(1) =  nabt(1,1)*(zu0(DX(1)) - zu0(DX(-1))) &
+           +nabt(2,1)*(zu0(DX(2)) - zu0(DX(-2))) &
+           +nabt(3,1)*(zu0(DX(3)) - zu0(DX(-3))) &
+           +nabt(4,1)*(zu0(DX(4)) - zu0(DX(-4)))
+
+    w(2) =  nabt(1,2)*(zu0(DY(1)) - zu0(DY(-1))) &
+           +nabt(2,2)*(zu0(DY(2)) - zu0(DY(-2))) &
+           +nabt(3,2)*(zu0(DY(3)) - zu0(DY(-3))) &
+           +nabt(4,2)*(zu0(DY(4)) - zu0(DY(-4)))
+
+    w(3) =  nabt(1,3)*(zu0(DZ(1)) - zu0(DZ(-1))) &
+           +nabt(2,3)*(zu0(DZ(2)) - zu0(DZ(-2))) &
+           +nabt(3,3)*(zu0(DZ(3)) - zu0(DZ(-3))) &
+           +nabt(4,3)*(zu0(DZ(4)) - zu0(DZ(-4)))
+
+    dzu0dr(:,ix,iy,iz) = w(:)
+  end do
+  end do
+  end do
+!$OMP end do
+!$OMP end parallel
+
+  return
+  end subroutine stencil_C_zu
+
+
 end subroutine Ion_Force_omp
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

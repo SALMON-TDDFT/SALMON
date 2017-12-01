@@ -905,7 +905,7 @@ Subroutine Read_PS_ABINITFHI(Lmax0,Nrmax0,Mr,rRC,upp,vpp,rhor_nlcc,flag_nlcc_ele
     step = minval(step_l(0:Mlps(ik)))
   end if
 
-  do i=Mr+1,Nrmax
+  do i=Mr+1,Nrmax-1
     rad(i+1,ik) = rad(i,ik)*step
   end do
 

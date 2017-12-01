@@ -343,6 +343,7 @@ contains
     allocate(ifdx(-Nd:Nd,1:NL),ifdy(-Nd:Nd,1:NL),ifdz(-Nd:Nd,1:NL))
     allocate(kAc(NK,3),kAc0(NK,3),kAc_new(NK,3))
     allocate(Vh(NL),Vexc(NL),Eexc(NL),rho(NL),Vpsl(NL),Vloc(NL),Vloc_GS(NL),Vloc_t(NL))
+    allocate(Vpsl_ia(NL,NI))  !AY
     allocate(Vloc_new(NL),Vloc_old(NL,2))
     !yabana
     allocate(tmass(NL),tjr(NL,3),tjr2(NL),tmass_t(NL),tjr_t(NL,3),tjr2_t(NL))
@@ -436,16 +437,16 @@ contains
     allocate(Rion_eq(3,NI),dRion(3,NI,-1:Nt+1))
     dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
     allocate(Zps(NE),NRloc(NE),Rloc(NE),Mass(NE),force(3,NI))
-    allocate(dVloc_G(NG_s:NG_e,NE),force_ion(3,NI))
+    allocate(dVloc_G(NG_s:NG_e,NE),FionAc(3,NI))
     allocate(Mps(NI),Mlps(NE))
     allocate(anorm(0:Lmax,NE),inorm(0:Lmax,NE))
     allocate(rad(Nrmax,NE),vloctbl(Nrmax,NE),dvloctbl(Nrmax,NE))
     allocate(radnl(Nrmax,NE))
     allocate(udVtbl(Nrmax,0:Lmax,NE),dudVtbl(Nrmax,0:Lmax,NE))
     allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
+    allocate(save_dVloc_G(NG_s:NG_e,NE))
     if(use_ehrenfest_md=='y')then
        allocate(velocity(3,NI)) ; velocity(:,:)=0d0
-       allocate(save_dVloc_G(NG_s:NG_e,NE))
     endif
     
     select case(iflag_atom_coor)
@@ -497,8 +498,10 @@ contains
     real(8) :: rnd1,rnd2,rnd, sqrt_kT_im, kB,mass_au
     real(8) :: v_com(3), sum_mass, Temperature_ion, scale_v
 
-    write(*,*) "  Initial velocities with maxwell-bolthman distribution was set"
+    if (comm_is_root(nproc_id_global)) then
+    write(*,*) "  Initial velocities with maxwell-boltzmann distribution was set"
     write(*,*) "  Set temperature is ", real(temperature0_ion)
+    endif
 
     kB = 8.6173303d-5 / 27.211396d0 ![au/K]
 
@@ -543,6 +546,7 @@ contains
        v_com(:) = v_com(:) + umass*Mass(Kion(ia)) * velocity(:,ia)
     enddo
     v_com(:) = v_com(:)/sum_mass
+    if (comm_is_root(nproc_id_global)) &
     write(*,*)"    v_com =",real(v_com(:))
 
     !rotation around center of mass is removed (do nothing now)
@@ -565,6 +569,7 @@ contains
        Tion = Tion + 0.5d0 * umass*Mass(Kion(ia)) * sum(velocity(:,ia)**2d0)
     enddo
     Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    if (comm_is_root(nproc_id_global)) &
     write(*,*)"    Initial Temperature: after-scaling",real(Temperature_ion)
 
     call comm_bcast(velocity ,nproc_group_global)
