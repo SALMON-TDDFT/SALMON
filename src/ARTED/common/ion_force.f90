@@ -54,8 +54,6 @@ contains
     real(8)      :: ftmp_l(3,NI),ftmp_l_kl(3,NI,NK_s:NK_e)
     real(8)      :: FionR(3,NI), FionG(3,NI),nabt_wrk(4,3)
     complex(8)   :: uVpsi,duVpsi(3)
-    complex(8)   :: zutmp0_3D(0:NLx-1,0:NLy-1,0:NLz-1)
-    complex(8)   :: dzudr0_3D(3,0:NLx-1,0:NLy-1,0:NLz-1)
     complex(8)   :: dzudr(3,NL,NB,NK_s:NK_e),dzudrzu(3),dzuekrdr(3)
 
     !flag_use_grad_wf_on_force is given in Gloval_Variable
@@ -145,20 +143,19 @@ contains
     nabt_wrk(1:4,2) = naby(1:4)
     nabt_wrk(1:4,3) = nabz(1:4)
 
+!$omp parallel do collapse(2) default(none) &
+!$omp          private(ik,ib) &
+!$omp          shared(zutmp,dzudr,idx,idy,idz,nabt_wrk) &
+!$omp          firstprivate(ix_s,ix_e,iy_s,iy_e,iz_s,iz_e,nk_s,nk_e,nboccmax)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
-       do i=1,NL
-          zutmp0_3D(Lx(i),Ly(i),Lz(i))=zutmp(i,ib,ik)
-       enddo
-       call stencil_C_zu(zutmp0_3D,dzudr0_3D &
+       call stencil_C_zu(zutmp(:,ib,ik) &
+       &                ,dzudr(:,:,ib,ik) &
        &                ,ix_s,ix_e,iy_s,iy_e,iz_s,iz_e &
        &                ,idx,idy,idz,nabt_wrk)
-       do i=1,NL
-          dzudr(:,i,ib,ik)=dzudr0_3D(:,Lx(i),Ly(i),Lz(i))
-       enddo
     enddo
     enddo
-
+!$omp end parallel do
 
     !Force from Vlocal with wave-func gradient --
     ftmp_l_kl= 0.d0
@@ -180,11 +177,13 @@ contains
 !$omp end do
 !$omp end parallel
 
+    call timer_begin(LOG_ALLREDUCE)
     ftmp_l(:,:) = 0.d0
     do ik=NK_s,NK_e
       ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
     end do
     call comm_summation(ftmp_l,Floc,3*NI,nproc_group_tdks)
+    call timer_end(LOG_ALLREDUCE)
 
 
     !Non-Local pseudopotential term using gradient of w.f.
@@ -213,11 +212,13 @@ contains
 !$omp end do
 !$omp end parallel
 
+    call timer_begin(LOG_ALLREDUCE)
     ftmp_l(:,:) = 0.d0
     do ik=NK_s,NK_e
       ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
     end do
     call comm_summation(ftmp_l,Fnl,3*NI,nproc_group_tdks)
+    call timer_end(LOG_ALLREDUCE)
 
 
     else
@@ -268,29 +269,28 @@ contains
 !$omp end do
 !$omp end parallel
 
+    call timer_begin(LOG_ALLREDUCE)
     ftmp_l(:,:) = 0.d0
     do ik=NK_s,NK_e
       ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
     end do
     call comm_summation(ftmp_l,fnl,3*NI,nproc_group_tdks)
-
+    call timer_end(LOG_ALLREDUCE)
 
     endif ! flag_use_grad_wf_on_force
 
 
-    call timer_end(LOG_ION_FORCE)
     call timer_begin(LOG_ALLREDUCE)
-
     force = Fion + Floc + Fnl
-
     call timer_end(LOG_ALLREDUCE)
 
+    call timer_end(LOG_ION_FORCE)
   end subroutine
 
 !Gradient of wave function (du/dr) with nine points formura
-# define DX(dt) idx(ix+(dt)),iy,iz
-# define DY(dt) ix,idy(iy+(dt)),iz
-# define DZ(dt) ix,iy,idz(iz+(dt))
+# define DX(dt) iz,iy,idx(ix+(dt))
+# define DY(dt) iz,idy(iy+(dt)),ix
+# define DZ(dt) idz(iz+(dt)),iy,ix
   subroutine stencil_C_zu(zu0,dzu0dr &
   &                      ,ix_s,ix_e,iy_s,iy_e,iz_s,iz_e &
   &                      ,idx,idy,idz,nabt)
@@ -298,17 +298,16 @@ contains
   integer   ,intent(in)  :: ix_s,ix_e,iy_s,iy_e,iz_s,iz_e
   integer   ,intent(in)  :: idx(ix_s-4:ix_e+4),idy(iy_s-4:iy_e+4),idz(iz_s-4:iz_e+4)
   real(8)   ,intent(in)  :: nabt(4,3)
-  complex(8),intent(in)  :: zu0(ix_s:ix_e,iy_s:iy_e,iz_s:iz_e)
-  complex(8),intent(out) :: dzu0dr(3,ix_s:ix_e,iy_s:iy_e,iz_s:iz_e)
+  complex(8),intent(in)  :: zu0(iz_s:iz_e,iy_s:iy_e,ix_s:ix_e)
+  complex(8),intent(out) :: dzu0dr(3,iz_s:iz_e,iy_s:iy_e,ix_s:ix_e)
   !
   integer :: iz,iy,ix
   complex(8) :: w(3)
 
-!$OMP parallel
-!$OMP do private(iz,iy,ix,w)
-  do iz=iz_s,iz_e
-  do iy=iy_s,iy_e
   do ix=ix_s,ix_e
+  do iy=iy_s,iy_e
+!dir$ vector nontemporal(dzu0dr)
+  do iz=iz_s,iz_e
 
     w(1) =  nabt(1,1)*(zu0(DX(1)) - zu0(DX(-1))) &
            +nabt(2,1)*(zu0(DX(2)) - zu0(DX(-2))) &
@@ -325,12 +324,10 @@ contains
            +nabt(3,3)*(zu0(DZ(3)) - zu0(DZ(-3))) &
            +nabt(4,3)*(zu0(DZ(4)) - zu0(DZ(-4)))
 
-    dzu0dr(:,ix,iy,iz) = w(:)
+    dzu0dr(:,iz,iy,ix) = w(:)
   end do
   end do
   end do
-!$OMP end do
-!$OMP end parallel
 
   return
   end subroutine stencil_C_zu
