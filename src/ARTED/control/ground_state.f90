@@ -28,6 +28,7 @@ contains
     implicit none
     integer :: iter, ik, ib, ia
     character(10) :: functional_t
+    real(8) :: fave,fave_prev
 
     allocate(rho_in(1:NL,1:Nscf+1),rho_out(1:NL,1:Nscf+1))
     rho_in(1:NL,1:Nscf+1)=0.d0; rho_out(1:NL,1:Nscf+1)=0.d0
@@ -66,6 +67,7 @@ contains
     call Total_Energy_omp(rion_update_on,calc_mode_gs)
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     Eall_GS(0)=Eall
+    fave=sqrt(sum(force(1,:)**2+force(2,:)**2+force(3,:)**2)/dble(NI))
 
     if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
        write(*,*) 'This is the end of preparation for ground state calculation'
@@ -132,6 +134,7 @@ contains
        if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'BJ_PW'
 
        Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
+       fave_prev=fave
        call Total_Energy_omp(rion_update_off,calc_mode_gs)
        call Ion_Force_omp(rion_update_off,calc_mode_gs)
        call sp_energy_omp
@@ -141,6 +144,7 @@ contains
        esp_var_max(iter) = maxval(esp_var(:,:))
        ddns(iter)        = sqrt(sum((rho_out(:,iter)-rho_in(:,iter))**2))*Hxyz
        ddns_abs_1e(iter) = sum(abs(rho_out(:,iter)-rho_in(:,iter)))*Hxyz/Nelec
+       fave=sqrt(sum(force(1,:)**2+force(2,:)**2+force(3,:)**2)/dble(NI))
 
        if (PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
           write(*,*) 'Total Energy = ',Eall_GS(iter),Eall_GS(iter)-Eall_GS(iter-1)
@@ -162,10 +166,18 @@ contains
 
        !Convergence judge for general GS calculation
        if(convergence=='rho_dne' .and. ddns_abs_1e(iter) < threshold) then
-         if(comm_is_root(nproc_id_global)) write(*,'(a,i4,/)')" GS converged at",iter
+         if(comm_is_root(nproc_id_global)) then
+            if(use_geometry_opt=='y')then
+              write(*,100)iter,Eall_GS(iter),abs(Eall_GS(iter)-Eall_GS(iter-1))
+            else
+              write(*,'(a,i4,/)')" GS converged at",iter
+            endif
+         endif
+
          Nscf_conv = iter
          exit
        endif
+100    format("   (GS converged at",i4," : Eall=",e18.10," : dEall=",e12.4," )")
        !(following convergence keyword are not supprted yet)
        !if(convergence=='rho_dng' .and. XXXX < threshold) then
        !  if(comm_is_root(nproc_id_global)) write(*,'(a,i4,/)')" GS converged at",iter
@@ -190,17 +202,20 @@ contains
 
        !Convergence judge for geometry optimization
        !(exit if energy difference is below threshold: only if set convrg_scf_Eall>0)
-       if( abs(Eall_GS(iter)-Eall_GS(iter-1)) .le. convrg_scf_ene ) then
-          if(kbTev >= 0d0) then
+
+       !(only for opt)
+       if(use_geometry_opt=='y')then
+          if( (abs(Eall_GS(iter)-Eall_GS(iter-1)) .le. convrg_scf_ene  ).or.&
+          &   (abs(fave-fave_prev)                .le. convrg_scf_force))then
+             if(kbTev >= 0d0) then
+                if(comm_is_root(nproc_id_global)) &
+                & write(*,*) "sorry, occ.out was not generated" !(fix if need)
+             endif
              if(comm_is_root(nproc_id_global)) &
-             & write(*,*) "sorry, occ.out was not generated" !(fix if need)
+             &   write(*,100)iter,Eall_GS(iter),abs(Eall_GS(iter)-Eall_GS(iter-1))
+             Nscf_conv = iter
+             exit
           endif
-          if(comm_is_root(nproc_id_global)) then
-             write(*,'(a,i4,a,e18.10)') " GS converged at",iter," : dEall_GS=", &
-                                      & abs(Eall_GS(iter)-Eall_GS(iter-1))
-          endif
-          Nscf_conv = iter
-          exit
        endif
 
        if( iter==Nscf  .and. Nscf_conv==0) then
