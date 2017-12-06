@@ -148,9 +148,7 @@ void hpsi1_rt_stencil_( double         const* restrict A_
       __m512d tt = _mm512_setzero_pd();
       __m512d ut = _mm512_setzero_pd();
 
-      __m512d wm[4];
-      __m512d wp[4];
-      __m512d bt, v0, v1, v2, v3, v4;
+      __m512d m, p, bt, v0, v1, v2, v3, v4;
 
       /* z-dimension (unit stride) */
       {
@@ -168,16 +166,41 @@ void hpsi1_rt_stencil_( double         const* restrict A_
         z2 = _mm512_load_prefetch_epi64(e + (iz + 4 + NLz) % NLz);
 #endif
 #endif
-        wm[3] = (__m512d) z0;
-        wm[2] = (__m512d) _mm512_alignr_epi32((__m512i) ez, z0,  4);
-        wm[1] = (__m512d) _mm512_alignr_epi32((__m512i) ez, z0,  8);
-        wm[0] = (__m512d) _mm512_alignr_epi32((__m512i) ez, z0, 12);
-        wp[0] = (__m512d) _mm512_alignr_epi32(z2, (__m512i) ez,  4);
-        wp[1] = (__m512d) _mm512_alignr_epi32(z2, (__m512i) ez,  8);
-        wp[2] = (__m512d) _mm512_alignr_epi32(z2, (__m512i) ez, 12);
-        wp[3] = (__m512d) z2;
+        {
+          m  = (__m512d) _mm512_alignr_epi32((__m512i) ez, z0, 12);
+          p  = (__m512d) _mm512_alignr_epi32(z2, (__m512i) ez,  4);
+          v4 = _mm512_sub_pd(p, m);
+          v3 = _mm512_add_pd(p, m);
+          ut = _mm512_fmadd_pd(_mm512_set1_pd(D[8]), v4, ut);
+          tt = _mm512_fmadd_pd(_mm512_set1_pd(G[8]), v3, tt);
+        }
+        {
+          m  = (__m512d) _mm512_alignr_epi32((__m512i) ez, z0,  8);
+          p  = (__m512d) _mm512_alignr_epi32(z2, (__m512i) ez,  8);
+          v4 = _mm512_sub_pd(p, m);
+          v3 = _mm512_add_pd(p, m);
+          ut = _mm512_fmadd_pd(_mm512_set1_pd(D[9]), v4, ut);
+          tt = _mm512_fmadd_pd(_mm512_set1_pd(G[9]), v3, tt);
+        }
+        {
+          m  = (__m512d) _mm512_alignr_epi32((__m512i) ez, z0,  4);
+          p  = (__m512d) _mm512_alignr_epi32(z2, (__m512i) ez, 12);
+          v4 = _mm512_sub_pd(p, m);
+          v3 = _mm512_add_pd(p, m);
+          ut = _mm512_fmadd_pd(_mm512_set1_pd(D[10]), v4, ut);
+          tt = _mm512_fmadd_pd(_mm512_set1_pd(G[10]), v3, tt);
+        }
+        {
+          m  = (__m512d) z0;
+          p  = (__m512d) z2;
+          v4 = _mm512_sub_pd(p, m);
+          v3 = _mm512_add_pd(p, m);
+          ut = _mm512_fmadd_pd(_mm512_set1_pd(D[11]), v4, ut);
+          tt = _mm512_fmadd_pd(_mm512_set1_pd(G[11]), v3, tt);
+        }
 #else
         __m512i mz = _mm512_and_epi32(_mm512_add_epi32(_mm512_add_epi32(tiz, nlz), zm_org), mlz);
+        __m512d wm[4], wp[4];
 
         wm[3] = dcomplex_gather( e, mz );
         wm[2] = dcomplex_gather( e, _mm512_alignr_epi32(ze, mz,  1) );
@@ -187,7 +210,6 @@ void hpsi1_rt_stencil_( double         const* restrict A_
         wp[1] = dcomplex_gather( e, _mm512_alignr_epi32(ze, mz,  9) );
         wp[2] = dcomplex_gather( e, _mm512_alignr_epi32(ze, mz, 10) );
         wp[3] = dcomplex_gather( e, _mm512_alignr_epi32(ze, mz, 11) );
-#endif
 
 #pragma unroll(4)
         for(n = 0 ; n < 4 ; ++n) {
@@ -196,23 +218,17 @@ void hpsi1_rt_stencil_( double         const* restrict A_
           ut = _mm512_fmadd_pd(_mm512_set1_pd(D[n+8]), v4, ut);
           tt = _mm512_fmadd_pd(_mm512_set1_pd(G[n+8]), v3, tt);
         }
+#endif
       }
 
       /* y-dimension (NLz stride) */
       {
-        wm[3] = _mm512_load_prefetch_pd(e + yx_table[0]);
-        wm[2] = _mm512_load_prefetch_pd(e + yx_table[1]);
-        wm[1] = _mm512_load_prefetch_pd(e + yx_table[2]);
-        wm[0] = _mm512_load_prefetch_pd(e + yx_table[3]);
-        wp[0] = _mm512_load_prefetch_pd(e + yx_table[4]);
-        wp[1] = _mm512_load_prefetch_pd(e + yx_table[5]);
-        wp[2] = _mm512_load_prefetch_pd(e + yx_table[6]);
-        wp[3] = _mm512_load_prefetch_pd(e + yx_table[7]);
-
 #pragma unroll(4)
         for(n = 0 ; n < 4 ; ++n) {
-          v4 = _mm512_sub_pd(wp[n], wm[n]);
-          v3 = _mm512_add_pd(wp[n], wm[n]);
+          m  = _mm512_load_prefetch_pd(e + yx_table[3-n]);
+          p  = _mm512_load_prefetch_pd(e + yx_table[n+4]);
+          v4 = _mm512_sub_pd(p, m);
+          v3 = _mm512_add_pd(p, m);
           ut = _mm512_fmadd_pd(_mm512_set1_pd(D[n+4]), v4, ut);
           tt = _mm512_fmadd_pd(_mm512_set1_pd(G[n+4]), v3, tt);
         }
@@ -220,19 +236,12 @@ void hpsi1_rt_stencil_( double         const* restrict A_
 
       /* x-dimension (NLy*NLz stride)  */
       {
-        wm[3] = _mm512_load_prefetch_pd(e + yx_table[ 8]);
-        wm[2] = _mm512_load_prefetch_pd(e + yx_table[ 9]);
-        wm[1] = _mm512_load_prefetch_pd(e + yx_table[10]);
-        wm[0] = _mm512_load_prefetch_pd(e + yx_table[11]);
-        wp[0] = _mm512_load_prefetch_pd(e + yx_table[12]);
-        wp[1] = _mm512_load_prefetch_pd(e + yx_table[13]);
-        wp[2] = _mm512_load_prefetch_pd(e + yx_table[14]);
-        wp[3] = _mm512_load_prefetch_pd(e + yx_table[15]);
-
 #pragma unroll(4)
         for(n = 0 ; n < 4 ; ++n) {
-          v4 = _mm512_sub_pd(wp[n], wm[n]);
-          v3 = _mm512_add_pd(wp[n], wm[n]);
+          m  = _mm512_load_prefetch_pd(e + yx_table[11-n]);
+          p  = _mm512_load_prefetch_pd(e + yx_table[n+12]);
+          v4 = _mm512_sub_pd(p, m);
+          v3 = _mm512_add_pd(p, m);
           ut = _mm512_fmadd_pd(_mm512_set1_pd(D[n]), v4, ut);
           tt = _mm512_fmadd_pd(_mm512_set1_pd(G[n]), v3, tt);
         }
