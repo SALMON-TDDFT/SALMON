@@ -58,12 +58,10 @@ subroutine current_acc_impl(zutmp,jxs,jys,jzs)
 
   IaLxyz = 1.0 / aLxyz
 
-  call update_projector(kac)
-
-!$acc data pcopyin(zutmp) create(jx,jy,jz) copyin(zproj,nabt) &
+!$acc data pcopyin(zutmp) create(jx,jy,jz) copyin(nabt) &
 !$acc& pcopyin(jxyz,jxx,jyy,jzz,kAc,lx,ly,lz,Mps) 
 
-!$acc update device(zproj)
+  call update_projector(kac)
 
   do ikb0 = 1, NKB, blk_nkb_current
     num_ikb1 = min(blk_nkb_current, NKB-ikb0+1)

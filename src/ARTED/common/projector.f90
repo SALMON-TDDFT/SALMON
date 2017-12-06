@@ -17,13 +17,40 @@
 module projector
   implicit none
 
+  public :: update_projector
+
+  ! manual invocation
+  public :: update_projector_omp
+#ifdef _OPENACC
+  public :: update_projector_acc
+#endif
+
 contains
   subroutine update_projector(kac_in)
+    use global_variables
+#ifdef _OPENACC
+    use openacc
+#endif
+    implicit none
+    real(8),intent(in) :: kac_in(NK,3)
+
+#ifdef _OPENACC
+    if (acc_is_present(kac_in)) then
+      call update_projector_acc(kac_in)
+    else
+      call update_projector_omp(kac_in)
+    end if
+#else
+    call update_projector_omp(kac_in)
+#endif
+  end subroutine
+
+
+  subroutine update_projector_omp(kac_in)
     use Global_Variables
     real(8),intent(in) :: kac_in(NK,3)
     integer :: ik, ia, j, i, ix, iy, iz, ilma
     real(8) :: kr
-
 
 !$omp parallel 
 !$omp do private(ik,ia,j,i,ix,iy,iz,kr) collapse(2)
@@ -49,5 +76,43 @@ contains
 
 !$omp end parallel 
 
-  end subroutine update_projector
+  end subroutine update_projector_omp
+
+#ifdef _OPENACC
+  subroutine update_projector_acc(kac_in)
+    use Global_Variables
+    real(8),intent(in) :: kac_in(NK,3)
+    integer :: ik, ia, j, i, ix, iy, iz, ilma
+    real(8) :: kr
+
+!$acc kernels pcopyout(ekr_omp,zproj) pcopyin(Mps, Jxyz,Jxx,Jyy,Jzz, kac_in, Lx,Ly,Lz)
+
+!$acc loop collapse(2) independent gang
+    do ik=NK_s,NK_e
+      do ia=1,NI
+!$acc loop independent vector(128)
+        do j=1,Mps(ia)
+          i=Jxyz(j,ia); ix=Jxx(j,ia); iy=Jyy(j,ia); iz=Jzz(j,ia)
+          kr=kac_in(ik,1)*(Lx(i)*Hx-ix*aLx)+kac_in(ik,2)*(Ly(i)*Hy-iy*aLy)+kac_in(ik,3)*(Lz(i)*Hz-iz*aLz)
+          ekr_omp(j,ia,ik)=exp(zI*kr)
+         end do
+       end do
+    end do
+
+!$acc loop collapse(2) independent gang
+    do ik=NK_s,NK_e
+      do ilma=1,Nlma
+        ia=a_tbl(ilma)
+!$acc loop independent vector(128)
+        do j=1,Mps(ia)
+          zproj(j,ilma,ik) = conjg(ekr_omp(j,ia,ik))*uv(j,ilma)
+        end do
+      end do
+    end do
+
+!$acc end kernels
+
+  end subroutine update_projector_acc
+#endif
+
 end module projector
