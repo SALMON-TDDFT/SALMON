@@ -102,6 +102,12 @@ Read ground state wave function as initial guess (pre-calculated "gs_wfn_k" dire
 Default is <code>n</code>.
 </dd>
 
+<dt>write_gs_wfn_k; <code>Character</code>; 3d</dt>
+<dd>
+Write ground state wave function into "gs_wfn_k" directory if this is <code>y</code>. (In the case of <code>calc_mode=GS</code> calculation, the data is always written) 
+Default is <code>n</code>.
+</dd>
+
 <dt>modify_gs_wfn_k; <code>Character</code>; 3d</dt>
 <dd>
 Option to modify initial guess wave function (pre-calculated "gs_wfn_k" directory) in combination with <code>read_gs_wfn_k = y</code>.
@@ -112,6 +118,12 @@ Default is <code>n</code>.
 <dt>read_rt_wfn_k; <code>Character</code>; 3d</dt>
 <dd>
 Read RT wave function (pre-calculated "rt_wfn_k" directory printed by <code>calc_mode=RT</code>) if this is <code>y</code>. This is used for restarting <code>calc_mode=RT</code> (supporting <code>use_ehrenfest_md=y</code>, too), then, "gs_wfn_k" directory is also necessary.
+Default is <code>n</code>.
+</dd>
+
+<dt>write_rt_wfn_k; <code>Character</code>; 3d</dt>
+<dd>
+Write RT wave function into "rt_wfn_k" directory if this is <code>y</code>.
 Default is <code>n</code>.
 </dd>
 

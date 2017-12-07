@@ -219,9 +219,11 @@ contains
       & sysname, &
       & directory, &
       & dump_filename, &
-      & read_gs_wfn_k, &         !changed from read_initial_guess
+      & read_gs_wfn_k, &    !changed from read_initial_guess
+      & write_gs_wfn_k, &
       & modify_gs_wfn_k, &  !changed from modify_initial_guess
-      & read_rt_wfn_k
+      & read_rt_wfn_k, &
+      & write_rt_wfn_k
 
     namelist/units/ &
       & unit_system
@@ -500,8 +502,10 @@ contains
     directory        = './'
     dump_filename    = 'default'
     read_gs_wfn_k    = 'n'
+    write_gs_wfn_k   = 'n'
     modify_gs_wfn_k  = 'n'
     read_rt_wfn_k    = 'n'
+    write_rt_wfn_k   = 'n'
 !! == default for &parallel
     domain_parallel   = 'n'
     nproc_ob          = 0
@@ -803,8 +807,10 @@ contains
     call comm_bcast(directory       ,nproc_group_global)
     call comm_bcast(dump_filename   ,nproc_group_global)
     call comm_bcast(read_gs_wfn_k   ,nproc_group_global)
+    call comm_bcast(write_gs_wfn_k  ,nproc_group_global)
     call comm_bcast(modify_gs_wfn_k ,nproc_group_global)
     call comm_bcast(read_rt_wfn_k   ,nproc_group_global)
+    call comm_bcast(write_rt_wfn_k  ,nproc_group_global)
 
 !! == bcast for &parallel
     call comm_bcast(domain_parallel  ,nproc_group_global)
@@ -1298,8 +1304,10 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'directory', trim(directory)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'dump_filename', trim(dump_filename)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'read_gs_wfn_k', trim(read_gs_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_gs_wfn_k', trim(write_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'modify_gs_wfn_k', trim(modify_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'read_rt_wfn_k', trim(read_rt_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_rt_wfn_k', trim(write_rt_wfn_k)
 
       if(inml_units >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'units', inml_units

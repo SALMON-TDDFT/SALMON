@@ -57,6 +57,7 @@ subroutine arted
     select case(iflag_calc_mode)
     case(iflag_calc_mode_gs_rt)
       call calc_ground_state
+      if(write_gs_wfn_k=='y') call read_write_gs_wfn_k(iflag_write)
     case(iflag_calc_mode_gs)
       call calc_ground_state
       call read_write_gs_wfn_k(iflag_write)
@@ -76,7 +77,7 @@ subroutine arted
     call tddft_maxwell_ms
   case ('n')
     call tddft_sc
-    call read_write_rt_wfn_k(iflag_write_rt)
+    if(write_rt_wfn_k=='y') call read_write_rt_wfn_k(iflag_write_rt)
   case default
     call Err_finalize("Invalid use_ms_maxwell parameter!")
   end select
