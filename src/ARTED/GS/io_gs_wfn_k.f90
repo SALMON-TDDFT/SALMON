@@ -174,3 +174,97 @@ contains
 
   end subroutine modify_initial_guess_copy_1stk_to_all
 end module io_gs_wfn_k
+
+!-----------------------------------------------------------------
+
+module io_rt_wfn_k
+  use salmon_global
+  use salmon_communication
+  use salmon_parallel
+  use global_variables
+  use misc_routines
+  implicit none
+
+  character(256) :: rt_wfn_directory
+  character(256) :: rt_wfn_file, occ_file, md_file
+  integer,parameter :: nfile_rt_wfn = 41
+  integer,parameter :: nfile_occ    = 42
+  integer,parameter :: nfile_md     = 43
+
+  integer,parameter :: iflag_read_rt = 0
+  integer,parameter :: iflag_write_rt= 1
+
+contains
+  subroutine read_write_rt_wfn_k(iflag_read_write)
+    implicit none
+    integer,intent(in) :: iflag_read_write
+    integer :: ik
+  ! temporal communicator for multi-scale (same k-points at different macro point)
+    integer :: nproc_group_kpoint_ms
+    integer :: nproc_id_kpoint_ms
+    integer :: nproc_size_kpoint_ms
+
+    write (rt_wfn_directory,'(A,A)') trim(directory),'/rt_wfn_k/'
+    if(iflag_read_write == iflag_write_rt)call create_directory(rt_wfn_directory)
+
+    if(comm_is_root(nproc_id_global))then
+      occ_file = trim(rt_wfn_directory)//'occupation'
+      open(nfile_occ,file=trim(occ_file),form='unformatted')
+      select case(iflag_read_write)
+      case(iflag_write_rt); write(nfile_occ)occ
+      case(iflag_read_rt ); read(nfile_occ )occ
+      end select
+      close(nfile_occ)
+
+      md_file = trim(rt_wfn_directory)//'Rion_velocity'
+      open(nfile_md,file=trim(md_file),form='unformatted')
+      select case(iflag_read_write)
+      case(iflag_write_rt); write(nfile_md)Rion,velocity
+      case(iflag_read_rt ); read(nfile_md )Rion,velocity
+      end select
+      close(nfile_md)
+    end if
+
+    select case(iflag_read_write)
+    case(iflag_read_rt )
+      call comm_bcast(occ,     nproc_group_global)
+      call comm_bcast(Rion,    nproc_group_global)
+      call comm_bcast(velocity,nproc_group_global)
+    end select
+
+    if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. nmacro_s == 1))then
+      do ik=NK_s,NK_e
+        
+        write (rt_wfn_file,'(A,A,I7.7,A)') trim(rt_wfn_directory),'/wfn_rt_k',ik,'.wfn'
+        open(nfile_rt_wfn,file=trim(rt_wfn_file),form='unformatted')
+        select case(iflag_read_write)
+        case(iflag_write_rt); write(nfile_rt_wfn)zu_t(:,:,ik)
+        case(iflag_read_rt ); read( nfile_rt_wfn)zu_t(:,:,ik)
+        end select
+        close(nfile_rt_wfn)
+
+      end do
+
+    end if
+
+    if(iflag_read_write==iflag_write_rt)return
+
+    if(use_ms_maxwell == 'y')then
+      nproc_group_kpoint_ms = comm_create_group(nproc_group_global, NK_s, nmacro_s)
+      call comm_get_groupinfo(nproc_group_kpoint_ms, nproc_id_kpoint_ms, nproc_size_kpoint_ms)
+      call comm_bcast(zu_t,nproc_group_kpoint_ms)
+    end if
+
+    Rion_eq=Rion
+    call psi_rho_RT(zu_t)
+    call Hartree
+    call Exc_Cor(calc_mode_rt,NBoccmax,zu_t)
+
+    Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
+    call Total_Energy_omp(rion_update_on,calc_mode_rt)
+    call Ion_Force_omp(rion_update_on,calc_mode_rt)
+    if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'Eall =',Eall
+
+  end subroutine read_write_rt_wfn_k
+
+end module io_rt_wfn_k

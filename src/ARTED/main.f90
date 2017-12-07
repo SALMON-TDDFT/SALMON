@@ -43,6 +43,7 @@ subroutine arted
   use initialization
   use ground_state
   use io_gs_wfn_k
+  use io_rt_wfn_k
   
   implicit none
 
@@ -59,10 +60,11 @@ subroutine arted
     case(iflag_calc_mode_gs)
       call calc_ground_state
       call read_write_gs_wfn_k(iflag_write)
-      if(use_geometry_opt == 'y') call calc_opt_ground_state
+      if(use_geometry_opt=='y') call calc_opt_ground_state
       return
     case(iflag_calc_mode_rt)
       call read_write_gs_wfn_k(iflag_read)
+      if(read_rt_wfn_k=='y') call read_write_rt_wfn_k(iflag_read_rt)
     end select
   else if(restart_option == 'restart')then
   else
@@ -74,6 +76,7 @@ subroutine arted
     call tddft_maxwell_ms
   case ('n')
     call tddft_sc
+    call read_write_rt_wfn_k(iflag_write_rt)
   case default
     call Err_finalize("Invalid use_ms_maxwell parameter!")
   end select
