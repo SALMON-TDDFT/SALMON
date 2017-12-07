@@ -96,16 +96,22 @@ Default is the current directoy, <code>./</code>.
 <dd>Name of a filename for the restart calculation.
 </dd>
 
-<dt>read_initial_guess; <code>Character</code>; 3d</dt>
+<dt>read_gs_wfn_k; <code>Character</code>; 3d</dt>
 <dd>
-Option to read wave function as initial guess (pre-calculated "gs_wfn_k" directory) if this is <code>y</code>.
+Read ground state wave function as initial guess (pre-calculated "gs_wfn_k" directory printed by <code>calc_mode=GS</code>) if this is <code>y</code>.
 Default is <code>n</code>.
 </dd>
 
-<dt>modify_initial_guess; <code>Character</code>; 3d</dt>
+<dt>modify_gs_wfn_k; <code>Character</code>; 3d</dt>
 <dd>
-Option to modify initial guess wave function (pre-calculated "gs_wfn_k" directory) in combination with <code>read_initial_guess = y</code>.
+Option to modify initial guess wave function (pre-calculated "gs_wfn_k" directory) in combination with <code>read_gs_wfn_k = y</code>.
 If <code>copy_1stk_to_all</code> is set, the first k-point data file, wfn_gs_k0000001.wfn (supposed to be obtained by gamma-point calculation), is copied to all other points.
+Default is <code>n</code>.
+</dd>
+
+<dt>read_rt_wfn_k; <code>Character</code>; 3d</dt>
+<dd>
+Read RT wave function (pre-calculated "rt_wfn_k" directory printed by <code>calc_mode=RT</code>) if this is <code>y</code>. This is used for restarting <code>calc_mode=RT</code> (supporting <code>use_ehrenfest_md=y</code>, too), then, "gs_wfn_k" directory is also necessary.
 Default is <code>n</code>.
 </dd>
 
