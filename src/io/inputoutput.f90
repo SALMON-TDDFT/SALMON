@@ -384,12 +384,13 @@ contains
       & aewald
 
     namelist/opt/ &
-      & cg_alpha_ini, &
+      & cg_alpha_ini, &     !not use now if flag_use_grad_wf_on_force=.T.
       & cg_alpha_up, &
       & cg_alpha_down, &
+      & convrg_scf_force, &
       & convrg_scf_ene, &
-      & convrg_opt_ene, &
-      & convrg_opt_fmax
+      & convrg_opt_fmax, &
+      & convrg_opt_ene      !not use now if flag_use_grad_wf_on_force=.T.
 
     namelist/md/ &
       & ensemble, &
@@ -652,15 +653,16 @@ contains
     newald = 4
     aewald = 0.5d0
 !! == default for &opt
-    cg_alpha_ini   =  0.8d0
-    cg_alpha_up    =  1.3d0
-    cg_alpha_down  =  0.5d0
-    convrg_scf_ene = -1d0
-    convrg_opt_ene =  1d-6
-    convrg_opt_fmax=  1d-5
+    cg_alpha_ini    =  0.8d0 !not use now
+    cg_alpha_up     =  1.3d0
+    cg_alpha_down   =  0.5d0
+    convrg_scf_force= -1d0
+    convrg_scf_ene  = -1d0
+    convrg_opt_fmax =  1d-3
+    convrg_opt_ene  =  1d-6  !not use now
 !! == default for &md
-    ensemble              = 'nve'
-    thermostat            = 'nose-hoover'
+    ensemble              = 'nve'         !currently not supported
+    thermostat            = 'nose-hoover' !currently not supported
     step_velocity_scaling = -1
     step_update_ps        = 1
     temperature0_ion      = 298.15d0
@@ -982,9 +984,10 @@ contains
     call comm_bcast(cg_alpha_ini     ,nproc_group_global)
     call comm_bcast(cg_alpha_up      ,nproc_group_global)
     call comm_bcast(cg_alpha_down    ,nproc_group_global)
+    call comm_bcast(convrg_scf_force ,nproc_group_global)
     call comm_bcast(convrg_scf_ene   ,nproc_group_global)
-    call comm_bcast(convrg_opt_ene   ,nproc_group_global)
     call comm_bcast(convrg_opt_fmax  ,nproc_group_global)
+    call comm_bcast(convrg_opt_ene   ,nproc_group_global)
 !! == bcast for &md
     call comm_bcast(ensemble               ,nproc_group_global)
     call comm_bcast(thermostat             ,nproc_group_global)
@@ -1507,17 +1510,17 @@ contains
 
       if(inml_opt >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'opt', inml_opt
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cg_alpha_ini', cg_alpha_ini
+     !write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cg_alpha_ini', cg_alpha_ini !not use now
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cg_alpha_up', cg_alpha_up
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cg_alpha_down', cg_alpha_down
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_scf_force', convrg_scf_force
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_scf_ene', convrg_scf_ene
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_opt_ene', convrg_opt_ene
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_opt_fmax',convrg_opt_fmax
-
+     !write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_opt_ene', convrg_opt_ene !not use now
       if(inml_md >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'md', inml_md
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'ensemble', ensemble
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'thermostat', thermostat
+     !write(fh_variables_log, '("#",4X,A,"=",A)') 'ensemble', ensemble
+     !write(fh_variables_log, '("#",4X,A,"=",A)') 'thermostat', thermostat
       write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_velocity_scaling', step_velocity_scaling
       write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_update_ps', step_update_ps
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature0_ion', temperature0_ion

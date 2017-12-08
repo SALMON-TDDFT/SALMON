@@ -984,11 +984,13 @@ Default is <code>0.5</code>.
 
 ## &opt
 <dl>
+<!--
 <dt>cg_alpha_ini; <code>Real(8)</code>; 3d</dt>
 <dd>
-Parameter for initial step length in line search in conjugated gradient method.
+Parameter for initial step length in line search in conjugated gradient method. (currently not available)
 Default is <code>0.8</code>.
 </dd>
+-->
 <dt>cg_alpha_up; <code>Real(8)</code>; 3d</dt>
 <dd>
 Parameter for up-rate of step length in line search in conjugated gradient method.
@@ -1001,25 +1003,33 @@ Default is <code>0.5</code>.
 </dd>
 <dt>convrg_scf_ene; <code>Real(8)</code>; 3d</dt>
 <dd>
-Convergence threshold of SCF calculation in energy difference. If negative number no threshold (SCF loop is up to <code>Nscf</code>)
+Convergence threshold of SCF calculation in energy difference. If negative number no threshold (SCF loop is up to <code>Nscf</code>). The other SCF thresholds such as <code>threshold</code> in <code>&scf</code> are also applied (if you do not want to use it, set very small number). 
 Default is <code>-1.0</code>.
 </dd>
-<dt>convrg_opt_ene; <code>Real(8)</code>; 3d</dt>
+<dt>convrg_scf_force; <code>Real(8)</code>; 3d</dt>
 <dd>
-Convergence threshold of optimization in energy difference. 
-Default is <code>1d-6</code>.
+Convergence threshold of SCF calculation in force (average over atoms) difference. If negative number no threshold (SCF loop is up to <code>Nscf</code>). The other SCF thresholds such as <code>threshold</code> in <code>&scf</code> are also applied (if you do not want to use it, set very small number). 
+Default is <code>-1.0</code>.
 </dd>
 <dt>convrg_opt_fmax; <code>Real(8)</code>; 3d</dt>
 <dd>
-Convergence threshold of optimization in maximum force. (used in the initial optimization step only)
-Default is <code>1d-5</code>.
+Convergence threshold of optimization in maximum force.
+Default is <code>1d-3</code>.
 </dd>
+<!--
+<dt>convrg_opt_ene; <code>Real(8)</code>; 3d</dt>
+<dd>
+Convergence threshold of optimization in energy difference. (currently not available)
+Default is <code>1d-6</code>.
+</dd>
+-->
 
 
 ## &md
+<!--
 <dt>ensemble; <code>Character</code>; 3d</dt>
 <dd>
-Ensemble in MD option: "NVE", "NVT" or "NVP" (currently only "NVE" is available)
+Ensemble in MD option: "NVE", "NVT" or "NVP" (currently not available)
 Default is <code>"NVE"</code>.
 </dd>
 <dt>thermostat; <code>Character</code>; 3d</dt>
@@ -1027,6 +1037,7 @@ Default is <code>"NVE"</code>.
 Thermostat in "NVT" and "NPT" option: (currently not available)
 Default is <code>"nose-hoover"</code>.
 </dd>
+-->
 <dt>step_velocity_scaling; <code>Integer</code>; 3d</dt>
 <dd>
 Time step interval for velocity-scaling. Velocity-scaling is applied if this is set to positive.

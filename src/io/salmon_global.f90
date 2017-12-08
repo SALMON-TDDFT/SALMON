@@ -226,9 +226,10 @@ module salmon_global
   real(8)        :: cg_alpha_ini
   real(8)        :: cg_alpha_up
   real(8)        :: cg_alpha_down
+  real(8)        :: convrg_scf_force
   real(8)        :: convrg_scf_ene
-  real(8)        :: convrg_opt_ene
   real(8)        :: convrg_opt_fmax
+  real(8)        :: convrg_opt_ene
 
 !! &md
   character(10)  :: ensemble
