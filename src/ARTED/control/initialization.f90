@@ -87,8 +87,8 @@ contains
     endif
 
 ! modify initial guess if read and modify options = y
-    if(read_initial_guess=='y') then
-       if(modify_initial_guess=='copy_1stk_to_all') then
+    if(read_gs_wfn_k=='y') then
+       if(modify_gs_wfn_k=='copy_1stk_to_all') then
           call modify_initial_guess_copy_1stk_to_all
        endif
     endif
@@ -384,7 +384,7 @@ contains
     call comm_bcast(NBoccmax,nproc_group_global)
     call comm_sync_all
     NKB=(NK_e-NK_s+1)*NBoccmax ! sato
-    if(read_initial_guess=='y') iflag_gs_init_wf=2
+    if(read_gs_wfn_k=='y') iflag_gs_init_wf=2
 
     allocate(occ(NB,NK),wk(NK),esp(NB,NK))
     allocate(ovlp_occ_l(NB,NK),ovlp_occ(NB,NK))
@@ -445,9 +445,7 @@ contains
     allocate(udVtbl(Nrmax,0:Lmax,NE),dudVtbl(Nrmax,0:Lmax,NE))
     allocate(Floc(3,NI),Fnl(3,NI),Fion(3,NI))                         
     allocate(save_dVloc_G(NG_s:NG_e,NE))
-    if(use_ehrenfest_md=='y')then
-       allocate(velocity(3,NI)) ; velocity(:,:)=0d0
-    endif
+    allocate(velocity(3,NI)) ; velocity(:,:)=0d0
     
     select case(iflag_atom_coor)
     case(ntype_atom_coor_cartesian)

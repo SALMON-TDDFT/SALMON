@@ -50,9 +50,12 @@ module salmon_global
   character(256) :: sysname
   character(256) :: directory
   character(256) :: dump_filename
-  character(1)   :: read_initial_guess
-  character(20)  :: modify_initial_guess
-                 
+  character(1)   :: read_gs_wfn_k
+  character(1)   :: write_gs_wfn_k
+  character(20)  :: modify_gs_wfn_k
+  character(1)   :: read_rt_wfn_k
+  character(1)   :: write_rt_wfn_k
+
 !! &units
   character(16)  :: unit_system
   character(16)  :: unit_time
