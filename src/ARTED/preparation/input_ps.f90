@@ -545,7 +545,7 @@ Subroutine Make_mask_function(eta_mask,mask,dmask,ik)
 !local variables
   integer,parameter :: M = 200
 !  real(8),parameter :: eta = 15.d0
-  integer :: i,j
+  integer :: i,j, i3,i2,i1
   real(8) :: xp,xm,dx,nmask0,kx1,dk
   real(8) :: x(M),nmask(M),mat(M,M),k(M),nmask_k(M)
 !Lapack dsyev
@@ -614,14 +614,19 @@ Subroutine Make_mask_function(eta_mask,mask,dmask,ik)
   do i=2,NRps(ik) !Avoiding divide by zero
     do j = 1,M
       kx1 = k(j)*rad(i,ik)/Rps(ik)
-      mask(i) = mask(i) + nmask_k(j)*kx1*sin(kx1)
-      dmask(i) = dmask(i) + nmask_k(j)*(kx1**2*cos(kx1)-kx1*sin(kx1))
+      mask(i) =  mask(i) + nmask_k(j)*kx1*sin(kx1)
+      dmask(i)= dmask(i) + nmask_k(j)*(kx1**2*cos(kx1)-kx1*sin(kx1))
     end do
-    mask(i) = (2.d0/Pi)*mask(i)*dk*Rps(ik)**2/rad(i,ik)**2
-    dmask(i) = (2.d0/Pi)*dmask(i)*dk*Rps(ik)**2/rad(i,ik)**3 
+    mask(i) = (2.d0/Pi)* mask(i)*dk*Rps(ik)**2/rad(i,ik)**2
+    dmask(i)= (2.d0/Pi)*dmask(i)*dk*Rps(ik)**2/rad(i,ik)**3 
   end do
-  mask(1) = mask(2)-(mask(3)-mask(2))/(rad(3,ik)-rad(2,ik))*(rad(2,ik)-rad(1,ik))
-  dmask(1) = dmask(2)-(dmask(3)-dmask(2))/(rad(3,ik)-rad(2,ik))*(rad(2,ik)-rad(1,ik))
+  mask(1) =  mask(2)-( mask(3)- mask(2))/(rad(3,ik)-rad(2,ik))*(rad(2,ik)-rad(1,ik))
+  dmask(1)= dmask(2)-(dmask(3)-dmask(2))/(rad(3,ik)-rad(2,ik))*(rad(2,ik)-rad(1,ik))
+  i1=NRps(ik)-2
+  i2=NRps(ik)-1
+  i3=NRps(ik)
+   mask(i3)=  mask(i2)+( mask(i2)- mask(i1))/(rad(i2,ik)-rad(i1,ik))*(rad(i3,ik)-rad(i2,ik))
+  dmask(i3)= dmask(i2)+(dmask(i2)-dmask(i1))/(rad(i2,ik)-rad(i1,ik))*(rad(i3,ik)-rad(i2,ik))
 
   open(4,file="mask.dat")
   write(4,*) "# Rps(ik), NRps(ik) =",Rps(ik), NRps(ik)
