@@ -143,15 +143,15 @@ if(istopt==1)then
     call Gram_Schmidt_ns
 
     allocate( rho(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )  
-    allocate( rho_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:num_rho_stock+1) )  
-    allocate( rho_out(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:num_rho_stock) ) 
+    allocate( rho_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1) )  
+    allocate( rho_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1) ) 
     rho_in=0.d0
     rho_out=0.d0
                                 
     if(ilsda == 1)then
       allocate( rho_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )  
-      allocate( rho_s_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2,1:num_rho_stock+1) )  
-      allocate( rho_s_out(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2,1:num_rho_stock) )  
+      allocate( rho_s_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),2,1:num_rho_stock+1) )  
+      allocate( rho_s_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),2,1:num_rho_stock) )  
       rho_s_in=0.d0
       rho_s_out=0.d0
     end if
@@ -334,16 +334,17 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(114)=get_wtime()
     elp3(124)=elp3(124)+elp3(114)-elp3(113)
      
-    call calc_density(psi,2)
 
     select case(amixing)
       case ('simple')
+        call calc_density(psi,2)
         call simple_mixing(1.d0-rmixrate,rmixrate)
       case ('broyden')
-        call broyden(iter)
+        call calc_density(psi,1)
+        call buffer_broyden_ns(iter)
     end select
     
-    call calc_rho_in
+!    call calc_rho_in
   
     elp3(115)=get_wtime()
     elp3(125)=elp3(125)+elp3(115)-elp3(114)
@@ -399,16 +400,16 @@ DFT_Iteration : do iter=1,iDiter(img)
 
     call Gram_Schmidt_ns
 
-    call calc_density(psi,2)
-  
     select case(amixing)
       case ('simple')
+        call calc_density(psi,2)
         call simple_mixing(1.d0-rmixrate,rmixrate)
       case ('broyden')
-        call broyden(iter)
+        call calc_density(psi,1)
+        call buffer_broyden_ns(iter)
     end select
     
-    call calc_rho_in
+!    call calc_rho_in
 
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call Hartree_ns

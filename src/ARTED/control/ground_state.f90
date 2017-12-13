@@ -123,7 +123,7 @@ contains
        call Gram_Schmidt
        
        call psi_rho_GS
-       call Density_Update(iter) 
+       call broyden(rho,rho_in,rho_out,nl,iter,iter,nscf-1)
        call Hartree
 
        functional_t = functional
