@@ -34,11 +34,11 @@ else if(ilsda == 1)then
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
-    rho_s(ix,iy,iz,1) = c1*rho_s_in(ix,iy,iz,1,num_rho_stock) + c2*rho_s_out(ix,iy,iz,1,num_rho_stock)
-    rho_s(ix,iy,iz,2) = c1*rho_s_in(ix,iy,iz,2,num_rho_stock) + c2*rho_s_out(ix,iy,iz,2,num_rho_stock)
+    rho_s(ix,iy,iz,1) = c1*rho_s_in(ix,iy,iz,num_rho_stock,1) + c2*rho_s_out(ix,iy,iz,num_rho_stock,1)
+    rho_s(ix,iy,iz,2) = c1*rho_s_in(ix,iy,iz,num_rho_stock,2) + c2*rho_s_out(ix,iy,iz,num_rho_stock,2)
     rho(ix,iy,iz) = rho_s(ix,iy,iz,1)+rho_s(ix,iy,iz,2)
-    rho_s_in(ix,iy,iz,1,num_rho_stock+1) = rho_s(ix,iy,iz,1) 
-    rho_s_in(ix,iy,iz,2,num_rho_stock+1) = rho_s(ix,iy,iz,2) 
+    rho_s_in(ix,iy,iz,num_rho_stock+1,1) = rho_s(ix,iy,iz,1) 
+    rho_s_in(ix,iy,iz,num_rho_stock+1,2) = rho_s(ix,iy,iz,2) 
   end do
   end do
   end do

@@ -27,7 +27,7 @@ END INTERFACE
 
 CONTAINS
 
-subroutine R_calc_density(tpsi,ifunc)
+subroutine R_calc_density(tpsi)
 use salmon_parallel, only: nproc_group_grid
 use salmon_communication, only: comm_summation
 implicit none
@@ -36,7 +36,6 @@ integer :: i1_allob
 integer :: ix,iy,iz,i1,iss,iob
 integer :: iob_myob,icorr_p
 integer :: iob_start(2),iob_end(2)
-integer :: ifunc
 
 if(ilsda==0)then
   matbox_m=0d0
@@ -52,13 +51,8 @@ if(ilsda==0)then
     end do
   end do
  
-  if(ifunc==1)then 
-    call comm_summation(matbox_m,rho(mg_sta(1):,mg_sta(2):,mg_sta(3):),  &
-                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-  else if(ifunc==2)then
-    call comm_summation(matbox_m,rho_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,num_rho_stock),  &
-                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-  end if
+  call comm_summation(matbox_m,rho(mg_sta(1):,mg_sta(2):,mg_sta(3):),  &
+                      mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 
 else if(ilsda==1)then
   iob_start(1)=1
@@ -81,13 +75,8 @@ else if(ilsda==1)then
         end do
       end if
     end do
-    if(ifunc==1)then
-      call comm_summation(matbox_m,rho_s(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss),  &
-                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-    else if(ifunc==2)then
-      call comm_summation(matbox_m,rho_s_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss,num_rho_stock),  &
-                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-    end if
+    call comm_summation(matbox_m,rho_s(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss),  &
+                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
   end do
   
 !$OMP parallel do private(iz,iy,ix) 
@@ -105,7 +94,7 @@ return
 END SUBROUTINE R_calc_density
 
 
-subroutine C_calc_density(tpsi,ifunc)
+subroutine C_calc_density(tpsi)
 use salmon_parallel, only: nproc_group_grid
 use salmon_communication, only: comm_summation
 implicit none
@@ -114,7 +103,6 @@ integer :: i1_allob
 integer :: ix,iy,iz,i1,iss,iob
 integer :: iob_myob,icorr_p
 integer :: iob_start(2),iob_end(2)
-integer :: ifunc
 
 if(ilsda==0)then
   matbox_m=0d0
@@ -130,13 +118,8 @@ if(ilsda==0)then
     end do
   end do
  
-  if(ifunc==1)then 
-    call comm_summation(matbox_m,rho(mg_sta(1):,mg_sta(2):,mg_sta(3):),  &
-                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-  else if(ifunc==2)then
-    call comm_summation(matbox_m,rho_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,num_rho_stock),  &
-                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-  end if
+  call comm_summation(matbox_m,rho(mg_sta(1):,mg_sta(2):,mg_sta(3):),  &
+                      mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 
 else if(ilsda==1)then
   iob_start(1)=1
@@ -159,13 +142,8 @@ else if(ilsda==1)then
         end do
       end if
     end do
-    if(ifunc==1)then
-      call comm_summation(matbox_m,rho_s(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss),  &
-                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-    else if(ifunc==2)then
-      call comm_summation(matbox_m,rho_s_out(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss,num_rho_stock),  &
-                          mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
-    end if
+    call comm_summation(matbox_m,rho_s(mg_sta(1):,mg_sta(2):,mg_sta(3):,iss),  &
+                        mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
   end do
   
 !$OMP parallel do private(iz,iy,ix) 

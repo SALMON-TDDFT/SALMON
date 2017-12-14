@@ -34,7 +34,7 @@ if(Miter==1)then
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      rho_s_in(ix,iy,iz,1:2,num_rho_stock+1)=rho_s(ix,iy,iz,1:2)
+      rho_s_in(ix,iy,iz,num_rho_stock+1,1:2)=rho_s(ix,iy,iz,1:2)
     end do
     end do
     end do
@@ -69,7 +69,7 @@ if(ilsda==1)then
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
-        rho_s_in(ix,iy,iz,is,iiter)=rho_s_in(ix,iy,iz,is,iiter+1)
+        rho_s_in(ix,iy,iz,iiter,is)=rho_s_in(ix,iy,iz,iiter+1,is)
       end do
       end do
       end do
@@ -81,7 +81,7 @@ if(ilsda==1)then
       do iz=ng_sta(3),ng_end(3)
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
-        rho_s_out(ix,iy,iz,is,iiter)=rho_s_out(ix,iy,iz,is,iiter+1)
+        rho_s_out(ix,iy,iz,iiter,is)=rho_s_out(ix,iy,iz,iiter+1,is)
       end do
       end do
       end do

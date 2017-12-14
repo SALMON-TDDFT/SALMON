@@ -264,7 +264,7 @@ if(ilsda == 1)then
               ng_sta(3):ng_end(3))   &
         = rho_s_in(ng_sta(1):ng_end(1),   &
                 ng_sta(2):ng_end(2),   &
-                ng_sta(3):ng_end(3),is,ii)
+                ng_sta(3):ng_end(3),ii,is)
 
       call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
@@ -705,8 +705,8 @@ allocate( rho(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate( rho0(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 allocate( rho_diff(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 if(iSCFRT==1)then
-  allocate( rho_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:num_rho_stock+1))
-  allocate( rho_out(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:num_rho_stock))
+  allocate( rho_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1))
+  allocate( rho_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1))
   rho_in=0.d0
   rho_out=0.d0
 end if
@@ -715,8 +715,8 @@ if(ilsda == 0) then
   continue
 else if(ilsda == 1) then
   allocate( rho_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2))
-  allocate( rho_s_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2,1:num_rho_stock+1))
-  allocate( rho_s_out(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2,1:num_rho_stock))
+  allocate( rho_s_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1,2))
+  allocate( rho_s_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1,2))
   rho_s_in=0.d0
   rho_s_out=0.d0
 end if
@@ -984,7 +984,7 @@ if(IC<=2)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          rho_s_in(ix,iy,iz,is,num_rho_stock)=matbox_read(ix,iy,iz)
+          rho_s_in(ix,iy,iz,num_rho_stock,is)=matbox_read(ix,iy,iz)
         end do
         end do
         end do
@@ -996,7 +996,7 @@ if(IC<=2)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          rho_s_out(ix,iy,iz,is,num_rho_stock)=matbox_read(ix,iy,iz)
+          rho_s_out(ix,iy,iz,num_rho_stock,is)=matbox_read(ix,iy,iz)
         end do
         end do
         end do
@@ -1059,7 +1059,7 @@ if(IC<=2)then
             do iz=mg_sta(3),mg_end(3)
             do iy=mg_sta(2),mg_end(2)
             do ix=mg_sta(1),mg_end(1)
-              rho_s_in(ix,iy,iz,is,ii)=matbox_read(ix,iy,iz)
+              rho_s_in(ix,iy,iz,ii,is)=matbox_read(ix,iy,iz)
             end do
             end do
             end do
@@ -1075,7 +1075,7 @@ if(IC<=2)then
             do iz=mg_sta(3),mg_end(3)
             do iy=mg_sta(2),mg_end(2)
             do ix=mg_sta(1),mg_end(1)
-              rho_s_out(ix,iy,iz,is,ii)=matbox_read(ix,iy,iz)
+              rho_s_out(ix,iy,iz,ii,is)=matbox_read(ix,iy,iz)
             end do
             end do
             end do
