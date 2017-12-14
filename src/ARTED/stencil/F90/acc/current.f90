@@ -50,43 +50,27 @@ subroutine current_stencil_LBLK(E, ikb_s,ikb_e)
     ib=ib_table(ikb)
 
     F = 0
-!$acc loop collapse(3) vector(128) reduction(+:F)
-    do iy=0,NLy-1
+    G = 0
+    H = 0
+
+!$acc loop collapse(3) vector(128) reduction(+:F,G,H)
     do ix=0,NLx-1
+    do iy=0,NLy-1
     do iz=0,NLz-1
       w = conjg(E(iz,iy,ix, ib,ik))
+
       v=(nabx(1)*(E(IDX(1))) &
       & +nabx(2)*(E(IDX(2))) &
       & +nabx(3)*(E(IDX(3))) &
       & +nabx(4)*(E(IDX(4))))
       F = F + imag(w * v)
-    end do
-    end do
-    end do
-    zcx(ib,ik)=F * 2.d0
 
-    G = 0
-!$acc loop collapse(3) vector(128) reduction(+:G)
-    do ix=0,NLx-1
-    do iy=0,NLy-1
-    do iz=0,NLz-1
-      w = conjg(E(iz,iy,ix, ib,ik))
       v=(naby(1)*(E(IDY(1))) &
       & +naby(2)*(E(IDY(2))) &
       & +naby(3)*(E(IDY(3))) &
       & +naby(4)*(E(IDY(4))))
       G = G + imag(w * v)
-    end do
-    end do
-    end do
-    zcy(ib,ik)=G * 2.d0
 
-    H = 0
-!$acc loop collapse(3) vector(128) reduction(+:H)
-    do ix=0,NLx-1
-    do iy=0,NLy-1
-    do iz=0,NLz-1
-      w = conjg(E(iz,iy,ix, ib,ik))
       v=(nabz(1)*(E(IDZ(1))) &
       & +nabz(2)*(E(IDZ(2))) &
       & +nabz(3)*(E(IDZ(3))) &
@@ -95,6 +79,9 @@ subroutine current_stencil_LBLK(E, ikb_s,ikb_e)
     end do
     end do
     end do
+
+    zcx(ib,ik)=F * 2.d0
+    zcy(ib,ik)=G * 2.d0
     zcz(ib,ik)=H * 2.d0
   end do
 !$acc end kernels
