@@ -3,7 +3,9 @@ subroutine buffer_broyden_ns(iter)
   use broyden_sub
   use scf_data, only: ng_sta,ng_end,ng_num,num_rho_stock,rho,rho_in,rho_out,  &
                       ilsda,rho_s,rho_s_in,rho_s_out
+  implicit none
   integer,intent(in) :: iter
+  integer :: ix,iy,iz,is
   real(8) :: vecr(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3))
 
   if(ilsda==0)then
