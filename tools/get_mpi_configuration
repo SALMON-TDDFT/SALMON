@@ -17,16 +17,20 @@
 
 if [[ "x$MV2_COMM_WORLD_LOCAL_RANK" != "x" ]]; then
   # MVAPICH2
+  comm_world_rank=$MV2_COMM_WORLD_RANK
   comm_world_local_rank=$MV2_COMM_WORLD_LOCAL_RANK
   comm_world_local_size=$MV2_COMM_WORLD_LOCAL_SIZE
 elif [[ "x$OMPI_COMM_WORLD_LOCAL_RANK" != "x" ]]; then
   # OpenMPI
+  comm_world_rank=$OMPI_COMM_WORLD_RANK
   comm_world_local_rank=$OMPI_COMM_WORLD_LOCAL_RANK
   comm_world_local_size=$OMPI_COMM_WORLD_LOCAL_SIZE
 else
+  comm_world_rank=$SLURM_PROCID
   comm_world_local_rank=$((SLURM_PROCID % SLURM_NTASKS_PER_NODE))
   comm_world_local_size=${SLURM_NTASKS_PER_NODE}
 fi
+export comm_world_rank
 export comm_world_local_rank
 export comm_world_local_size
 
