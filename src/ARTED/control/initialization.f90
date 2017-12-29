@@ -473,7 +473,15 @@ contains
   End Subroutine Read_data
   Subroutine init_md
     use Global_Variables
+    use salmon_communication
+    use salmon_parallel
     implicit none    
+
+    if(out_rvf_rt=='n') then
+       if (comm_is_root(nproc_id_global)) &
+       write(*,*)" out_rvf_rt --> y : changed for md option"
+       out_rvf_rt='y'
+    endif
 
     if(restart_option == 'new') then
        if(set_ini_velocity=='y' .or. step_velocity_scaling>=1) &
@@ -559,6 +567,7 @@ contains
     !write(*,*)"    Temperature: befor-scaling",real(Temperature_ion)
 
     scale_v = sqrt(temperature0_ion/Temperature_ion)
+    if(temperature0_ion==0d0) scale_v=0d0
     velocity(:,:) = velocity(:,:) * scale_v
 
     !(check)
