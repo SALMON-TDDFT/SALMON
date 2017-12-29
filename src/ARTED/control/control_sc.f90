@@ -141,6 +141,8 @@ subroutine tddft_sc
 !$acc enter data copyin(kAc)
 !$acc enter data copyin(zproj)
 !$acc enter data copyin(ik_table,ib_table)
+!$acc enter data copyin(ekr_omp)
+!$acc enter data copyin(a_tbl,jxyz,mps)
 
 !$acc enter data create(kAc_new)
 !$acc enter data create(ghtpsi)
