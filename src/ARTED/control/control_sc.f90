@@ -54,8 +54,6 @@ subroutine tddft_sc
   select case(use_ehrenfest_md)
   case('y')
     Rion_update_rt = rion_update_on
-    write(comment_line,110) 0, 0
-    call write_xyz(comment_line,"new","rv ")
   case('n')
     Rion_update_rt = rion_update_off
   end select
@@ -88,18 +86,6 @@ subroutine tddft_sc
 
   if (comm_is_root(nproc_id_global)) then
     ! open(7,file=file_epst,    position = position_option) !! TODO: remove output of "_t.out" file future
-    
-    open(9,file=file_force_dR,position = position_option)
-    write(9, '("#",1X,A)') "Force calculatio"
-    
-    write(9, '("#",1X,A,":",1X,A)') "force", "Force"
-    ! write(9, '("#",1X,A,":",1X,A)') "dRion", "Atomic position"
-    
-    write(9, '("#",99(1X,A,"[",A,"]"))') &
-      & "time", trim(t_unit_time%name), &
-      & "force", "a.u." !, &
-      ! & "dRion", "a.u."
-
     
     if (projection_option /= 'no') then 
       
@@ -186,16 +172,10 @@ subroutine tddft_sc
     if (use_ehrenfest_md == 'y') then
 !$acc update self(zu_t)
       call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
-      ! if (iter/10*10 == iter) then
-        call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
-      ! end if
+      call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
     else
 !$acc update self(zu_t)
       call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
-      if (iter/10*10 == iter) then
-        ! call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
-        call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
-      end if
     end if
 
     call timer_begin(LOG_OTHER)
@@ -253,29 +233,38 @@ subroutine tddft_sc
       call write_rt_data(iter)
     end if
 
-    ! Export to standard log file, file_force_dR, file_trj
-    if (iter/10*10==iter.and.comm_is_root(nproc_id_global)) then
-    if (use_ehrenfest_md=='y') then
-      write(*,120) iter*dt,&
+    ! Export to standard log file
+    if (comm_is_root(nproc_id_global)) then
+       if (iter/10*10==iter) then
+       if (use_ehrenfest_md=='y') then
+           write(*,120) iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion, Temperature_ion
-      !! TODO: exclude _t.out file future implementation
-      ! write(7,'(1x,100e16.6E3)') iter*dt,&
-      !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-      !      &  Eall, Eall-Eall0, Tion, Temperature_ion
-      write(comment_line,110) iter, iter*dt
-110   format("#md   step=",i8,"   time",e16.6)
-      call write_xyz(comment_line,"add","rv ")
-    else
-      write(*,120) iter*dt,&
+         !! TODO: exclude _t.out file future implementation
+         ! write(7,'(1x,100e16.6E3)') iter*dt,&
+         !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+         !      &  Eall, Eall-Eall0, Tion, Temperature_ion
+       else
+           write(*,120) iter*dt,&
            & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
            &  Eall, Eall-Eall0, Tion
-      ! write(7,'(1x,100e16.6E3)') iter*dt,&
-      !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
-      !      &  Eall, Eall-Eall0, Tion
+          ! write(7,'(1x,100e16.6E3)') iter*dt,&
+          !      & (E_ext(iter,ixyz),E_tot(iter,ixyz),ixyz=1,3),&
+          !      &  Eall, Eall-Eall0, Tion
+       endif
+       endif
     endif
-      write(9,'(1x,100e16.6E3)') iter*dt,((force(ixyz,ia),ixyz=1,3),ia=1,NI)!!,((dRion(ixyz,ia,iter),ixyz=1,3),ia=1,NI)
+
+    ! Export to file_trj
+    if (out_rvf_rt=='y' .and. mod(iter,out_rvf_rt_step)==0)then
+       if(use_ehrenfest_md=='n') &
+       &  call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
+       write(comment_line,110) iter, iter*dt
+110    format("#rt   step=",i8,"   time",e16.6)
+       call write_xyz(comment_line,"add","rvf")
+      !call write_xyz(comment_line,"add","rv ")
     endif
+
 120 format(1x,f10.4,6f12.6,2e20.10E3,e14.6,f14.5)
 
     !! Export Dynamical Density (file_dns)
@@ -1515,8 +1504,8 @@ subroutine write_xyz(comment,action,rvf)
   close(unit_atomic_coor_tmp)
 
 100 format(a2,3f18.10)
-110 format(a2,3f18.10, "  #",3f18.10)
-120 format(a2,3f18.10, "  #",3f18.10, "  #",3f18.10)
+110 format(a2,3f18.10, "  #v=",3f18.10)
+120 format(a2,3f18.10, "  #v=",3f18.10, "  #f=",3f18.10)
 
 end subroutine write_xyz
 

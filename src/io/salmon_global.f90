@@ -213,6 +213,8 @@ module salmon_global
   character(16)  :: format3d
   integer        :: numfiles_out_3d
   character(1)   :: timer_process
+  character(1)   :: out_rvf_rt
+  integer        :: out_rvf_rt_step
 
 !! &hartree
   integer        :: meo
