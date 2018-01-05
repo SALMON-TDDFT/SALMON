@@ -418,8 +418,8 @@ contains
     call comm_sync_all
     
     allocate(javt(0:Nt+1,3))
-    allocate(Eall_t(0:Nt+1),Tion_t(0:Nt+1),Temperature_ion_t(0:Nt+1))
-    Eall_t = 0d0; Tion_t = 0d0; Temperature_ion_t = 0d0;
+    allocate(Eall_t(0:Nt+1),Tion_t(0:Nt+1),Temperature_ion_t(0:Nt+1),Ework_integ_fdR(-1:Nt+1))
+    Eall_t = 0d0; Tion_t = 0d0; Temperature_ion_t = 0d0; Ework_integ_fdR = 0d0
     allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
     allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
     

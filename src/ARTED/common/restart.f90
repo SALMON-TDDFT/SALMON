@@ -383,6 +383,7 @@ subroutine prep_backup_values(is_backup)
   BACKUP(Eall_t)
   BACKUP(Tion_t)
   BACKUP(Temperature_ion_t)
+  BACKUP(Ework_integ_fdr)
   BACKUP(Vpsl)
   BACKUP(Vh)
   BACKUP(Vexc)
@@ -729,6 +730,16 @@ contains
     deallocate(Temperature_ion_t)
     allocate(Temperature_ion_t(0:Nt+1))
     Temperature_ion_t(:) = tmp1(:)
+    deallocate(tmp1)
+
+    ! Ework_integ_fdR
+    mt = min(Nt+1, ubound(Ework_integ_fdR, 1))
+    allocate(tmp1(-1:Nt+1))
+    tmp1(:) = 0.d0
+    tmp1(-1:mt) = Ework_integ_fdR(-1:mt)
+    deallocate(Ework_integ_fdR)
+    allocate(Ework_integ_fdR(-1:Nt+1))
+    Ework_integ_fdR(:) = tmp1(:)
     deallocate(tmp1)
 
     ! E_ext
