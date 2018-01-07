@@ -269,8 +269,8 @@ subroutine tddft_maxwell_ms
         end if
       else
         if (flg_out_ms_next_step) then
-!$acc update self(zu_m(:,:,:,imacro))
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
+!$acc update self(zu_m(:,:,:,imacro))
           call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
       end if

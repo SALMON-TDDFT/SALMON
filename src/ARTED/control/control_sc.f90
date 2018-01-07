@@ -176,7 +176,6 @@ subroutine tddft_sc
       call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
       call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
     else
-!$acc update self(zu_t)
       call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
     end if
 
