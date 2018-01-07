@@ -19,7 +19,7 @@ for((i=0; i<${NSOCKETS_PER_NODE}; i++)); do
   for((j=0; j<${nprocs_per_socket}; j++)); do
     # block distribution
     if [[ ${comm_world_local_rank} -eq $((i * nprocs_per_socket + j)) ]]; then
-      export CUDA_VISIBLE_DEVICES=${i}
+      export CUDA_VISIBLE_DEVICES=$((i % NGPUS_PER_NODE))
     fi
   done
 done
