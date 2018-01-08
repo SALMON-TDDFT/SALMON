@@ -162,10 +162,9 @@ contains
 
       integer    :: ia,i,j,ip,ioffset
       complex(8) :: uVpsi
+      complex(8),allocatable :: pseudo(:),dpseudo(:)
 
-      complex(8) :: pseudo(NPI)
-      complex(8) :: dpseudo(NPI)
-
+      allocate(pseudo(NPI),dpseudo(NPI))
       dpseudo = cmplx(0.d0)
 
       ! gather (load) pseudo potential point
@@ -197,6 +196,7 @@ contains
       do i=1,NPI
         htpsi(idx_proj(i)) = htpsi(idx_proj(i)) + dpseudo(i)
       end do
+      deallocate(pseudo,dpseudo)
     end subroutine
   end subroutine
 end module
