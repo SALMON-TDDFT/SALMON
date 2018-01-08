@@ -21,6 +21,7 @@ module opt_variables
   integer                :: PNLx,PNLy,PNLz,PNL
   complex(8),allocatable :: zhtpsi(:,:,:),zttpsi(:,:)
   complex(8),allocatable :: ghtpsi(:,:,:)
+  complex(8),allocatable :: spseudo(:,:),dpseudo(:,:)  ! (NPI, # of threads)
 
   real(8),allocatable :: zrhotmp(:,:)
 
@@ -254,6 +255,9 @@ contains
       idx_proj(ioffset+1:ioffset+Mps(i)) = zJxyz(1:Mps(i),i)
       ioffset = ioffset + Mps(i)
     end do
+
+    allocate(spseudo(NPI,0:NUMBER_THREADS-1))
+    allocate(dpseudo(NPI,0:NUMBER_THREADS-1))
   end subroutine
 
 
