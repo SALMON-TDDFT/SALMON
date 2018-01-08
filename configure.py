@@ -125,5 +125,5 @@ for var in args:
 
 ### configuration
 comm = '{2} cmake {0} {1}'.format(define, SOURCE_DIR, env)
-print '    $', comm
+print('    $ %s' % comm)
 os.system(comm)
