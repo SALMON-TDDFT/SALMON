@@ -208,13 +208,13 @@ module salmon_global
   integer        :: out_elf_rt_step
   character(1)   :: out_estatic_rt
   integer        :: out_estatic_rt_step
+  character(1)   :: out_rvf_rt
+  integer        :: out_rvf_rt_step
   integer        :: out_projection_step
   integer        :: out_ms_step
   character(16)  :: format3d
   integer        :: numfiles_out_3d
   character(1)   :: timer_process
-  character(1)   :: out_rvf_rt
-  integer        :: out_rvf_rt_step
 
 !! &hartree
   integer        :: meo
