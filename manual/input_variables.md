@@ -909,6 +909,16 @@ every <code>out_estatic_rt_step</code> time steps.
 Default is <code>'n'</code>.
 </dd>
 
+<dt>out_rvf_rt/out_rvf_rt_step; <code>Character/Integer</code>; 3d</dt>
+<dd>
+If <code>'y'</code>, coordinates[A], velocities[au], forces[au] on atoms
+during real-time time-propagation are printed in <code>SYSname</code>_trj.xyz
+every <code>out_rvf_rt_step</code> time steps.
+If <code>use_ehrenfest_md='y'</code>, 
+the printing option is automatically turned on.
+Defaults are <code>'n'/10</code>.
+</dd>
+
 <dt>format3d; <code>Character</code>; 0d/3d</dt>
 <dd>
 Format for three dimensional data.
