@@ -1,10 +1,8 @@
 set(SOURCES
-    add_in_broyden.f90
-    broyden.f90
+    buffer_broyden_ns.f90
     calc_dos.f90
     calc_occupation.f90
     calc_pdos.f90
-    calc_rho_in.f90
     check_dos_pdos.f90
     convert_input_scf.f90
     copy_density.f90

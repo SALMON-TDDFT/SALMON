@@ -18,30 +18,73 @@ use scf_data
 implicit none
 integer :: iiter
 integer :: is
+integer :: ix,iy,iz
 
 if(Miter==1)then
-  rho_in(:,:,:,num_rho_stock+1)=rho(:,:,:)
+!$OMP parallel do private(iz,iy,ix)
+  do iz=ng_sta(3),ng_end(3)
+  do iy=ng_sta(2),ng_end(2)
+  do ix=ng_sta(1),ng_end(1)
+    rho_in(ix,iy,iz,num_rho_stock+1)=rho(ix,iy,iz)
+  end do
+  end do
+  end do
   if(ilsda==1)then
-    rho_s_in(:,:,:,1:2,num_rho_stock+1)=rho_s(:,:,:,1:2)
+!$OMP parallel do private(iz,iy,ix)
+    do iz=ng_sta(3),ng_end(3)
+    do iy=ng_sta(2),ng_end(2)
+    do ix=ng_sta(1),ng_end(1)
+      rho_s_in(ix,iy,iz,num_rho_stock+1,1:2)=rho_s(ix,iy,iz,1:2)
+    end do
+    end do
+    end do
   end if
 end if
 
 do iiter=1,num_rho_stock
-  rho_in(:,:,:,iiter)=rho_in(:,:,:,iiter+1)
+!$OMP parallel do private(iz,iy,ix)
+  do iz=ng_sta(3),ng_end(3)
+  do iy=ng_sta(2),ng_end(2)
+  do ix=ng_sta(1),ng_end(1)
+    rho_in(ix,iy,iz,iiter)=rho_in(ix,iy,iz,iiter+1)
+  end do
+  end do
+  end do
 end do
 do iiter=1,num_rho_stock-1
-  rho_out(:,:,:,iiter)=rho_out(:,:,:,iiter+1)
+!$OMP parallel do private(iz,iy,ix)
+  do iz=ng_sta(3),ng_end(3)
+  do iy=ng_sta(2),ng_end(2)
+  do ix=ng_sta(1),ng_end(1)
+    rho_out(ix,iy,iz,iiter)=rho_out(ix,iy,iz,iiter+1)
+  end do
+  end do
+  end do
 end do
 
 if(ilsda==1)then
   do iiter=1,num_rho_stock
     do is=1,2
-      rho_s_in(:,:,:,is,iiter)=rho_s_in(:,:,:,is,iiter+1)
+!$OMP parallel do private(iz,iy,ix)
+      do iz=ng_sta(3),ng_end(3)
+      do iy=ng_sta(2),ng_end(2)
+      do ix=ng_sta(1),ng_end(1)
+        rho_s_in(ix,iy,iz,iiter,is)=rho_s_in(ix,iy,iz,iiter+1,is)
+      end do
+      end do
+      end do
     end do
   end do
   do iiter=1,num_rho_stock-1
     do is=1,2
-      rho_s_out(:,:,:,is,iiter)=rho_s_out(:,:,:,is,iiter+1)
+!$OMP parallel do private(iz,iy,ix)
+      do iz=ng_sta(3),ng_end(3)
+      do iy=ng_sta(2),ng_end(2)
+      do ix=ng_sta(1),ng_end(1)
+        rho_s_out(ix,iy,iz,iiter,is)=rho_s_out(ix,iy,iz,iiter+1,is)
+      end do
+      end do
+      end do
     end do
   end do
 end if
