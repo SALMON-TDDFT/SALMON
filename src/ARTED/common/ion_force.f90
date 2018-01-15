@@ -67,7 +67,7 @@ contains
 
       !ion-ion: Ewald short interaction term (real space)
       ftmp_l=0.d0
-!$omp parallel do private(ia, ik,ix,iy,iz,ib,rab,rab2) reduction(+:ftmp_l) collapse(5)
+!$omp parallel do private(ia, ik,ix,iy,iz,ib,rab,rab2) collapse(5)
       do ia=1,NI
       do ix=-NEwald,NEwald
       do iy=-NEwald,NEwald
@@ -79,9 +79,11 @@ contains
         rab(2)=Rion(2,ia)-iy*aLy-Rion(2,ib)
         rab(3)=Rion(3,ia)-iz*aLz-Rion(3,ib)
         rab2=sum(rab(:)**2)
+!$omp critical
         ftmp_l(:,ia)=ftmp_l(:,ia)&
              &-Zps(Kion(ia))*Zps(Kion(ib))*rab(:)/sqrt(rab2)*(-erfc_salmon(sqrt(aEwald*rab2))/rab2&
              &-2*sqrt(aEwald/(rab2*Pi))*exp(-aEwald*rab2))
+!$omp end critical
       end do
       end do
       end do
@@ -92,7 +94,7 @@ contains
 
       !ion-ion: Ewald long interaction term (wave-number space)
       ftmp_l=0.d0
-!$omp parallel private(ia) reduction(+:ftmp_l)
+!$omp parallel private(ia)
       do ia=1,NI
 !$omp do private(ik,n,Gvec,G2,Gd)
       do n=NG_s,NG_e
@@ -101,9 +103,11 @@ contains
         Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
         G2=sum(Gvec(:)**2)
         Gd=sum(Gvec(:)*Rion(:,ia))
+!$omp critical
         ftmp_l(:,ia) = ftmp_l(:,ia) &
         &   + Gvec(:)*(4*Pi/G2)*exp(-G2/(4*aEwald))*Zps(ik) &
         &     *zI*0.5d0*(conjg(rhoion_G(n))*exp(-zI*Gd)-rhoion_G(n)*exp(zI*Gd))
+!$omp end critical
       end do
 !$omp end do
       end do
@@ -159,17 +163,20 @@ contains
 
     !Force from Vlocal with wave-func gradient --
     ftmp_l_kl= 0.d0
-!$omp parallel private(ia) reduction(+:ftmp_l_kl)
+!$omp parallel private(ia)
 !$omp do private(ik,ib,i,ia,dzudrzu) collapse(3)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
     do i=1,NL
 
        dzudrzu(:)=conjg(dzudr(:,i,ib,ik))*zutmp(i,ib,ik)
+
+!$omp critical
        do ia=1,NI
           ftmp_l_kl(:,ia,ik) = ftmp_l_kl(:,ia,ik) &
           &  -2d0* dble(dzudrzu(:)*Vpsl_ia(i,ia))*occ(ib,ik)*Hxyz
        enddo
+!$omp end critical
 
     enddo
     enddo
@@ -188,7 +195,7 @@ contains
 
     !Non-Local pseudopotential term using gradient of w.f.
     ftmp_l_kl= 0.d0
-!$omp parallel private(ia) reduction(+:ftmp_l_kl)
+!$omp parallel private(ia)
 !$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi,dzuekrdr) collapse(2)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
@@ -204,8 +211,10 @@ contains
           end do
           uVpsi    =uVpsi    *Hxyz
           duVpsi(:)=duVpsi(:)*Hxyz
+!$omp critical
           ftmp_l_kl(:,ia,ik) = ftmp_l_kl(:,ia,ik) &
           &                  -2d0* dble(uVpsi*duVpsi(:))*iuV(ilma)*occ(ib,ik)
+!$omp end critical
        end do
     end do
     end do
@@ -227,7 +236,7 @@ contains
     ! (older method, less accurate for larger grid size)
 
     ftmp_l = 0.d0
-!$omp parallel private(ia) reduction(+:ftmp_l)
+!$omp parallel private(ia)
     do ia=1,NI
 !$omp do private(ik,n,Gvec,G2,Gd)
     do n=NG_s,NG_e
@@ -236,9 +245,11 @@ contains
       Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
       G2=sum(Gvec(:)**2)
       Gd=sum(Gvec(:)*Rion(:,ia))
+!$omp critical
       ftmp_l(:,ia) = ftmp_l(:,ia) &
       &    + zI*Gvec(:)*(4*Pi/G2)*Zps(ik)*exp(zI*Gd)*rhoe_G(n) &
       &    + conjg(rhoe_G(n))*dVloc_G(n,ik)*zI*Gvec(:)*exp(-zI*Gd)
+!$omp end critical
     end do
 !$omp end do
     end do
@@ -248,7 +259,7 @@ contains
 
     !non-local pseudopotential term
     ftmp_l_kl= 0.d0
-!$omp parallel private(ia) reduction(+:ftmp_l_kl)
+!$omp parallel private(ia)
 !$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi) collapse(2)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
@@ -262,7 +273,9 @@ contains
           duVpsi(:)=duVpsi(:)+duV(j,ilma,:)*ekr_omp(j,ia,ik)*zutmp(i,ib,ik)
         end do
         uVpsi=uVpsi*Hxyz; duVpsi(:)=duVpsi(:)*Hxyz
+!$omp critical
         ftmp_l_kl(:,ia,ik)=ftmp_l_kl(:,ia,ik)+(conjg(uVpsi)*duVpsi(:)+uVpsi*conjg(duVpsi(:)))*iuV(ilma)*occ(ib,ik)
+!$omp end critical
       end do
     end do
     end do
