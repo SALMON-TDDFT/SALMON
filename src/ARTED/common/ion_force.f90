@@ -37,9 +37,9 @@ subroutine Ion_Force_omp(Rion_update,GS_RT,ixy_m)
 contains
   subroutine impl(Rion_update,zutmp,zu_NB)
     use Global_Variables
-    use salmon_parallel, only: nproc_group_tdks
+    use salmon_parallel, only: nproc_group_tdks,get_thread_id
     use salmon_communication, only: comm_summation, comm_is_root
-  use timer
+    use timer
     use salmon_math
     use projector
     implicit none
@@ -51,10 +51,13 @@ contains
     integer      :: ix_s,ix_e,iy_s,iy_e,iz_s,iz_e
     integer,allocatable:: idx(:),idy(:),idz(:)
     real(8)      :: rab(3),rab2,Gvec(3),G2,Gd
-    real(8)      :: ftmp_l(3,NI),ftmp_l_kl(3,NI,NK_s:NK_e)
+    real(8)      :: ftmp_l(3,NI)
     real(8)      :: FionR(3,NI), FionG(3,NI),nabt_wrk(4,3)
     complex(8)   :: uVpsi,duVpsi(3)
     complex(8)   :: dzudr(3,NL,NB,NK_s:NK_e),dzudrzu(3),dzuekrdr(3)
+
+    integer :: tid
+    real(8) :: ftmp_t(3,NI,0:NUMBER_THREADS-1)
 
     !flag_use_grad_wf_on_force is given in Gloval_Variable
     !if .true.   use gradient of wave-function (better accuracy)
@@ -66,8 +69,10 @@ contains
     if (Rion_update) then
 
       !ion-ion: Ewald short interaction term (real space)
-      ftmp_l=0.d0
-!$omp parallel do private(ia, ik,ix,iy,iz,ib,rab,rab2) collapse(5)
+!$omp parallel private(tid)
+      tid = get_thread_id()
+      ftmp_t(:,:,tid)=0.d0
+!$omp do private(ia, ik,ix,iy,iz,ib,rab,rab2) collapse(5)
       do ia=1,NI
       do ix=-NEwald,NEwald
       do iy=-NEwald,NEwald
@@ -79,22 +84,24 @@ contains
         rab(2)=Rion(2,ia)-iy*aLy-Rion(2,ib)
         rab(3)=Rion(3,ia)-iz*aLz-Rion(3,ib)
         rab2=sum(rab(:)**2)
-!$omp critical
-        ftmp_l(:,ia)=ftmp_l(:,ia)&
+        ftmp_t(:,ia,tid)=ftmp_t(:,ia,tid)&
              &-Zps(Kion(ia))*Zps(Kion(ib))*rab(:)/sqrt(rab2)*(-erfc_salmon(sqrt(aEwald*rab2))/rab2&
              &-2*sqrt(aEwald/(rab2*Pi))*exp(-aEwald*rab2))
-!$omp end critical
       end do
       end do
       end do
       end do
       end do
+!$omp end do
+      call mreduce_omp(ftmp_l,ftmp_t,3*NI,tid)
+!$omp end parallel
       FionR = ftmp_l
 
 
       !ion-ion: Ewald long interaction term (wave-number space)
-      ftmp_l=0.d0
-!$omp parallel private(ia)
+!$omp parallel private(ia,tid)
+      tid = get_thread_id()
+      ftmp_t(:,:,tid)=0.d0
       do ia=1,NI
 !$omp do private(ik,n,Gvec,G2,Gd)
       do n=NG_s,NG_e
@@ -103,14 +110,13 @@ contains
         Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
         G2=sum(Gvec(:)**2)
         Gd=sum(Gvec(:)*Rion(:,ia))
-!$omp critical
-        ftmp_l(:,ia) = ftmp_l(:,ia) &
+        ftmp_t(:,ia,tid) = ftmp_t(:,ia,tid) &
         &   + Gvec(:)*(4*Pi/G2)*exp(-G2/(4*aEwald))*Zps(ik) &
         &     *zI*0.5d0*(conjg(rhoion_G(n))*exp(-zI*Gd)-rhoion_G(n)*exp(zI*Gd))
-!$omp end critical
       end do
 !$omp end do
       end do
+      call mreduce_omp(ftmp_l,ftmp_t,3*NI,tid)
 !$omp end parallel
 
       call comm_summation(ftmp_l,FionG,3*NI,nproc_group_tdks)
@@ -162,8 +168,9 @@ contains
 !$omp end parallel do
 
     !Force from Vlocal with wave-func gradient --
-    ftmp_l_kl= 0.d0
-!$omp parallel private(ia)
+!$omp parallel private(ia,tid)
+    tid = get_thread_id()
+    ftmp_t(:,:,tid) = 0.d0
 !$omp do private(ik,ib,i,ia,dzudrzu) collapse(3)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
@@ -171,31 +178,27 @@ contains
 
        dzudrzu(:)=conjg(dzudr(:,i,ib,ik))*zutmp(i,ib,ik)
 
-!$omp critical
        do ia=1,NI
-          ftmp_l_kl(:,ia,ik) = ftmp_l_kl(:,ia,ik) &
+          ftmp_t(:,ia,tid) = ftmp_t(:,ia,tid) &
           &  -2d0* dble(dzudrzu(:)*Vpsl_ia(i,ia))*occ(ib,ik)*Hxyz
        enddo
-!$omp end critical
 
     enddo
     enddo
     enddo
 !$omp end do
+    call mreduce_omp(ftmp_l,ftmp_t,3*NI,tid)
 !$omp end parallel
 
     call timer_begin(LOG_ALLREDUCE)
-    ftmp_l(:,:) = 0.d0
-    do ik=NK_s,NK_e
-      ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
-    end do
     call comm_summation(ftmp_l,Floc,3*NI,nproc_group_tdks)
     call timer_end(LOG_ALLREDUCE)
 
 
     !Non-Local pseudopotential term using gradient of w.f.
-    ftmp_l_kl= 0.d0
-!$omp parallel private(ia)
+!$omp parallel private(ia,tid)
+    tid = get_thread_id()
+    ftmp_t(:,:,tid) = 0.d0
 !$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi,dzuekrdr) collapse(2)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
@@ -211,21 +214,16 @@ contains
           end do
           uVpsi    =uVpsi    *Hxyz
           duVpsi(:)=duVpsi(:)*Hxyz
-!$omp critical
-          ftmp_l_kl(:,ia,ik) = ftmp_l_kl(:,ia,ik) &
+          ftmp_t(:,ia,tid) = ftmp_t(:,ia,tid) &
           &                  -2d0* dble(uVpsi*duVpsi(:))*iuV(ilma)*occ(ib,ik)
-!$omp end critical
        end do
     end do
     end do
 !$omp end do
+    call mreduce_omp(ftmp_l,ftmp_t,3*NI,tid)
 !$omp end parallel
 
     call timer_begin(LOG_ALLREDUCE)
-    ftmp_l(:,:) = 0.d0
-    do ik=NK_s,NK_e
-      ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
-    end do
     call comm_summation(ftmp_l,Fnl,3*NI,nproc_group_tdks)
     call timer_end(LOG_ALLREDUCE)
 
@@ -235,8 +233,9 @@ contains
     ! Use gradient of potential for calculating force on ions
     ! (older method, less accurate for larger grid size)
 
-    ftmp_l = 0.d0
-!$omp parallel private(ia)
+!$omp parallel private(ia,tid)
+    tid = get_thread_id()
+    ftmp_t(:,:,tid) = 0.d0
     do ia=1,NI
 !$omp do private(ik,n,Gvec,G2,Gd)
     do n=NG_s,NG_e
@@ -245,21 +244,21 @@ contains
       Gvec(1)=Gx(n); Gvec(2)=Gy(n); Gvec(3)=Gz(n)
       G2=sum(Gvec(:)**2)
       Gd=sum(Gvec(:)*Rion(:,ia))
-!$omp critical
-      ftmp_l(:,ia) = ftmp_l(:,ia) &
+      ftmp_t(:,ia,tid) = ftmp_t(:,ia,tid) &
       &    + zI*Gvec(:)*(4*Pi/G2)*Zps(ik)*exp(zI*Gd)*rhoe_G(n) &
       &    + conjg(rhoe_G(n))*dVloc_G(n,ik)*zI*Gvec(:)*exp(-zI*Gd)
-!$omp end critical
     end do
 !$omp end do
     end do
+    call mreduce_omp(ftmp_l,ftmp_t,3*NI,tid)
 !$omp end parallel
 
     call comm_summation(ftmp_l,Floc,3*NI,nproc_group_tdks)
 
     !non-local pseudopotential term
-    ftmp_l_kl= 0.d0
-!$omp parallel private(ia)
+!$omp parallel private(ia,tid)
+    tid = get_thread_id()
+    ftmp_t(:,:,tid) = 0.d0
 !$omp do private(ik,j,i,ib,ilma,uVpsi,duVpsi) collapse(2)
     do ik=NK_s,NK_e
     do ib=1,NBoccmax
@@ -273,20 +272,15 @@ contains
           duVpsi(:)=duVpsi(:)+duV(j,ilma,:)*ekr_omp(j,ia,ik)*zutmp(i,ib,ik)
         end do
         uVpsi=uVpsi*Hxyz; duVpsi(:)=duVpsi(:)*Hxyz
-!$omp critical
-        ftmp_l_kl(:,ia,ik)=ftmp_l_kl(:,ia,ik)+(conjg(uVpsi)*duVpsi(:)+uVpsi*conjg(duVpsi(:)))*iuV(ilma)*occ(ib,ik)
-!$omp end critical
+        ftmp_t(:,ia,tid)=ftmp_t(:,ia,tid)+(conjg(uVpsi)*duVpsi(:)+uVpsi*conjg(duVpsi(:)))*iuV(ilma)*occ(ib,ik)
       end do
     end do
     end do
 !$omp end do
+    call mreduce_omp(ftmp_l,ftmp_t,3*NI,tid)
 !$omp end parallel
 
     call timer_begin(LOG_ALLREDUCE)
-    ftmp_l(:,:) = 0.d0
-    do ik=NK_s,NK_e
-      ftmp_l(:,:)=ftmp_l(:,:)+ftmp_l_kl(:,:,ik)
-    end do
     call comm_summation(ftmp_l,fnl,3*NI,nproc_group_tdks)
     call timer_end(LOG_ALLREDUCE)
 
@@ -298,6 +292,31 @@ contains
     call timer_end(LOG_ALLREDUCE)
 
     call timer_end(LOG_ION_FORCE)
+  end subroutine
+
+!OpenMP manual reduction routine
+  subroutine mreduce_omp(vout,vtmp,vsize,tid)
+    use global_variables, only: NUMBER_THREADS
+    use misc_routines, only: ceiling_pow2
+    implicit none
+    integer,intent(in)  :: vsize,tid
+    real(8),intent(out) :: vout(vsize)
+    real(8)             :: vtmp(vsize,0:NUMBER_THREADS-1)
+
+    integer :: i
+
+    i = ceiling_pow2(NUMBER_THREADS)/2
+    do while(i > 0)
+      if(tid < i) then
+        vtmp(:,tid) = vtmp(:,tid) + vtmp(:,tid + i)
+      end if
+      i = i/2
+!$omp barrier
+    end do
+
+    if (tid == 0) then
+      vout(:) = vtmp(:,0)
+    end if
   end subroutine
 
 !Gradient of wave function (du/dr) with nine points formura
