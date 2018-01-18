@@ -131,6 +131,7 @@ Module Global_Variables
   character(256) :: file_dns_gs
   character(256) :: file_dns_rt
   character(256) :: file_dns_dlt
+  character(256) :: file_psi_gs
   character(256) :: file_energy_transfer
   character(256) :: file_ac 
   character(256) :: file_k_data
