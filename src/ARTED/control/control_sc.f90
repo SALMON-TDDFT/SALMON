@@ -31,6 +31,7 @@ subroutine tddft_sc
   use salmon_file, only: open_filehandle
   use inputoutput, only: t_unit_time, t_unit_current, t_unit_ac,  t_unit_energy, t_unit_elec
   use restart, only: prep_restart_write
+  use Ac_alocal_laser
   implicit none
   integer :: iter,ia,i,ixyz  !,ib,ik
   real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI),fac_vscaling,Ework
@@ -173,6 +174,8 @@ subroutine tddft_sc
     do ixyz=1,3
       kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter+1,ixyz)
     enddo
+    if(alocal_laser=='y')call prep_RT_Ac_alocal_laser(iter+1)
+
 !$acc update device(kAc,kAc_new)
     call current_RT(zu_t)
 
