@@ -10,6 +10,7 @@ set(SOURCES
     restart.f90
     density_plot.f90
     projector.f90
+    Ac_alocal_laser.f90
     )
 
 if (ENABLE_OPENACC)
