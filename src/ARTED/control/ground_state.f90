@@ -24,6 +24,7 @@ contains
     use timer
     use salmon_parallel, only: nproc_id_global
     use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
+    use broyden_sub
     use io_gs_wfn_k, only: iflag_read,read_write_gs_wfn_k
     implicit none
     integer :: iter, ik, ib, ia
@@ -123,7 +124,7 @@ contains
        call Gram_Schmidt
        
        call psi_rho_GS
-       call Density_Update(iter) 
+       call broyden(rho,rho_in,rho_out,nl,iter,iter,nscf-1)
        call Hartree
 
        functional_t = functional

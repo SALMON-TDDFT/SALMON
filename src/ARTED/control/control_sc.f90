@@ -34,7 +34,7 @@ subroutine tddft_sc
   use Ac_alocal_laser
   implicit none
   integer :: iter,ia,i,ixyz  !,ib,ik
-  real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI),fac_vscaling
+  real(8) :: Temperature_ion,kB,hartree2J,mass_au,vel_cor(3,NI),fac_vscaling,Ework
   parameter( kB = 1.38064852d-23 ) ![J/K]
   parameter( hartree2J = 4.359744650d-18 )
   character(100) :: comment_line
@@ -133,6 +133,14 @@ subroutine tddft_sc
   endif
   call comm_sync_all
 
+  ! Export to file_trj (initial step)
+  if (out_rvf_rt=='y')then
+       call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
+       write(comment_line,110) -1, 0.0d0
+       call write_xyz(comment_line,"new","rvf")
+  endif
+
+
 !$acc enter data copyin(ik_table,ib_table)
 !$acc enter data copyin(lapx,lapy,lapz)
 !$acc enter data copyin(nabx,naby,nabz)
@@ -209,7 +217,8 @@ subroutine tddft_sc
       else
          fac_vscaling = 1d0
       endif
-      Tion=0.d0
+      Tion =0d0
+      Ework=0d0
       do ia=1,NI
         mass_au = umass*Mass(Kion(ia))
         velocity(:,ia) = ( dRion(:,ia,iter)-dRion(:,ia,iter-1) )/dt * fac_vscaling
@@ -217,6 +226,7 @@ subroutine tddft_sc
         Rion(:,ia) = Rion_eq(:,ia) + dRion(:,ia,iter+1)
         vel_cor(:,ia) = ( dRion(:,ia,iter+1) - dRion(:,ia,iter-1) ) / (2d0*dt)
         Tion = Tion + 0.5d0 * mass_au * sum(vel_cor(:,ia)**2d0)
+        Ework = Ework - sum(force(:,ia)*(dRion(:,ia,iter+1)-dRion(:,ia,iter)))
       enddo
       Temperature_ion = Tion * 2d0 / (3d0*NI) / (kB/hartree2J)
       if (mod(iter,step_update_ps)==0 ) call prep_ps_periodic('not_initial')
@@ -229,6 +239,7 @@ subroutine tddft_sc
     Eall_t(iter) = Eall
     Tion_t(iter) = Tion
     Temperature_ion_t(iter) = Temperature_ion
+    Ework_integ_fdR(iter) = Ework_integ_fdR(iter-1) + Ework
 
 !---Write section---
     ! Export to file_rt_data
@@ -452,7 +463,7 @@ contains
       write(fh_rt, '("#",1X,A,":",1X,A)') "Eall0", "Initial energy"
       write(fh_rt, '("#",1X,A,":",1X,A)') "Tion", "Kinetic energy of ions"
       ! write(fh_rt, '("#",1X,A,":",1X,A)') "Temperature_ion", "Temperature of ions"
-      
+      write(fh_rt, '("#",1X,A,":",1X,A)') "E_work", "Work energy of ions(sum f*dr)"
       write(fh_rt, '("#",99(1X,I0,":",A,"[",A,"]"))') &
         & 1, "Time", trim(t_unit_time%name), &
         & 2, "Ac_ext_x", trim(t_unit_ac%name), &
@@ -473,7 +484,8 @@ contains
         & 17, "Eall", trim(t_unit_energy%name), &
         & 18, "Eall-Eall0", trim(t_unit_energy%name), &
         & 19, "Tion", trim(t_unit_energy%name), &
-        & 20, "Temperature_ion", "K"
+        & 20, "Temperature_ion", "K", &
+        & 21, "E_work", trim(t_unit_energy%name)
         
       do iiter = 0, niter
         write(fh_rt, "(F16.8,99(1X,ES22.14E3))") &
@@ -486,7 +498,8 @@ contains
           & Eall_t(iiter) * t_unit_energy%conv, &
           & (Eall_t(iiter) - Eall0) * t_unit_energy%conv, &
           & Tion_t(iiter) * t_unit_energy%conv, &
-          & Temperature_ion_t(iiter)
+          & Temperature_ion_t(iiter), &
+          & Ework_integ_fdR(iiter)
       end do
       close(fh_rt)
     end if
