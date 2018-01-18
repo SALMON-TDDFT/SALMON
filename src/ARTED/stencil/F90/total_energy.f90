@@ -181,3 +181,4 @@ subroutine total_energy_stencil(A,C,D,E,F)
   end do
 #endif
 end subroutine
+

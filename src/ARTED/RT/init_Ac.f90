@@ -18,6 +18,7 @@ Subroutine init_Ac
   use Global_Variables
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_is_root
+  use Ac_alocal_laser
   implicit none
   integer :: iter, npower
   real(8) :: tt
@@ -239,6 +240,9 @@ Subroutine init_Ac
   Ac_ind=0.d0
 
   Ac_tot=Ac_ind+Ac_ext
+
+  !hidden option (AY)
+  if(alocal_laser=='y') call init_Ac_alocal
 
   return
 End Subroutine init_Ac
