@@ -813,9 +813,10 @@ Energy spacing for analysis.
 Unit of energy can be chosen by <code>&units/unit_energy</code>
 </dd>
 
-<dt>out_psi; <code>Character</code>; 0d</dt>
+<dt>out_psi; <code>Character</code>; 0d/3d</dt>
 <dd>
 If <code>'y'</code>, wavefunctions are output.
+For periodic system (<code>iperiodic=3</code>), it works only for ground state calculation. The converged wave functions of all orbitals with all k-points are printed in gs_wfn_cube or gs_wfn_vtk directory. The format is speficied by <code>format3d</code>. 
 Default is <code>'n'</code>.
 </dd>
 
