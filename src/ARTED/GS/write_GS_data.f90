@@ -110,14 +110,14 @@ Subroutine write_GS_data
   end if
 
   
-  if(out_dos == 'y')call write_dos_data
-
+  if(out_dos == 'y') call write_dos_data
+  if(out_psi == 'y') call write_psi_data
   call write_k_data
   call write_eigen_data
+
   return
 
   contains
-
 
     subroutine write_dos_data
       implicit none
@@ -201,8 +201,125 @@ Subroutine write_GS_data
       
     end subroutine write_dos_data
 
-!--------------------------------------------------------------------------------
-!! export SYSNAME_k.data file
+  !--------------------------------------------------------------------------------
+  !! export all orbital wave functions in cube or vtk format (multiplying phase factor)
+    subroutine write_psi_data()
+      use misc_routines
+      implicit none
+      integer :: fh_psi
+      integer :: ik,ib,i,j,ix,iy,iz
+      real(8) :: kr,psi
+      character(256) :: gs_wfn_k_cube_vtk_dir
+
+      fh_psi=502
+
+      select case(format3d)
+      case ('cube')
+         write(gs_wfn_k_cube_vtk_dir,'(A,A)') trim(directory),'/gs_wfn_cube/'
+         call create_directory(gs_wfn_k_cube_vtk_dir)
+
+         do ik=NK_s,NK_e
+         do ib=1,NB
+
+            write(file_psi_gs,7000) trim(gs_wfn_k_cube_vtk_dir),ib,ik
+            open(fh_psi,file=file_psi_gs,status="unknown")
+
+            write(fh_psi,8010)
+            write(fh_psi,8020) NI,  0d0, 0d0, 0d0
+            write(fh_psi,8020) NLx, Hx,  0d0, 0d0
+            write(fh_psi,8020) NLy, 0d0, Hy,  0d0
+            write(fh_psi,8020) NLz, 0d0, 0d0, Hz
+
+            do i=1, NI
+               write(fh_psi,8030) Zatom(Kion(i)), 0d0, Rion(1,i),Rion(2,i),Rion(3,i) 
+            end do
+
+            j=1
+            do ix=0, NLx-1
+            do iy=0, NLy-1
+            do iz=0, NLz-1
+               i=Lxyz(ix,iy,iz)
+               kr = kac0(ik,1)*Lx(i)*Hx + kac0(ik,2)*Ly(i)*Hy + kac0(ik,3)*Lz(i)*Hz
+               psi= zu_GS0(i,ib,ik)*exp(zI*kr)
+               if(mod(j,6)==0) then
+                  write(fh_psi,8040) psi
+               else
+                  write(fh_psi,8040,advance='no') psi
+               endif
+               j=j+1
+            end do
+            end do
+            end do
+
+            close(fh_psi)
+         enddo
+         enddo
+
+         !format for cube
+7000     format(A,'/psi_gs_b',I5.5,'_k',I5.5,'.cube')
+8010     format("# SALMON",/, &
+         &      "# COMMENT" )
+8020     format(I5,3(F12.6))
+8030     format(I5,4(F12.6))
+8040     format(ES12.4)
+
+
+      case ('vtk')
+
+         write(gs_wfn_k_cube_vtk_dir,'(A,A)') trim(directory),'/gs_wfn_vtk/'
+         call create_directory(gs_wfn_k_cube_vtk_dir)
+
+         do ik=NK_s,NK_e
+         do ib=1,NB
+
+            write(file_psi_gs,5000) trim(gs_wfn_k_cube_vtk_dir),ib,ik
+            open(fh_psi,file=file_psi_gs,status="unknown")
+
+            write(fh_psi,6010) 
+            write(fh_psi,6020) NLx, NLy, NLz
+            write(fh_psi,6030) 0d0, 0d0, 0d0
+            write(fh_psi,6040) Hx, Hy, Hz
+            write(fh_psi,6050) NLx * NLy * NLz
+            write(fh_psi,6060) 
+
+            do ix=0, NLx-1
+            do iy=0, NLy-1
+            do iz=0, NLz-1
+               i=Lxyz(ix,iy,iz)
+               kr = kac0(ik,1)*Lx(i)*Hx + kac0(ik,2)*Ly(i)*Hy + kac0(ik,3)*Lz(i)*Hz
+               psi= zu_GS0(i,ib,ik)*exp(zI*kr)
+               write(fh_psi,6070) psi
+            end do
+            end do
+            end do
+
+            close(fh_psi)
+         enddo
+         enddo
+
+         !format for vtk
+5000     format(A,'/psi_gs_b',I5.5,'_k',I5.5,'.vtk')
+6010     format("# vtk DataFile Version 3.0",/, &
+         &      "vtk output",/,                 &
+         &      "ASCII",/,                      &
+         &      "DATASET STRUCTURED_POINTS" )
+
+6020     format("DIMENSIONS",3(1X,I2)  )
+6030     format("ORIGIN",    3(1X,F3.1))
+6040     format("SPACING",   3(1X,F7.3))
+6050     format("POINT_DATA",1X,I6     )
+6060     format("SCALARS scalars float",/, &
+         &      "LOOKUP_TABLE default" )
+6070     format(ES12.5)
+
+      end select
+
+
+    end subroutine write_psi_data
+
+
+  !--------------------------------------------------------------------------------
+  !! export SYSNAME_k.data file
     subroutine write_k_data()
       implicit none
       integer :: fh_k
