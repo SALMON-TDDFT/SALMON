@@ -231,7 +231,7 @@ subroutine tddft_sc
       Temperature_ion = Tion * 2d0 / (3d0*NI) / (kB/hartree2J)
       if (mod(iter,step_update_ps)==0 ) then
          call prep_ps_periodic('update_all       ')
-      else
+      else if (mod(iter,step_update_ps2)==0 ) then
          call prep_ps_periodic('update_wo_realloc')
       endif
     else
