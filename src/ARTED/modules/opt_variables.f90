@@ -256,6 +256,7 @@ contains
       ioffset = ioffset + Mps(i)
     end do
 
+    if(allocated(spseudo)) deallocate(spseudo,dpseudo)
     allocate(spseudo(NPI,0:NUMBER_THREADS-1))
     allocate(dpseudo(NPI,0:NUMBER_THREADS-1))
   end subroutine
