@@ -1054,10 +1054,10 @@ Default is <code>"nose-hoover"</code>.
 Time step interval for velocity-scaling. Velocity-scaling is applied if this is set to positive.
 Default is <code>-1</code>.
 </dd>
-<dt>step_update_ps; <code>Integer</code>; 3d</dt>
+<dt>step_update_ps/step_update_ps2; <code>Integer/Integer</code>; 3d</dt>
 <dd>
-Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate)
-Default is <code>1</code>.
+Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate). <code>step_update_ps</code> is for full update and <code>step_update_ps2</code> is for update without changing grid points array.
+Default is <code>10/1</code>.
 </dd>
 <dt>temperature0_ion; <code>Real(8)</code>; 3d</dt>
 <dd>

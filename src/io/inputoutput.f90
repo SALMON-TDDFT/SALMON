@@ -399,6 +399,7 @@ contains
       & thermostat, &
       & step_velocity_scaling, &
       & step_update_ps, &
+      & step_update_ps2,&
       & temperature0_ion, &
       & set_ini_velocity, &
       & file_ini_velocity
@@ -669,7 +670,8 @@ contains
     ensemble              = 'nve'         !currently not supported
     thermostat            = 'nose-hoover' !currently not supported
     step_velocity_scaling = -1
-    step_update_ps        = 1
+    step_update_ps        = 10
+    step_update_ps2       = 1
     temperature0_ion      = 298.15d0
     set_ini_velocity      = 'n'
     file_ini_velocity     = 'none'
@@ -1001,6 +1003,7 @@ contains
     call comm_bcast(thermostat             ,nproc_group_global)
     call comm_bcast(step_velocity_scaling  ,nproc_group_global)
     call comm_bcast(step_update_ps         ,nproc_group_global)
+    call comm_bcast(step_update_ps2        ,nproc_group_global)
     call comm_bcast(temperature0_ion       ,nproc_group_global)
     call comm_bcast(set_ini_velocity       ,nproc_group_global)
     call comm_bcast(file_ini_velocity      ,nproc_group_global)
@@ -1533,6 +1536,7 @@ contains
      !write(fh_variables_log, '("#",4X,A,"=",A)') 'thermostat', thermostat
       write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_velocity_scaling', step_velocity_scaling
       write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_update_ps', step_update_ps
+      write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_update_ps2', step_update_ps2
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature0_ion', temperature0_ion
       write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_velocity', set_ini_velocity
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_ini_velocity', trim(file_ini_velocity)
