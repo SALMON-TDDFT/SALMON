@@ -540,7 +540,7 @@ contains
 subroutine calc_opt_ground_state_useF
 
   implicit none
-  integer :: i,j,k,iter_perp,iter_line, Nopt_perp,Nopt_line
+  integer :: i,j,k,iter_perp,iter_line, Nopt_perp,Nopt_line,ia
   real(8) :: gm, tmp1,tmp2,tmp3, Rion_save(3,NI),dRion_rmsd
   real(8) :: StepLen_line0, StepLen_line(2), StepLen_line_small
   real(8) :: StepLen_line_new, StepLen_line_zero, sl_zero
@@ -554,16 +554,6 @@ subroutine calc_opt_ground_state_useF
   character(100) :: comment_line
 
   position_option='rewind'
-
-  !(check)
-  do i=1,NI
-     if(flag_geo_opt_atom(i)/='y')then
-        if(comm_is_root(nproc_id_global)) &
-        &  write(*,*)'ERROR: flag of geometry opt of all atoms must be y'
-        call end_parallel
-        stop
-     endif
-  enddo
 
   if(comm_is_root(nproc_id_global)) then
      write(*,*) "===== Grand State Optimization Start ====="
@@ -602,6 +592,9 @@ subroutine calc_opt_ground_state_useF
   !Initial Step Procedure
   call Ion_Force_omp(rion_update_on,calc_mode_gs)
   SearchDirection(:,:) = force(:,:)
+  do ia=1,NI
+     if(flag_geo_opt_atom(ia)=='n') SearchDirection(:,ia)=0d0  !fix atom
+  enddo
   call variable_3xNto3N(NI,force,force_1d)
   call variable_3xNto3N(NI,SearchDirection,SearchDirection_1d)
   call cal_inner_product(3*NI,force_1d,SearchDirection_1d,F_line)
@@ -854,6 +847,9 @@ subroutine calc_opt_ground_state_useF
     !gm = tmp1/tmp2         !(by Fletcher-Reeves)
     gm = (tmp1-tmp3)/tmp2   !(by Polak-Ribiere)--usually best, but sometimes direction is not downward.
     SearchDirection(:,:) = force(:,:) + gm * SearchDirection(:,:)
+    do ia=1,NI
+       if(flag_geo_opt_atom(ia)=='n') SearchDirection(:,ia)=0d0  !fix atom
+    enddo
     call variable_3xNto3N(NI,SearchDirection,SearchDirection_1d)
 
   enddo !end of opt iteraction========================
@@ -1379,17 +1375,20 @@ end subroutine calc_opt_ground_state_useE
 
   subroutine cal_mean_max_forces(NI,f,fave,fmax)
     implicit none
-    integer ia,NI
+    integer ia,NI,NIfree
     real(8) :: f(3,NI),fave,fmax,fabs
-    fmax = 0d0
-    fave = 0d0
+    fmax   = 0d0
+    fave   = 0d0
+    NIfree = 0
     do ia=1,NI
+       if(flag_geo_opt_atom(ia)=='n') cycle  !fix atom
+       NIfree = NIfree + 1
        fabs = f(1,ia)**2 + f(2,ia)**2 + f(3,ia)**2
        fave = fave + fabs
        if(fabs .ge. fmax) fmax = fabs
     enddo
     fmax = sqrt(fmax)
-    fave = sqrt(fave/NI)
+    fave = sqrt(fave/NIfree)
   end subroutine
 
 subroutine add_alpha_save(nsave,alpha_save,ene_save,alpha,ene)
