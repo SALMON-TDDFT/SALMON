@@ -880,16 +880,16 @@ If <code>'y'</code>, density is output.
 Default is <code>'n'</code>.
 </dd>
 
-<dt>out_elf; <code>Character</code>; 0d</dt>
-<dd>
-If <code>'y'</code>, electron localization function is output.
-Default is <code>'n'</code>.
-</dd>
-
 <dt>out_dns_rt/out_dns_rt_step; <code>Character/Integer</code>; 0d/3d</dt>
 <dd>
 If <code>'y'</code>, density during real-time time-propagation is output
 every <code>outdns_rt_step</code> time steps.
+Default is <code>'n'</code>.
+</dd>
+
+<dt>out_elf; <code>Character</code>; 0d</dt>
+<dd>
+If <code>'y'</code>, electron localization function is output.
 Default is <code>'n'</code>.
 </dd>
 
@@ -916,6 +916,12 @@ during real-time time-propagation are printed in <code>SYSname</code>_trj.xyz
 every <code>out_rvf_rt_step</code> time steps.
 If <code>use_ehrenfest_md='y'</code>, 
 the printing option is automatically turned on.
+Defaults are <code>'n'/10</code>.
+</dd>
+
+<dt>out_tm; <code>Character</code>; 3d</dt>
+<dd>
+If <code>'y'</code>, trandition moments between occupied and virtual orbitals are printed into <code>SYSname</code>_tm.data after the ground state calculation.
 Defaults are <code>'n'/10</code>.
 </dd>
 

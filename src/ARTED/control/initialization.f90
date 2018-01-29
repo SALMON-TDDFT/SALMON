@@ -143,6 +143,7 @@ contains
        write(file_last_band_map,"(2A,'_last_band_map.data')") trim(directory),trim(SYSname)
        write(file_k_data,"(2A,'_k.data')") trim(directory),trim(SYSname)
        write(file_eigen_data,"(2A,'_eigen.data')") trim(directory),trim(SYSname)
+       write(file_tm_data,"(2A,'_tm.data')") trim(directory),trim(SYSname)
        write(file_rt_data,"(2A,'_rt.data')") trim(directory),trim(SYSname)
        write(file_lr_data,"(2A,'_lr.data')") trim(directory),trim(SYSname)
        
@@ -175,6 +176,7 @@ contains
     call comm_bcast(file_last_band_map,nproc_group_global)
     call comm_bcast(file_k_data,nproc_group_global)
     call comm_bcast(file_eigen_data,nproc_group_global)
+    call comm_bcast(file_tm_data,nproc_group_global)
     call comm_bcast(file_rt_data,nproc_group_global)
     call comm_bcast(file_kw,nproc_group_global)
 

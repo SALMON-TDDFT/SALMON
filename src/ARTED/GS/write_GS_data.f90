@@ -114,6 +114,7 @@ Subroutine write_GS_data
 
   call write_k_data
   call write_eigen_data
+  if(out_tm == 'y')call write_tm_data
   return
 
   contains
@@ -266,6 +267,44 @@ Subroutine write_GS_data
       end if
       call comm_sync_all
     end subroutine write_eigen_data
+
+  !! export SYSNAME_eigen.data file
+    subroutine write_tm_data()
+      implicit none
+      integer :: fh_tm
+      integer :: ik,ib
+    
+      if (comm_is_root(nproc_id_global)) then
+        fh_tm = open_filehandle(file_tm_data, status="replace")
+        write(fh_tm, '("#",1X,A)') "Transition Moment between occupied and unocupied orbitals in GS"
+        write(fh_tm, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+        write(fh_tm, '("#",1X,A,":",1X,A)') "ib1,ib2", "Band index"
+        write(fh_tm, '("#",1X,A,":",1X,A)') "|tm|", "absolute value of transition moment"
+
+        write(fh_tm, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+          & 1, "ik",  "none", &
+          & 2, "ib1", "none", &
+          & 3, "ib2", "none", &
+          & 4, "|tm|","au"
+      end if
+
+      do ik = NK_s,NK_e
+         do ib = 1,NB
+
+
+
+         end do !ib
+      end do !ik
+
+!            write(fh_tm, '(I6,1X,I6,99(1X,ES22.14E3))') &
+!              & ik, ib, esp(ib,ik)*t_unit_energy%conv, occ(ib,ik)/wk(ik)*NKxyz
+        
+
+      if (comm_is_root(nproc_id_global)) then
+        close(fh_tm)
+      end if
+      call comm_sync_all
+    end subroutine write_tm_data
     
 End Subroutine write_GS_data
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

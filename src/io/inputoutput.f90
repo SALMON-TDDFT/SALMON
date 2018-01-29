@@ -361,16 +361,17 @@ contains
       & out_dos_smearing, &
       & out_dos_method, &
       & out_dos_fshift, &
-      & out_elf, &
       & out_old_dns, &
       & out_dns_rt, &
       & out_dns_rt_step, &
+      & out_elf, &
       & out_elf_rt, &
       & out_elf_rt_step, &
       & out_estatic_rt, &
       & out_estatic_rt_step, &
       & out_rvf_rt, &
       & out_rvf_rt_step, &
+      & out_tm, &
       & out_projection_step, &
       & out_ms_step, &
       & format3d, &
@@ -635,16 +636,17 @@ contains
     out_dos_fshift      = 'n'
     out_pdos            = 'n'
     out_dns             = 'n'
-    out_elf             = 'n'
     out_old_dns         = 'n'
     out_dns_rt          = 'n'
     out_dns_rt_step     = 50
+    out_elf             = 'n'
     out_elf_rt          = 'n'
     out_elf_rt_step     = 50
     out_estatic_rt      = 'n'
     out_estatic_rt_step = 50
     out_rvf_rt          = 'n'
     out_rvf_rt_step     = 10
+    out_tm              = 'n'
     out_projection_step = 100
     out_ms_step      = 100
     format3d            = 'cube'
@@ -966,16 +968,17 @@ contains
     call comm_bcast(out_dos_fshift     ,nproc_group_global)
     call comm_bcast(out_pdos           ,nproc_group_global)
     call comm_bcast(out_dns            ,nproc_group_global)
-    call comm_bcast(out_elf            ,nproc_group_global)
     call comm_bcast(out_old_dns        ,nproc_group_global)
     call comm_bcast(out_dns_rt         ,nproc_group_global)
     call comm_bcast(out_dns_rt_step    ,nproc_group_global)
+    call comm_bcast(out_elf            ,nproc_group_global)
     call comm_bcast(out_elf_rt         ,nproc_group_global)
     call comm_bcast(out_elf_rt_step    ,nproc_group_global)
     call comm_bcast(out_estatic_rt     ,nproc_group_global)
     call comm_bcast(out_estatic_rt_step,nproc_group_global)
     call comm_bcast(out_rvf_rt         ,nproc_group_global)
     call comm_bcast(out_rvf_rt_step    ,nproc_group_global)
+    call comm_bcast(out_tm             ,nproc_group_global)
     call comm_bcast(out_projection_step,nproc_group_global)
     call comm_bcast(out_ms_step     ,nproc_group_global)
     call comm_bcast(format3d           ,nproc_group_global)
@@ -1490,16 +1493,17 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dos_fshift', out_dos_fshift
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_pdos', out_pdos
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns', out_dns
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_old_dns', out_old_dns
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns_rt', out_dns_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_dns_rt_step', out_dns_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf_rt', out_elf_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_elf_rt_step', out_elf_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_estatic_rt', out_estatic_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_estatic_rt_step', out_estatic_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_rvf_rt', out_rvf_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_rvf_rt_step', out_rvf_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_tm', out_tm
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_projection_step', out_projection_step
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_ms_step', out_ms_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'format3d', format3d
