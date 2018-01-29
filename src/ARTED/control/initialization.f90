@@ -82,7 +82,7 @@ contains
 ! initialize for optimization.
     call opt_vars_initialize_p2
 
-    if(use_ehrenfest_md=='y') then
+    if(use_ehrenfest_md=='y' .or. use_adiabatic_md=='y') then
        call init_md
     endif
 
@@ -420,6 +420,10 @@ contains
     allocate(javt(0:Nt+1,3))
     allocate(Eall_t(0:Nt+1),Tion_t(0:Nt+1),Temperature_ion_t(0:Nt+1),Ework_integ_fdR(-1:Nt+1))
     Eall_t = 0d0; Tion_t = 0d0; Temperature_ion_t = 0d0; Ework_integ_fdR = 0d0
+    if(use_ehrenfest_md=='y'.and.ensemble=="NVT".and.thermostat=="nose-hoover")then
+       allocate(Enh_t(0:Nt+1),Hnvt_t(0:Nt+1))
+       Enh_t=0d0;  Hnvt_t=0d0
+    endif
     allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
     allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))
     
@@ -483,6 +487,10 @@ contains
        out_rvf_rt='y'
     endif
 
+    if(ensemble=="NVT" .and. thermostat=="nose-hoover")then
+       xi_nh = 0d0
+    endif
+
     if(restart_option == 'new') then
        if(set_ini_velocity=='y' .or. step_velocity_scaling>=1) &
        call set_initial_velocity
@@ -499,22 +507,23 @@ contains
     use salmon_communication
     !use misc_routines
     use salmon_math
+    use md_ground_state, only: remove_system_momentum
     implicit none
     integer :: ia,ixyz,iseed
-    real(8) :: rnd1,rnd2,rnd, sqrt_kT_im, kB,mass_au
-    real(8) :: v_com(3), sum_mass, Temperature_ion, scale_v
+    real(8) :: rnd1,rnd2,rnd, sqrt_kT_im, kB_au, mass_au
+    real(8) :: Temperature_ion, scale_v
 
     if (comm_is_root(nproc_id_global)) then
     write(*,*) "  Initial velocities with maxwell-boltzmann distribution was set"
     write(*,*) "  Set temperature is ", real(temperature0_ion)
     endif
 
-    kB = 8.6173303d-5 / 27.211396d0 ![au/K]
+    kB_au = kB/hartree2J   ![au/K]
 
     iseed= 123
     do ia=1,NI
        mass_au = umass*Mass(Kion(ia))
-       sqrt_kT_im = sqrt( kB * temperature0_ion / mass_au )
+       sqrt_kT_im = sqrt( kB_au * temperature0_ion / mass_au )
 
        do ixyz=1,3
           call quickrnd(iseed,rnd1)
@@ -530,40 +539,19 @@ contains
     !do ia=1,NI
     !   Tion = Tion + 0.5d0*umass*Mass(Kion(ia))*sum(velocity(:,ia)**2d0)
     !enddo
-    !Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    !Temperature_ion = Tion * 2d0 / (3d0*NI) / kB_au
     !write(*,*)"  Temperature: random-vel",real(Temperature_ion)
 
-    !velocity of center of mass is removed
-    v_com(:)=0d0
-    sum_mass=0d0
-    do ia=1,NI
-       mass_au = umass*Mass(Kion(ia))
-       v_com(:) = v_com(:) + mass_au * velocity(:,ia)
-       sum_mass = sum_mass + mass_au
-    enddo
-    v_com(:) = v_com(:)/sum_mass
-    do ia=1,NI
-       velocity(:,ia) = velocity(:,ia) - v_com(:)
-    enddo
 
-    !(check velocity of center of mass)
-    v_com(:)=0d0
-    do ia=1,NI
-       v_com(:) = v_com(:) + umass*Mass(Kion(ia)) * velocity(:,ia)
-    enddo
-    v_com(:) = v_com(:)/sum_mass
-    if (comm_is_root(nproc_id_global)) &
-    write(*,*)"    v_com =",real(v_com(:))
-
-    !rotation around center of mass is removed (do nothing now)
-
+    !center of mass of system is removed
+    call remove_system_momentum(1)
 
     !scaling: set temperature exactly to input value
     Tion=0d0
     do ia=1,NI
        Tion = Tion + 0.5d0 * umass*Mass(Kion(ia)) * sum(velocity(:,ia)**2d0)
     enddo
-    Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    Temperature_ion = Tion * 2d0 / (3d0*NI) / kB_au
     !write(*,*)"    Temperature: befor-scaling",real(Temperature_ion)
 
     scale_v = sqrt(temperature0_ion/Temperature_ion)
@@ -575,16 +563,23 @@ contains
     do ia=1,NI
        Tion = Tion + 0.5d0 * umass*Mass(Kion(ia)) * sum(velocity(:,ia)**2d0)
     enddo
-    Temperature_ion = Tion * 2d0 / (3d0*NI) / kB
+    Temperature_ion = Tion * 2d0 / (3d0*NI) / kB_au
     if (comm_is_root(nproc_id_global)) &
     write(*,*)"    Initial Temperature: after-scaling",real(Temperature_ion)
 
     call comm_bcast(velocity ,nproc_group_global)
 
   End Subroutine set_initial_velocity
-  
+ 
   
   Subroutine read_initial_velocity
+  ! initial velocity for md option can be given by external file 
+  ! specified by file_ini_velocity option
+  ! format is :
+  ! do i=1,NI
+  !    vx(i)  vy(i)  vz(i)
+  ! enddo
+  ! xi_nh  !only for nose-hoover thermostat option
     use salmon_global
     use Global_Variables
     use salmon_parallel
@@ -606,7 +601,10 @@ contains
        do ia=1,NI
           read(411,*) (velocity(ixyz,ia),ixyz=1,3)
        enddo
-       close(411)
+       if(ensemble=="NVT" .and. thermostat=="nose-hoover")then
+          read(411,*,err=100,end=100) xi_nh  !if no value was given just skip (xi_nh=0d0)
+       endif
+100    close(411)
     endif
     call comm_bcast(velocity,nproc_group_global)
 

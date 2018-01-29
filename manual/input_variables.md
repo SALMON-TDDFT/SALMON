@@ -1037,18 +1037,16 @@ Default is <code>1d-6</code>.
 
 
 ## &md
-<!--
 <dt>ensemble; <code>Character</code>; 3d</dt>
 <dd>
-Ensemble in MD option: "NVE", "NVT" or "NVP" (currently not available)
+Ensemble in MD option: "NVE" or "NVT"
 Default is <code>"NVE"</code>.
 </dd>
 <dt>thermostat; <code>Character</code>; 3d</dt>
 <dd>
-Thermostat in "NVT" and "NPT" option: (currently not available)
+Thermostat in "NVT" option: (currently only <code>nose-hoover</code>)
 Default is <code>"nose-hoover"</code>.
 </dd>
--->
 <dt>step_velocity_scaling; <code>Integer</code>; 3d</dt>
 <dd>
 Time step interval for velocity-scaling. Velocity-scaling is applied if this is set to positive.
@@ -1061,7 +1059,7 @@ Default is <code>1</code>.
 </dd>
 <dt>temperature0_ion; <code>Real(8)</code>; 3d</dt>
 <dd>
-Setting temperature in NVT ensemble and for generating initial velocities.
+Setting temperature in NVT ensemble and velocity scaling and for generating initial velocities.
 Default is <code>298.15</code>.
 </dd>
 <dt>set_ini_velocity; <code>Character</code>; 3d</dt>
@@ -1081,6 +1079,23 @@ Default is <code>n</code>.
 <dd>
 File name for initial velocities. This is read when <code>set_ini_velocity</code> is <code>'r'</code>. The format is simply vx(iatom) vy(iatom) vz(iatom) in each line. The order of atoms must be the same as the given coordinates in the main input file(atomic unit). 
 Default is <code>none</code>.
+</dd>
+<dt>file_set_shake; <code>Character</code>; 3d</dt>
+Setting file for SHAKE method in ground-state MD is read. (now not supported yet)
+<dd>
+Default is <code>none</code>.
+</dd>
+<dt>thermostat_tau; <code>Real(8)</code>; 3d</dt>
+<dd>
+Parameter in Nose-Hoover method: controlling time constant for temperature.
+Default is <code>41.34</code>.
+</dd>
+
+</dd>
+<dt>stop_system_momt; <code>Character</code>; 3d</dt>
+<dd>
+Center of mass is stopped every step.
+Default is <code>n</code>.
 </dd>
 
 

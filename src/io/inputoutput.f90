@@ -208,6 +208,7 @@ contains
     namelist/calculation/ &
       & calc_mode, &
       & use_ehrenfest_md, &
+      & use_adiabatic_md, &
       & use_ms_maxwell, &
       & use_force, &
       & use_geometry_opt
@@ -401,7 +402,10 @@ contains
       & step_update_ps, &
       & temperature0_ion, &
       & set_ini_velocity, &
-      & file_ini_velocity
+      & file_ini_velocity, &
+      & file_set_shake, &
+      & thermostat_tau, &
+      & stop_system_momt
 
     namelist/group_fundamental/ &
       & iditerybcg, &
@@ -494,6 +498,7 @@ contains
 !! == default for &calculation 
     calc_mode        = 'none'
     use_ehrenfest_md = 'n'
+    use_adiabatic_md = 'n'
     use_ms_maxwell   = 'n'
     use_force        = 'n'
     use_geometry_opt = 'n'
@@ -666,13 +671,16 @@ contains
     convrg_opt_fmax =  1d-3
     convrg_opt_ene  =  1d-6  !not use now
 !! == default for &md
-    ensemble              = 'nve'         !currently not supported
-    thermostat            = 'nose-hoover' !currently not supported
+    ensemble              = 'nve'
+    thermostat            = 'nose-hoover'
     step_velocity_scaling = -1
     step_update_ps        = 1
     temperature0_ion      = 298.15d0
     set_ini_velocity      = 'n'
     file_ini_velocity     = 'none'
+    file_set_shake        = 'none'
+    thermostat_tau        =  41.34d0  !=1fs: just test value
+    stop_system_momt      = 'n'
 !! == default for &group_fundamental
     iditerybcg             = 20
     iditer_nosubspace_diag = 10
@@ -803,6 +811,7 @@ contains
 !! == bcast for &calculation
     call comm_bcast(calc_mode       ,nproc_group_global)
     call comm_bcast(use_ehrenfest_md,nproc_group_global)
+    call comm_bcast(use_adiabatic_md,nproc_group_global)
     call comm_bcast(use_ms_maxwell  ,nproc_group_global)
     call comm_bcast(use_force       ,nproc_group_global)
     call comm_bcast(use_geometry_opt,nproc_group_global)
@@ -1004,6 +1013,10 @@ contains
     call comm_bcast(temperature0_ion       ,nproc_group_global)
     call comm_bcast(set_ini_velocity       ,nproc_group_global)
     call comm_bcast(file_ini_velocity      ,nproc_group_global)
+    call comm_bcast(file_set_shake         ,nproc_group_global)
+    call comm_bcast(thermostat_tau         ,nproc_group_global)
+    thermostat_tau = thermostat_tau * utime_to_au
+    call comm_bcast(stop_system_momt       ,nproc_group_global)
 !! == bcast for &group_fundamental
     call comm_bcast(iditerybcg            ,nproc_group_global)
     call comm_bcast(iditer_nosubspace_diag,nproc_group_global)
@@ -1302,6 +1315,7 @@ contains
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'calculation', inml_calculation
       write(fh_variables_log, '("#",4X,A,"=",A)') 'calc_mode', calc_mode
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_ehrenfest_md', use_ehrenfest_md
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'use_adiabatic_md', use_adiabatic_md
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_ms_maxwell', use_ms_maxwell
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_force', use_force
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_geometry_opt', use_geometry_opt
@@ -1529,13 +1543,16 @@ contains
      !write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'convrg_opt_ene', convrg_opt_ene !not use now
       if(inml_md >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'md', inml_md
-     !write(fh_variables_log, '("#",4X,A,"=",A)') 'ensemble', ensemble
-     !write(fh_variables_log, '("#",4X,A,"=",A)') 'thermostat', thermostat
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'ensemble', ensemble
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'thermostat', thermostat
       write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_velocity_scaling', step_velocity_scaling
       write(fh_variables_log, '("#",4X,A,"=",I8)') 'step_update_ps', step_update_ps
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature0_ion', temperature0_ion
       write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_velocity', set_ini_velocity
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_ini_velocity', trim(file_ini_velocity)
+!      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_set_shake', trim(file_set_shake)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'thermostat_tau', thermostat_tau
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'stop_system_momt', stop_system_momt
 
       if(inml_group_fundamental >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_fundamental', inml_group_fundamental

@@ -168,7 +168,7 @@ contains
        !Convergence judge for general GS calculation
        if(convergence=='rho_dne' .and. ddns_abs_1e(iter) < threshold) then
          if(comm_is_root(nproc_id_global)) then
-            if(use_geometry_opt=='y')then
+            if(use_geometry_opt=='y' .or. use_adiabatic_md=='y')then
               write(*,100)iter,Eall_GS(iter),abs(Eall_GS(iter)-Eall_GS(iter-1))
             else
               write(*,'(a,i4,/)')" GS converged at",iter
@@ -220,7 +220,14 @@ contains
        endif
 
        if( iter==Nscf  .and. Nscf_conv==0) then
-          if(comm_is_root(nproc_id_global)) write(*,'(a,/)')" GS did not converge"
+          if(comm_is_root(nproc_id_global)) then
+          if(use_geometry_opt=='y' .or. use_adiabatic_md=='y')then
+             write(*,120) iter,Eall_GS(iter),abs(Eall_GS(iter)-Eall_GS(iter-1))
+120    format("   (GS did not converge at",i4," : Eall=",e18.10," : dEall=",e12.4," )")
+          else
+             write(*,'(a,/)')" GS did not converge"
+          endif
+          endif
        endif
 
     end do

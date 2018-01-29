@@ -40,7 +40,8 @@ module timer
   integer,public,parameter :: LOG_TOTAL_ENERGY = 26
   integer,public,parameter :: LOG_ION_FORCE    = 27
   integer,public,parameter :: LOG_DT_EVOLVE_AC = 28
-  integer,public,parameter :: LOG_K_SHIFT_WF   = 29
+  integer,public,parameter :: LOG_ANA_RT_USEGS = 29
+!  integer,public,parameter :: LOG_K_SHIFT_WF   = 29  !old name
   integer,public,parameter :: LOG_OTHER        = 30
 
   ! Hamiltonian

@@ -43,9 +43,9 @@ subroutine write_density(it,action)
           open(501,file=file_dns_rt,position = position_option)
           call write_density_cube(501, .false.)
           close(501)
-          if(use_ehrenfest_md=='y') then
-             call k_shift_wf(Rion_update_rt,Nscf,zu_t,it,"get_dns_gs")
-          endif
+          if(use_adiabatic_md=='y') return
+          if(use_ehrenfest_md=='y') &
+          &   call analysis_RT_using_GS(Rion_update_rt,Nscf,zu_t,it,"get_dns_gs")
           open(501,file=file_dns_dlt,position = position_option)
           call write_density_cube(501, .true.)
           close(501)
@@ -55,6 +55,9 @@ subroutine write_density(it,action)
           open(501,file=file_dns_rt,position = position_option)
           call write_density_vtk(501, .false.)
           close(501)
+          if(use_adiabatic_md=='y') return
+          if(use_ehrenfest_md=='y') &
+          &   call analysis_RT_using_GS(Rion_update_rt,Nscf,zu_t,it,"get_dns_gs")
           open(501,file=file_dns_dlt,position = position_option)
           call write_density_vtk(501, .true.)
           close(501)

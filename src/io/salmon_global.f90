@@ -39,6 +39,7 @@ module salmon_global
 !! &calculation
   character(16)  :: calc_mode
   character(1)   :: use_ehrenfest_md
+  character(1)   :: use_adiabatic_md
   character(1)   :: use_ms_maxwell
   character(1)   :: use_force
   character(1)   :: use_geometry_opt
@@ -241,6 +242,9 @@ module salmon_global
   real(8)        :: temperature0_ion
   character(1)   :: set_ini_velocity
   character(256) :: file_ini_velocity
+  character(256) :: file_set_shake
+  real(8)        :: thermostat_tau
+  character(1)   :: stop_system_momt
 
 !! &group_fundamental
   integer        :: iditerybcg
