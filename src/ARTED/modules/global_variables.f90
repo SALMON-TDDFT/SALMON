@@ -52,6 +52,7 @@ Module Global_Variables
   integer,parameter :: Nrmax=3000,Lmax=4
   character(2) :: ps_type
   integer :: Nps,Nlma
+  integer,allocatable :: lma_tbl(:,:)
   integer,allocatable :: Mps(:),Jxyz(:,:),Jxx(:,:),Jyy(:,:),Jzz(:,:)
   integer,allocatable :: Mlps(:),Lref(:),Zps(:),NRloc(:)
   integer,allocatable :: NRps(:),inorm(:,:),iuV(:),a_tbl(:)
@@ -59,6 +60,10 @@ Module Global_Variables
   real(8),allocatable :: radnl(:,:)
   real(8),allocatable :: Rloc(:),uV(:,:),duV(:,:,:),anorm(:,:)
   real(8),allocatable :: dvloctbl(:,:),dudVtbl(:,:,:)
+  real(8),allocatable :: save_udVtbl_a(:,:,:)
+  real(8),allocatable :: save_udVtbl_b(:,:,:)
+  real(8),allocatable :: save_udVtbl_c(:,:,:)
+  real(8),allocatable :: save_udVtbl_d(:,:,:)
 
 ! material
   integer :: NI,NE,NB,NBoccmax

@@ -77,7 +77,7 @@ contains
 
     call input_pseudopotential_YS !shinohara
 
-    call prep_ps_periodic('initial    ')
+    call prep_ps_periodic('initial          ')
 
 ! initialize for optimization.
     call opt_vars_initialize_p2

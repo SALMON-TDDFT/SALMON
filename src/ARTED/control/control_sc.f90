@@ -192,7 +192,11 @@ subroutine tddft_sc
         dRion(:,ia,iter+1) = dRion(:,ia,iter) + velocity(:,ia)*dt
         Rion(:,ia) = Rion_eq(:,ia) + dRion(:,ia,iter+1)
       enddo
-      if (mod(iter,step_update_ps)==0 ) call prep_ps_periodic('not_initial')
+      if (mod(iter,step_update_ps)==0 ) then
+         call prep_ps_periodic('update_all       ')
+      else if (mod(iter,step_update_ps2)==0 ) then
+         call prep_ps_periodic('update_wo_realloc')
+      endif
 
       !NHC act on thermostat with dt
       if(ensemble=="NVT" .and. thermostat=="nose-hoover")then

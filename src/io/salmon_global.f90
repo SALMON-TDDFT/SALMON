@@ -239,6 +239,7 @@ module salmon_global
   character(20)  :: thermostat
   integer        :: step_velocity_scaling
   integer        :: step_update_ps
+  integer        :: step_update_ps2
   real(8)        :: temperature0_ion
   character(1)   :: set_ini_velocity
   character(256) :: file_ini_velocity
