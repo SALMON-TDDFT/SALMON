@@ -229,7 +229,11 @@ subroutine tddft_sc
         Ework = Ework - sum(force(:,ia)*(dRion(:,ia,iter+1)-dRion(:,ia,iter)))
       enddo
       Temperature_ion = Tion * 2d0 / (3d0*NI) / (kB/hartree2J)
-      if (mod(iter,step_update_ps)==0 ) call prep_ps_periodic('not_initial')
+      if (mod(iter,step_update_ps)==0 ) then
+         call prep_ps_periodic('update_all       ')
+      else if (mod(iter,step_update_ps2)==0 ) then
+         call prep_ps_periodic('update_wo_realloc')
+      endif
     else
       dRion(:,:,iter+1)=0.d0
       Tion=0.d0
@@ -651,7 +655,7 @@ subroutine calc_opt_ground_state_useF
       call read_write_gs_wfn_k(iflag_read)
       Rion(:,:)   = Rion_save(:,:) + StepLen_line(i)* SearchDirection(:,:)
       Rion_eq(:,:)= Rion(:,:)
-      call prep_ps_periodic('not_initial')
+      call prep_ps_periodic('update_all       ')
       call calc_ground_state
       call Ion_Force_omp(rion_update_on,calc_mode_gs)
       call variable_3xNto3N(NI,force,force_1d)
@@ -689,7 +693,7 @@ subroutine calc_opt_ground_state_useF
     Rion(:,:)   = Rion_save(:,:) + StepLen_line(i)* SearchDirection(:,:)
     Rion_eq(:,:)= Rion(:,:)
     dRion_rmsd  = StepLen_line(i)*sqrt(sum(SearchDirection_1d(:)**2)/NI)
-    call prep_ps_periodic('not_initial')
+    call prep_ps_periodic('update_all       ')
     call calc_ground_state
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     call variable_3xNto3N(NI,force,force_1d)
@@ -732,7 +736,7 @@ subroutine calc_opt_ground_state_useF
        Rion_eq(:,:)= Rion(:,:)
        write(comment_line,110) iter_perp, iter_line
        call write_xyz(comment_line,"add","r  ")
-       call prep_ps_periodic('not_initial')
+       call prep_ps_periodic('update_all       ')
        call calc_ground_state
        call Ion_Force_omp(rion_update_on,calc_mode_gs)
        call variable_3xNto3N(NI,force,force_1d)
@@ -762,7 +766,7 @@ subroutine calc_opt_ground_state_useF
        dRion_rmsd  = StepLen_line_zero*sqrt(sum(SearchDirection_1d(:)**2)/NI)
        write(comment_line,110) iter_perp, iter_line
        call write_xyz(comment_line,"add","r  ")
-       call prep_ps_periodic('not_initial')
+       call prep_ps_periodic('update_all       ')
        call calc_ground_state
        call Ion_Force_omp(rion_update_on,calc_mode_gs)
        call variable_3xNto3N(NI,force,force_1d)
@@ -990,7 +994,7 @@ subroutine calc_opt_ground_state_useE
        call read_write_gs_wfn_k(iflag_read)
        Rion(:,:)= Rion_save(:,:) + StepLen_LineSearch(i)* SearchDirection(:,:)
        Rion_eq(:,:)= Rion(:,:)
-       call prep_ps_periodic('not_initial')
+       call prep_ps_periodic('update_all       ')
        call calc_ground_state
        Eall_3points(i) = Eall
        call add_alpha_save(nsave,alpha_save,ene_save,StepLen_LineSearch(i),Eall_3points(i))
@@ -1045,7 +1049,7 @@ subroutine calc_opt_ground_state_useE
           Rion_eq(:,:)= Rion(:,:)
           write(comment_line,110) iter_perp, iter_line2
           call write_xyz(comment_line,"add","r  ")
-          call prep_ps_periodic('not_initial')
+          call prep_ps_periodic('update_all       ')
           call calc_ground_state
           Eall_new = Eall
          !call add_alpha_save(nsave,alpha_save,ene_save,StepLen_LineSearch_new,Eall_new)
@@ -1066,7 +1070,7 @@ subroutine calc_opt_ground_state_useE
        Rion_eq(:,:)= Rion(:,:)
        write(comment_line,110) iter_perp, iter_line2
        call write_xyz(comment_line,"add","r  ")
-       call prep_ps_periodic('not_initial')
+       call prep_ps_periodic('update_all       ')
        call calc_ground_state
        Eall_min = Eall
       !call add_alpha_save(nsave,alpha_save,ene_save,StepLen_LineSearch_min,Eall_min)
