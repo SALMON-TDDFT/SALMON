@@ -27,41 +27,27 @@ Subroutine prep_ps_periodic(property)
   use opt_variables, only: t4ppt_nlma,t4ppt_nlma,t4ppt_i2vi,t4ppt_vi2i,t4ppt_ilma,t4ppt_j,  opt_vars_init_t4ppt
 #endif
   implicit none
-  character(11) :: property
+  character(17) :: property
   logical :: flag_alloc1, flag_alloc2
   integer :: ik,n,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
-  integer :: lma_tbl((Lmax+1)**2,NI),PNLx,PNLy,PNLz,ilma,narray
-  real(8) :: G2sq,s,Vpsl_l(NL),G2,Gd,Gr,x,y,z,r,dr,tmpx,tmpy,tmpz
-  real(8) :: Ylm,dYlm,uVr(0:Lmax),duVr(0:Lmax),Vpsl_ia_l(NL,NI)
-  complex(8) :: Vion_G(NG_s:NG_e),Vion_G_ia(NG_s:NG_e,NI),tmp_exp
+  integer :: PNLx,PNLy,PNLz,ilma,narray
+  real(8) :: G2sq,s,G2,Gd,Gr,x,y,z,r,dr,tmpx,tmpy,tmpz
+  real(8) :: Ylm,dYlm,uVr(0:Lmax),duVr(0:Lmax),Vpsl_ia_l(NL,NI) !,Vpsl_l(NL)
+  complex(8) :: Vion_G_ia(NG_s:NG_e,NI),tmp_exp !, Vion_G(NG_s:NG_e)
   !spline interpolation
   real(8) :: xx
-  real(8) :: udVtbl_a(Nrmax,0:Lmax),dudVtbl_a(Nrmax,0:Lmax)
-  real(8) :: udVtbl_b(Nrmax,0:Lmax),dudVtbl_b(Nrmax,0:Lmax)
-  real(8) :: udVtbl_c(Nrmax,0:Lmax),dudVtbl_c(Nrmax,0:Lmax)
-  real(8) :: udVtbl_d(Nrmax,0:Lmax),dudVtbl_d(Nrmax,0:Lmax)
+  real(8) :: dudVtbl_a(Nrmax,0:Lmax), dudVtbl_b(Nrmax,0:Lmax)
+  real(8) :: dudVtbl_c(Nrmax,0:Lmax), dudVtbl_d(Nrmax,0:Lmax)
+!  real(8) :: udVtbl_a(Nrmax,0:Lmax), udVtbl_b(Nrmax,0:Lmax)
+!  real(8) :: udVtbl_c(Nrmax,0:Lmax), udVtbl_d(Nrmax,0:Lmax)
   real(8),allocatable :: xn(:),yn(:),an(:),bn(:),cn(:),dn(:)  
   real(8) :: vloc_av, ratio1,ratio2,rc
 
 
   !(Local pseudopotential in G-space (radial part))
-  if(property == 'not_initial') then
-     dVloc_G(:,:)=save_dVloc_G(:,:)
+  if(property == 'initial') then
 
-#define SAFE_DEALLOCATE(var) if(allocated(var)) deallocate(var)
-#ifdef ARTED_LBLK
-    SAFE_DEALLOCATE(t4ppt_nlma)
-    SAFE_DEALLOCATE(t4ppt_i2vi)
-    SAFE_DEALLOCATE(t4ppt_vi2i)
-    SAFE_DEALLOCATE(t4ppt_ilma)
-    SAFE_DEALLOCATE(t4ppt_j)
-#endif
-    SAFE_DEALLOCATE(nprojector)
-    SAFE_DEALLOCATE(idx_proj)
-    SAFE_DEALLOCATE(idx_lma)
-    SAFE_DEALLOCATE(pseudo_start_idx)
-
-  else 
+    allocate(lma_tbl((Lmax+1)**2,NI))
 
 !$omp parallel
 !$omp do private(ik,n,G2sq,s,r,dr,i,vloc_av) collapse(2)
@@ -91,32 +77,48 @@ Subroutine prep_ps_periodic(property)
 !$omp end parallel
 
     !(this save is used only for opt and md options)
-    if(property == 'initial') then
-       save_dVloc_G(:,:)=dVloc_G(:,:)
-    end if
+    save_dVloc_G(:,:)=dVloc_G(:,:)
      
+  else
+
+    dVloc_G(:,:)=save_dVloc_G(:,:)
+
+    if(property == 'update_all') then
+#define SAFE_DEALLOCATE(var) if(allocated(var)) deallocate(var)
+#ifdef ARTED_LBLK
+       SAFE_DEALLOCATE(t4ppt_nlma)
+       SAFE_DEALLOCATE(t4ppt_i2vi)
+       SAFE_DEALLOCATE(t4ppt_vi2i)
+       SAFE_DEALLOCATE(t4ppt_ilma)
+       SAFE_DEALLOCATE(t4ppt_j)
+#endif
+       SAFE_DEALLOCATE(nprojector)
+       SAFE_DEALLOCATE(idx_proj)
+       SAFE_DEALLOCATE(idx_lma)
+       SAFE_DEALLOCATE(pseudo_start_idx)
+    endif
   endif
 
 
   !(Local pseudopotential: Vlocal in G-space(=Vion_G))
   Vion_G_ia=0.d0
-  Vion_G   =0.d0
+ !Vion_G   =0.d0
   rhoion_G =0.d0
 !$omp parallel private(a,ik)
   do a=1,NI
     ik=Kion(a)
 !$omp do private(n,G2,Gd,tmp_exp)
     do n=NG_s,NG_e
-      G2=Gx(n)**2+Gy(n)**2+Gz(n)**2
       Gd=Gx(n)*Rion(1,a)+Gy(n)*Rion(2,a)+Gz(n)*Rion(3,a)
-      tmp_exp = exp(-zI*Gd)
-      Vion_G(n)     = Vion_G(n)      + dVloc_G(n,ik)*tmp_exp/aLxyz
-      Vion_G_ia(n,a)= Vion_G_ia(n,a) + dVloc_G(n,ik)*tmp_exp/aLxyz
-      rhoion_G(n)   = rhoion_G(n) + Zps(ik)/aLxyz*tmp_exp
+      tmp_exp = exp(-zI*Gd)/aLxyz
+     !Vion_G(n)     = Vion_G(n)      + dVloc_G(n,ik)*tmp_exp
+      Vion_G_ia(n,a)= Vion_G_ia(n,a) + dVloc_G(n,ik)*tmp_exp
+      rhoion_G(n)   = rhoion_G(n) + Zps(ik)*tmp_exp
       if(n == nGzero) cycle
       !(add coulomb as dVloc_G is given by Vloc - coulomb)
-      Vion_G(n)     = Vion_G(n)      -4d0*Pi/G2*Zps(ik)*tmp_exp/aLxyz
-      Vion_G_ia(n,a)= Vion_G_ia(n,a) -4d0*Pi/G2*Zps(ik)*tmp_exp/aLxyz
+      G2=Gx(n)**2+Gy(n)**2+Gz(n)**2
+     !Vion_G(n)     = Vion_G(n)      -4d0*Pi/G2*Zps(ik)*tmp_exp
+      Vion_G_ia(n,a)= Vion_G_ia(n,a) -4d0*Pi/G2*Zps(ik)*tmp_exp
     enddo
 !$omp end do
   enddo
@@ -125,26 +127,36 @@ Subroutine prep_ps_periodic(property)
 
   !(Local pseudopotential: Vlocal(=Vpsl) in real-space)
   Vpsl_ia_l=0.d0
-  Vpsl_l   =0.d0
+ !Vpsl_l   =0.d0
 !$omp parallel private(n)
   do n=NG_s,NG_e
-!$omp do private(i,Gr,a)
+!$omp do private(i,Gr,a,tmp_exp)
      do i=1,NL
         Gr = Gx(n)*Lx(i)*Hx+Gy(n)*Ly(i)*Hy+Gz(n)*Lz(i)*Hz
-        Vpsl_l(i) = Vpsl_l(i) + Vion_G(n)*exp(zI*Gr)
+        tmp_exp = exp(zI*Gr)
+       !Vpsl_l(i) = Vpsl_l(i) + Vion_G(n)*tmp_exp
         do a=1,NI
-           Vpsl_ia_l(i,a)= Vpsl_ia_l(i,a)+ Vion_G_ia(n,a)*exp(zI*Gr)
+           Vpsl_ia_l(i,a)= Vpsl_ia_l(i,a)+ Vion_G_ia(n,a)*tmp_exp
         enddo
      enddo
 !$omp end do
   enddo
 !$omp end parallel
 
-  call comm_summation(Vpsl_l,Vpsl,NL,nproc_group_tdks)
+ !call comm_summation(Vpsl_l,Vpsl,NL,nproc_group_tdks)
   call comm_summation(Vpsl_ia_l,Vpsl_ia,NL*NI,nproc_group_tdks)
 
+!$omp parallel
+!$omp do private(i)
+  do i=1,NL
+     Vpsl(i) = sum(Vpsl_ia(i,:))
+  enddo
+!$omp end do
+!$omp end parallel
 
   !(Non-Local pseudopotential)
+  if(property /= 'update_wo_realloc') then
+
   if (comm_is_root(nproc_id_global) .and. property=='initial') then
     write(*,*) ''
     write(*,*) '============nonlocal grid data=============='
@@ -187,7 +199,7 @@ Subroutine prep_ps_periodic(property)
   !(allocate/deallocate with Nps)
   if(property == 'initial') then
      flag_alloc1=.true.
-  else if(property == 'not_initial') then
+  else if(property == 'update_all') then
      narray=ubound(Jxyz,1)
      if(Nps.ne.narray)then
         deallocate(Jxyz,Jxx,Jyy,Jzz,zJxyz)
@@ -241,7 +253,7 @@ Subroutine prep_ps_periodic(property)
 !$omp end do
 !$omp end parallel
 
-  if(property == 'not_initial') then
+  if(property == 'update_all') then
      zJxyz(1:Nps,1:NI) = Jxyz(1:Nps,1:NI) - 1
 
 #ifdef ARTED_STENCIL_PADDING
@@ -280,7 +292,7 @@ Subroutine prep_ps_periodic(property)
   !(allocate/deallocate with Nlma)
   if(property == 'initial') then
      flag_alloc2=.true.
-  else if(property == 'not_initial') then
+  else if(property == 'update_all') then
      narray=ubound(a_tbl,1)
      if(Nlma.ne.narray .or. flag_alloc1)then
         deallocate(a_tbl,uV,duV,iuV,zproj)
@@ -309,6 +321,17 @@ Subroutine prep_ps_periodic(property)
     enddo
   enddo
 
+  endif  !for /= 'update_wo_realloc'
+
+
+  if(property /= 'update_wo_realloc') then
+
+  if(property == 'initial') then
+     allocate( save_udVtbl_a(Nrmax,0:Lmax,NI) )
+     allocate( save_udVtbl_b(Nrmax,0:Lmax,NI) )
+     allocate( save_udVtbl_c(Nrmax,0:Lmax,NI) )
+     allocate( save_udVtbl_d(Nrmax,0:Lmax,NI) )
+  endif
 
   narray=-99
   do a=1,NI
@@ -325,20 +348,43 @@ Subroutine prep_ps_periodic(property)
     do l=0,Mlps(ik)
        yn(0:NRps(ik)-1) = udVtbl(1:NRps(ik),l,ik)
        call spline(NRps(ik),xn,yn,an,bn,cn,dn)
-       udVtbl_a(1:NRps(ik)-1,l) = an(0:NRps(ik)-2)
-       udVtbl_b(1:NRps(ik)-1,l) = bn(0:NRps(ik)-2)
-       udVtbl_c(1:NRps(ik)-1,l) = cn(0:NRps(ik)-2)
-       udVtbl_d(1:NRps(ik)-1,l) = dn(0:NRps(ik)-2)
+       save_udVtbl_a(1:NRps(ik)-1,l,a) = an(0:NRps(ik)-2)
+       save_udVtbl_b(1:NRps(ik)-1,l,a) = bn(0:NRps(ik)-2)
+       save_udVtbl_c(1:NRps(ik)-1,l,a) = cn(0:NRps(ik)-2)
+       save_udVtbl_d(1:NRps(ik)-1,l,a) = dn(0:NRps(ik)-2)
+    end do
 
-       if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
+  enddo
+  endif
+
+
+  narray=-99
+  do a=1,NI
+    ik=Kion(a)
+
+    if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
+    if(a.ne.1)narray=ubound(xn,1)
+    if(narray.ne.NRps(ik)-1) then
+       if(a.ne.1) deallocate(xn,yn,an,bn,cn,dn)
+       allocate(xn(0:NRps(ik)-1),yn(0:NRps(ik)-1),an(0:NRps(ik)-2) &
+               ,bn(0:NRps(ik)-2),cn(0:NRps(ik)-2),dn(0:NRps(ik)-2))
+    endif
+    xn(0:NRps(ik)-1) = radnl(1:NRps(ik),ik)
+    do l=0,Mlps(ik)
+       !yn(0:NRps(ik)-1) = udVtbl(1:NRps(ik),l,ik)
+       !call spline(NRps(ik),xn,yn,an,bn,cn,dn)
+       !udVtbl_a(1:NRps(ik)-1,l) = an(0:NRps(ik)-2)
+       !udVtbl_b(1:NRps(ik)-1,l) = bn(0:NRps(ik)-2)
+       !udVtbl_c(1:NRps(ik)-1,l) = cn(0:NRps(ik)-2)
+       !udVtbl_d(1:NRps(ik)-1,l) = dn(0:NRps(ik)-2)
        yn(0:NRps(ik)-1) = dudVtbl(1:NRps(ik),l,ik)
        call spline(NRps(ik),xn,yn,an,bn,cn,dn)
        dudVtbl_a(1:NRps(ik)-1,l) = an(0:NRps(ik)-2)
        dudVtbl_b(1:NRps(ik)-1,l) = bn(0:NRps(ik)-2)
        dudVtbl_c(1:NRps(ik)-1,l) = cn(0:NRps(ik)-2)
        dudVtbl_d(1:NRps(ik)-1,l) = dn(0:NRps(ik)-2)        
-       endif
     end do
+    endif
 
 !$omp parallel
 !$omp do private(j,x,y,z,r,ir,intr,xx,l,lm,m,uVr,duVr,ilma)
@@ -351,11 +397,13 @@ Subroutine prep_ps_periodic(property)
         if(radnl(ir,ik).gt.r) exit
       enddo
       intr=ir-1
-      if (intr.lt.0.or.intr.ge.NRps(ik))stop 'bad intr at prep_ps'
+     !if (intr.lt.0.or.intr.ge.NRps(ik))stop 'bad intr at prep_ps'
       xx = r - radnl(intr,ik) 
       do l=0,Mlps(ik)
-         uVr(l) = udVtbl_a(intr,l)*xx**3 + udVtbl_b(intr,l)*xx**2 &
-                 +udVtbl_c(intr,l)*xx    + udVtbl_d(intr,l)
+         uVr(l) = save_udVtbl_a(intr,l,a)*xx**3 + save_udVtbl_b(intr,l,a)*xx**2 &
+                + save_udVtbl_c(intr,l,a)*xx    + save_udVtbl_d(intr,l,a)
+        !uVr(l) = udVtbl_a(intr,l)*xx**3 + udVtbl_b(intr,l)*xx**2 &
+        !        +udVtbl_c(intr,l)*xx    + udVtbl_d(intr,l)
          if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
          duVr(l)=dudVtbl_a(intr,l)*xx**3 +dudVtbl_b(intr,l)*xx**2 &
                 +dudVtbl_c(intr,l)*xx    +dudVtbl_d(intr,l)         
@@ -387,6 +435,7 @@ Subroutine prep_ps_periodic(property)
 !$omp end do
 !$omp end parallel
 
+    if(property /= 'update_wo_realloc') then
     lm=0
     do l=0,Mlps(ik)
       if(inorm(l,ik)==0) cycle
@@ -395,6 +444,7 @@ Subroutine prep_ps_periodic(property)
         iuV(lma_tbl(lm,a))=inorm(l,ik)
       enddo
     enddo
+    endif
 
   enddo
 
@@ -441,7 +491,7 @@ Subroutine prep_ps_periodic(property)
   end if
 
 
-  if(property == 'not_initial') then
+  if(property == 'update_all') then
 #ifdef ARTED_STENCIL_PADDING
     call init_projector(zKxyz)
 #else

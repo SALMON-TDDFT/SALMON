@@ -813,9 +813,10 @@ Energy spacing for analysis.
 Unit of energy can be chosen by <code>&units/unit_energy</code>
 </dd>
 
-<dt>out_psi; <code>Character</code>; 0d</dt>
+<dt>out_psi; <code>Character</code>; 0d/3d</dt>
 <dd>
 If <code>'y'</code>, wavefunctions are output.
+For periodic system (<code>iperiodic=3</code>), it works only for ground state calculation. The converged wave functions of all orbitals with all k-points are printed in gs_wfn_cube or gs_wfn_vtk directory. The format is speficied by <code>format3d</code>. 
 Default is <code>'n'</code>.
 </dd>
 
@@ -1059,10 +1060,10 @@ Default is <code>"nose-hoover"</code>.
 Time step interval for velocity-scaling. Velocity-scaling is applied if this is set to positive.
 Default is <code>-1</code>.
 </dd>
-<dt>step_update_ps; <code>Integer</code>; 3d</dt>
+<dt>step_update_ps/step_update_ps2; <code>Integer/Integer</code>; 3d</dt>
 <dd>
-Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate)
-Default is <code>1</code>.
+Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate). <code>step_update_ps</code> is for full update and <code>step_update_ps2</code> is for update without changing grid points array.
+Default is <code>10/1</code>.
 </dd>
 <dt>temperature0_ion; <code>Real(8)</code>; 3d</dt>
 <dd>
