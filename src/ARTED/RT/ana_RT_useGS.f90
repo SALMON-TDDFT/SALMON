@@ -17,8 +17,8 @@
 !This file contain a subroutine.
 !Subroutine k_shift_wf(iter,iter_GS_max)
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-Subroutine k_shift_wf(Rion_xyz_update,iter_GS_max,zu,it,action)
-!--> To be "Subroutine analysis_with_GS(....)"   !AY
+Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
+!(this subroutine was named "k_shift_wf" in past)
   use Global_Variables
   use salmon_parallel, only: nproc_group_tdks, nproc_id_global
   use salmon_communication, only: comm_summation, comm_is_root
@@ -147,4 +147,4 @@ Subroutine k_shift_wf(Rion_xyz_update,iter_GS_max,zu,it,action)
   Eall_GS0 = Eall
 
   return
-End Subroutine k_shift_wf
+End Subroutine analysis_RT_using_GS
