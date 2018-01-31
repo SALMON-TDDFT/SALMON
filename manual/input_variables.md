@@ -1054,7 +1054,7 @@ Default is <code>-1</code>.
 </dd>
 <dt>step_update_ps/step_update_ps2; <code>Integer/Integer</code>; 3d</dt>
 <dd>
-Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate). <code>step_update_ps</code> is for full update and <code>step_update_ps2</code> is for update without changing grid points array.
+Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate) in case of <code>use_ehrenfest_md=y</code>. <code>step_update_ps</code> is for full update and <code>step_update_ps2</code> is for update without changing grid points array.
 Default is <code>10/1</code>.
 </dd>
 <dt>temperature0_ion; <code>Real(8)</code>; 3d</dt>
@@ -1077,7 +1077,7 @@ Default is <code>n</code>.
 </dd>
 <dt>file_ini_velocity; <code>Character</code>; 3d</dt>
 <dd>
-File name for initial velocities. This is read when <code>set_ini_velocity</code> is <code>'r'</code>. The format is simply vx(iatom) vy(iatom) vz(iatom) in each line. The order of atoms must be the same as the given coordinates in the main input file(atomic unit). 
+File name for initial velocities. This is read when <code>set_ini_velocity</code> is <code>'r'</code>. The format is simply vx(iatom) vy(iatom) vz(iatom) in each line. The order of atoms must be the same as the given coordinates in the main input file. In case of using nose-hoover thermostat, a thermostat variable should be put at the last line (all atomic unit). 
 Default is <code>none</code>.
 </dd>
 <dt>file_set_shake; <code>Character</code>; 3d</dt>
@@ -1088,13 +1088,13 @@ Default is <code>none</code>.
 <dt>thermostat_tau; <code>Real(8)</code>; 3d</dt>
 <dd>
 Parameter in Nose-Hoover method: controlling time constant for temperature.
-Default is <code>41.34</code>.
+Default is <code>41.34[au] or 1.0[fs]</code>.
 </dd>
 
 </dd>
 <dt>stop_system_momt; <code>Character</code>; 3d</dt>
 <dd>
-Center of mass is stopped every step.
+Center of mass is stopped every time step.
 Default is <code>n</code>.
 </dd>
 
