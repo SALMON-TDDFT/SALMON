@@ -110,6 +110,8 @@ subroutine tddft_maxwell_ms
 !$acc enter data copyin(kAc)
 !$acc enter data copyin(zproj)
 !$acc enter data copyin(ik_table,ib_table)
+!$acc enter data copyin(ekr_omp)
+!$acc enter data copyin(a_tbl,jxyz,mps)
 
 !$acc enter data create(kAc_new)
 !$acc enter data create(ghtpsi)
@@ -267,8 +269,8 @@ subroutine tddft_maxwell_ms
         end if
       else
         if (flg_out_ms_next_step) then
-!$acc update self(zu_m(:,:,:,imacro))
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
+!$acc update self(zu_m(:,:,:,imacro))
           call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
       end if
@@ -287,15 +289,15 @@ subroutine tddft_maxwell_ms
 
       !===========================================================================
       ! Calculate + store excitation number (if required in the next iteration..)
-      call timer_begin(LOG_K_SHIFT_WF)
+      call timer_begin(LOG_ANA_RT_USEGS)
       if (flg_out_projection_next_step) then
 !$acc update self(zu_m(:,:,:,imacro))
-        call k_shift_wf(Rion_update_rt,Nscf,zu_m(:,:,:,imacro),iter,"projection")
+        call analysis_RT_using_GS(Rion_update_rt,Nscf,zu_m(:,:,:,imacro),iter,"projection")
         if(comm_is_root(nproc_id_tdks))then ! sato
           excited_electron_new_m_tmp(imacro) = sum(occ) - sum(ovlp_occ(1:NBoccmax,:))
         end if ! sato
       end if
-      call timer_end(LOG_K_SHIFT_WF)
+      call timer_end(LOG_ANA_RT_USEGS)
       !===========================================================================
     
     end do Macro_loop !end of Macro_loop iteraction========================
@@ -392,7 +394,7 @@ subroutine tddft_maxwell_ms
     call timer_show_min ('current time       :', LOG_CURRENT)
     call timer_show_min ('Total_Energy time  :', LOG_TOTAL_ENERGY)
     call timer_show_min ('Ion_Force time     :', LOG_ION_FORCE)
-    call timer_show_min ('k_shift_wf time    :', LOG_K_SHIFT_WF)
+    call timer_show_min ('ana_RT_useGS time  :', LOG_ANA_RT_USEGS)
     call timer_show_min ('Other time         :', LOG_OTHER)
     call timer_show_min ('Allreduce time     :', LOG_ALLREDUCE)
   end if

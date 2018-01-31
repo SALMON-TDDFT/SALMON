@@ -78,6 +78,7 @@ Module Global_Variables
   real(8),allocatable :: javt(:,:)
   real(8),allocatable :: Vpsl(:),Vpsl_ia(:,:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)!yabana
   real(8),allocatable :: Eall_t(:),Tion_t(:),Temperature_ion_t(:),Ework_integ_fdR(:)
+  real(8),allocatable :: Enh_t(:),Hnvt_t(:)
   real(8),allocatable :: Vloc_new(:),Vloc_old(:,:)
   real(8),allocatable :: tmass(:),tjr(:,:),tjr2(:),tmass_t(:),tjr_t(:,:),tjr2_t(:)
 !yabana
@@ -85,14 +86,17 @@ Module Global_Variables
   real(8),allocatable :: rho(:),rho_gs(:),rho_gs_t(:)
   real(8),allocatable :: rho_in(:,:),rho_out(:,:) !MB method
   complex(8),allocatable :: rhoe_G(:),rhoion_G(:)
-  real(8),allocatable :: force(:,:),esp(:,:),FionAc(:,:)
-  real(8),allocatable :: velocity(:,:)
-  real(8),allocatable :: Floc(:,:),Fnl(:,:),Fion(:,:)               
+  real(8),allocatable :: velocity(:,:),force(:,:),esp(:,:)
+  real(8),allocatable :: Floc(:,:),Fnl(:,:),Fion(:,:),FionAc(:,:)          
   real(8),allocatable :: ovlp_occ_l(:,:),ovlp_occ(:,:)
   integer,allocatable :: NBocc(:) !FS set
   real(8),allocatable :: esp_vb_min(:),esp_vb_max(:) !FS set
   real(8),allocatable :: esp_cb_min(:),esp_cb_max(:) !FS set
   real(8),allocatable :: Eall_GS(:),esp_var_ave(:),esp_var_max(:),ddns(:),ddns_abs_1e(:)
+  real(8) :: xi_nh, kB, hartree2J
+  parameter( kB = 1.38064852d-23 ) ![J/K]
+  parameter( hartree2J = 4.359744650d-18 )
+
   logical :: flag_use_grad_wf_on_force
   parameter(flag_use_grad_wf_on_force=.true.)
 !Nonlinear core correction
@@ -101,7 +105,12 @@ Module Global_Variables
   real(8),allocatable :: rho_nlcc(:),tau_nlcc(:)
 
 ! wave functions, work array
-  complex(8),allocatable :: zu_t(:,:,:),zu_GS(:,:,:),zu_GS0(:,:,:)
+#ifdef _OPENACC
+  complex(8),allocatable,pinned :: zu_t(:,:,:)
+#else
+  complex(8),allocatable :: zu_t(:,:,:)
+#endif
+  complex(8),allocatable :: zu_GS(:,:,:),zu_GS0(:,:,:)
   complex(8),allocatable :: tpsi(:),htpsi(:),zwork(:,:,:),ttpsi(:)
   real(8),allocatable :: work(:,:,:)
   real(8),allocatable :: esp_var(:,:)
@@ -226,8 +235,11 @@ Module Global_Variables
   real(8) :: total_energy_elec_old, total_energy_elec
   real(8) :: total_energy_em_old, total_energy_em  
   
-  
+#ifdef _OPENACC
+  complex(8),allocatable,pinned :: zu_m(:,:,:,:)
+#else
   complex(8),allocatable :: zu_m(:,:,:,:)
+#endif
   real(8),allocatable :: Vh_m(:,:)
   real(8),allocatable :: Vexc_m(:,:)
   real(8),allocatable :: Eexc_m(:,:)

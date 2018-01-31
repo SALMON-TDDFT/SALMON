@@ -14,6 +14,7 @@ set(SOURCES_COMPILER_VEC
 set(SOURCES_ACC
     F90/acc/current.f90
     F90/acc/hpsi.f90
+    F90/acc/total_energy.f90
     )
 
 

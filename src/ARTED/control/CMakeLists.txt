@@ -4,6 +4,8 @@ set(SOURCES
     inputfile.f90
     initialization.f90
     ground_state.f90
+    optimization.f90
+    md_gs.f90
     )
 
 add_library(${ARTED_CONTROL_LIB} STATIC ${SOURCES})

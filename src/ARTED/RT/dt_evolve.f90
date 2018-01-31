@@ -119,14 +119,12 @@ Subroutine dt_evolve_omp_KB(zu)
   NVTX_BEG('dt_evolve_omp_KB()',1)
   call timer_begin(LOG_DT_EVOLVE)
 
-!$acc data pcopy(zu, vloc) pcopyin(zproj)
+!$acc data pcopy(zu, vloc) pcreate(zproj)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
   call update_projector(kac)
   NVTX_END()
-
-!$acc update device(zproj)
 
 ! yabana
   select case(functional)
@@ -178,7 +176,6 @@ Subroutine dt_evolve_omp_KB(zu)
 ! yabana
 
   NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
-!$acc update device(zproj)
   call hamiltonian(zu,.true.)
   NVTX_END()
 
@@ -234,19 +231,16 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
 
   dt_t = dt; dt = 0.5d0*dt
 
-!$acc data pcopy(zu, vloc) pcopyin(zproj)
+!$acc data pcopy(zu, vloc) pcreate(zproj)
 
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
   call update_projector(kac)
   NVTX_END()
 
-!$acc update device(zproj)
-
   NVTX_BEG('dt_evolve_omp_KB(): hamiltonian',3)
   call hamiltonian(zu,.false.)
   NVTX_END()
-
 
   Vloc_t=Vloc
   Vloc_new(:) = 3d0*Vloc(:) - 3d0*Vloc_old(:,1) + Vloc_old(:,2)
@@ -256,12 +250,12 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
 
   kAc=kAc_new
 
+!$acc update device(kAc,Vloc)
+
 !Constructing nonlocal part
   NVTX_BEG('dt_evolve_omp_KB(): nonlocal part',2)
   call update_projector(kac)
   NVTX_END()
-
-!$acc update device(kAc,Vloc,zproj)
 
 !== predictor-corrector ==
   select case(functional)
@@ -361,13 +355,11 @@ Subroutine dt_evolve_omp_KB_MS(zu)
   NVTX_BEG('dt_evolve_omp_KB_MS()',1)
   call timer_begin(LOG_DT_EVOLVE)
 
-!$acc data pcopy(zu, vloc) pcopyin(zproj)
+!$acc data pcopy(zu, vloc) pcreate(zproj)
 
 !Constructing nonlocal part ! sato
   NVTX_BEG('dt_evolve_omp_KB_MS(): nonlocal part',2)
   call update_projector(kac)
-
-!$acc update device(zproj)
 
 
 ! yabana
