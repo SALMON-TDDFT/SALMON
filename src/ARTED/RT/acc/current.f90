@@ -58,12 +58,10 @@ subroutine current_acc_impl(zutmp,jxs,jys,jzs)
 
   IaLxyz = 1.0 / aLxyz
 
-  call update_projector(kac)
-
-!$acc data pcopyin(zutmp) create(jx,jy,jz) copyin(zproj,nabt) &
+!$acc data pcopyin(zutmp) create(jx,jy,jz) copyin(nabt) &
 !$acc& pcopyin(jxyz,jxx,jyy,jzz,kAc,lx,ly,lz,Mps) 
 
-!$acc update device(zproj)
+  call update_projector(kac)
 
   do ikb0 = 1, NKB, blk_nkb_current
     num_ikb1 = min(blk_nkb_current, NKB-ikb0+1)
@@ -166,14 +164,14 @@ contains
 !$acc data pcopy(jx,jy,jz) pcopyin(zutmp) create(t4cp_uVpsix,t4cp_uVpsiy,t4cp_uVpsiz) &
 !$acc& pcopyin(ik_table,ib_table,a_tbl,Mps,Jxyz,Jxx,Jyy,Jzz,lx,ly,lz,zproj,iuV,occ)
 !$acc kernels
-!$acc loop collapse(2) gang
+!$acc loop gang collapse(2)
     do ikb = ikb_s, ikb_e
     do ilma=1,Nlma
       ik=ik_table(ikb)
       ib=ib_table(ikb)
       ia=a_tbl(ilma)
       uVpsi=0.d0; uVpsix=0.d0; uVpsiy=0.d0; uVpsiz=0.d0
-!$acc loop gang vector(256) reduction(+:uVpsi,uVpsix,uVpsiy,uVpsiz)
+!$acc loop vector(128) reduction(+:uVpsi,uVpsix,uVpsiy,uVpsiz)
       do j=1,Mps(ia)
         i=Jxyz(j,ia)
 
@@ -205,7 +203,7 @@ contains
       jxt=0d0
       jyt=0d0
       jzt=0d0
-!$acc loop vector(256) reduction(+:jxt,jyt,jzt)
+!$acc loop vector(128) reduction(+:jxt,jyt,jzt)
       do ilma=1,Nlma
         jxt=jxt + t4cp_uVpsix(ilma,ikb)
         jyt=jyt + t4cp_uVpsiy(ilma,ikb)

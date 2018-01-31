@@ -110,6 +110,8 @@ subroutine tddft_maxwell_ms
 !$acc enter data copyin(kAc)
 !$acc enter data copyin(zproj)
 !$acc enter data copyin(ik_table,ib_table)
+!$acc enter data copyin(ekr_omp)
+!$acc enter data copyin(a_tbl,jxyz,mps)
 
 !$acc enter data create(kAc_new)
 !$acc enter data create(ghtpsi)
@@ -267,8 +269,8 @@ subroutine tddft_maxwell_ms
         end if
       else
         if (flg_out_ms_next_step) then
-!$acc update self(zu_m(:,:,:,imacro))
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
+!$acc update self(zu_m(:,:,:,imacro))
           call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
       end if

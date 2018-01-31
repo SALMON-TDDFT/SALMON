@@ -101,7 +101,12 @@ Module Global_Variables
   real(8),allocatable :: rho_nlcc(:),tau_nlcc(:)
 
 ! wave functions, work array
-  complex(8),allocatable :: zu_t(:,:,:),zu_GS(:,:,:),zu_GS0(:,:,:)
+#ifdef _OPENACC
+  complex(8),allocatable,pinned :: zu_t(:,:,:)
+#else
+  complex(8),allocatable :: zu_t(:,:,:)
+#endif
+  complex(8),allocatable :: zu_GS(:,:,:),zu_GS0(:,:,:)
   complex(8),allocatable :: tpsi(:),htpsi(:),zwork(:,:,:),ttpsi(:)
   real(8),allocatable :: work(:,:,:)
   real(8),allocatable :: esp_var(:,:)
@@ -225,8 +230,11 @@ Module Global_Variables
   real(8) :: total_energy_elec_old, total_energy_elec
   real(8) :: total_energy_em_old, total_energy_em  
   
-  
+#ifdef _OPENACC
+  complex(8),allocatable,pinned :: zu_m(:,:,:,:)
+#else
   complex(8),allocatable :: zu_m(:,:,:,:)
+#endif
   real(8),allocatable :: Vh_m(:,:)
   real(8),allocatable :: Vexc_m(:,:)
   real(8),allocatable :: Eexc_m(:,:)

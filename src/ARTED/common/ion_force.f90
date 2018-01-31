@@ -125,7 +125,7 @@ contains
     end if
 
 
-    call update_projector(kac)
+    call update_projector_omp(kac)
 
 
     ! ion-electron 

@@ -142,7 +142,33 @@ contains
     end do
 !$omp end do
 
+#ifdef _OPENACC
+!$omp end parallel
 
+    call total_energy_stencil_acc(lap0_2,lapt,zutmp,zu_NB,Ekin_l)
+
+!$acc parallel vector_length(128) &
+!$acc        & copyin(uv,iuv,ekr_omp,zjxyz,occ,a_tbl,mps,zutmp)
+!$acc loop gang collapse(2) reduction(+:Enl_l) private(ilma,ia,uVpsi)
+    do ik=NK_s,NK_e
+    do ib=1,NBoccmax
+
+!$acc loop seq
+      do ilma=1,Nlma
+        ia=a_tbl(ilma)
+        uVpsi=0.d0
+!$acc loop vector reduction(+:uvpsi)
+        do j=1,Mps(ia)
+          uVpsi=uVpsi+uV(j,ilma)*ekr_omp(j,ia,ik)*zutmp(zJxyz(j,ia),ib,ik)
+        enddo
+        uVpsi=uVpsi*Hxyz
+        Enl_l=Enl_l+occ(ib,ik)*abs(uVpsi)**2*iuV(ilma)
+      end do
+
+    end do
+    end do
+!$acc end parallel
+#else
 !$omp do private(ik,ib,nabt,tpsum,i,j,ilma,uVpsi,ia) &
 !$omp    reduction(+:Ekin_l,Enl_l) &
 !$omp    collapse(2)
@@ -153,7 +179,7 @@ contains
       nabt( 5: 8)=kAc(ik,2)*naby(1:4)
       nabt( 9:12)=kAc(ik,3)*nabz(1:4)
 
-      call total_energy_stencil(lap0_2,lapt,nabt,zutmp(:,ib,ik),tpsum);
+      call total_energy_stencil(lap0_2,lapt,nabt,zutmp(:,ib,ik),tpsum)
       Ekin_l=Ekin_l+occ(ib,ik)*tpsum*Hxyz+occ(ib,ik)*sum(kAc(ik,:)**2)/2.d0
 
       if(alocal_laser=='y' .and. allocated(weight_Ac_alocal))then
@@ -175,6 +201,7 @@ contains
     end do
 !$omp end do nowait
 !$omp end parallel
+#endif
     call timer_end(LOG_TOTAL_ENERGY)
 
     call timer_begin(LOG_ALLREDUCE)
