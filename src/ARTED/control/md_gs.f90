@@ -118,7 +118,7 @@ subroutine calc_md_ground_state
 
      !update force (electric state) with updated coordinate
      aforce(:,:) = force(:,:)
-     call prep_ps_periodic('not_initial')
+     call prep_ps_periodic('update_all       ')
      call read_write_gs_wfn_k(iflag_read)
      call calc_ground_state
      call read_write_gs_wfn_k(iflag_write)
