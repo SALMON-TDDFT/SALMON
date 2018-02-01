@@ -101,6 +101,7 @@ module salmon_global
 !! &functional
   character(32)  :: xc
   real(8)        :: cval
+  character(1)   :: no_update_func
 
 !! &rgrid
   real(8)        :: dl(3)
