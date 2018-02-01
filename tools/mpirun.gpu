@@ -50,15 +50,19 @@ if [ $# -lt 1 ] ; then
   exit 1;
 fi
 
+MPIRUN_ENABLE_MPS=0
 MPIRUN_GPU_VERBOSE=
 MPIRUN_EXECUTE=1
 
-while getopts "vhn" OPTION
+while getopts "mvhn" OPTION
 do
   case $OPTION in
     h)
       usage;
       exit 0;
+      ;;
+    m)
+      MPIRUN_ENABLE_MPS=1
       ;;
     v)
       MPIRUN_GPU_VERBOSE=1
@@ -145,11 +149,18 @@ if [[ "${mpiname}" = "mvapich2" ]]; then
   done
   export MV2_CPU_MAPPING=${MV2_CPU_MAPPING:1}
   export MV2_USE_THREAD_WARNING=0
+  if [[ $MPIRUN_ENABLE_MPS -eq 1 ]]; then
+    abort "MVAPICH2 mode does not supports MPS."
+  fi
 elif [[ "${mpiname}" = "openmpi" ]]; then
   mpirun_command=`which mpirun`
   if [[ $? -eq 0 ]]; then
-    mpirun_command="${mpirun_command} --map-by ppr:${nprocs_per_socket}:socket:PE=${OMP_NUM_THREADS}"
-    mpi_wrapper="${BASEDIR}/get_mpi_configuration ${BASEDIR}/select_cuda_device"
+    mpirun_command="${mpirun_command} -np ${SLURM_NTASKS} --map-by ppr:${nprocs_per_socket}:numa:PE=${OMP_NUM_THREADS}"
+    if [[ $MPIRUN_ENABLE_MPS -eq 1 ]]; then
+      mpi_wrapper="${BASEDIR}/get_mpi_configuration ${BASEDIR}/cuda_mps_run ${BASEDIR}/select_cuda_device"
+    else
+      mpi_wrapper="${BASEDIR}/get_mpi_configuration ${BASEDIR}/select_cuda_device"
+    fi
   else
     abort "mpirun command not found."
   fi

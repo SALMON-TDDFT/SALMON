@@ -148,8 +148,10 @@ Subroutine dt_evolve_omp_KB(zu)
   call hamiltonian(zu,.false.)
 
   call psi_rho_RT(zu)
-  call Hartree
-  call Exc_Cor(calc_mode_rt,NBoccmax,zu)
+  if(no_update_func=='n')then
+     call Hartree
+     call Exc_Cor(calc_mode_rt,NBoccmax,zu)
+  endif
 
 !$omp parallel do
   do i=1,NL
@@ -183,6 +185,7 @@ Subroutine dt_evolve_omp_KB(zu)
   call psi_rho_RT(zu)
   NVTX_END()
 
+  if(no_update_func=='n')then
   NVTX_BEG('dt_evolve_omp_KB(): Hartree',5)
   call Hartree
   NVTX_END()
@@ -192,7 +195,7 @@ Subroutine dt_evolve_omp_KB(zu)
   call Exc_Cor(calc_mode_rt,NBoccmax,zu)
   NVTX_END()
 ! yabana
-
+  endif
 
 #ifdef _OPENACC
 !$acc kernels pcopy(Vloc) pcopyin(Vh,Vpsl,Vexc)
@@ -276,6 +279,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
      call psi_rho_RT(zu)
      NVTX_END()
 
+     if(no_update_func=='n')then
      NVTX_BEG('dt_evolve_omp_KB(): Hartree',5)
      call Hartree
      NVTX_END()
@@ -283,6 +287,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
      NVTX_BEG('dt_evolve_omp_KB(): Exc_Cor',6)
      call Exc_Cor(calc_mode_rt,NBoccmax,zu)
      NVTX_END()
+     endif
 
 #ifdef _OPENACC
 !$acc kernels pcopy(Vloc) pcopyin(Vh,Vpsl,Vexc)
@@ -313,6 +318,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
   call psi_rho_RT(zu)
   NVTX_END()
 
+  if(no_update_func=='n')then
   NVTX_BEG('dt_evolve_omp_KB(): Hartree',5)
   call Hartree
   NVTX_END()
@@ -320,7 +326,7 @@ Subroutine dt_evolve_etrs_omp_KB(zu)
   NVTX_BEG('dt_evolve_omp_KB(): Exc_Cor',6)
   call Exc_Cor(calc_mode_rt,NBoccmax,zu)
   NVTX_END()
-
+  endif
 
 #ifdef _OPENACC
 !$acc kernels pcopy(Vloc) pcopyin(Vh,Vpsl,Vexc)
@@ -385,8 +391,10 @@ Subroutine dt_evolve_omp_KB_MS(zu)
   call hamiltonian(zu,.false.)
 
   call psi_rho_RT(zu)
-  call Hartree
-  call Exc_Cor(calc_mode_rt,NBoccmax,zu)
+  if(no_update_func=='n')then
+     call Hartree
+     call Exc_Cor(calc_mode_rt,NBoccmax,zu)
+  endif
 
 !$omp parallel do
   do i=1,NL
@@ -419,6 +427,7 @@ Subroutine dt_evolve_omp_KB_MS(zu)
   call psi_rho_RT(zu)
   NVTX_END()
 
+  if(no_update_func=='n')then
   NVTX_BEG('dt_evolve_omp_KB_MS(): Hartree',5)
   call Hartree
   NVTX_END()
@@ -428,6 +437,7 @@ Subroutine dt_evolve_omp_KB_MS(zu)
   call Exc_Cor(calc_mode_rt,NBoccmax,zu)
   NVTX_END()
 ! yabana
+  endif
 
 #ifdef _OPENACC
 !$acc kernels pcopy(Vloc) pcopyin(Vh,Vpsl,Vexc)
