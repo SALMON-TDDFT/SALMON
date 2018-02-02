@@ -378,6 +378,12 @@ John P. Perdew and Yue Wang, Phys. Rev. B 45, 13244 (1992).
 by the formula in the original paper [Phys. Rev. Lett. 102, 226401 (2008)].
 Default is <code>'1.0'</code>.
 </dd>
+
+<dt>no_update_func; <code>character(1)</code>; 3d</dt>
+<dd>Option not to update functional (or Hamiltonian) in RT time step, i.e., keep ground state Hamiltonian during time-evolution.
+Default is <code>'n'</code>.
+</dd>
+
 </dl>
 
 ## &rgrid
@@ -886,6 +892,12 @@ Default is <code>'n'</code>.
 If <code>'y'</code>, density during real-time time-propagation is output
 every <code>outdns_rt_step</code> time steps.
 Default is <code>'n'</code>.
+</dd>
+
+<dt>out_dns_trans/out_dns_trans_energy; <code>Character/Real(8)</code>; 3d</dt>
+<dd>
+If <code>'y'</code>, transition in different density from the ground state at specified field frequency omega(given by <code>out_dns_trans_energy</code>) is calculated by drho(r,omega)=FT(rho(r,t)-rho_gs(r))/T.
+Default is <code>'n'/1.55eV</code>.
 </dd>
 
 <dt>out_elf; <code>Character</code>; 0d</dt>

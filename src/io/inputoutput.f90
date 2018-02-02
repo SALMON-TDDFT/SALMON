@@ -366,6 +366,8 @@ contains
       & out_old_dns, &
       & out_dns_rt, &
       & out_dns_rt_step, &
+      & out_dns_trans, &
+      & out_dns_trans_energy, &
       & out_elf, &
       & out_elf_rt, &
       & out_elf_rt_step, &
@@ -647,6 +649,9 @@ contains
     out_old_dns         = 'n'
     out_dns_rt          = 'n'
     out_dns_rt_step     = 50
+    out_dns_trans       = 'n'
+    out_dns_trans_energy= 1.55d0 / au_energy_ev * uenergy_from_au  ! eV
+
     out_elf             = 'n'
     out_elf_rt          = 'n'
     out_elf_rt_step     = 50
@@ -969,22 +974,25 @@ contains
     call comm_bcast(nenergy          ,nproc_group_global)
     call comm_bcast(de               ,nproc_group_global)
     de = de * uenergy_to_au
-    call comm_bcast(out_psi            ,nproc_group_global)
-    call comm_bcast(out_dos            ,nproc_group_global)
-    call comm_bcast(out_dos_start      ,nproc_group_global)
+    call comm_bcast(out_psi             ,nproc_group_global)
+    call comm_bcast(out_dos             ,nproc_group_global)
+    call comm_bcast(out_dos_start       ,nproc_group_global)
     out_dos_start = out_dos_start * uenergy_to_au
-    call comm_bcast(out_dos_end        ,nproc_group_global)
+    call comm_bcast(out_dos_end         ,nproc_group_global)
     out_dos_end = out_dos_end * uenergy_to_au
-    call comm_bcast(iout_dos_nenergy   ,nproc_group_global)
-    call comm_bcast(out_dos_smearing   ,nproc_group_global)
+    call comm_bcast(iout_dos_nenergy    ,nproc_group_global)
+    call comm_bcast(out_dos_smearing    ,nproc_group_global)
     out_dos_smearing = out_dos_smearing * uenergy_to_au
-    call comm_bcast(out_dos_method     ,nproc_group_global)
-    call comm_bcast(out_dos_fshift     ,nproc_group_global)
-    call comm_bcast(out_pdos           ,nproc_group_global)
-    call comm_bcast(out_dns            ,nproc_group_global)
-    call comm_bcast(out_old_dns        ,nproc_group_global)
-    call comm_bcast(out_dns_rt         ,nproc_group_global)
-    call comm_bcast(out_dns_rt_step    ,nproc_group_global)
+    call comm_bcast(out_dos_method      ,nproc_group_global)
+    call comm_bcast(out_dos_fshift      ,nproc_group_global)
+    call comm_bcast(out_pdos            ,nproc_group_global)
+    call comm_bcast(out_dns             ,nproc_group_global)
+    call comm_bcast(out_old_dns         ,nproc_group_global)
+    call comm_bcast(out_dns_rt          ,nproc_group_global)
+    call comm_bcast(out_dns_rt_step     ,nproc_group_global)
+    call comm_bcast(out_dns_trans       ,nproc_group_global)
+    call comm_bcast(out_dns_trans_energy,nproc_group_global)
+    out_dns_trans_energy = out_dns_trans_energy * uenergy_to_au
     call comm_bcast(out_elf            ,nproc_group_global)
     call comm_bcast(out_elf_rt         ,nproc_group_global)
     call comm_bcast(out_elf_rt_step    ,nproc_group_global)
@@ -1517,6 +1525,8 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_old_dns', out_old_dns
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns_rt', out_dns_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_dns_rt_step', out_dns_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns_trans', out_dns_trans
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'out_dns_trans_energy', out_dns_trans_energy
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf_rt', out_elf_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_elf_rt_step', out_elf_rt_step

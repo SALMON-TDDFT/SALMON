@@ -205,6 +205,8 @@ module salmon_global
   character(1)   :: out_old_dns
   character(1)   :: out_dns_rt
   integer        :: out_dns_rt_step
+  character(1)   :: out_dns_trans
+  real(8)        :: out_dns_trans_energy
   character(1)   :: out_elf
   character(1)   :: out_elf_rt
   integer        :: out_elf_rt_step

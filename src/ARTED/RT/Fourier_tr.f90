@@ -162,4 +162,140 @@ End Function smoothing_t
 !======
 !======
 End Subroutine Fourier_tr
+
+subroutine analysis_dns_trans(it)
+  use Global_Variables
+  use salmon_parallel, only: nproc_id_global
+  use salmon_communication, only: comm_is_root
+  use inputoutput, only: t_unit_energy
+  implicit none
+  integer :: it, fh_dns_trans1,fh_dns_trans2,i,j,ix,iy,iz
+  real(8) :: omg,tt
+  character(256) :: file_dns_trans1,file_dns_trans2
+
+  if(.not. allocated(rho_trans)) then
+     allocate(rho_trans(NL))
+     rho_trans(:)=0d0
+  endif
+
+  omg = out_dns_trans_energy
+  tt  = it*dt
+  rho_trans(:) = rho_trans(:) + (rho(:)-rho_gs(:))*exp(zI*omg*tt)
+
+  if(it==Nt)then  
+      rho_trans(:) = rho_trans(:)/Nt
+
+      ! Print
+      fh_dns_trans1 = 503
+      fh_dns_trans2 = 504
+      if (comm_is_root(nproc_id_global)) then
+
+      select case(format3d)
+      case ('cube')
+         file_dns_trans1 = "out_dns_trans_Re.cube"
+         file_dns_trans2 = "out_dns_trans_Im.cube"
+         open(fh_dns_trans1,file=file_dns_trans1,status="unknown")
+         open(fh_dns_trans2,file=file_dns_trans2,status="unknown")
+
+         write(fh_dns_trans1,8010) omg*t_unit_energy%conv,trim(t_unit_energy%name)
+         write(fh_dns_trans1,8020) NI,  0d0, 0d0, 0d0
+         write(fh_dns_trans1,8020) NLx, Hx,  0d0, 0d0
+         write(fh_dns_trans1,8020) NLy, 0d0, Hy,  0d0
+         write(fh_dns_trans1,8020) NLz, 0d0, 0d0, Hz
+
+         write(fh_dns_trans2,8010) omg*t_unit_energy%conv,trim(t_unit_energy%name)
+         write(fh_dns_trans2,8020) NI,  0d0, 0d0, 0d0
+         write(fh_dns_trans2,8020) NLx, Hx,  0d0, 0d0
+         write(fh_dns_trans2,8020) NLy, 0d0, Hy,  0d0
+         write(fh_dns_trans2,8020) NLz, 0d0, 0d0, Hz
+
+         do i=1, NI
+            write(fh_dns_trans1,8030) Zatom(Kion(i)),0d0,Rion(1,i),Rion(2,i),Rion(3,i) 
+            write(fh_dns_trans2,8030) Zatom(Kion(i)),0d0,Rion(1,i),Rion(2,i),Rion(3,i) 
+         end do
+
+         j=1
+         do ix=0, NLx-1
+         do iy=0, NLy-1
+         do iz=0, NLz-1
+            i=Lxyz(ix,iy,iz)
+            if(mod(j,6)==0) then
+               write(fh_dns_trans1,8040) real(rho_trans(i))
+               write(fh_dns_trans2,8040) aimag(rho_trans(i))
+            else
+               write(fh_dns_trans1,8040,advance='no') real(rho_trans(i))
+               write(fh_dns_trans2,8040,advance='no') aimag(rho_trans(i))
+            endif
+            j=j+1
+         end do
+         end do
+         end do
+
+         close(fh_dns_trans1)
+         close(fh_dns_trans2)
+
+         !format for cube
+8010     format("# SALMON",/, &
+         &      "# out_dns_trans option: energy in FT =",f18.10," [",a,"]" )
+8020     format(I5,3(F12.6))
+8030     format(I5,4(F12.6))
+8040     format(ES12.4)
+
+      case ('vtk')
+
+         file_dns_trans1 = "out_dns_trans.cube"
+         file_dns_trans2 = "out_dns_trans_ratio.cube"
+         open(fh_dns_trans1,file=file_dns_trans1,status="unknown")
+         open(fh_dns_trans2,file=file_dns_trans2,status="unknown")
+
+         write(fh_dns_trans1,6010) 
+         write(fh_dns_trans1,6020) NLx, NLy, NLz
+         write(fh_dns_trans1,6030) 0d0, 0d0, 0d0
+         write(fh_dns_trans1,6040) Hx, Hy, Hz
+         write(fh_dns_trans1,6050) NLx * NLy * NLz
+         write(fh_dns_trans1,6060) 
+
+         write(fh_dns_trans2,6010) 
+         write(fh_dns_trans2,6020) NLx, NLy, NLz
+         write(fh_dns_trans2,6030) 0d0, 0d0, 0d0
+         write(fh_dns_trans2,6040) Hx, Hy, Hz
+         write(fh_dns_trans2,6050) NLx * NLy * NLz
+         write(fh_dns_trans2,6060) 
+
+         do ix=0, NLx-1
+         do iy=0, NLy-1
+         do iz=0, NLz-1
+            i=Lxyz(ix,iy,iz)
+            write(fh_dns_trans1,6070) real(rho_trans(i))
+            write(fh_dns_trans2,6070) aimag(rho_trans(i))
+         end do
+         end do
+         end do
+
+         close(fh_dns_trans1)
+         close(fh_dns_trans2)
+
+
+         !format for vtk
+6010     format("# vtk DataFile Version 3.0",/, &
+         &      "vtk output",/,                 &
+         &      "ASCII",/,                      &
+         &      "DATASET STRUCTURED_POINTS" )
+
+6020     format("DIMENSIONS",3(1X,I2)  )
+6030     format("ORIGIN",    3(1X,F3.1))
+6040     format("SPACING",   3(1X,F7.3))
+6050     format("POINT_DATA",1X,I6     )
+6060     format("SCALARS scalars float",/, &
+         &      "LOOKUP_TABLE default" )
+6070     format(ES12.5)
+
+      end select
+      endif
+
+  endif
+
+  return
+end Subroutine analysis_dns_trans
+
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

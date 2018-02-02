@@ -135,6 +135,8 @@ Module Global_Variables
   real(8),allocatable :: weight_Ac_alocal(:),Ac_ext_al(:,:),Ac_tot_al(:,:)
   real(8),allocatable :: Ac1x_al(:),Ac1y_al(:),Ac1z_al(:),Ac2_al(:,:),divA_al(:)
   real(8) :: Ac_al_amp(3),Ac2_al_amp,nabt_al(12)
+  !analysis of transition density at omega
+  complex(8),allocatable :: rho_trans(:)
 
 ! control parameters
   real(8) :: dAc,domega
