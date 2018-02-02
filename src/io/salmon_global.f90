@@ -101,6 +101,7 @@ module salmon_global
 !! &functional
   character(32)  :: xc
   real(8)        :: cval
+  character(1)   :: no_update_func
 
 !! &rgrid
   real(8)        :: dl(3)
@@ -201,16 +202,19 @@ module salmon_global
   character(1)   :: out_dos_fshift
   character(1)   :: out_pdos
   character(1)   :: out_dns
-  character(1)   :: out_elf
   character(1)   :: out_old_dns
   character(1)   :: out_dns_rt
   integer        :: out_dns_rt_step
+  character(1)   :: out_dns_trans
+  real(8)        :: out_dns_trans_energy
+  character(1)   :: out_elf
   character(1)   :: out_elf_rt
   integer        :: out_elf_rt_step
   character(1)   :: out_estatic_rt
   integer        :: out_estatic_rt_step
   character(1)   :: out_rvf_rt
   integer        :: out_rvf_rt_step
+  character(1)   :: out_tm
   integer        :: out_projection_step
   integer        :: out_ms_step
   character(16)  :: format3d

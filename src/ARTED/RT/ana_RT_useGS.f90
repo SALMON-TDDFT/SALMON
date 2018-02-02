@@ -17,6 +17,43 @@
 !This file contain a subroutine.
 !Subroutine k_shift_wf(iter,iter_GS_max)
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+Subroutine write_projection_header
+  use Global_Variables, only: NB
+  use inputoutput, only: t_unit_time, t_unit_energy
+  implicit none
+
+ !open(404, file=file_ovlp,position = position_option) 
+  write(404, '("#",1X,A)') "Projection"
+  write(404, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+  write(404, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
+  write(404, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
+  write(404, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+  &           1, "ik", "none", &
+  &           2, "ovlp_occup(NB)", "none"
+        
+ !open(408, file=file_nex, position = position_option) 
+   write(408, '("#",1X,A)') "Excitation"
+   write(408, '("#",1X,A,":",1X,A)') "nelec", "Number of excited electrons"
+   write(408, '("#",1X,A,":",1X,A)') "nhole", "Number of excited holes"
+   write(408, '("#",99(1X,I0,":",A,"[",A,"]"))')  &
+   &           1, "time", trim(t_unit_time%name), &
+   &           2, "nelec", "none", &
+   &           3, "nhole", "none"
+      
+  !open(409, file=file_last_band_map,position = position_option) 
+   write(409, '("#",1X,A)') "Last bandmap"
+   write(409, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+   write(409, '("#",1X,A,":",1X,A)') "energy", "Electron energy"
+   write(409, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
+   write(409, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
+   write(409, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+   &           1, "ik", "none", &
+   &           2, "energy(NB)", trim(t_unit_energy%name), &
+   &           2 + NB, "ovlp_occup(NB)", "none"      
+
+  return
+End Subroutine write_projection_header
+
 Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
 !(this subroutine was named "k_shift_wf" in past)
   use Global_Variables

@@ -114,6 +114,7 @@ Subroutine write_GS_data
   if(out_psi == 'y') call write_psi_data
   call write_k_data
   call write_eigen_data
+  if(out_tm  == 'y') call write_tm_data
 
   return
 
@@ -358,7 +359,7 @@ Subroutine write_GS_data
       implicit none
       integer :: fh_eigen
       integer :: ik, ib
-    
+   
       if (comm_is_root(nproc_id_global)) then
         fh_eigen = open_filehandle(file_eigen_data, status="replace")
         write(fh_eigen, '("#",1X,A)') "Ground state eigenenergies"
@@ -383,6 +384,297 @@ Subroutine write_GS_data
       end if
       call comm_sync_all
     end subroutine write_eigen_data
+
+  !! export SYSNAME_eigen.data file
+    subroutine write_tm_data()
+      use projector
+      implicit none
+      integer :: fh_tm
+      integer :: i,j,ik,ib,ib1,ib2, ilma,ia,ix,iy,iz
+      real(8) :: nabt(12), x,y,z
+      complex(8) :: u_nab_u(3), upu(3,NB,NB,NK),upu_l(3,NB,NB,NK)
+      complex(8) :: uVpsi(NB,NK),uVpsix(NB,NK),uVpsiy(NB,NK),uVpsiz(NB,NK)
+      complex(8) :: uVpsixx(NB,NK),uVpsixy(NB,NK),uVpsixz(NB,NK)
+      complex(8) :: uVpsiyy(NB,NK),uVpsiyz(NB,NK),uVpsizz(NB,NK)
+      complex(8) :: u_rVnl_Vnlr_u(3,NB,NB,NK),u_rVnl_Vnlr_u_l(3,NB,NB,NK)
+      complex(8) :: u_rVnl_u(3),u_Vnlr_u(3),veik
+      complex(8) :: u_rVnlr_Vnlrr_u(3,3,NB,NK),u_rVnlr_Vnlrr_u_l(3,3,NB,NK)
+      complex(8) :: ctmp1,ctmp2
+
+      !calculate <u_nk|p_j|u_mk>  (j=x,y,z)
+      nabt( 1: 4)=nabx(1:4)
+      nabt( 5: 8)=naby(1:4)
+      nabt( 9:12)=nabz(1:4)
+
+      upu_l(:,:,:,:) = 0d0
+      do ik=NK_s,NK_e
+!$omp parallel
+!$omp do private(ib1,ib2,u_nab_u) collapse(2)
+      do ib1=1,NB
+      do ib2=1,NB
+         call u_nab_u_stencil(zu_GS0(:,ib1,ik),nabt,zu_GS0(:,ib2,ik),u_nab_u)
+         upu_l(:,ib1,ib2,ik) = -zI*u_nab_u(:)*Hxyz
+      enddo
+      enddo
+!$omp end do
+!$omp end parallel
+      enddo
+      call comm_summation(upu_l,upu,3*NB*NB*NK,nproc_group_tdks)
+
+
+      call update_projector(kac)
+
+      !calculate <u_mk|[r_j,dVnl^(0)]|u_nk>  (j=x,y,z)
+      u_rVnl_Vnlr_u_l = 0d0
+      do ik=NK_s,NK_e
+      do ilma=1,Nlma
+         ia=a_tbl(ilma)
+         uVpsi=0d0;  uVpsix=0d0;  uVpsiy=0d0;  uVpsiz=0d0
+
+         do j=1,Mps(ia)
+            i=Jxyz(j,ia)
+
+            ix=Jxx(j,ia);  x=Lx(i)*Hx-ix*aLx
+            iy=Jyy(j,ia);  y=Ly(i)*Hy-iy*aLy
+            iz=Jzz(j,ia);  z=Lz(i)*Hz-iz*aLz
+
+            veik = conjg(zproj(j,ilma,ik))
+            do ib=1,NB
+            uVpsi( ib,ik) =uVpsi( ib,ik)+ veik*    zu_GS0(i,ib,ik) !=<v|e^ik|u>
+            uVpsix(ib,ik) =uVpsix(ib,ik)+ veik* x *zu_GS0(i,ib,ik) !=<v|e^ik*x|u>
+            uVpsiy(ib,ik) =uVpsiy(ib,ik)+ veik* y *zu_GS0(i,ib,ik) !=<v|e^ik*y|u>
+            uVpsiz(ib,ik) =uVpsiz(ib,ik)+ veik* z *zu_GS0(i,ib,ik) !=<v|e^ik*z|u>
+            enddo
+         end do
+
+         uVpsi  = uVpsi *Hxyz *iuV(ilma)
+         uVpsix = uVpsix*Hxyz
+         uVpsiy = uVpsiy*Hxyz
+         uVpsiz = uVpsiz*Hxyz
+
+!$omp parallel
+!$omp do private(ib1,ib2,u_rVnl_u,u_Vnlr_u) collapse(2)
+         do ib1=1,NB
+         do ib2=1,NB
+            !<u|e^-ik*r|v><v|e^ik|u>
+            u_rVnl_u(1)= conjg(uVpsix(ib1,ik))*uVpsi(ib2,ik) 
+            u_rVnl_u(2)= conjg(uVpsiy(ib1,ik))*uVpsi(ib2,ik) 
+            u_rVnl_u(3)= conjg(uVpsiz(ib1,ik))*uVpsi(ib2,ik) 
+            !<u|e^-ik|v><v|e^ik*r|u>
+            u_Vnlr_u(1)= conjg(uVpsi(ib1,ik))*uVpsix(ib2,ik) 
+            u_Vnlr_u(2)= conjg(uVpsi(ib1,ik))*uVpsiy(ib2,ik) 
+            u_Vnlr_u(3)= conjg(uVpsi(ib1,ik))*uVpsiz(ib2,ik) 
+
+            u_rVnl_Vnlr_u_l(:,ib1,ib2,ik) = u_rVnl_Vnlr_u_l(:,ib1,ib2,ik)  &
+            &                               + u_rVnl_u(:) - u_Vnlr_u(:)
+         enddo
+         enddo
+!$omp end do
+!$omp end parallel
+      enddo  !ilma
+      enddo  !ik
+      call comm_summation(u_rVnl_Vnlr_u_l,u_rVnl_Vnlr_u,3*NB*NB*NK,nproc_group_tdks)
+
+
+      !calculate <u_nk|[r_j,dVnl^(0)]r|u_nk>  (j=x,y,z)
+      u_rVnlr_Vnlrr_u_l(:,:,:,:) = 0d0
+      do ik=NK_s,NK_e
+      do ilma=1,Nlma
+         ia=a_tbl(ilma)
+         uVpsi=0d0;  uVpsix=0d0;  uVpsiy=0d0;  uVpsiz=0d0
+         uVpsixx=0d0;  uVpsixy=0d0;  uVpsixz=0d0
+                       uVpsiyy=0d0;  uVpsiyz=0d0
+                                     uVpsizz=0d0
+         do j=1,Mps(ia)
+            i=Jxyz(j,ia)
+
+            ix=Jxx(j,ia);  x=Lx(i)*Hx-ix*aLx
+            iy=Jyy(j,ia);  y=Ly(i)*Hy-iy*aLy
+            iz=Jzz(j,ia);  z=Lz(i)*Hz-iz*aLz
+
+            veik = conjg(zproj(j,ilma,ik))
+            do ib=1,NB
+            uVpsi(  ib,ik)=uVpsi(  ib,ik)+veik*    zu_GS0(i,ib,ik) !=<v|e^ik|u>
+            uVpsix( ib,ik)=uVpsix( ib,ik)+veik* x *zu_GS0(i,ib,ik) !=<v|e^ik*x|u>
+            uVpsiy( ib,ik)=uVpsiy( ib,ik)+veik* y *zu_GS0(i,ib,ik) !=<v|e^ik*y|u>
+            uVpsiz( ib,ik)=uVpsiz( ib,ik)+veik* z *zu_GS0(i,ib,ik) !=<v|e^ik*z|u>
+            uVpsixx(ib,ik)=uVpsixx(ib,ik)+veik*x*x*zu_GS0(i,ib,ik) !=<v|e^ik*xx|u>
+            uVpsixy(ib,ik)=uVpsixy(ib,ik)+veik*x*y*zu_GS0(i,ib,ik) !=<v|e^ik*xy|u>
+            uVpsixz(ib,ik)=uVpsixz(ib,ik)+veik*x*z*zu_GS0(i,ib,ik) !=<v|e^ik*xz|u>
+            uVpsiyy(ib,ik)=uVpsiyy(ib,ik)+veik*y*y*zu_GS0(i,ib,ik) !=<v|e^ik*yy|u>
+            uVpsiyz(ib,ik)=uVpsiyz(ib,ik)+veik*y*z*zu_GS0(i,ib,ik) !=<v|e^ik*yz|u>
+            uVpsizz(ib,ik)=uVpsizz(ib,ik)+veik*z*z*zu_GS0(i,ib,ik) !=<v|e^ik*zz|u>
+            enddo
+
+         end do
+         uVpsi  = uVpsi *Hxyz
+         uVpsix = uVpsix*Hxyz
+         uVpsiy = uVpsiy*Hxyz
+         uVpsiz = uVpsiz*Hxyz
+
+         uVpsixx = uVpsixx*Hxyz
+         uVpsixy = uVpsixy*Hxyz
+         uVpsixz = uVpsixz*Hxyz
+         uVpsiyy = uVpsiyy*Hxyz
+         uVpsiyz = uVpsiyz*Hxyz
+         uVpsizz = uVpsizz*Hxyz
+
+         do ib=1,NB
+            !xx
+            ctmp1 = conjg(uVpsix(ib,ik))*uVpsix( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsixx(ib,ik)
+            u_rVnlr_Vnlrr_u_l(1,1,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(1,1,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !xy
+            ctmp1 = conjg(uVpsix(ib,ik))*uVpsiy( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsixy(ib,ik)
+            u_rVnlr_Vnlrr_u_l(1,2,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(1,2,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !xz
+            ctmp1 = conjg(uVpsix(ib,ik))*uVpsiz( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsixz(ib,ik)
+            u_rVnlr_Vnlrr_u_l(1,3,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(1,3,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !yx
+            ctmp1 = conjg(uVpsiy(ib,ik))*uVpsix( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsixy(ib,ik)
+            u_rVnlr_Vnlrr_u_l(2,1,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(2,1,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !yy
+            ctmp1 = conjg(uVpsiy(ib,ik))*uVpsiy( ib,ik)  
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsiyy(ib,ik)
+            u_rVnlr_Vnlrr_u_l(2,2,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(2,2,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !yz
+            ctmp1 = conjg(uVpsiy(ib,ik))*uVpsiz( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsiyz(ib,ik)
+            u_rVnlr_Vnlrr_u_l(2,3,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(2,3,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !zx
+            ctmp1 = conjg(uVpsiz(ib,ik))*uVpsix( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsixz(ib,ik)
+            u_rVnlr_Vnlrr_u_l(3,1,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(3,1,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !zy
+            ctmp1 = conjg(uVpsiz(ib,ik))*uVpsiy( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsiyz(ib,ik)
+            u_rVnlr_Vnlrr_u_l(3,2,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(3,2,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+            !zz
+            ctmp1 = conjg(uVpsiz(ib,ik))*uVpsiz( ib,ik)
+            ctmp2 = conjg(uVpsi( ib,ik))*uVpsizz(ib,ik)
+            u_rVnlr_Vnlrr_u_l(3,3,ib,ik) = &
+            u_rVnlr_Vnlrr_u_l(3,3,ib,ik) + (ctmp1 - ctmp2)*iuV(ilma)
+
+         enddo
+
+      enddo  !ilma
+      enddo  !ik
+      call comm_summation(u_rVnlr_Vnlrr_u_l,u_rVnlr_Vnlrr_u,3*3*NB*NK,nproc_group_tdks)
+
+    
+      if (comm_is_root(nproc_id_global)) then
+        fh_tm = open_filehandle(file_tm_data, status="replace")
+        write(fh_tm, '("#",1X,A)') "#Transition Moment between occupied and unocupied orbitals in GS"
+        write(fh_tm, '("#",1X,A)') "# (Separated analysis tool is available)"
+
+
+        !Currently, TEST: print format is not decided
+
+         !<u_nk|p_j|u_mk>  (j=x,y,z)
+         write(fh_tm,*) "#<u_nk|p_j|u_mk>  (j=x,y,z)"
+         do ik =1,NK
+         do ib1=1,NB
+         do ib2=1,NB
+            write(fh_tm,9000) ik,ib1,ib2,(upu(j,ib1,ib2,ik),j=1,3)
+         enddo
+         enddo
+         enddo
+!9000     format(3i8,6e18.10)
+9000     format(3i8,6e18.5)
+
+         !<u_mk|[r_j,dVnl^(0)]r_i|u_nk>  (j,i=x,y,z)
+         write(fh_tm,*) "#<u_mk|[r_j,dVnl^(0)]r_i|u_nk>  (j,i=x,y,z)"
+         do ik=1,NK
+         do ib=1,NB
+            do i=1,3
+               write(fh_tm,9000) ik,ib,i,(u_rVnlr_Vnlrr_u(i,j,ib,ik),j=1,3)
+            enddo
+         enddo
+         enddo
+
+         !<u_mk|[r_j,dVnl^(0)]|u_nk>  (j=x,y,z)
+         write(fh_tm,*) "#<u_mk|[r_j,dVnl^(0)]|u_nk>  (j=x,y,z)"
+         do ik =1,NK
+         do ib1=1,NB
+         do ib2=1,NB
+            write(fh_tm,9000) ik,ib1,ib2,(u_rVnl_Vnlr_u(j,ib1,ib2,ik),j=1,3)
+         enddo
+         enddo
+         enddo
+
+      end if
+        
+
+      if (comm_is_root(nproc_id_global)) then
+        close(fh_tm)
+      end if
+      call comm_sync_all
+    end subroutine write_tm_data
+
+    subroutine u_nab_u_stencil(A,B,C,D)
+      use global_variables, only: NLx,NLy,NLz,zI
+#ifndef ARTED_DOMAIN_POWER_OF_TWO
+      use opt_variables, only: modx, mody, modz
+#endif
+      implicit none
+      complex(8),intent(in)   :: A(0:NLz-1,0:NLy-1,0:NLx-1)
+      real(8),   intent(in)   :: B(12)
+      complex(8),intent(in)   :: C(0:NLz-1,0:NLy-1,0:NLx-1)
+      complex(8),intent(out)  :: D(3)
+
+      integer    :: ix,iy,iz
+      complex(8) :: w1,w2,w3
+
+#ifdef ARTED_DOMAIN_POWER_OF_TWO
+# define IDX(dt) iz,iy,and(ix+(dt)+NLx,NLx-1)
+# define IDY(dt) iz,and(iy+(dt)+NLy,NLy-1),ix
+# define IDZ(dt) and(iz+(dt)+NLz,NLz-1),iy,ix
+#else
+# define IDX(dt) iz,iy,modx(ix+(dt)+NLx)
+# define IDY(dt) iz,mody(iy+(dt)+NLy),ix
+# define IDZ(dt) modz(iz+(dt)+NLz),iy,ix
+#endif
+
+      D(:)=0d0
+
+      do ix=0,NLx-1
+      do iy=0,NLy-1
+      do iz=0,NLz-1
+
+         w1=(B( 9)*(C(IDZ(1))-C(IDZ(-1))) &
+         &  +B(10)*(C(IDZ(2))-C(IDZ(-2))) &
+         &  +B(11)*(C(IDZ(3))-C(IDZ(-3))) &
+         &  +B(12)*(C(IDZ(4))-C(IDZ(-4))))
+
+         w2=(B( 5)*(C(IDY(1))-C(IDY(-1))) &
+         &  +B( 6)*(C(IDY(2))-C(IDY(-2))) &
+         &  +B( 7)*(C(IDY(3))-C(IDY(-3))) &
+         &  +B( 8)*(C(IDY(4))-C(IDY(-4))))
+
+         w3=(B( 1)*(C(IDX(1))-C(IDX(-1))) &
+         &  +B( 2)*(C(IDX(2))-C(IDX(-2))) &
+         &  +B( 3)*(C(IDX(3))-C(IDX(-3))) &
+         &  +B( 4)*(C(IDX(4))-C(IDX(-4))))
+
+         D(1) = D(1) + conjg(A(iz,iy,ix))*w3  !x
+         D(2) = D(2) + conjg(A(iz,iy,ix))*w2  !y
+         D(3) = D(3) + conjg(A(iz,iy,ix))*w1  !z
+      end do
+      end do
+      end do
+
+    end subroutine u_nab_u_stencil
     
 End Subroutine write_GS_data
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

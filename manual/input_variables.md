@@ -378,6 +378,12 @@ John P. Perdew and Yue Wang, Phys. Rev. B 45, 13244 (1992).
 by the formula in the original paper [Phys. Rev. Lett. 102, 226401 (2008)].
 Default is <code>'1.0'</code>.
 </dd>
+
+<dt>no_update_func; <code>character(1)</code>; 3d</dt>
+<dd>Option not to update functional (or Hamiltonian) in RT time step, i.e., keep ground state Hamiltonian during time-evolution.
+Default is <code>'n'</code>.
+</dd>
+
 </dl>
 
 ## &rgrid
@@ -881,16 +887,22 @@ If <code>'y'</code>, density is output.
 Default is <code>'n'</code>.
 </dd>
 
-<dt>out_elf; <code>Character</code>; 0d</dt>
-<dd>
-If <code>'y'</code>, electron localization function is output.
-Default is <code>'n'</code>.
-</dd>
-
 <dt>out_dns_rt/out_dns_rt_step; <code>Character/Integer</code>; 0d/3d</dt>
 <dd>
 If <code>'y'</code>, density during real-time time-propagation is output
 every <code>outdns_rt_step</code> time steps.
+Default is <code>'n'</code>.
+</dd>
+
+<dt>out_dns_trans/out_dns_trans_energy; <code>Character/Real(8)</code>; 3d</dt>
+<dd>
+If <code>'y'</code>, transition in different density from the ground state at specified field frequency omega(given by <code>out_dns_trans_energy</code>) is calculated by drho(r,omega)=FT(rho(r,t)-rho_gs(r))/T.
+Default is <code>'n'/1.55eV</code>.
+</dd>
+
+<dt>out_elf; <code>Character</code>; 0d</dt>
+<dd>
+If <code>'y'</code>, electron localization function is output.
 Default is <code>'n'</code>.
 </dd>
 
@@ -917,6 +929,12 @@ during real-time time-propagation are printed in <code>SYSname</code>_trj.xyz
 every <code>out_rvf_rt_step</code> time steps.
 If <code>use_ehrenfest_md='y'</code>, 
 the printing option is automatically turned on.
+Defaults are <code>'n'/10</code>.
+</dd>
+
+<dt>out_tm; <code>Character</code>; 3d</dt>
+<dd>
+If <code>'y'</code>, trandition moments between occupied and virtual orbitals are printed into <code>SYSname</code>_tm.data after the ground state calculation.
 Defaults are <code>'n'/10</code>.
 </dd>
 

@@ -265,7 +265,8 @@ contains
 
     namelist/functional/ &
       & xc, &
-      & cval
+      & cval, &
+      & no_update_func
 
     namelist/rgrid/ &
       & dl, &
@@ -362,16 +363,19 @@ contains
       & out_dos_smearing, &
       & out_dos_method, &
       & out_dos_fshift, &
-      & out_elf, &
       & out_old_dns, &
       & out_dns_rt, &
       & out_dns_rt_step, &
+      & out_dns_trans, &
+      & out_dns_trans_energy, &
+      & out_elf, &
       & out_elf_rt, &
       & out_elf_rt_step, &
       & out_estatic_rt, &
       & out_estatic_rt_step, &
       & out_rvf_rt, &
       & out_rvf_rt_step, &
+      & out_tm, &
       & out_projection_step, &
       & out_ms_step, &
       & format3d, &
@@ -549,6 +553,7 @@ contains
 !! == default for &functional
     xc   = 'PZ'
     cval = -1d0
+    no_update_func = 'n'
 !! == default for &rgrid
     dl        = 0d0
     num_rgrid = 0
@@ -641,16 +646,20 @@ contains
     out_dos_fshift      = 'n'
     out_pdos            = 'n'
     out_dns             = 'n'
-    out_elf             = 'n'
     out_old_dns         = 'n'
     out_dns_rt          = 'n'
     out_dns_rt_step     = 50
+    out_dns_trans       = 'n'
+    out_dns_trans_energy= 1.55d0 / au_energy_ev * uenergy_from_au  ! eV
+
+    out_elf             = 'n'
     out_elf_rt          = 'n'
     out_elf_rt_step     = 50
     out_estatic_rt      = 'n'
     out_estatic_rt_step = 50
     out_rvf_rt          = 'n'
     out_rvf_rt_step     = 10
+    out_tm              = 'n'
     out_projection_step = 100
     out_ms_step      = 100
     format3d            = 'cube'
@@ -863,8 +872,9 @@ contains
     call comm_bcast(gamma_mask   ,nproc_group_global)
     call comm_bcast(eta_mask     ,nproc_group_global)
 !! == bcast for &functional
-    call comm_bcast(xc  ,nproc_group_global)
-    call comm_bcast(cval,nproc_group_global)
+    call comm_bcast(xc            ,nproc_group_global)
+    call comm_bcast(cval          ,nproc_group_global)
+    call comm_bcast(no_update_func,nproc_group_global)
 !! == bcast for &rgrid
     call comm_bcast(dl,nproc_group_global)
     dl = dl * ulength_to_au
@@ -964,29 +974,33 @@ contains
     call comm_bcast(nenergy          ,nproc_group_global)
     call comm_bcast(de               ,nproc_group_global)
     de = de * uenergy_to_au
-    call comm_bcast(out_psi            ,nproc_group_global)
-    call comm_bcast(out_dos            ,nproc_group_global)
-    call comm_bcast(out_dos_start      ,nproc_group_global)
+    call comm_bcast(out_psi             ,nproc_group_global)
+    call comm_bcast(out_dos             ,nproc_group_global)
+    call comm_bcast(out_dos_start       ,nproc_group_global)
     out_dos_start = out_dos_start * uenergy_to_au
-    call comm_bcast(out_dos_end        ,nproc_group_global)
+    call comm_bcast(out_dos_end         ,nproc_group_global)
     out_dos_end = out_dos_end * uenergy_to_au
-    call comm_bcast(iout_dos_nenergy   ,nproc_group_global)
-    call comm_bcast(out_dos_smearing   ,nproc_group_global)
+    call comm_bcast(iout_dos_nenergy    ,nproc_group_global)
+    call comm_bcast(out_dos_smearing    ,nproc_group_global)
     out_dos_smearing = out_dos_smearing * uenergy_to_au
-    call comm_bcast(out_dos_method     ,nproc_group_global)
-    call comm_bcast(out_dos_fshift     ,nproc_group_global)
-    call comm_bcast(out_pdos           ,nproc_group_global)
-    call comm_bcast(out_dns            ,nproc_group_global)
+    call comm_bcast(out_dos_method      ,nproc_group_global)
+    call comm_bcast(out_dos_fshift      ,nproc_group_global)
+    call comm_bcast(out_pdos            ,nproc_group_global)
+    call comm_bcast(out_dns             ,nproc_group_global)
+    call comm_bcast(out_old_dns         ,nproc_group_global)
+    call comm_bcast(out_dns_rt          ,nproc_group_global)
+    call comm_bcast(out_dns_rt_step     ,nproc_group_global)
+    call comm_bcast(out_dns_trans       ,nproc_group_global)
+    call comm_bcast(out_dns_trans_energy,nproc_group_global)
+    out_dns_trans_energy = out_dns_trans_energy * uenergy_to_au
     call comm_bcast(out_elf            ,nproc_group_global)
-    call comm_bcast(out_old_dns        ,nproc_group_global)
-    call comm_bcast(out_dns_rt         ,nproc_group_global)
-    call comm_bcast(out_dns_rt_step    ,nproc_group_global)
     call comm_bcast(out_elf_rt         ,nproc_group_global)
     call comm_bcast(out_elf_rt_step    ,nproc_group_global)
     call comm_bcast(out_estatic_rt     ,nproc_group_global)
     call comm_bcast(out_estatic_rt_step,nproc_group_global)
     call comm_bcast(out_rvf_rt         ,nproc_group_global)
     call comm_bcast(out_rvf_rt_step    ,nproc_group_global)
+    call comm_bcast(out_tm             ,nproc_group_global)
     call comm_bcast(out_projection_step,nproc_group_global)
     call comm_bcast(out_ms_step     ,nproc_group_global)
     call comm_bcast(format3d           ,nproc_group_global)
@@ -1390,6 +1404,7 @@ contains
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'functional', inml_functional
       write(fh_variables_log, '("#",4X,A,"=",A)') 'xc', trim(xc)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cval', cval
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'no_update_func', no_update_func
 
       if(inml_rgrid >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'rgrid', inml_rgrid
@@ -1507,16 +1522,19 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dos_fshift', out_dos_fshift
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_pdos', out_pdos
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns', out_dns
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_old_dns', out_old_dns
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns_rt', out_dns_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_dns_rt_step', out_dns_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_dns_trans', out_dns_trans
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'out_dns_trans_energy', out_dns_trans_energy
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf', out_elf
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_elf_rt', out_elf_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_elf_rt_step', out_elf_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_estatic_rt', out_estatic_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_estatic_rt_step', out_estatic_rt_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_rvf_rt', out_rvf_rt
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_rvf_rt_step', out_rvf_rt_step
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'out_tm', out_tm
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_projection_step', out_projection_step
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'out_ms_step', out_ms_step
       write(fh_variables_log, '("#",4X,A,"=",A)') 'format3d', format3d

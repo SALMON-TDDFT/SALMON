@@ -84,51 +84,19 @@ subroutine tddft_sc
   ! Export electronic density
   if (out_dns == 'y') call write_density(iter,'gs')
 
+  ! Export transition electronic density at specified energy
+  if (out_dns_trans == 'y') call analysis_dns_trans(iter)
 
   if (comm_is_root(nproc_id_global)) then
     ! open(7,file=file_epst,    position = position_option) !! TODO: remove output of "_t.out" file future
-    
     if (projection_option /= 'no') then 
-      
-      open(404, file=file_ovlp,position = position_option) 
-      write(404, '("#",1X,A)') "Projection"
-      
-      write(404, '("#",1X,A,":",1X,A)') "ik", "k-point index"
-      write(404, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
-      write(404, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
-      
-      write(404, '("#",99(1X,I0,":",A,"[",A,"]"))') &
-        & 1, "ik", "none", &
-        & 2, "ovlp_occup(NB)", "none"
-        
-      open(408, file=file_nex, position = position_option) 
-      write(408, '("#",1X,A)') "Excitation"
-      
-      write(408, '("#",1X,A,":",1X,A)') "nelec", "Number of excited electrons"
-      write(408, '("#",1X,A,":",1X,A)') "nhole", "Number of excited holes"
-      
-      write(408, '("#",99(1X,I0,":",A,"[",A,"]"))') &
-        & 1, "time", trim(t_unit_time%name), &
-        & 2, "nelec", "none", &
-        & 3, "nhole", "none"
-      
+      open(404, file=file_ovlp,         position = position_option) 
+      open(408, file=file_nex,          position = position_option) 
       open(409, file=file_last_band_map,position = position_option) 
-      write(409, '("#",1X,A)') "Last bandmap"
-      
-      write(409, '("#",1X,A,":",1X,A)') "ik", "k-point index"
-      write(409, '("#",1X,A,":",1X,A)') "energy", "Electron energy"
-      write(409, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
-      write(409, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
-      
-      write(409, '("#",99(1X,I0,":",A,"[",A,"]"))') &
-        & 1, "ik", "none", &
-        & 2, "energy(NB)", trim(t_unit_energy%name), &
-        & 2 + NB, "ovlp_occup(NB)", "none"      
+      call write_projection_header
     end if
 
-    if (out_old_dns == 'y') then
-      open(8,file=file_dns,     position = position_option)
-    end if
+    if (out_old_dns == 'y') open(8,file=file_dns, position = position_option)
     
   endif
   call comm_sync_all
@@ -347,6 +315,9 @@ subroutine tddft_sc
     if(out_dns_rt=='y' .and. mod(iter,out_dns_rt_step)==0) then
        call write_density(iter,'rt')
     end if
+
+    ! Export transition electronic density at specified energy
+    if (out_dns_trans == 'y') call analysis_dns_trans(iter)
 
     ! Export analysis data(Adiabatic evolution) to file_ovlp,file_nex
     if(projection_option /='no' .and. mod(iter,out_projection_step)==0)then
