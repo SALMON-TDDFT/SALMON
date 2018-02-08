@@ -16,6 +16,7 @@ add_custom_target("test_preparations" ALL
 
 # test directories
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/001_bulk_gs_rt")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/011_bulk_ms")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/101_C2H2_gs")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/102_C2H2_rt_response")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/103_C2H2_rt_pulse")
