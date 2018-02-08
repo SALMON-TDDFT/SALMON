@@ -7,6 +7,12 @@
 ! It works for calculating dielectric function with "impulse" option, 
 ! as A(r,t) is only used in the first time step, doesn't affect on current so much.
 !
+! Should include A(r,t) in future:
+!  - Energy (if you only see the initial and final state, not necessary to fix)
+!  - Force from non-local pseudopotential term 
+!  - Non-local pseudopotential term in KS equation
+!  - Current
+!
 module Ac_alocal_laser
   implicit none
 
@@ -18,8 +24,9 @@ contains
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_is_root
   implicit none
+  logical :: flag_use_gauss_for_weight_ion
   integer :: i,j,NI_alocal
-  integer :: ix,iy,iz,ia,iatom(NI)
+  integer :: ix,iy,iz,ia,ia2,iatom(NI)
   real(8) :: x,y,z,r,tmpx,tmpy,tmpz,tmp1,radi(NI),sgm(NI),ave_weight_Ac_alocal
   character(10) :: ckeyword
 
@@ -53,8 +60,9 @@ contains
   call comm_bcast(ckeyword, nproc_group_global)
   call comm_bcast(NI_alocal,nproc_group_global)
 
-  allocate(weight_Ac_alocal(NL),divA_al(NL))
-  weight_Ac_alocal(:)=0d0
+  allocate(weight_Ac_alocal(NL),weight_Ac_alocal_ion(NI),divA_al(NL))
+  weight_Ac_alocal(:)    =0d0
+  weight_Ac_alocal_ion(:)=0d0
 
   if(ckeyword=="atoms") then
 
@@ -93,27 +101,105 @@ contains
               endif
            enddo
 !$omp end do
+           do ia2=1,NI
+              x=Rion(1,ia2)-tmpx
+              y=Rion(2,ia2)-tmpy
+              z=Rion(3,ia2)-tmpz
+              r=sqrt(x*x+y*y+z*z)
+              if(r<radi(j)) then
+                 weight_Ac_alocal_ion(ia2)=1d0
+              else
+                 tmp1 = exp(-(r-radi(j))**2d0/(sgm(j)*sgm(j)))
+                 weight_Ac_alocal_ion(ia2)= weight_Ac_alocal_ion(ia2) + tmp1
+              endif
+           enddo
         enddo
         enddo
         enddo
      end do
 !$omp end parallel
 
-
      do i=1,NL
         if(weight_Ac_alocal(i).gt.1d0) weight_Ac_alocal(i)=1d0
      enddo
+     do ia=1,NI
+        if(weight_Ac_alocal_ion(ia).gt.1d0) weight_Ac_alocal_ion(ia)=1d0
+     enddo
 
+!     flag_use_gauss_for_weight_ion=.true.
+     flag_use_gauss_for_weight_ion=.false.
+     if(.not. flag_use_gauss_for_weight_ion)then
+        weight_Ac_alocal_ion(:)=0d0
+        do j=1,NI_alocal
+           ia=iatom(j)
+           weight_Ac_alocal_ion(ia)=1d0
+        enddo
+     endif
+
+
+     !log
      ave_weight_Ac_alocal = sum(weight_Ac_alocal(:))/dble(NL)
-     if(comm_is_root(nproc_id_global)) &
-     & write(*,*)"  average spatial weight for local_laser=",real(ave_weight_Ac_alocal)
+     if(comm_is_root(nproc_id_global)) then
+       write(*,*)"  average spatial weight for local_laser=",real(ave_weight_Ac_alocal)
+       write(*,*)"  weight on atoms for local_laser="
+       do ia=1,NI
+          write(*,'(4X,i6,f10.5)') ia,weight_Ac_alocal_ion(ia)
+       enddo
+     endif
+
+     call write_weight_cube_alocal
 
   endif
 
 
   call prep_RT_Ac_alocal_laser(0)
 
-  return
+
+  contains
+
+    subroutine write_weight_cube_alocal
+      implicit none
+      integer :: i, j, ix, iy, iz, ifh
+      real(8) :: r
+      character(256) :: file_name_alocal
+
+      ifh= 505
+      file_name_alocal = "weight_alocal.cube"
+      open(ifh,file=trim(file_name_alocal),status="unknown")
+      
+      write(ifh, '(A)') "# SALMON"
+      write(ifh, '(A)') "# COMMENT"
+      write(ifh, '(I5,3(F12.6))') NI, 0.00, 0.00, 0.00
+      write(ifh, '(I5,3(F12.6))') NLx, Hx, 0.00, 0.00
+      write(ifh, '(I5,3(F12.6))') NLy, 0.00, Hy, 0.00
+      write(ifh, '(I5,3(F12.6))') NLz, 0.00, 0.00, Hz
+      
+      do i=1, NI
+         write(ifh,'(I5,4(F12.6))') Zatom(Kion(i)), 0d0, (Rion(j,i),j=1,3)
+      end do
+  
+      ! Gaussian .cube file (x-slowest index, z-fastest index)
+      i=1
+      do ix=0, NLx-1
+      do iy=0, NLy-1
+      do iz=0, NLz-1
+        r = weight_Ac_alocal(Lxyz(ix,iy,iz))
+
+        if(mod(i,6)==0) then
+           write(ifh,10) r
+        else
+           write(ifh,10,advance='no') r
+        endif
+        i=i+1
+      end do
+      end do
+      end do
+      close(ifh)
+
+10    format(ES12.4)
+      return
+    end subroutine write_weight_cube_alocal
+
   end subroutine init_Ac_alocal
 
   !---------------------------------------
@@ -143,7 +229,34 @@ contains
 
   deallocate(tmpAc2)
   end subroutine prep_RT_Ac_alocal_laser
+  !----------------------------------------------------------
+  subroutine get_Eelemag_FionAc_alocal_laser(it)
+    use Global_Variables
+    implicit none
+    integer :: i,it,ia
+    real(8) :: Etot(3),E_tot_xyz(3,NL)
 
+    !cancel out Eelemag from Eall added in tddft_sc subroutine 
+    !but actually Eelemag=0 for local_laser
+    Eall = Eall - Eelemag  
+
+    !calc Eelemag
+    Eelemag = 0d0
+    Etot(:) = -(Ac_tot_al(it+1,:)-Ac_tot_al(it-1,:))/(2d0*dt)
+    do i=1,NL
+       E_tot_xyz(:,i)= Etot(:)*weight_Ac_alocal(i)
+       Eelemag = Eelemag + sum(E_tot_xyz(:,i)**2)
+    enddo
+   !Eelemag=aLxyz*sum(E_tot(it,:)**2)/(8.d0*Pi)
+    Eelemag = Eelemag/dble(NL)/(8.d0*Pi)*aLxyz
+    Eall = Eall + Eelemag
+
+    !calc force from local field
+    do ia=1,NI
+      FionAc(:,ia) = Zps(Kion(ia))*Etot(:)*weight_Ac_alocal_ion(ia)
+    enddo
+
+  end subroutine get_Eelemag_FionAc_alocal_laser
   !----------------------------------------------------------
   subroutine hpsi1_RT_stencil_add_Ac_alocal(B,Cx,Cy,Cz,D,E,F)
   use global_variables, only: NLx,NLy,NLz,zI

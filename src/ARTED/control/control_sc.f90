@@ -215,11 +215,12 @@ subroutine tddft_sc
     E_ind(iter,:)=-(Ac_ind(iter+1,:)-Ac_ind(iter-1,:))/(2*dt)
     E_tot(iter,:)=-(Ac_tot(iter+1,:)-Ac_tot(iter-1,:))/(2*dt)
 
-    Eelemag=aLxyz*sum(E_tot(iter,:)**2)/(8.d0*Pi)
-    Eall=Eall+Eelemag
+    Eelemag= aLxyz*sum(E_tot(iter,:)**2)/(8.d0*Pi)
+    Eall   = Eall + Eelemag
     do ia=1,NI
       FionAc(:,ia)=Zps(Kion(ia))*E_tot(iter,:)
     enddo
+    if(alocal_laser=='y') call get_Eelemag_FionAc_alocal_laser(iter)
     force=force+FionAc
 
     if (use_ehrenfest_md == 'y') then
