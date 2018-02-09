@@ -1,15 +1,15 @@
-# gnu
+# gnu-without-mpi
 
 SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
 
 TARGET = $(SALMON)/bin/salmon.cpu
-FC = mpif90
-CC = mpicc
+FC = gfortran
+CC = gcc
 FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-form -ffree-line-length-none
 CFLAGS = -O3 -fopenmp -Wall
 LIBLAPACK = -llapack -lblas
 #LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 -lm
 MODULE_SWITCH = -J
-COMM_SET =
+COMM_SET = dummy
 
-include $(SALMON)/makefiles/make.body
+include $(SALMON)/gnu_makefiles/make.body

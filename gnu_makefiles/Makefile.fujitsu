@@ -13,4 +13,4 @@ LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
 MODULE_SWITCH = -M
 COMM_SET =
 
-include $(SALMON)/makefiles/make.body
+include $(SALMON)/gnu_makefiles/make.body

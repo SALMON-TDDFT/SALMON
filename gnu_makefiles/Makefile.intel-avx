@@ -19,4 +19,4 @@ SIMD_SET = AVX
 MODULE_SWITCH = -module
 COMM_SET =
 
-include $(SALMON)/makefiles/make.body
+include $(SALMON)/gnu_makefiles/make.body
