@@ -146,35 +146,35 @@ subroutine tddft_sc
           call apply_nose_hoover_velocity(dt_h)
        endif
        !update ion velocity with dt/2
-      if(iter==0) dRion(:,:,iter-1)= dRion(:,:,iter) - velocity(:,:)*dt
+       if(iter==0) dRion(:,:,iter-1)= dRion(:,:,iter) - velocity(:,:)*dt
        do ia=1,NI
           mass_au = umass*Mass(Kion(ia))
           velocity(:,ia) = velocity(:,ia) + force(:,ia)/mass_au * dt_h
        enddo
        !velocity scaling
-      if(step_velocity_scaling>=1 .and. mod(iter,step_velocity_scaling)==0) then
-         call cal_Tion_Temperature_ion(Tion,Temperature_ion,velocity)
-         call apply_velocity_scaling_ion(Temperature_ion,velocity)
-      endif
+       if(step_velocity_scaling>=1 .and. mod(iter,step_velocity_scaling)==0) then
+          call cal_Tion_Temperature_ion(Tion,Temperature_ion,velocity)
+          call apply_velocity_scaling_ion(Temperature_ion,velocity)
+       endif
        !update ion coordinate with dt
-      do ia=1,NI
-        mass_au = umass*Mass(Kion(ia))
-        dRion(:,ia,iter+1) = dRion(:,ia,iter) + velocity(:,ia)*dt
-        Rion(:,ia) = Rion_eq(:,ia) + dRion(:,ia,iter+1)
-      enddo
-      if (mod(iter,step_update_ps)==0 ) then
-         call prep_ps_periodic('update_all       ')
-      else if (mod(iter,step_update_ps2)==0 ) then
-         call prep_ps_periodic('update_wo_realloc')
-      endif
+       do ia=1,NI
+          mass_au = umass*Mass(Kion(ia))
+          dRion(:,ia,iter+1) = dRion(:,ia,iter) + velocity(:,ia)*dt
+          Rion(:,ia) = Rion_eq(:,ia) + dRion(:,ia,iter+1)
+       enddo
+       if (mod(iter,step_update_ps)==0 ) then
+          call prep_ps_periodic('update_all       ')
+       else if (mod(iter,step_update_ps2)==0 ) then
+          call prep_ps_periodic('update_wo_realloc')
+       endif
 
-      !NHC act on thermostat with dt
-      if(ensemble=="NVT" .and. thermostat=="nose-hoover")then
-         call cal_Tion_Temperature_ion(Tion,Temperature_ion,velocity)
-         call apply_nose_hoover_thermostat(Temperature_ion,dt)
-         Enh_gkTlns = Enh_gkTlns + gkT * xi_nh*dt
-         Enh        = Enh_gkTlns + 0.5d0 * Qnh * xi_nh*xi_nh
-      endif
+       !NHC act on thermostat with dt
+       if(ensemble=="NVT" .and. thermostat=="nose-hoover")then
+          call cal_Tion_Temperature_ion(Tion,Temperature_ion,velocity)
+          call apply_nose_hoover_thermostat(Temperature_ion,dt)
+          Enh_gkTlns = Enh_gkTlns + gkT * xi_nh*dt
+          Enh        = Enh_gkTlns + 0.5d0 * Qnh * xi_nh*xi_nh
+       endif
     endif
 
     if (trans_longi == 'lo') then 
@@ -193,7 +193,7 @@ subroutine tddft_sc
     do ixyz=1,3
       kAc(:,ixyz)=kAc0(:,ixyz)+Ac_tot(iter+1,ixyz)
     enddo
-    if(alocal_laser=='y')call prep_RT_Ac_alocal_laser(iter+1)
+    if(alocal_laser=='y') call prep_RT_Ac_alocal_laser(iter+1)
 
 !$acc update device(kAc,kAc_new)
     call current_RT(zu_t)
