@@ -54,6 +54,7 @@ subroutine init_ac_ms
   ! real(8) x,y
   real(8) x
   integer ix_m,iy_m,iz_m
+  integer :: icount
   real(8) Xstart
   real(8) wpulse_1
   real(8) wpulse_2
@@ -289,7 +290,14 @@ subroutine init_ac_ms
  !     end do
  !  end do
  end select
-
+ 
+ do icount = 1, ninit_acfield
+   ix_m = init_acfield_point(1, icount)
+   iy_m = init_acfield_point(2, icount)
+   iz_m = init_acfield_point(3, icount)
+   Ac_ms(1:3, ix_m, iy_m, iz_m) = init_acfield_val(1:3, icount)
+   Ac_new_ms(1:3, ix_m, iy_m, iz_m) = init_acfield_val(4:6, icount)
+ end do
 
 
   call comm_sync_all
