@@ -132,7 +132,8 @@ Module Global_Variables
   real(8),allocatable :: kAc(:,:),kAc0(:,:),kAc_new(:,:)     !k+A(t)/c (kAc)
   real(8),allocatable :: Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
   !alocal_laser option
-  real(8),allocatable :: weight_Ac_alocal(:),Ac_ext_al(:,:),Ac_tot_al(:,:)
+  real(8),allocatable :: weight_Ac_alocal(:), weight_Ac_alocal_ion(:)
+  real(8),allocatable :: Ac_ext_al(:,:),Ac_tot_al(:,:)
   real(8),allocatable :: Ac1x_al(:),Ac1y_al(:),Ac1z_al(:),Ac2_al(:,:),divA_al(:)
   real(8) :: Ac_al_amp(3),Ac2_al_amp,nabt_al(12)
   !analysis of transition density at omega

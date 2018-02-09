@@ -117,7 +117,7 @@ Default is <code>n</code>.
 
 <dt>read_rt_wfn_k; <code>Character</code>; 3d</dt>
 <dd>
-Read RT wave function (pre-calculated "rt_wfn_k" directory printed by <code>calc_mode=RT</code>) if this is <code>y</code>. This is used for restarting <code>calc_mode=RT</code> (supporting <code>use_ehrenfest_md=y</code>, too), then, "gs_wfn_k" directory is also necessary.
+Read RT wave function (pre-calculated "rt_wfn_k" directory printed by <code>calc_mode=RT</code>) if this is <code>y</code>. This is used for restarting <code>calc_mode=RT</code> (supporting <code>use_ehrenfest_md=y</code>, too: Coordinates and velocities of atoms for restarting are also included), then, "gs_wfn_k" directory is also necessary.
 Default is <code>n</code>.
 </dd>
 
