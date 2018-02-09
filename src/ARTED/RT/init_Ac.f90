@@ -69,8 +69,11 @@ Subroutine init_Ac
       stop 'Error in init_Ac.f90'
     end select
 
-    do iter=0,Nt+1
-      tt=iter*dt - 0.5d0*pulse_tw1
+   !do iter=0,Nt+1
+     !tt=iter*dt - 0.5d0*pulse_tw1
+    do iter=-1,Nt+1
+      if(iter==-1 .and. t1_delay.ge.0d0) cycle !only for restart of field using rt_wfn_k
+      tt=iter*dt - 0.5d0*pulse_tw1 - t1_delay
       if (abs(tt)<0.5d0*pulse_tw1) then
         Ac_ext(iter,:)=-f0_1/omega1*(cos(pi*tt/pulse_tw1))**npower &
           *aimag( (epdir_re1(:) + zI*epdir_im1(:)) &
@@ -78,6 +81,8 @@ Subroutine init_Ac
           )
       end if
     enddo
+    T1_T2 = T1_T2 + t1_delay
+
   case('Ecos2')
     if(phi_CEP1 /= 0.75d0)then
       call Err_finalize("Error: phi_cep1 should be 0.75 when ae_shape1 is 'Ecos2'.")

@@ -159,6 +159,7 @@ module salmon_global
   real(8)        :: epdir_im2(3)
   real(8)        :: phi_cep2
   real(8)        :: t1_t2
+  real(8)        :: t1_delay
   character(1)   :: quadrupole
   character(8)   :: quadrupole_pot
   character(1)   :: alocal_laser

@@ -324,6 +324,7 @@ contains
       & epdir_im2, &
       & phi_cep2, &
       & t1_t2, &
+      & t1_delay, &
       & quadrupole, &
       & quadrupole_pot, &
       & alocal_laser , &
@@ -606,15 +607,16 @@ contains
     epdir_im2      = 0d0
     phi_cep2       = 0d0
     t1_t2          = 0d0
+    t1_delay       = 0d0
     quadrupole     = 'n'
     quadrupole_pot = ''
     alocal_laser    = 'n'
     rlaserbound_sta(1) = -1.d7*ulength_from_au ! a.u.
     rlaserbound_sta(2) = -1.d7*ulength_from_au ! a.u.
     rlaserbound_sta(3) = -1.d7*ulength_from_au ! a.u.
-    rlaserbound_end(1) = 1.d7*ulength_from_au ! a.u.
-    rlaserbound_end(2) = 1.d7*ulength_from_au ! a.u.
-    rlaserbound_end(3) = 1.d7*ulength_from_au ! a.u.
+    rlaserbound_end(1) =  1.d7*ulength_from_au ! a.u.
+    rlaserbound_end(2) =  1.d7*ulength_from_au ! a.u.
+    rlaserbound_end(3) =  1.d7*ulength_from_au ! a.u.
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'
@@ -938,6 +940,8 @@ contains
     call comm_bcast(phi_cep2 ,nproc_group_global)
     call comm_bcast(t1_t2    ,nproc_group_global)
     t1_t2 = t1_t2 * utime_to_au
+    call comm_bcast(t1_delay ,nproc_group_global)
+    t1_delay = t1_delay * utime_to_au
     call comm_bcast(quadrupole    ,nproc_group_global)
     call comm_bcast(quadrupole_pot,nproc_group_global)
     call comm_bcast(alocal_laser  ,nproc_group_global)
@@ -1477,6 +1481,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'epdir_im2(3)', epdir_im2(3)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'phi_cep2', phi_cep2
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 't1_t2', t1_t2
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 't1_delay', t1_delay
       write(fh_variables_log, '("#",4X,A,"=",A)') 'quadrupole', quadrupole
       write(fh_variables_log, '("#",4X,A,"=",A)') 'quadrupole_pot', quadrupole_pot
       write(fh_variables_log, '("#",4X,A,"=",A)') 'alocal_laser', alocal_laser
@@ -1698,8 +1703,12 @@ contains
       case default
         call stop_by_bad_input2('iperiodic','convergence')
       end select
+
     else if(iperiodic==3) then
       if(convergence.ne.'rho_dne') call stop_by_bad_input2('iperiodic','convergence')
+      if(abs(t1_delay).ge.1d-10)then
+         if(index(ae_shape1,'Acos')==0) call stop_by_bad_input2('t1_delay','ae_shape1')
+      endif
     endif
 
   end subroutine check_bad_input
