@@ -287,6 +287,8 @@ Module Global_Variables
   ! scf
   integer :: PrLv_scf = 3          !(no print=0, all print=3)
   integer :: Nscf_conv
+  logical :: flag_update_only_zu_GS=.false.
+  logical :: flag_scf_conv_ene_force=.false.
 
   ! Rion update flag
   logical :: Rion_update_rt

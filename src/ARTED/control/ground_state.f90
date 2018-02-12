@@ -201,11 +201,9 @@ contains
        !  exit
        !endif
 
-       !Convergence judge for geometry optimization
+       !Convergence judge by Energy or Force (geometry optimization or projection)
        !(exit if energy difference is below threshold: only if set convrg_scf_Eall>0)
-
-       !(only for opt)
-       if(use_geometry_opt=='y')then
+       if(flag_scf_conv_ene_force)then  !(for opt and projection option)
           if( (abs(Eall_GS(iter)-Eall_GS(iter-1)) .le. convrg_scf_ene  ).or.&
           &   (abs(fave-fave_prev)                .le. convrg_scf_force))then
              if(kbTev >= 0d0) then
@@ -233,6 +231,8 @@ contains
     end do
     if(Nscf_conv==0) Nscf_conv=Nscf
     call timer_end(LOG_GROUND_STATE)
+
+    if(flag_update_only_zu_GS) goto 10
 
     if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) then
        call timer_show_hour('Ground State time  :', LOG_GROUND_STATE)
@@ -303,7 +303,7 @@ contains
     call write_GS_data
     endif
     
-    deallocate(rho_in,rho_out)
+10  deallocate(rho_in,rho_out)
     deallocate(Eall_GS,esp_var_ave,esp_var_max,ddns,ddns_abs_1e)
 
   contains
