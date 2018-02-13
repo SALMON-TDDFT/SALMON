@@ -186,10 +186,11 @@ module io_rt_wfn_k
   implicit none
 
   character(256) :: rt_wfn_directory
-  character(256) :: rt_wfn_file, occ_file, md_file
+  character(256) :: rt_wfn_file, occ_file, md_file, ae_file
   integer,parameter :: nfile_rt_wfn = 41
   integer,parameter :: nfile_occ    = 42
   integer,parameter :: nfile_md     = 43
+  integer,parameter :: nfile_ae     = 44
 
   integer,parameter :: iflag_read_rt = 0
   integer,parameter :: iflag_write_rt= 1
@@ -223,6 +224,45 @@ contains
       case(iflag_read_rt ); read(nfile_md )Rion,velocity
       end select
       close(nfile_md)
+
+      ae_file = trim(rt_wfn_directory)//'ae_field'
+      open(nfile_ae,file=trim(ae_file),form='unformatted')
+      select case(iflag_read_write)
+      case(iflag_write_rt)
+         t1_delay = t1_delay - Nt*dt
+         write(nfile_ae) t1_delay, &
+                         trans_longi, &
+                         e_impulse, &
+                         ae_shape1, ae_shape2, &
+                         amplitude1,amplitude2, &
+                         pulse_tw1, pulse_tw2, &
+                         omega1,    omega2, &
+                         epdir_re1, epdir_im1, & 
+                         phi_cep1,  phi_cep2, &
+                         epdir_re2, epdir_im2, &
+                         rlaser_int_wcm2_1, rlaser_int_wcm2_2, &
+                         t1_t2, &
+                         quadrupole, quadrupole_pot, &
+                         rlaserbound_sta, rlaserbound_end, &
+                         alocal_laser
+      case(iflag_read_rt )
+         read(nfile_ae)  t1_delay, &
+                         trans_longi, &
+                         e_impulse, &
+                         ae_shape1, ae_shape2, &
+                         amplitude1,amplitude2, &
+                         pulse_tw1, pulse_tw2, &
+                         omega1,    omega2, &
+                         epdir_re1, epdir_im1, &
+                         phi_cep1,  phi_cep2, &
+                         epdir_re2, epdir_im2, &
+                         rlaser_int_wcm2_1, rlaser_int_wcm2_2, &
+                         t1_t2, &
+                         quadrupole, quadrupole_pot, &
+                         rlaserbound_sta, rlaserbound_end, &
+                         alocal_laser
+      end select
+      close(nfile_ae)
     end if
 
     select case(iflag_read_write)

@@ -117,7 +117,7 @@ Default is <code>n</code>.
 
 <dt>read_rt_wfn_k; <code>Character</code>; 3d</dt>
 <dd>
-Read RT wave function (pre-calculated "rt_wfn_k" directory printed by <code>calc_mode=RT</code>) if this is <code>y</code>. This is used for restarting <code>calc_mode=RT</code> (supporting <code>use_ehrenfest_md=y</code>, too: Coordinates and velocities of atoms for restarting are also included), then, "gs_wfn_k" directory is also necessary.
+Read RT wave function (pre-calculated "rt_wfn_k" directory printed by <code>calc_mode=RT</code>) if this is <code>y</code>. This is used for restarting <code>calc_mode=RT</code> (supporting <code>use_ehrenfest_md=y</code>, too: Coordinates and velocities of atoms for restarting are also included), then, "gs_wfn_k" directory is also necessary (actually used only for some analysis options). Field is taken over after restarting only if <code>ae_shape1=AcosX</code> type is used.
 Default is <code>n</code>.
 </dd>
 
@@ -695,6 +695,13 @@ Imaginary part of polarization vector the first/second pulse.
 <dd>
 Carrier emvelope phase of the first/second pulse.
 Default is <code>0d0/0d0</code>.
+</dd>
+
+<dt>t1_delay; <code>Real(8)</code>; 3d</dt>
+<dd>
+Time-delay of the first pulses.
+Unit of time can be chosen by <code>&units/unit_time</code>.
+Default is <code>0d0</code>.
 </dd>
 
 <dt>t1_t2; <code>Real(8)</code>; 0d/3d</dt>
