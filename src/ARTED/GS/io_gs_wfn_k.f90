@@ -186,11 +186,12 @@ module io_rt_wfn_k
   implicit none
 
   character(256) :: rt_wfn_directory
-  character(256) :: rt_wfn_file, occ_file, md_file, ae_file
+  character(256) :: rt_wfn_file, occ_file, md_file, ae_file, al_file
   integer,parameter :: nfile_rt_wfn = 41
   integer,parameter :: nfile_occ    = 42
   integer,parameter :: nfile_md     = 43
   integer,parameter :: nfile_ae     = 44
+  integer,parameter :: nfile_al     = 45
 
   integer,parameter :: iflag_read_rt = 0
   integer,parameter :: iflag_write_rt= 1
@@ -263,6 +264,18 @@ contains
                          alocal_laser
       end select
       close(nfile_ae)
+
+      if(alocal_laser=='y') then
+         al_file = trim(rt_wfn_directory)//'alocal_laser_w'
+         open(nfile_al,file=trim(al_file),form='unformatted')
+         allocate(weight_Ac_alocal(NL),weight_Ac_alocal_ion(NI), divA_al(NL))
+         select case(iflag_read_write)
+         case(iflag_write_rt);write(nfile_al)weight_Ac_alocal,weight_Ac_alocal_ion,divA_al
+         case(iflag_read_rt );read(nfile_al )weight_Ac_alocal,weight_Ac_alocal_ion,divA_al
+         end select
+         close(nfile_al)
+      endif
+
     end if
 
     select case(iflag_read_write)
@@ -270,6 +283,42 @@ contains
       call comm_bcast(occ,     nproc_group_global)
       call comm_bcast(Rion,    nproc_group_global)
       call comm_bcast(velocity,nproc_group_global)
+
+      call comm_bcast(t1_delay,          nproc_group_global)
+      call comm_bcast(trans_longi,       nproc_group_global)
+      call comm_bcast(e_impulse,         nproc_group_global)
+      call comm_bcast(ae_shape1,         nproc_group_global)
+      call comm_bcast(ae_shape2,         nproc_group_global)
+      call comm_bcast(amplitude1,        nproc_group_global)
+      call comm_bcast(amplitude2,        nproc_group_global)
+      call comm_bcast(pulse_tw1,         nproc_group_global)
+      call comm_bcast(pulse_tw2,         nproc_group_global)
+      call comm_bcast(omega1,            nproc_group_global)
+      call comm_bcast(omega2,            nproc_group_global)
+      call comm_bcast(epdir_re1,         nproc_group_global)
+      call comm_bcast(epdir_im1,         nproc_group_global)
+      call comm_bcast(phi_cep1,          nproc_group_global)
+      call comm_bcast(phi_cep2,          nproc_group_global)
+      call comm_bcast(epdir_re2,         nproc_group_global)
+      call comm_bcast(epdir_im2,         nproc_group_global)
+      call comm_bcast(rlaser_int_wcm2_1, nproc_group_global)
+      call comm_bcast(rlaser_int_wcm2_2, nproc_group_global)
+      call comm_bcast(t1_t2,             nproc_group_global)
+      call comm_bcast(quadrupole,        nproc_group_global)
+      call comm_bcast(quadrupole_pot,    nproc_group_global)
+      call comm_bcast(rlaserbound_sta,   nproc_group_global)
+      call comm_bcast(rlaserbound_end,   nproc_group_global)
+      call comm_bcast(alocal_laser,      nproc_group_global)
+
+      if(alocal_laser=='y') then
+         if(.not. allocated(weight_Ac_alocal)) then
+            allocate(weight_Ac_alocal(NL), weight_Ac_alocal_ion(NI), divA_al(NL))
+         endif
+         call comm_bcast(weight_Ac_alocal,     nproc_group_global)
+         call comm_bcast(weight_Ac_alocal_ion, nproc_group_global)
+         call comm_bcast(divA_al,              nproc_group_global)
+      endif
+
     end select
 
     if(use_ms_maxwell == 'n' .or. (use_ms_maxwell == 'y'.and. nmacro_s == 1))then

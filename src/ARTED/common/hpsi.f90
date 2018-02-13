@@ -98,7 +98,7 @@ contains
   subroutine hpsi_omp_KB_base(ik,tpsi,htpsi,ttpsi)
     use timer
     use Global_Variables, only: NLx,NLy,NLz,kAc,lapx,lapy,lapz,nabx,naby,nabz,Vloc,Mps,iuV,Hxyz,Nlma,zproj, & 
-    & weight_Ac_alocal, Ac2_al,Ac1x_al,Ac1y_al,Ac1z_al,nabt_al
+    & flag_set_ini_Ac_alocal, Ac2_al,Ac1x_al,Ac1y_al,Ac1z_al,nabt_al
     use opt_variables, only: lapt,PNLx,PNLy,PNLz,PNL,spseudo,dpseudo
 #ifdef ARTED_USE_NVTX
     use nvtx
@@ -125,7 +125,7 @@ contains
 
     LOG_BEG(LOG_HPSI_STENCIL)
       call hpsi1_RT_stencil(k2lap0_2,Vloc,lapt,nabt,tpsi,htpsi)
-      if(alocal_laser=='y' .and. allocated(weight_Ac_alocal))then
+      if(alocal_laser=='y' .and. flag_set_ini_Ac_alocal)then
          call hpsi1_RT_stencil_add_Ac_alocal(Ac2_al(:,ik),Ac1x_al,Ac1y_al,Ac1z_al,nabt_al,tpsi,htpsi)
       endif
       if (present(ttpsi)) then
