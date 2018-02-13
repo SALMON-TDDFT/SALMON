@@ -82,8 +82,10 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
   end if
   zu_GS(:,:,:)=zu_GS0(:,:,:)
 
-
-  if(projection_option=='gs' .and. use_ehrenfest_md=='y')then
+  if(it .ne. it_last_update_zu_GS_proj) then
+  if(use_ehrenfest_md=='y'.and.(projection_option=='gs'.or.action=="get_dns_gs"))then
+     !(some variables are changed assuming this subroutine is called only in RT)
+     iflag_gs_init_wf = 1
      PrLv_scf = 0
      flag_scf_conv_ene_force=.true.
      flag_update_only_zu_GS =.true.
@@ -137,6 +139,8 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
     endif
 
   endif
+  endif
+  it_last_update_zu_GS_proj=it
 
   !(analysis of projection_option)
   if(action(1:4)=="proj") then
@@ -167,7 +171,7 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
            write(408,'(1x,3e16.6E3)')it*dt**t_unit_time%conv,sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
         end if
 
-        write(*,*) 'forces on atoms (GS):'
+        write(*,*) '  forces on atoms (GS):'
         do ia=1,NI
            write(*,'(i8,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
         end do

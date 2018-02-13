@@ -286,7 +286,7 @@ Module Global_Variables
 
   ! scf
   integer :: PrLv_scf = 3          !(no print=0, all print=3)
-  integer :: Nscf_conv
+  integer :: Nscf_conv, it_last_update_zu_GS_proj=-99
   logical :: flag_update_only_zu_GS=.false.
   logical :: flag_scf_conv_ene_force=.false.
 

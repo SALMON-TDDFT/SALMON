@@ -24,54 +24,56 @@ subroutine write_density(it,action)
   integer :: fh
   character(2) :: action
 
-  if (comm_is_root(nproc_id_global)) then
-
   if(action=='gs') then
-    select case(format3d)
-    case ('cube')
-      write(file_dns_gs,'(2A,"_dns_gs.cube")') trim(directory),trim(SYSname)
-      fh = open_filehandle(file_dns_gs)
-      call write_density_cube(fh, .false.)
-      close(fh)
-    case ('vtk')
-      write(file_dns_gs,'(2A,"_dns_gs.vtk")') trim(directory),trim(SYSname)
-      fh = open_filehandle(file_dns_gs)
-      call write_density_vtk(fh, .false.)
-      close(fh)
-    end select
+     if (comm_is_root(nproc_id_global)) then
+     select case(format3d)
+     case ('cube')
+        write(file_dns_gs,'(2A,"_dns_gs.cube")') trim(directory),trim(SYSname)
+        fh = open_filehandle(file_dns_gs)
+        call write_density_cube(fh, .false.)
+        close(fh)
+     case ('vtk')
+        write(file_dns_gs,'(2A,"_dns_gs.vtk")') trim(directory),trim(SYSname)
+        fh = open_filehandle(file_dns_gs)
+        call write_density_vtk(fh, .false.)
+        close(fh)
+     end select
+     end if
   endif
+
 
   if(action=='rt') then
-     select case(format3d)
-        case ('cube')
-          write(file_dns_rt,200) trim(directory),trim(SYSname),"_dns_rt_", it,".cube"
-          write(file_dns_dlt,200)trim(directory),trim(SYSname),"_dns_dlt_",it,".cube"
-          fh = open_filehandle(file_dns_rt)
-          call write_density_cube(fh, .false.)
-          close(fh)
-          if(use_adiabatic_md=='y') return
-          if(use_ehrenfest_md=='y') &
-          &   call analysis_RT_using_GS(Rion_update_rt,Nscf,zu_t,it,"get_dns_gs")
-          fh = open_filehandle(file_dns_dlt)
-          call write_density_cube(fh, .true.)
-          close(fh)
-        case ('vtk')          
-          write(file_dns_rt,200) trim(directory),trim(SYSname),"_dns_rt_", it,".vtk"
-          write(file_dns_dlt,200)trim(directory),trim(SYSname),"_dns_dlt_",it,".vtk"
-          fh = open_filehandle(file_dns_rt)
-          call write_density_vtk(fh, .false.)
-          close(fh)
-          if(use_adiabatic_md=='y') return
-          if(use_ehrenfest_md=='y') &
-          &   call analysis_RT_using_GS(Rion_update_rt,Nscf,zu_t,it,"get_dns_gs")
-          fh = open_filehandle(file_dns_dlt)
-          call write_density_vtk(fh, .true.)
-          close(fh)
-     end select
-200  format(3A,I6.6,A)
+     if(use_ehrenfest_md=='y') &
+     &   call analysis_RT_using_GS(Rion_update_rt,Nscf,zu_t,it,"get_dns_gs")
 
+     if (comm_is_root(nproc_id_global)) then
+     select case(format3d)
+     case ('cube')
+        write(file_dns_rt,200) trim(directory),trim(SYSname),"_dns_rt_", it,".cube"
+        write(file_dns_dlt,200)trim(directory),trim(SYSname),"_dns_dlt_",it,".cube"
+        fh = open_filehandle(file_dns_rt)
+        call write_density_cube(fh, .false.)
+        close(fh)
+        if(use_adiabatic_md=='y') return
+        fh = open_filehandle(file_dns_dlt)
+        call write_density_cube(fh, .true.)
+        close(fh)
+     case ('vtk')          
+        write(file_dns_rt,200) trim(directory),trim(SYSname),"_dns_rt_", it,".vtk"
+        write(file_dns_dlt,200)trim(directory),trim(SYSname),"_dns_dlt_",it,".vtk"
+        fh = open_filehandle(file_dns_rt)
+        call write_density_vtk(fh, .false.)
+        close(fh)
+        if(use_adiabatic_md=='y') return
+        fh = open_filehandle(file_dns_dlt)
+        call write_density_vtk(fh, .true.)
+        close(fh)
+     end select
+     end if
+200  format(3A,I6.6,A)
   endif
-  end if
+
+
 
 end subroutine write_density
 
