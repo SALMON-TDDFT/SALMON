@@ -60,11 +60,12 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
   use salmon_parallel, only: nproc_group_tdks, nproc_id_global
   use salmon_communication, only: comm_summation, comm_is_root
   use inputoutput, only: t_unit_time, t_unit_energy
+  use ground_state
   implicit none
   integer,intent(in) :: iter_GS_max
   logical,intent(in) :: Rion_xyz_update
   complex(8),intent(in) :: zu(NL,NBoccmax,NK_s:NK_e)
-  real(8) :: esp_all(NB,NK), Eall_prev,dEall, threshold_dEall
+  real(8) :: esp_all(NB,NK), Eall_prev,dEall, threshold_dEall, Vloc_save(NL),rtmp
   real(8),allocatable :: rho_backup(:)
   integer :: iter_GS,ik,ib1,ib2,ib,ia,it
   character(10) :: action
@@ -75,54 +76,69 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
      write(*,*)'  Analysis option: ',action
 
   !(this condition may be changed for md option in futre)
-  if(projection_option=='gs' .and.  use_ehrenfest_md=='n')then
-    Vloc_t(:)=Vloc(:)
-    Vloc(:)=Vloc_GS(:)
-  end if
+  Vloc_save(:) = Vloc(:)
+  if(use_ehrenfest_md=='n' .and. projection_option=='gs') Vloc(:)=Vloc_GS(:)
   zu_GS(:,:,:)=zu_GS0(:,:,:)
 
-  !(GS iteration)
-  Eall_prev=Eall_GS0
+  if(it .ne. it_last_update_zu_GS_proj) then
+  if(use_ehrenfest_md=='y'.and.(projection_option=='gs'.or.action=="get_dns_gs"))then
+     !(some variables are changed assuming this subroutine is called only in RT)
+     iflag_gs_init_wf = 1
+     PrLv_scf = 0
+     flag_scf_conv_ene_force=.true.
+     flag_update_only_zu_GS =.true.
+     rtmp           = convrg_scf_ene
+     convrg_scf_ene = threshold_dEall
+     call calc_ground_state
+     convrg_scf_ene = rtmp
+     flag_update_only_zu_GS =.false.
+  else
+     !(GS iteration)
+     Eall_prev=Eall_GS0
 
-  call Total_Energy_omp(Rion_xyz_update,calc_mode_gs)
-  dEall = Eall - Eall_prev
-  if(abs(dEall).le.1d-12) then
-     if(comm_is_root(nproc_id_global)) then
-          write(*,*) "  No GS iteration: already converged"
-          write(*,*) "  dEall=",real(dEall)
+     call Total_Energy_omp(Rion_xyz_update,calc_mode_gs)
+     dEall = Eall - Eall_prev
+     if(abs(dEall).le.1d-12) then
+        if(comm_is_root(nproc_id_global)) then
+           write(*,*) "  No GS iteration: already converged"
+           write(*,*) "  dEall=",real(dEall)
+        endif
+        goto 1
      endif
-     goto 1
-  endif
 
-  if(comm_is_root(nproc_id_global)) &
+     if(comm_is_root(nproc_id_global)) &
      write(*,*)'  iter_GS    Eall-Eall0           dEall'
 
-  do iter_GS=1,iter_GS_max
-   !(this if-condition may be changed later)
-   !if(use_ehrenfest_md=='y')then !for better conv
-    if(threshold_dEall.le.1d-5)then !for better conv
-       call diag_omp
+     do iter_GS=1,iter_GS_max
+      !(this if-condition may be changed later)
+      !if(use_ehrenfest_md=='y')then !for better conv
+       if(threshold_dEall.le.1d-5)then !for better conv
+          call diag_omp
+          call Gram_Schmidt
+       else
+          if(iter_GS==1) call diag_omp
+       endif
+       call CG_omp(Ncg)
        call Gram_Schmidt
-    else
-       if(iter_GS==1) call diag_omp
-    endif
-    call CG_omp(Ncg)
-    call Gram_Schmidt
-    call Total_Energy_omp(Rion_xyz_update,calc_mode_gs)
-    call Ion_Force_omp(Rion_xyz_update,calc_mode_gs)
-    dEall = Eall - Eall_prev
-    if(comm_is_root(nproc_id_global)) &
+       call Total_Energy_omp(Rion_xyz_update,calc_mode_gs)
+       call Ion_Force_omp(Rion_xyz_update,calc_mode_gs)
+       dEall = Eall - Eall_prev
+       if(comm_is_root(nproc_id_global)) &
        write(*,'(i6,2e20.10)') iter_GS,Eall-Eall0,dEall
-    if(iter_GS.ge.3 .and. abs(dEall).le.threshold_dEall) exit
-    Eall_prev = Eall
-  end do
-1 continue
+       if(iter_GS.ge.3 .and. abs(dEall).le.threshold_dEall) exit
+       Eall_prev = Eall
+    end do
+1   continue
 
-  if(action=="proj_last ") then
-     esp=0d0
-     call diag_omp
-     call comm_summation(esp,esp_all,NK*NB,nproc_group_tdks)
+    if(action=="proj_last ") then
+       esp=0d0
+       call diag_omp
+       call comm_summation(esp,esp_all,NK*NB,nproc_group_tdks)
+    endif
+
   endif
+  endif
+  it_last_update_zu_GS_proj=it
 
   !(analysis of projection_option)
   if(action(1:4)=="proj") then
@@ -153,7 +169,7 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
            write(408,'(1x,3e16.6E3)')it*dt**t_unit_time%conv,sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
         end if
 
-        write(*,*) 'forces on atoms:'
+        write(*,*) '  forces on atoms (GS):'
         do ia=1,NI
            write(*,'(i8,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
         end do
@@ -175,12 +191,8 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
      deallocate(rho_backup)
   endif
 
-  !(this condition may be changed for md option in futre)
-  if(projection_option=='gs' .and.  use_ehrenfest_md=='n')then
-     Vloc(:)=Vloc_t(:)
-  end if
-
-  zu_GS0(:,:,:)=zu_GS(:,:,:) !update for the next initial guess
+  Vloc(:) = Vloc_save(:)
+  zu_GS0(:,:,:) = zu_GS(:,:,:) !update for the next initial guess
   Eall_GS0 = Eall
 
   return

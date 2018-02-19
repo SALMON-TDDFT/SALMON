@@ -84,6 +84,7 @@ subroutine calc_opt_ground_state_useF
      write(*,*) "       (CG method using Force only)       "
   endif
   PrLv_scf = 0
+  flag_scf_conv_ene_force=.true.
  !if(convrg_scf_ene < 0d0) then
  !   convrg_scf_ene = convrg_opt_fmax*1d-2
  !   if(convrg_scf_ene.ge.1d-8) convrg_scf_ene=1d-8
@@ -425,6 +426,7 @@ subroutine calc_opt_ground_state_useE
   if(comm_is_root(nproc_id_global)) &
   &  write(*,*) "===== Grand State Optimization Start ====="
   PrLv_scf = 0
+  flag_scf_conv_ene_force=.true.
   if(convrg_scf_ene < 0d0) convrg_scf_ene=1d-6
   iflag_gs_init_wf=1   !flag to skip giving randam number initial guess
   Nopt_perp = 100

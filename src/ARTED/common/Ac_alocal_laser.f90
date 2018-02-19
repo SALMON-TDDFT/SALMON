@@ -36,6 +36,12 @@ contains
   Ac_tot    = 0d0
   Ac_ext    = 0d0
 
+  if( read_rt_wfn_k=='y' .and. allocated(weight_Ac_alocal) ) then
+     if(comm_is_root(nproc_id_global)) &
+     &   write(*,*)"  (alocal_laser data was read from rt_wfn_k)"
+     goto 100
+  endif
+
   if(comm_is_root(nproc_id_global))then
      open(898,file='input_Ac_alocal.dat')
 
@@ -136,24 +142,25 @@ contains
         enddo
      endif
 
+  endif  !ckeyword=="atoms"
 
-     !log
-     ave_weight_Ac_alocal = sum(weight_Ac_alocal(:))/dble(NL)
-     if(comm_is_root(nproc_id_global)) then
-       write(*,*)"  average spatial weight for local_laser=",real(ave_weight_Ac_alocal)
-       write(*,*)"  weight on atoms for local_laser="
-       do ia=1,NI
-          write(*,'(4X,i6,f10.5)') ia,weight_Ac_alocal_ion(ia)
-       enddo
-     endif
+100  continue
 
+  !log
+  ave_weight_Ac_alocal = sum(weight_Ac_alocal(:))/dble(NL)
+  if(comm_is_root(nproc_id_global)) then
+     write(*,*)"  average spatial weight for local_laser=",real(ave_weight_Ac_alocal)
+     write(*,*)"  weight on atoms for local_laser="
+     do ia=1,NI
+        write(*,'(4X,i6,f10.5)') ia,weight_Ac_alocal_ion(ia)
+     enddo
      call write_weight_cube_alocal
-
   endif
 
-
+  ! preparation
   call prep_RT_Ac_alocal_laser(0)
 
+  flag_set_ini_Ac_alocal=.true.
 
   contains
 
