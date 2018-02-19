@@ -76,10 +76,8 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
      write(*,*)'  Analysis option: ',action
 
   !(this condition may be changed for md option in futre)
-  if(projection_option=='gs')then
-    Vloc_save(:) = Vloc(:)
-    if(use_ehrenfest_md=='n') Vloc(:)=Vloc_GS(:)
-  end if
+  Vloc_save(:) = Vloc(:)
+  if(use_ehrenfest_md=='n' .and. projection_option=='gs') Vloc(:)=Vloc_GS(:)
   zu_GS(:,:,:)=zu_GS0(:,:,:)
 
   if(it .ne. it_last_update_zu_GS_proj) then
@@ -193,12 +191,8 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
      deallocate(rho_backup)
   endif
 
-
-  if(projection_option=='gs')then
-     Vloc(:)=Vloc_save(:)
-  end if
-
-  zu_GS0(:,:,:)=zu_GS(:,:,:) !update for the next initial guess
+  Vloc(:) = Vloc_save(:)
+  zu_GS0(:,:,:) = zu_GS(:,:,:) !update for the next initial guess
   Eall_GS0 = Eall
 
   return

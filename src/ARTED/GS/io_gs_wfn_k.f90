@@ -195,6 +195,7 @@ module io_rt_wfn_k
 
   integer,parameter :: iflag_read_rt = 0
   integer,parameter :: iflag_write_rt= 1
+  character(1) :: alocal_laser_tmp
 
 contains
   subroutine read_write_rt_wfn_k(iflag_read_write)
@@ -261,14 +262,15 @@ contains
                          t1_t2, &
                          quadrupole, quadrupole_pot, &
                          rlaserbound_sta, rlaserbound_end, &
-                         alocal_laser
+                         alocal_laser_tmp
       end select
       close(nfile_ae)
 
       if(alocal_laser=='y') then
          al_file = trim(rt_wfn_directory)//'alocal_laser_w'
          open(nfile_al,file=trim(al_file),form='unformatted')
-         allocate(weight_Ac_alocal(NL),weight_Ac_alocal_ion(NI), divA_al(NL))
+         if(.not. allocated(weight_Ac_alocal)) &
+         & allocate(weight_Ac_alocal(NL),weight_Ac_alocal_ion(NI), divA_al(NL))
          select case(iflag_read_write)
          case(iflag_write_rt);write(nfile_al)weight_Ac_alocal,weight_Ac_alocal_ion,divA_al
          case(iflag_read_rt );read(nfile_al )weight_Ac_alocal,weight_Ac_alocal_ion,divA_al
