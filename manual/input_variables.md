@@ -1059,9 +1059,10 @@ Default is <code>0.5</code>.
 >Default is <code>1d-6</code>.
 ></dd>
 -->
-
+></dl>
 
 >## &md
+><dl>
 ><dt>ensemble; <code>Character</code>; 3d</dt>
 ><dd>
 >Ensemble in MD option: "NVE" or "NVT"
@@ -1123,6 +1124,7 @@ Default is <code>0.5</code>.
 >Default is <code>n</code>.
 ></dd>
 
+></dl>
 
 >***
 
