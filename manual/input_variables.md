@@ -1038,7 +1038,7 @@ Default is <code>0.5</code>.
 ><dd>
 >Parameter for initial step length in line search in conjugated gradient method. (currently not available)
 >Default is <code>0.8</code>.
-></dd>
+</dd>
 -->
 
 ><dt>convrg_scf_ene; <code>Real(8)</code>; 3d</dt>
@@ -1123,8 +1123,8 @@ Default is <code>0.5</code>.
 ></dd>
 
 ><dt>file_set_shake; <code>Character</code>; 3d</dt>
->Setting file for SHAKE method in ground-state MD is read. (now not supported yet)
 ><dd>
+>Setting file for SHAKE method in ground-state MD is read. (now not supported yet)
 >Default is <code>none</code>.
 ></dd>
 
@@ -1134,7 +1134,6 @@ Default is <code>0.5</code>.
 >Default is <code>41.34[au] or 1.0[fs]</code>.
 ></dd>
 
-></dd>
 ><dt>stop_system_momt; <code>Character</code>; 3d</dt>
 ><dd>
 >Center of mass is stopped every time step.
