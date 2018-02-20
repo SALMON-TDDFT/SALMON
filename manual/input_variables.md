@@ -1020,6 +1020,19 @@ Default is <code>0.5</code>.
 
 >## &opt
 ><dl>
+
+><dt>cg_alpha_up; <code>Real(8)</code>; 3d</dt>
+><dd>
+>Parameter for up-rate of step length in line search in conjugated gradient method.
+>Default is <code>1.3</code>.
+></dd>
+
+><dt>cg_alpha_down; <code>Real(8)</code>; 3d</dt>
+><dd>
+>Parameter for down-rate of step length in line search in conjugated gradient method.
+>Default is <code>0.5</code>.
+></dd>
+
 <!--
 ><dt>cg_alpha_ini; <code>Real(8)</code>; 3d</dt>
 ><dd>
@@ -1027,31 +1040,25 @@ Default is <code>0.5</code>.
 >Default is <code>0.8</code>.
 ></dd>
 -->
-><dt>cg_alpha_up; <code>Real(8)</code>; 3d</dt>
-><dd>
->Parameter for up-rate of step length in line search in conjugated gradient method.
->Default is <code>1.3</code>.
-></dd>
-><dt>cg_alpha_down; <code>Real(8)</code>; 3d</dt>
-><dd>
->Parameter for down-rate of step length in line search in conjugated gradient method.
->Default is <code>0.5</code>.
-></dd>
+
 ><dt>convrg_scf_ene; <code>Real(8)</code>; 3d</dt>
 ><dd>
 >Convergence threshold of SCF calculation in energy difference. If negative number no threshold (SCF loop is up to <code>Nscf</code>). The other SCF thresholds such as <code>threshold</code> in <code>&scf</code> are also applied (if you do not want to use it, set very small number). 
 >Default is <code>-1.0</code>.
 ></dd>
+
 ><dt>convrg_scf_force; <code>Real(8)</code>; 3d</dt>
 ><dd>
 >Convergence threshold of SCF calculation in force (average over atoms) difference. If negative number no threshold (SCF loop is up to <code>Nscf</code>). The other SCF thresholds such as <code>threshold</code> in <code>&scf</code> are also applied (if you do not want to use it, set very small number). 
 >Default is <code>-1.0</code>.
 ></dd>
+
 ><dt>convrg_opt_fmax; <code>Real(8)</code>; 3d</dt>
 ><dd>
 >Convergence threshold of optimization in maximum force.
 >Default is <code>1d-3</code>.
 ></dd>
+
 <!--
 ><dt>convrg_opt_ene; <code>Real(8)</code>; 3d</dt>
 ><dd>
@@ -1059,35 +1066,42 @@ Default is <code>0.5</code>.
 >Default is <code>1d-6</code>.
 ></dd>
 -->
+
 ></dl>
 
 >## &md
 ><dl>
+
 ><dt>ensemble; <code>Character</code>; 3d</dt>
 ><dd>
 >Ensemble in MD option: "NVE" or "NVT"
 >Default is <code>"NVE"</code>.
 ></dd>
+
 ><dt>thermostat; <code>Character</code>; 3d</dt>
 ><dd>
 >Thermostat in "NVT" option: (currently only <code>nose-hoover</code>)
 >Default is <code>"nose-hoover"</code>.
 ></dd>
+
 ><dt>step_velocity_scaling; <code>Integer</code>; 3d</dt>
 ><dd>
 >Time step interval for velocity-scaling. Velocity-scaling is applied if this is set to positive.
 >Default is <code>-1</code>.
 ></dd>
+
 ><dt>step_update_ps/step_update_ps2; <code>Integer/Integer</code>; 3d</dt>
 ><dd>
 >Time step interval for updating pseudopotential (Larger number makes calculation time reduce greatly, but gets inaccurate) in case of <code>use_ehrenfest_md=y</code>. <code>step_update_ps</code> is for full update and <code>step_update_ps2</code> is for update without changing grid points array.
 >Default is <code>10/1</code>.
 ></dd>
+
 ><dt>temperature0_ion; <code>Real(8)</code>; 3d</dt>
 ><dd>
 >Setting temperature in NVT ensemble and velocity scaling and for generating initial velocities.
 >Default is <code>298.15</code>.
 ></dd>
+
 ><dt>set_ini_velocity; <code>Character</code>; 3d</dt>
 ><dd>
 >Initial velocities are set.
@@ -1101,16 +1115,19 @@ Default is <code>0.5</code>.
 ></li>
 ></ul>
 ></dd>
+
 ><dt>file_ini_velocity; <code>Character</code>; 3d</dt>
 ><dd>
 >File name for initial velocities. This is read when <code>set_ini_velocity</code> is <code>'r'</code>. The format is simply vx(iatom) vy(iatom) vz(iatom) in each line. The order of atoms must be the same as the given coordinates in the main input file. In case of using nose-hoover thermostat, a thermostat variable should be put at the last line (all atomic unit). 
 >Default is <code>none</code>.
 ></dd>
+
 ><dt>file_set_shake; <code>Character</code>; 3d</dt>
 >Setting file for SHAKE method in ground-state MD is read. (now not supported yet)
 ><dd>
 >Default is <code>none</code>.
 ></dd>
+
 ><dt>thermostat_tau; <code>Real(8)</code>; 3d</dt>
 ><dd>
 >Parameter in Nose-Hoover method: controlling time constant for temperature.
