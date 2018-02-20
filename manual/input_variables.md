@@ -1037,7 +1037,7 @@ Default is <code>0.5</code>.
 ><dd>
 >Parameter for initial step length in line search in conjugated gradient method. (currently not available)
 >Default is <code>0.8</code>.
-</dd>
+></dd>
 >
 ><dt>convrg_scf_ene; <code>Real(8)</code>; 3d</dt>
 ><dd>
