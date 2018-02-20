@@ -1033,13 +1033,11 @@ Default is <code>0.5</code>.
 >Default is <code>0.5</code>.
 ></dd>
 >
-><!--
 ><dt>cg_alpha_ini; <code>Real(8)</code>; 3d</dt>
 ><dd>
 >Parameter for initial step length in line search in conjugated gradient method. (currently not available)
 >Default is <code>0.8</code>.
 </dd>
->-->
 >
 ><dt>convrg_scf_ene; <code>Real(8)</code>; 3d</dt>
 ><dd>
@@ -1059,15 +1057,14 @@ Default is <code>0.5</code>.
 >Default is <code>1d-3</code>.
 ></dd>
 >
-><!--
 ><dt>convrg_opt_ene; <code>Real(8)</code>; 3d</dt>
 ><dd>
 >Convergence threshold of optimization in energy difference. (currently not available)
 >Default is <code>1d-6</code>.
 ></dd>
->-->
 >
 ></dl>
+
 
 >## &md
 ><dl>
