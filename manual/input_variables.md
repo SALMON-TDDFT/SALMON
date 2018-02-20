@@ -18,8 +18,8 @@
 - [&analysis](#analysis)
 - [&hartree](#hartree)
 - [&ewald](#ewald)
-- [&opt](#opt)
-- [&md](#md)
+>- [&opt](#opt)
+>- [&md](#md)
 
 ## &calculation
 <dl>
@@ -30,12 +30,12 @@ and <code>'GS_RTPulse'</code>
 can be chosen.
 </dd>
 
-<dt>use_ehrenfest_md; <code>Character</code>; 0d/3d</dt>
-<dd>
-Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
-Ehrenfest dynamics.
-Default is <code>'n'</code>.
-</dd>
+><dt>use_ehrenfest_md; <code>Character</code>; 0d/3d</dt>
+><dd>
+>Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
+>Ehrenfest dynamics.
+>Default is <code>'n'</code>.
+></dd>
 
 <dt>use_ms_maxwell; <code>Character</code>; 3d</dt>
 <dd>
