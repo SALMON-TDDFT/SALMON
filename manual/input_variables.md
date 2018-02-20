@@ -1151,13 +1151,13 @@ Default is <code>0.5</code>.
 
 ><dt>iditerybcg; <code>Integer</code>; 0d</dt>
 ><dd>
->Iterations for which ybcg is calculated if <code>&scf/amin_routine</code> is 'cg-diis'</code>.
+>Iterations for which ybcg is calculated if <code>&scf/amin_routine</code> is <code>'cg-diis'</code>.
 >Default is <code>20</code>.
 ></dd>
 
 ><dt>iditer_nosubspace_diag; <code>Integer</code>; 0d</dt>
 ><dd>
->Iterations for which subspace diagonalization is not done if <code>&scf/subspace_diagonalization</code> is 'y'</code>.
+>Iterations for which subspace diagonalization is not done if <code>&scf/subspace_diagonalization</code> is <code>'y'</code>.
 >Default is <code>10</code>.
 ></dd>
 
