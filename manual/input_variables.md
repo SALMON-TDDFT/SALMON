@@ -548,7 +548,7 @@ Choice of quantity that is used for convergence check in a scf calculation.
 Default is <code>'rho_dne'</code>. 
 <ul>
 <li>
-<code>'rho_dne'</code>: Convergence is checked by sum_ix|rho(ix,iter)-rho(ix,iter-1)|dx/<code>&system/nelec</code>, where iter is an iteration number of the scf calculation.
+<code>'rho_dne'</code>: Convergence is checked by sum_ix|rho(ix,iter)-rho(ix,iter-1)|dx/N, where iter is an iteration number of the scf calculation and N is <code>&system/nelec</code>, the number of the valence electrons.
 </li>
 </ul>
 
