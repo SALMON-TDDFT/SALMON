@@ -432,7 +432,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       do iz=ng_sta(3),ng_end(3) 
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
-        sum0=sum0+(rho(ix,iy,iz)-rho_stock(ix,iy,iz,1))**2
+        sum0=sum0+abs(rho(ix,iy,iz)-rho_stock(ix,iy,iz,1))
       end do
       end do
       end do
@@ -485,7 +485,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end do
     select case(convergence)
       case('rho_dne')
-        write(*,'("iter and int_x|rho_i(x)-rho_i-1(x)|**2dx/nelec     = ",i6,e15.8)') Miter,sum1
+        write(*,'("iter and int_x|rho_i(x)-rho_i-1(x)|dx/nelec     = ",i6,e15.8)') Miter,sum1
       case('norm_rho')
         write(*,'("iter and ||rho_i(ix)-rho_i-1(ix)||**2              = ",i6,e15.8)') Miter,sum1/a_B**6
       case('norm_rho_dng')
