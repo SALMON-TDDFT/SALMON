@@ -1270,7 +1270,7 @@ Default is <code>0.5</code>.
 ></dl>
 
 
->## &group_file
+>## &group_others
 ><dl>
 >
 ><dt>iparaway_ob; <code>Integer</code>; 0d</dt>
