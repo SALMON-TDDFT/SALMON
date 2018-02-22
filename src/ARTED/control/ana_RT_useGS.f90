@@ -19,7 +19,8 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine write_projection_header
   use Global_Variables, only: NB
-  use inputoutput, only: t_unit_time, t_unit_energy
+  use inputoutput, only: t_unit_time, t_unit_energy, &
+  &                      projection_option,projection_decomp
   implicit none
 
  !open(404, file=file_ovlp,position = position_option) 
@@ -32,24 +33,36 @@ Subroutine write_projection_header
   &           2, "ovlp_occup(NB)", "none"
         
  !open(408, file=file_nex, position = position_option) 
-   write(408, '("#",1X,A)') "Excitation"
-   write(408, '("#",1X,A,":",1X,A)') "nelec", "Number of excited electrons"
-   write(408, '("#",1X,A,":",1X,A)') "nhole", "Number of excited holes"
-   write(408, '("#",99(1X,I0,":",A,"[",A,"]"))')  &
-   &           1, "time", trim(t_unit_time%name), &
-   &           2, "nelec", "none", &
-   &           3, "nhole", "none"
+  write(408, '("#",1X,A)') "Excitation"
+  write(408, '("#",1X,A,":",1X,A)') "nelec", "Number of excited electrons"
+  write(408, '("#",1X,A,":",1X,A)') "nhole", "Number of excited holes"
+  write(408, '("#",99(1X,I0,":",A,"[",A,"]"))')  &
+  &           1, "time", trim(t_unit_time%name), &
+  &           2, "nelec", "none", &
+  &           3, "nhole", "none"
       
-  !open(409, file=file_last_band_map,position = position_option) 
-   write(409, '("#",1X,A)') "Last bandmap"
-   write(409, '("#",1X,A,":",1X,A)') "ik", "k-point index"
-   write(409, '("#",1X,A,":",1X,A)') "energy", "Electron energy"
-   write(409, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
-   write(409, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
-   write(409, '("#",99(1X,I0,":",A,"[",A,"]"))') &
-   &           1, "ik", "none", &
-   &           2, "energy(NB)", trim(t_unit_energy%name), &
-   &           2 + NB, "ovlp_occup(NB)", "none"      
+ !open(409, file=file_last_band_map,position = position_option) 
+  write(409, '("#",1X,A)') "Last bandmap"
+  write(409, '("#",1X,A,":",1X,A)') "ik", "k-point index"
+  write(409, '("#",1X,A,":",1X,A)') "energy", "Electron energy"
+  write(409, '("#",1X,A,":",1X,A)') "ovlp_occup", "Occupation"
+  write(409, '("#",1X,A,":",1X,A)') "NB", "Number of bands"
+  write(409, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+  &           1, "ik", "none", &
+  &           2, "energy(NB)", trim(t_unit_energy%name), &
+  &           2 + NB, "ovlp_occup(NB)", "none"      
+
+ !open(420, file=file_nex_atom,position = position_option) 
+ if(projection_option=='gs' .and. projection_decomp=='atom') then
+  write(420,'("#",1X,A)') "Excitation"
+  write(420,'("#",1X,A,":",1X,A)') "nelec-ia","Number of excited electrons on ia-th atom"
+  write(420,'("#",99(1X,I0,":",A,"[",A,"]"))')  &
+  &          1, "time", trim(t_unit_time%name), &
+  &          2, "sum(nelec-i)", "none", &
+  &          3, "nelec-1", "none", &
+  &          4, "nelec-2", "none", &
+  &          5, ".......", ""
+  endif
 
   return
 End Subroutine write_projection_header
@@ -66,8 +79,10 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
   logical,intent(in) :: Rion_xyz_update
   complex(8),intent(in) :: zu(NL,NBoccmax,NK_s:NK_e)
   real(8) :: esp_all(NB,NK), Eall_prev,dEall, threshold_dEall, Vloc_save(NL),rtmp
-  real(8),allocatable :: rho_backup(:)
-  integer :: iter_GS,ik,ib1,ib2,ib,ia,it
+  real(8) :: time, nee, neh, var_tot, var_max, tconv
+  real(8),allocatable :: rho_backup(:), nee_ia(:)
+  complex(8),allocatable :: ovlp_occ_ia_l(:,:,:,:),ovlp_occ_ia(:,:,:,:)
+  integer :: i, iter_GS,ik,ib1,ib2,ib,ia,it, ia1,ia2
   character(10) :: action
 
   threshold_dEall = 1.0d-6  !now fixed, not controlled by input
@@ -143,39 +158,102 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
   !(analysis of projection_option)
   if(action(1:4)=="proj") then
 
+     if(projection_option=='gs' .and. projection_decomp=='atom') then
+        !initialize
+        if(.not.allocated(assign_grid_atom)) call init_proj_decomp_atom
+     endif
+
+     !calc overlap(projection)
      ovlp_occ_l=0.d0
 !$omp parallel do private(ik,ib1,ib2)
      do ik=Nk_s,NK_e
      do ib1=1,NB
      do ib2=1,NBoccmax
-        ovlp_occ_l(ib1,ik)=ovlp_occ_l(ib1,ik)+occ(ib2,ik)*abs(sum(conjg(zu_GS(:,ib1,ik))*zu(:,ib2,ik))*Hxyz)**2
+        ovlp_occ_l(ib1,ik) = ovlp_occ_l(ib1,ik) &
+        &  + occ(ib2,ik) * abs(sum(conjg(zu_GS(:,ib1,ik))*zu(:,ib2,ik))*Hxyz)**2
      enddo
      enddo
      enddo
      call comm_summation(ovlp_occ_l,ovlp_occ,NK*NB,nproc_group_tdks)
 
+     !print
      if(comm_is_root(nproc_id_global)) then
 
         if(action=="proj_last ") then
+           tconv = t_unit_energy%conv
            do ik=1,NK
-              write(409,'(i6,1000e26.16E3)')ik,(esp_all(ib,ik)*t_unit_energy%conv,ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
+              write(409,10)ik,(esp_all(ib,ik)*tconv,ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
            end do
+10         format(i6,1000e26.16E3)
+
         else &
         if(action=="projection") then
            write(404,'(i11)') it
            do ik=1,NK
-              write(404,'(i6,500e16.6)')ik,(ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
+              write(404,20) ik,(ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
            enddo
-           write(408,'(1x,3e16.6E3)')it*dt**t_unit_time%conv,sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
+           time = it*dt**t_unit_time%conv
+           nee  = sum(ovlp_occ(NBoccmax+1:NB,:))
+           neh  = sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
+           write(408,30) time, nee, neh
+20         format(i6,500e16.6)
+30         format(1x,3e16.6E3)
         end if
 
         write(*,*) '  forces on atoms (GS):'
         do ia=1,NI
            write(*,'(i8,3f15.6)') ia,force(1,ia),force(2,ia),force(3,ia)
         end do
-        write(*,*) 'number of excited electron',sum(ovlp_occ(NBoccmax+1:NB,:)),sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
-        write(*,*) 'var_tot,var_max=',sum(esp_var(:,:))/(NK*Nelec/2),maxval(esp_var(:,:)) 
+        nee  = sum(ovlp_occ(NBoccmax+1:NB,:))
+        neh  = sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
+        write(*,*) 'number of excited electron', nee, neh
+        var_tot = sum(esp_var(:,:))/(NK*Nelec/2)
+        var_max = maxval(esp_var(:,:)) 
+        write(*,*) 'var_tot,var_max=', var_tot, var_max
      end if
+
+     if(action=="projection" .and. projection_decomp=='atom') then
+        allocate(ovlp_occ_ia_l(NB,NB,NK,NI), ovlp_occ_ia(NB,NB,NK,NI),nee_ia(NI))
+
+        ovlp_occ_ia_l=0.d0
+!$omp parallel do private(ik,ib1,ib2,i,ia)
+        do ik=Nk_s,NK_e
+        do ib1=1,NB
+        do ib2=1,NBoccmax
+           do i=1,NL
+              ia = assign_grid_atom(i)
+              ovlp_occ_ia_l(ib1,ib2,ik,ia) = ovlp_occ_ia_l(ib1,ib2,ik,ia) &
+              &  + conjg(zu_GS(i,ib1,ik)) * zu(i,ib2,ik)
+           enddo
+        enddo
+        enddo
+        enddo
+        ovlp_occ_ia_l = ovlp_occ_ia_l * Hxyz
+        call comm_summation(ovlp_occ_ia_l,ovlp_occ_ia,NB*NB*NK*NI,nproc_group_tdks)
+
+        nee_ia(:) = 0d0
+        do ia1=1,NI
+           do ia2=1,NI
+           do ib1 = NBoccmax+1,NB
+           do ib2 = 1,NBoccmax
+              nee_ia(ia1) = nee_ia(ia1) &
+              &  + sum(occ(ib2,:)*real(conjg(ovlp_occ_ia(ib1,ib2,:,ia1))*ovlp_occ_ia(ib1,ib2,:,ia2)))
+           enddo
+           enddo
+           enddo
+        enddo
+
+        !print
+        if(comm_is_root(nproc_id_global)) then
+           time = it*dt**t_unit_time%conv
+           write(420,40) time, real(sum(nee_ia(:))), (nee_ia(ia),ia=1,NI)
+40         format(1x,1000e16.6E3)
+        endif
+
+        deallocate(ovlp_occ_ia_l, ovlp_occ_ia, nee_ia)
+
+     endif
+
 
   endif  !action=="projection" or "proj_last "
 
@@ -195,5 +273,79 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
   zu_GS0(:,:,:) = zu_GS(:,:,:) !update for the next initial guess
   Eall_GS0 = Eall
 
-  return
+  contains
+    subroutine init_proj_decomp_atom
+      implicit none
+      integer :: i,j,ia,ia_close,ix,iy,iz, fh_ass
+      real(8) :: x,y,z, r,r_close
+
+
+      allocate(assign_grid_atom(NL))
+
+      do i=1,NL
+
+         r_close  = 1d99
+         ia_close = -1
+         do ix=-2,2
+         do iy=-2,2
+         do iz=-2,2
+
+            do ia=1,NI
+               x = Rion(1,ia)+ix*aLx - Lx(i)*Hx
+               y = Rion(2,ia)+iy*aLy - Ly(i)*Hy
+               z = Rion(3,ia)+iz*aLz - Lz(i)*Hz
+               r = sqrt(x*x+y*y+z*z)
+               if(r .le. r_close) then
+                  r_close  = r
+                  ia_close = ia
+               endif
+            enddo
+
+         enddo
+         enddo
+         enddo
+         assign_grid_atom(i) = ia_close
+
+      enddo
+
+      !for check (print assignment to cube file)
+      if(comm_is_root(nproc_id_global)) then
+      fh_ass = 123
+      open(fh_ass,file="assign_grid_atom.cube",status="unknown")
+      write(fh_ass,10)
+      write(fh_ass,20) NI,  0d0, 0d0, 0d0
+      write(fh_ass,20) NLx, Hx,  0d0, 0d0
+      write(fh_ass,20) NLy, 0d0, Hy,  0d0
+      write(fh_ass,20) NLz, 0d0, 0d0, Hz
+
+      do i=1, NI
+         write(fh_ass,30) Zatom(Kion(i)), 0d0, (Rion(j,i), j=1,3)
+      end do
+
+      j=1
+      do ix=0, NLx-1
+      do iy=0, NLy-1
+      do iz=0, NLz-1
+         i=Lxyz(ix,iy,iz)
+         if(mod(j,6)==0) then
+            write(fh_ass,40) dble(assign_grid_atom(i))
+         else
+            write(fh_ass,40,advance='no') dble(assign_grid_atom(i))
+         endif
+         j=j+1
+      end do
+      end do
+      end do
+
+10    format("# SALMON",/, &
+      &      "# COMMENT" )
+20    format(I5,3(F12.6))
+30    format(I5,4(F12.6))
+40    format(ES12.4)
+
+      close(fh_ass)
+      endif
+
+    end subroutine init_proj_decomp_atom
+!  return
 End Subroutine analysis_RT_using_GS

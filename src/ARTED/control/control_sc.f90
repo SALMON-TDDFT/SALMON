@@ -93,6 +93,8 @@ subroutine tddft_sc
       open(404, file=file_ovlp,         position = position_option) 
       open(408, file=file_nex,          position = position_option) 
       open(409, file=file_last_band_map,position = position_option) 
+      if(projection_option=='gs' .and. projection_decomp=='atom') &
+    & open(420, file=file_nex_atom,  position = position_option) 
       call write_projection_header
     end if
 

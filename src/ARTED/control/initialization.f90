@@ -140,6 +140,7 @@ contains
        write(file_dns,"(2A,'_dns.data')") trim(directory),trim(SYSname)
        write(file_ovlp,"(2A,'_ovlp.data')") trim(directory),trim(SYSname)
        write(file_nex,"(2A,'_nex.data')") trim(directory),trim(SYSname)
+       write(file_nex_atom,"(2A,'_nex_atom.data')") trim(directory),trim(SYSname)
        write(file_last_band_map,"(2A,'_last_band_map.data')") trim(directory),trim(SYSname)
        write(file_k_data,"(2A,'_k.data')") trim(directory),trim(SYSname)
        write(file_eigen_data,"(2A,'_eigen.data')") trim(directory),trim(SYSname)
