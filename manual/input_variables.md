@@ -30,13 +30,6 @@ and <code>'GS_RTPulse'</code>
 can be chosen.
 </dd>
 
-><dt>use_ehrenfest_md; <code>Character</code>; 0d/3d</dt>
-><dd>
->Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
->Ehrenfest molecular dynamics.
->Default is <code>'n'</code>.
-></dd>
-
 <dt>use_ms_maxwell; <code>Character</code>; 3d</dt>
 <dd>
 Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
@@ -51,6 +44,13 @@ force calculation.
 Default is <code>'n'</code>.
 </dd>
 
+><dt>use_ehrenfest_md; <code>Character</code>; 0d/3d</dt>
+><dd>
+>Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
+>Ehrenfest molecular dynamics.
+>Default is <code>'n'</code>.
+></dd>
+
 ><dt>use_geometry_opt; <code>Character</code>; 0d/3d</dt>
 ><dd>
 >Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
@@ -62,6 +62,16 @@ Default is <code>'n'</code>.
 
 ## &control
 <dl>
+
+<dt>sysname; <code>Character</code>; 0d/3d</dt>
+<dd>Name of calculation. This is used for a prefix of output files.
+Default is <code>default</code>.
+</dd>
+
+<dt>directory; <code>Character</code>; 0d/3d</dt>
+<dd>Name of a default directory, where the basic results will be written down.
+Default is the current directoy, <code>./</code>.
+</dd>
 
 ><dt>restart_option; <code>Character</code>; 3d</dt>
 ><dd>Flag for restart. <code>'new'</code> or 
@@ -80,16 +90,6 @@ Default is <code>'n'</code>.
 >If negative time is chosen, the automatic shutdown is not performed.
 >Default is <code>-1</code> sec.
 ></dd>
-
-<dt>sysname; <code>Character</code>; 0d/3d</dt>
-<dd>Name of calculation. This is used for a prefix of output files.
-Default is <code>default</code>.
-</dd>
-
-<dt>directory; <code>Character</code>; 0d/3d</dt>
-<dd>Name of a default directory, where the basic results will be written down.
-Default is the current directoy, <code>./</code>.
-</dd>
 
 ><dt>dump_filename; <code>Character</code>; 3d</dt>
 ><dd>Name of a filename for the restart calculation.
@@ -448,12 +448,6 @@ Time step. Unit of time can be chosen by <code>
 ## &propagation
 <dl>
 
-><dt>n_hamil; <code>Integer</code>; 0d</dt>
-><dd>
->Order of Taylor expansion of a propagation operator.
->Default is <code>4</code>.
-></dd>
-
 <dt>propagator; <code>Character</code>; 3d</dt>
 <dd>
 Choice of Propagator.
@@ -466,10 +460,21 @@ Comput. Phys. Commun., 151 60 (2003)].
 Default is <code>middlepoint</code>.
 </dd>
 
+><dt>n_hamil; <code>Integer</code>; 0d</dt>
+><dd>
+>Order of Taylor expansion of a propagation operator.
+>Default is <code>4</code>.
+></dd>
+
 </dl>
 
 ## &scf
 <dl>
+
+<dt>nscf; <code>Integer</code>; 0d/3d</dt>
+<dd>
+Number of maximum scf cycle.
+</dd>
 
 <dt>amin_routine; <code>Character</code>; 0d</dt>
 <dd>
@@ -524,16 +529,6 @@ Default is <code>0.75</code>.
 ><dd>
 >Probably, we should remove this function
 >since we can replace it with occupaion smoothing with temepratre.
-></dd>
-
-<dt>nscf; <code>Integer</code>; 0d/3d</dt>
-<dd>
-Number of maximum scf cycle.
-</dd>
-
-><dt>ngeometry_opt; <code>Integer</code>; 0d</dt>
-><dd>
->Number of iteration of geometry optimization.
 ></dd>
 
 <dt>subspace_diagonalization; <code>Character</code>; 0d</dt>
@@ -607,6 +602,10 @@ Loop for OpenMP parallelization if periodic boundary system is used.
 >Default is <code>n</code>
 ></dd>
 
+><dt>ngeometry_opt; <code>Integer</code>; 0d</dt>
+><dd>
+>Number of iteration of geometry optimization.
+></dd>
 
 </dl>
 
@@ -807,6 +806,14 @@ Methods of projection.
 </li>
 </ul>
 </dd>
+
+><dt>projection_decomp; <code>Character</code>; 3d</dt>
+><dd>
+>If <code>'atom'</code> combined with <code>projection_option='gs'</code>, 
+>the number of excited electron is decomposed into each atom 
+>(this is printed in <code>SYSname</code>_nex_atom.data)
+>Default is <code>'n'</code>.
+></dd>
 
 <dt>out_projection_step; <code>Integer</code>; 3d</dt>
 <dd>
