@@ -192,7 +192,7 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
            do ik=1,NK
               write(404,20) ik,(ovlp_occ(ib,ik)*NKxyz,ib=1,NB)
            enddo
-           time = it*dt**t_unit_time%conv
+           time = it*dt*t_unit_time%conv
            nee  = sum(ovlp_occ(NBoccmax+1:NB,:))
            neh  = sum(occ)-sum(ovlp_occ(1:NBoccmax,:))
            write(408,30) time, nee, neh
@@ -245,7 +245,7 @@ Subroutine analysis_RT_using_GS(Rion_xyz_update,iter_GS_max,zu,it,action)
 
         !print
         if(comm_is_root(nproc_id_global)) then
-           time = it*dt**t_unit_time%conv
+           time = it*dt*t_unit_time%conv
            write(420,40) time, real(sum(nee_ia(:))), (nee_ia(ia),ia=1,NI)
 40         format(1x,1000e16.6E3)
         endif
