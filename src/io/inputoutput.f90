@@ -204,6 +204,7 @@ contains
     use salmon_file, only: get_filehandle
     implicit none
     integer :: ii
+    real(8) :: norm
 
     namelist/calculation/ &
       & calc_mode, &
@@ -926,6 +927,9 @@ contains
     omega1 = omega1 * uenergy_to_au
     call comm_bcast(epdir_re1 ,nproc_group_global)
     call comm_bcast(epdir_im1 ,nproc_group_global)
+    norm = sqrt(sum(epdir_re1(:)**2+epdir_im1(:)**2))
+    epdir_re1 = epdir_re1 / norm
+    epdir_im1 = epdir_im1 / norm
     call comm_bcast(phi_cep1  ,nproc_group_global)
     call comm_bcast(ae_shape2 ,nproc_group_global)
     call comm_bcast(amplitude2,nproc_group_global)
@@ -937,6 +941,9 @@ contains
     omega2 = omega2 * uenergy_to_au
     call comm_bcast(epdir_re2,nproc_group_global)
     call comm_bcast(epdir_im2,nproc_group_global)
+    norm = sqrt(sum(epdir_re2(:)**2+epdir_im2(:)**2))
+    epdir_re2 = epdir_re2 / norm
+    epdir_im2 = epdir_im2 / norm
     call comm_bcast(phi_cep2 ,nproc_group_global)
     call comm_bcast(t1_t2    ,nproc_group_global)
     t1_t2 = t1_t2 * utime_to_au
