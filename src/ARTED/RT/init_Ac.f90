@@ -90,7 +90,7 @@ Subroutine init_Ac
     do iter=0,Nt+1
       tt=iter*dt - 0.5d0*pulse_tw1
       if (abs(tt)<0.5d0*pulse_tw1) then
-        Ac_ext(iter,:)=-f0_1/(8d0*pi**2*omega1 - 2d0*pulse_tw1**2*omega1**3) &
+        Ac_ext(iter,:)=-epdir_re1(:)*f0_1/(8d0*pi**2*omega1 - 2d0*pulse_tw1**2*omega1**3) &
           *( &
           (-4d0*pi**2+pulse_tw1**2*omega1**2 + pulse_tw1**2*omega1**2*cos(2d0*pi*tt/pulse_tw1))*cos(omega1*tt) &
           +2d0*pi*(2d0*pi*cos(pulse_tw1*omega1/2d0) &
