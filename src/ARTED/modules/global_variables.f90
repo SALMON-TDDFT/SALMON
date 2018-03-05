@@ -89,6 +89,7 @@ Module Global_Variables
   real(8),allocatable :: velocity(:,:),force(:,:),esp(:,:)
   real(8),allocatable :: Floc(:,:),Fnl(:,:),Fion(:,:),FionAc(:,:)          
   real(8),allocatable :: ovlp_occ_l(:,:),ovlp_occ(:,:)
+  integer,allocatable :: assign_grid_atom(:) ! projection + decomp analysis
   integer,allocatable :: NBocc(:) !FS set
   real(8),allocatable :: esp_vb_min(:),esp_vb_max(:) !FS set
   real(8),allocatable :: esp_cb_min(:),esp_cb_max(:) !FS set
@@ -149,7 +150,7 @@ Module Global_Variables
   character(256) :: file_epst,file_epse
   character(256) :: file_force_dR,file_j_ac
   character(256) :: file_DoS,file_band
-  character(256) :: file_dns,file_ovlp,file_nex,file_last_band_map
+  character(256) :: file_dns,file_ovlp,file_nex,file_last_band_map,file_nex_atom
   character(256) :: file_dns_gs
   character(256) :: file_dns_rt
   character(256) :: file_dns_dlt

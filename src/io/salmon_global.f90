@@ -191,6 +191,7 @@ module salmon_global
   
 !! &analysis
   character(2)   :: projection_option
+  character(4)   :: projection_decomp
   integer        :: nenergy
   real(8)        :: de
   character(1)   :: out_psi
