@@ -51,7 +51,7 @@ subroutine calc_env_trigon(ipulse,tenv_trigon)
     tenv_trigon=cos(theta1)**2*cos(theta2)
   else if(tae_shape=='Acos2')then
     tenv_trigon=-(-alpha*sin(2.d0*theta1)*cos(theta2)   &
-                  -beta*cos(theta1)**2*sin(theta2))
+                  -beta*cos(theta1)**2*sin(theta2))/beta
   end if
     
   return
