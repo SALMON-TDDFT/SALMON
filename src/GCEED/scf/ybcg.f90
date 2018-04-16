@@ -28,7 +28,7 @@ use hpsi2_sub
 implicit none
 
 real(8):: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),  &
-               1:iobnum,1)
+               1:iobnum,k_sta:k_end)
 integer :: iter,iob,job,iflag
 integer :: ix,iy,iz
 integer :: is,iobsta(2),iobend(2)
@@ -81,7 +81,7 @@ do is=is_sta,is_end
 
 orbital : do iob=iobsta(is),iobend(is)
   call calc_myob(iob,iob_myob)
-  call check_corrkob(iob,icorr)
+  call check_corrkob(iob,1,icorr)
   elp2(2)=get_wtime()
 
   if(icorr==1)then
@@ -104,7 +104,7 @@ orbital : do iob=iobsta(is),iobend(is)
     end do
     end do
 
-    call hpsi2(tpsi,hxk,iob,0,0)
+    call hpsi2(tpsi,hxk,iob,1,0,0)
 
     call inner_product(xk,hxk,xkHxk)
 
@@ -130,7 +130,7 @@ orbital : do iob=iobsta(is),iobend(is)
     do job=iobsta(is),iob-1
       sum0=0.d0
       call calc_myob(job,job_myob)
-      call check_corrkob(job,jcorr)
+      call check_corrkob(job,1,jcorr)
       if(jcorr==1)then
         call inner_product(psi_in(:,:,:,job_myob,1),gk(:,:,:),sum0)
         sum0=sum0*Hvol
@@ -194,7 +194,7 @@ orbital : do iob=iobsta(is),iobend(is)
       end do
       end do
       end do
-      call hpsi2(tpsi,gk,iob,0,0)
+      call hpsi2(tpsi,gk,iob,1,0,0)
 
       call inner_product(pk,gk,pkHpk)
       pkHpk = pkHpk*Hvol

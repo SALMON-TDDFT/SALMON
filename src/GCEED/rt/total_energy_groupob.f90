@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 SUBROUTINE Total_Energy_groupob(tzpsi_in,htpsi,ifunc)
-use salmon_parallel, only: nproc_group_global, nproc_group_h, nproc_group_orbital
+use salmon_parallel, only: nproc_group_global, nproc_group_h, nproc_group_korbital
 use salmon_communication, only: comm_summation
 use misc_routines, only: get_wtime
 use scf_data
@@ -24,13 +24,13 @@ use read_pslfile_sub
 implicit none
 
 complex(8) :: tzpsi_in(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd,  &
-                1:iobnum,1)
+                1:iobnum,k_sta:k_end)
 complex(8) :: htpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd,  &
-                1:iobnum,1)
+                1:iobnum,k_sta:k_end)
 complex(8) :: tzpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd,  &
-                1:iobnum,1)
+                1:iobnum,k_sta:k_end)
 integer :: ifunc
-integer :: iob,ia,ib
+integer :: iob,ia,ib,iik
 integer :: ix,iy,iz
 real(8) :: rab
 real(8) :: sum1,sum2
@@ -62,23 +62,25 @@ if(ifunc==1)then
   call hpsi_groupob(tzpsi_in,htpsi,tzpsi_out,Vlocal,0,0)
   
   
+  do iik=k_sta,k_end
   do iob=1,iobnum
     cbox=0.d0
 !$OMP parallel do reduction ( + : cbox ) private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      cbox=cbox+conjg(tzpsi_in(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
+      cbox=cbox+conjg(tzpsi_in(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
     end do
     end do
     end do
   
-    esp2(iob,1)=dble(cbox)*Hvol
+    esp2(iob,iik)=dble(cbox)*Hvol
   
+  end do
   end do
   
   elp3(761)=get_wtime()
-  call comm_summation(esp2,esp,itotMST,nproc_group_global)
+  call comm_summation(esp2,esp,itotMST*num_kpoints_rd,nproc_group_global)
   
   
   elp3(762)=get_wtime()
@@ -87,7 +89,7 @@ if(ifunc==1)then
 else if(ifunc==2)then
 
   elp3(761)=get_wtime()
-  call comm_summation(esp2,esp,itotMST,nproc_group_global)
+  call comm_summation(esp2,esp,itotMST*num_kpoints_rd,nproc_group_global)
 
   elp3(762)=get_wtime()
   elp3(782)=elp3(782)+elp3(762)-elp3(761)
@@ -109,14 +111,14 @@ else if(iflag_md==1)then
   end do
 end if
 
-
-rbox=0.d0
+do iik=k_sta,k_end
+  rbox=0.d0
 !$OMP parallel do reduction ( + : rbox )
-do iob=1,itotMST
-  rbox = rbox + rocc(iob,1)*esp(iob,1) *wtk(1)
+  do iob=1,itotMST
+    rbox = rbox + rocc(iob,iik)*esp(iob,iik) *wtk(iik)
+  end do
+  Etot=Etot+rbox
 end do
-Etot=Etot+rbox
-
 
 if(ilsda == 0)then
   if((ifunc==1.and.mod(itt,2)==1).or.(ifunc==2.and.mod(itt,2)==0))then
@@ -156,7 +158,7 @@ else if(ilsda == 1)then
   end do
   end do
   end do
-  call comm_summation(sum1,sum2,nproc_group_orbital)
+  call comm_summation(sum1,sum2,nproc_group_korbital)
   Etot=Etot+sum2*Hvol+Exc
 end if
 

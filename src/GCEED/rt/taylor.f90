@@ -22,13 +22,13 @@ implicit none
 integer :: nn,ix,iy,iz
 complex(8) :: tzpsi_in(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                    mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 complex(8) :: htpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                     mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 complex(8) :: tzpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                    mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 
 
 iwk_size=2
@@ -55,7 +55,7 @@ else if(ilsda==1)then
   end do
 end if
 
-if(ihpsieff==1)then
+if(iperiodic==0.and.ihpsieff==1)then
   if(ilsda==0)then
 !$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
@@ -80,7 +80,7 @@ end if
 
 
   do nn=1,N_hamil
-    if(ihpsieff==1)then
+    if(iperiodic==0.and.ihpsieff==1)then
       if(mod(nn,2)==1)then
         call hpsi_groupob(tzpsi_in,htpsi,tzpsi_out,Vlocal2,nn,1)
       else

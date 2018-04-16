@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine calc_force
-use salmon_parallel, only: nproc_group_orbital, nproc_group_global, nproc_id_global
+use salmon_parallel, only: nproc_group_korbital, nproc_group_global, nproc_id_global
 use salmon_communication, only: comm_is_root, comm_summation
 use scf_data
 use allocate_mat_sub
@@ -27,7 +27,7 @@ real(8),allocatable :: uVpsibox(:,:,:,:),uVpsibox2(:,:,:,:)
 real(8) :: rforce1(3,MI),rforce2(3,MI),rforce3(3,MI)
 real(8) :: rab
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
-                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 
 do iatom=1,MI
 do j2=1,3
@@ -89,8 +89,8 @@ end do
 
 ! nonlocal part of force
 
-allocate (uVpsibox(1:iobnum,1,1:maxlm,1:MI))
-allocate (uVpsibox2(1:iobnum,1,1:maxlm,1:MI))
+allocate (uVpsibox(1:iobnum,k_sta:k_end,1:maxlm,1:MI))
+allocate (uVpsibox2(1:iobnum,k_sta:k_end,1:maxlm,1:MI))
 
 do iatom=1,MI
   do lm=1,maxlm
@@ -116,7 +116,7 @@ do iatom=1,MI
   end do
 end do
 
-call comm_summation(uVpsibox,uVpsibox2,iobnum*maxlm*MI,nproc_group_orbital)
+call comm_summation(uVpsibox,uVpsibox2,iobnum*maxlm*MI,nproc_group_korbital)
 
 do iatom=1,MI
   ikoa=Kion(iatom)

@@ -11,11 +11,13 @@ set(SOURCES
     calc_iroot.f90
     calcJxyz.f90
     calcJxyz_all.f90
+    calcJxyz_all_periodic.f90
     calc_myob.f90
     calc_ob_num.f90
     calc_pmax.f90
     calcuV.f90
     calcVpsl.f90
+    calcVpsl_periodic.f90
     check_cep.f90
     check_corrkob.f90
     check_mg.f90
@@ -26,8 +28,10 @@ set(SOURCES
     conv_p.f90
     hartree_boundary.f90
     hartree_cg.f90
+    hartree_periodic.f90
     hartree.f90
     init_wf.f90
+    init_k_rd.f90
     inner_product3.f90
     inner_product4.f90
     laplacianh.f90
@@ -45,6 +49,7 @@ set(SOURCES
     set_ispin.f90
     set_isstaend.f90
     storevpp.f90
+    total_energy_periodic.f90
     writeavs.f90
     writecube.f90
     writedns.f90

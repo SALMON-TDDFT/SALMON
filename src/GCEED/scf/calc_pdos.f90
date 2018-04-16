@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine calc_pdos
-use salmon_parallel, only: nproc_id_global, nproc_group_grid, nproc_group_orbital
+use salmon_parallel, only: nproc_id_global, nproc_group_grid, nproc_group_korbital
 use salmon_communication, only: comm_is_root, comm_summation
 use inputoutput, only: out_dos_start, out_dos_end, out_dos_method, &
                        out_dos_smearing, iout_dos_nenergy, out_dos_fshift, uenergy_from_au
@@ -22,7 +22,7 @@ use scf_data
 use allocate_psl_sub
 use new_world_sub
 implicit none
-integer :: iob,iobmax,iob_allob,iatom,L,ix,iy,iz
+integer :: iob,iobmax,iob_allob,iatom,L,ix,iy,iz,iik
 integer :: ikoa
 integer :: intr
 real(8) :: phi_r
@@ -42,8 +42,8 @@ real(8) :: ene_homo,ene_lumo,ene_min,ene_max,efermi,eshift
 
 call calc_pmax(iobmax)
 
-ene_min = minval(esp(:,1))
-ene_max = maxval(esp(:,1))
+ene_min = minval(esp(:,:))
+ene_max = maxval(esp(:,:))
 if(out_dos_fshift=='y'.and.nstate>nelec/2) then 
   ene_homo = esp(nelec/2,1)
   ene_lumo = esp(nelec/2+1,1)
@@ -58,6 +58,7 @@ dw=(out_dos_end-out_dos_start)/dble(iout_dos_nenergy-1)
 
 pdos_l_tmp=0.d0
 
+do iik=k_sta,k_end
 do iob=1,iobmax
   call calc_allob(iob,iob_allob)
   rbox_pdos=0.d0
@@ -76,14 +77,14 @@ do iob=1,iobmax
           ratio1=(rr-rad_psl(intr,ikoa))/(rad_psl(intr+1,ikoa)-rad_psl(intr,ikoa)) ; ratio2=1.d0-ratio1
           phi_r= ratio1*uppr(intr+1,Lref(ikoa),ikoa)+ratio2*uppr(intr,Lref(ikoa),ikoa)
           call Ylm_sub(xx,yy,zz,lm,Ylm)
-          rbox_pdos(lm,iatom)=rbox_pdos(lm,iatom)+psi(ix,iy,iz,iob,1)*phi_r*Ylm*Hvol
+          rbox_pdos(lm,iatom)=rbox_pdos(lm,iatom)+psi(ix,iy,iz,iob,iik)*phi_r*Ylm*Hvol
         end do
         end do
         end do
       end do
     end do
   end do
-  call comm_summation(rbox_pdos,rbox_pdos2,25*MI,nproc_group_orbital) 
+  call comm_summation(rbox_pdos,rbox_pdos2,25*MI,nproc_group_korbital) 
   do iatom=1,MI
     ikoa=Kion(iatom)
     do L=0,Mlps(ikoa)
@@ -92,14 +93,14 @@ do iob=1,iobmax
         case('lorentzian') 
           fk=2.d0*out_dos_smearing/pi
           do iw=1,iout_dos_nenergy 
-            ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,1)  
+            ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,iik)  
             pdos_l_tmp(iw,L,iatom)=pdos_l_tmp(iw,L,iatom)  &
               +abs(rbox_pdos2(lm,iatom))**2*fk/(ww**2+out_dos_smearing**2) 
           end do 
         case('gaussian')
           fk=2.d0/(sqrt(2.d0*pi)*out_dos_smearing)
           do iw=1,iout_dos_nenergy 
-            ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,1)  
+            ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,iik)  
             pdos_l_tmp(iw,L,iatom)=pdos_l_tmp(iw,L,iatom)  &
               +abs(rbox_pdos2(lm,iatom))**2*fk*exp(-(0.5d0/out_dos_smearing**2)*ww**2) 
           end do
@@ -107,6 +108,7 @@ do iob=1,iobmax
       end do
     end do
   end do
+end do
 end do
 call comm_summation(pdos_l_tmp,pdos_l,iout_dos_nenergy*5*MI,nproc_group_grid) 
 

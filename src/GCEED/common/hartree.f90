@@ -21,13 +21,27 @@ use scf_data
 implicit none
 
 if(iSCFRT==1)then
-  call Hartree_cg(rho,Vh)
+  select case(iperiodic)
+  case(0)
+    call Hartree_cg(rho,Vh)
+  case(3)
+    call Hartree_periodic(rho,Vh)
+  end select
 else if(iSCFRT==2)then
-  if(mod(itt,2)==1)then
-    call Hartree_cg(rho,Vh_stock2)
-  else
-    call Hartree_cg(rho,Vh_stock1)
-  end if
+  select case(iperiodic)
+  case(0)
+    if(mod(itt,2)==1)then
+      call Hartree_cg(rho,Vh_stock2)
+    else
+      call Hartree_cg(rho,Vh_stock1)
+    end if
+  case(3)
+    if(mod(itt,2)==1)then
+      call Hartree_periodic(rho,Vh_stock2)
+    else
+      call Hartree_periodic(rho,Vh_stock1)
+    end if
+  end select
 end if
 
 return

@@ -231,6 +231,7 @@ contains
 
     namelist/parallel/ &
       & domain_parallel, &
+      & nproc_k, &
       & nproc_ob, &
       & nproc_domain, &
       & nproc_domain_s, &
@@ -463,7 +464,8 @@ contains
       & itotntime2, &
       & iwdenoption, &
       & iwdenstep, &
-      & iflag_estatic
+      & iflag_estatic, &
+      & iflag_hartree
 
 
 !! == default for &unit ==
@@ -522,6 +524,7 @@ contains
     write_rt_wfn_k   = 'n'
 !! == default for &parallel
     domain_parallel   = 'n'
+    nproc_k           = 0
     nproc_ob          = 0
     nproc_domain      = 0
     nproc_domain_s    = 0
@@ -742,6 +745,7 @@ contains
     iwdenoption                = 0
     iwdenstep                  = 0
     iflag_estatic              = 0
+    iflag_hartree              = 2
 
 
     if (comm_is_root(nproc_id_global)) then
@@ -843,6 +847,7 @@ contains
 
 !! == bcast for &parallel
     call comm_bcast(domain_parallel  ,nproc_group_global)
+    call comm_bcast(nproc_k          ,nproc_group_global)
     call comm_bcast(nproc_ob         ,nproc_group_global)
     call comm_bcast(nproc_domain     ,nproc_group_global)
     call comm_bcast(nproc_domain_s   ,nproc_group_global)
@@ -1089,6 +1094,7 @@ contains
     call comm_bcast(iwdenoption         ,nproc_group_global)
     call comm_bcast(iwdenstep           ,nproc_group_global)
     call comm_bcast(iflag_estatic       ,nproc_group_global)
+    call comm_bcast(iflag_hartree       ,nproc_group_global)
 
   end subroutine read_input_common
 
@@ -1361,6 +1367,7 @@ contains
 
       if(inml_parallel >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'parallel', inml_parallel
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_k', nproc_k
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_ob', nproc_ob
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain(1)', nproc_domain(1)
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nproc_domain(2)', nproc_domain(2)
@@ -1644,6 +1651,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I2)') 'iwdenoption', iwdenoption
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwdenstep', iwdenstep
       write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_estatic', iflag_estatic
+      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_hartree', iflag_hartree
 
 
       select case(iflag_atom_coor)

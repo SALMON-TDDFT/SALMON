@@ -52,12 +52,13 @@ real(8),allocatable :: alpha2q_R(:,:,:,:),alpha2q_I(:,:,:,:)
 real(8),allocatable :: Dp_box(:,:),alpha_R_box(:,:),alpha_I_box(:,:) 
 real(8),allocatable :: Qp_box(:,:,:),alpha_Rq_box(:,:,:),alpha_Iq_box(:,:,:) 
 real(8),allocatable :: Sf(:),Sf2(:,:),Sq2(:,:,:)
-integer :: jj
+integer :: jj,nn
 integer :: iene,nntime,ix,iy,iz
 character(100):: timeFile
 character(100):: alpha2OutFile
 integer :: ia,ib
 real(8) :: rab
+real(8),allocatable :: tfourier_integrand(:,:)
 
 call check_cep
 call check_ae_shape
@@ -265,6 +266,7 @@ if(IC_rt==0) then
   allocate( Dp(3,0:Ntime) )
   allocate( Qp(3,3,0:Ntime) )
   allocate( tene(0:Ntime) )
+  call initA(Ntime)
 
   if(iflag_dip2==1) then
     allocate( rIe2(0:Ntime,1:num_dip2) ) 
@@ -338,228 +340,257 @@ if(iwrite_external==1)then
   end if
 end if
 
-call Fourier3D(Dp,alpha_R,alpha_I) 
-if(quadrupole=='y')then
-  do iii=1,3
-    call Fourier3D(Qp(iii,:,:),alphaq_R(iii,:,:),alphaq_I(iii,:,:)) 
-  end do
-end if
-if(comm_is_root(nproc_id_global))then
-  open(1,file=file_RT)
-  write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A],                        Energy[eV]" 
-   do nntime=1,itotNtime
-      write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
-      write(1,'(3e16.8)',advance="no") (Dp(iii,nntime)*a_B, iii=1,3)
-      write(1,'(e16.8)',advance="yes") tene(nntime)*2.d0*Ry
-   end do
-  close(1)
+select case(iperiodic)
+case(0)
 
+  call Fourier3D(Dp,alpha_R,alpha_I) 
   if(quadrupole=='y')then
-    open(1,file=file_RT_q)
-    write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
-    do nntime=1,itotNtime
-       write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
-       write(1,'(6e16.8)',advance="yes") (Qp(iii,iii,nntime)*a_B**2, iii=1,3), &
-           & Qp(1,2,nntime)*a_B**2,Qp(2,3,nntime)*a_B**2,Qp(3,1,nntime)*a_B**2
+    do iii=1,3
+      call Fourier3D(Qp(iii,:,:),alphaq_R(iii,:,:),alphaq_I(iii,:,:)) 
     end do
-    close(1)
   end if
-
-  if(iflag_intelectron==1)then
-    open(1,file=file_RT_e)
-    write(1,'(a)') "# time[fs],    integrated electron density" 
+  if(comm_is_root(nproc_id_global))then
+    open(1,file=file_RT)
+    write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A],                        Energy[eV]" 
      do nntime=1,itotNtime
         write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
-        write(1,'(e16.8)',advance="yes") rIe(nntime)
+        write(1,'(3e16.8)',advance="no") (Dp(iii,nntime)*a_B, iii=1,3)
+        write(1,'(e16.8)',advance="yes") tene(nntime)*2.d0*Ry
      end do
     close(1)
-  end if
-
-  if(iflag_dip2==1)then
-    open(1,file=file_RT_dip2)
-    write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A]" 
-      do nntime=1,itotNtime
-        write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
-        do jj=1,num_dip2-1
-          write(1,'(3e16.8)',advance="no") (Dp2(iii,nntime,jj)*a_B, iii=1,3)
-        end do
-        write(1,'(3e16.8)',advance="yes") (Dp2(iii,nntime,num_dip2)*a_B, iii=1,3)
-      end do
-    close(1)
-
+  
     if(quadrupole=='y')then
-      open(1,file=file_RT_dip2_q)
+      open(1,file=file_RT_q)
       write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
-        do nntime=1,itotNtime
-          write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
-          do jj=1,num_dip2-1
-            write(1,'(6e16.8)',advance="no") (Qp2(iii,iii,nntime,jj)*a_B**2, iii=1,3), &
-                & Qp2(1,2,nntime,jj)*a_B**2,Qp2(2,3,nntime,jj)*a_B**2,Qp2(3,1,nntime,jj)*a_B**2  
-          end do
-          write(1,'(6e16.8)',advance="yes") (Qp2(iii,iii,nntime,num_dip2)*a_B**2, iii=1,3), &
-              & Qp2(1,2,nntime,num_dip2)*a_B**2,Qp2(2,3,nntime,num_dip2)*a_B**2,Qp2(3,1,nntime,num_dip2)*a_B**2
-        end do
-      close(1)
-    end if
-
-    if(iflag_intelectron==1)then
-      open(1,file=file_RT_dip2_e)
-      write(1,'(a)') "# time[fs],    integrated electron density" 
-        do nntime=1,itotNtime
-          write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
-          do jj=1,num_dip2-1
-            write(1,'(e16.8)',advance="no") rIe2(nntime,jj)
-          end do
-          write(1,'(e16.8)',advance="yes") rIe2(nntime,num_dip2)
-        end do
-      close(1)
-    end if
-  end if
-
-! Alpha
-  if(ae_shape1=='impulse')then
-    open(1,file=file_alpha_lr)
-    write(1,'(a)') "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], df/dE(x,y,z)[1/eV]" 
-    do iene=0,Nenergy
-      Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
-      write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-      write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)**3, iii=1,3)
-      write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)**3, iii=1,3)
-      write(1,'(3e16.8)',advance="yes") (Sf(iii)/2d0/Ry, iii=1,3)
-    end do
-  else
-    open(1,file=file_alpha_pulse)
-    write(1,'(a)') "# energy[eV], Re[d(w)](x,y,z)[A*fs],  Im[d(w)](x,y,z)[A*fs],  |d(w)|^2(x,y,z)[A**2*fs**2]"
-    do iene=0,Nenergy
-      write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-      write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
-      write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
-      write(1,'(3e16.8)',advance="yes") ((alpha_R(iii,iene)**2+alpha_I(iii,iene)**2)   &
-                                             *(a_B)**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
-    end do
-  end if 
-  close(1)
-
-  if(quadrupole=='y')then
-    open(1,file=file_alpha_q)
-    write(1,'(a)') "# energy[eV], Re[d(w)](xx,yy,zz,xy,yz,zx)[A*fs],  Im[d(w)](xx,yy,zz,xy,yz,zx)[A*fs]" 
-     do iene=0,Nenergy
-       write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-       write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
-                                         alphaq_R(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
-                                         alphaq_R(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
-                                         alphaq_R(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
-       write(1,'(6e16.8)',advance="yes") (alphaq_I(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
-                                          alphaq_I(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
-                                          alphaq_I(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
-                                          alphaq_I(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
-     end do
-    close(1)
-  end if
-
-  if(iflag_dip2==1)then
-    open(1,file=file_alpha_dip2)
-    if(ae_shape1=='impulse')then
-      write(1,'(a)') "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], df1/dE(x,y,z)[1/eV],",  &
-                 " Re[alpha2](x,y,z)[A**3], ..."
-      do jj=1,num_dip2
-        Dp_box(:,:)=Dp2(:,:,jj)
-        call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
-        alpha2_R(:,:,jj)=alpha_R_box(:,:)
-        alpha2_I(:,:,jj)=alpha_I_box(:,:)
+      do nntime=1,itotNtime
+         write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
+         write(1,'(6e16.8)',advance="yes") (Qp(iii,iii,nntime)*a_B**2, iii=1,3), &
+             & Qp(1,2,nntime)*a_B**2,Qp(2,3,nntime)*a_B**2,Qp(3,1,nntime)*a_B**2
       end do
-      do iene=0,Nenergy
-        Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
-        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-        do jj=1,num_dip2-1
-          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)**3, iii=1,3)
-          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)**3, iii=1,3)
-          write(1,'(3e16.8)',advance="no") (Sf2(iii,jj)/2d0/Ry, iii=1,3)
+      close(1)
+    end if
+  
+    if(iflag_intelectron==1)then
+      open(1,file=file_RT_e)
+      write(1,'(a)') "# time[fs],    integrated electron density" 
+       do nntime=1,itotNtime
+          write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
+          write(1,'(e16.8)',advance="yes") rIe(nntime)
+       end do
+      close(1)
+    end if
+  
+    if(iflag_dip2==1)then
+      open(1,file=file_RT_dip2)
+      write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A]" 
+        do nntime=1,itotNtime
+          write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
+          do jj=1,num_dip2-1
+            write(1,'(3e16.8)',advance="no") (Dp2(iii,nntime,jj)*a_B, iii=1,3)
+          end do
+          write(1,'(3e16.8)',advance="yes") (Dp2(iii,nntime,num_dip2)*a_B, iii=1,3)
         end do
-        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
+      close(1)
+  
+      if(quadrupole=='y')then
+        open(1,file=file_RT_dip2_q)
+        write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
+          do nntime=1,itotNtime
+            write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
+            do jj=1,num_dip2-1
+              write(1,'(6e16.8)',advance="no") (Qp2(iii,iii,nntime,jj)*a_B**2, iii=1,3), &
+                  & Qp2(1,2,nntime,jj)*a_B**2,Qp2(2,3,nntime,jj)*a_B**2,Qp2(3,1,nntime,jj)*a_B**2  
+            end do
+            write(1,'(6e16.8)',advance="yes") (Qp2(iii,iii,nntime,num_dip2)*a_B**2, iii=1,3), &
+                & Qp2(1,2,nntime,num_dip2)*a_B**2,Qp2(2,3,nntime,num_dip2)*a_B**2,Qp2(3,1,nntime,num_dip2)*a_B**2
+          end do
+        close(1)
+      end if
+  
+      if(iflag_intelectron==1)then
+        open(1,file=file_RT_dip2_e)
+        write(1,'(a)') "# time[fs],    integrated electron density" 
+          do nntime=1,itotNtime
+            write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
+            do jj=1,num_dip2-1
+              write(1,'(e16.8)',advance="no") rIe2(nntime,jj)
+            end do
+            write(1,'(e16.8)',advance="yes") rIe2(nntime,num_dip2)
+          end do
+        close(1)
+      end if
+    end if
+  
+  ! Alpha
+    if(ae_shape1=='impulse')then
+      open(1,file=file_alpha_lr)
+      write(1,'(a)') "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], df/dE(x,y,z)[1/eV]" 
+      do iene=0,Nenergy
+        Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
+        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+        write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)**3, iii=1,3)
+        write(1,'(3e16.8)',advance="yes") (Sf(iii)/2d0/Ry, iii=1,3)
       end do
     else
-      write(1,'(a)') "# energy[eV], Re[d1(w)](x,y,z)[A*fs],  Im[d1(w)](x,y,z)[A*fs],  |d1(w)|^2(x,y,z)[A**2*fs**2], ", &
-                 " Re[d2(w)](x,y,z)[A*fs],  ..."
-      do jj=1,num_dip2
-        Dp_box(:,:)=Dp2(:,:,jj)
-        call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
-        alpha2_R(:,:,jj)=alpha_R_box(:,:)
-        alpha2_I(:,:,jj)=alpha_I_box(:,:)
-      end do
+      open(1,file=file_alpha_pulse)
+      write(1,'(a)') "# energy[eV], Re[d(w)](x,y,z)[A*fs],  Im[d(w)](x,y,z)[A*fs],  |d(w)|^2(x,y,z)[A**2*fs**2]"
       do iene=0,Nenergy
-        Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
         write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-        do jj=1,num_dip2-1
-          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
-          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
-          write(1,'(3e16.8)',advance="no") ((alpha2_R(iii,iene,jj)**2+alpha2_I(iii,iene,jj)**2)  &
-                                            *a_B**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
-        end do
-        write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
-        write(1,'(3e16.8)',advance="yes") ((alpha2_R(iii,iene,num_dip2)**2+alpha2_I(iii,iene,num_dip2)**2)  &
-                                            *a_B**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+        write(1,'(3e16.8)',advance="no") (alpha_R(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+        write(1,'(3e16.8)',advance="no") (alpha_I(iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+        write(1,'(3e16.8)',advance="yes") ((alpha_R(iii,iene)**2+alpha_I(iii,iene)**2)   &
+                                               *(a_B)**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
       end do
-    end if
+    end if 
     close(1)
-
+  
     if(quadrupole=='y')then
-      open(1,file=file_alpha_dip2_q)
-      write(1,'(a)') "# energy[eV], Im[d1(w)](x,y,z)[A*fs],  Im[d2(w)](x,y,z)[A*fs],  ..."
-      do jj=1,num_dip2
-        Qp_box(:,:,:)=Qp2(:,:,:,jj)
-        do iii=1,3
-          call Fourier3D(Qp_box(iii,:,:),alpha_Rq_box(iii,:,:),alpha_Iq_box(iii,:,:)) 
-        end do
-        alpha2q_R(:,:,:,jj)=alpha_Rq_box(:,:,:)
-        alpha2q_I(:,:,:,jj)=alpha_Iq_box(:,:,:)
-      end do
-      do iene=0,Nenergy
-        write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
-        do jj=1,num_dip2-1
-          write(1,'(6e16.8)',advance="no") (alpha2q_R(iii,iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3),  &
-                                            alpha2q_R(1,2,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
-                                            alpha2q_R(2,3,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
-                                            alpha2q_R(3,1,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv)
-        end do
-        write(1,'(6e16.8)',advance="yes") (alpha2q_I(iii,iii,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
-                                           alpha2q_I(1,2,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
-                                           alpha2q_I(2,3,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
-                                           alpha2q_I(3,1,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv)
-      end do
+      open(1,file=file_alpha_q)
+      write(1,'(a)') "# energy[eV], Re[d(w)](xx,yy,zz,xy,yz,zx)[A*fs],  Im[d(w)](xx,yy,zz,xy,yz,zx)[A*fs]" 
+       do iene=0,Nenergy
+         write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+         write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                           alphaq_R(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                           alphaq_R(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                           alphaq_R(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
+         write(1,'(6e16.8)',advance="yes") (alphaq_I(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                            alphaq_I(1,2,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
+                                            alphaq_I(2,3,iene)*(a_B)*(2.d0*Ry*fs2eVinv), &
+                                            alphaq_I(3,1,iene)*(a_B)*(2.d0*Ry*fs2eVinv)
+       end do
       close(1)
     end if
-  end if
-end if
-
-if(iflag_fourier_omega==1)then
-
-  call comm_summation(zalpha2,zalpha3,lg_num(1)*lg_num(2)*lg_num(3)*num_fourier_omega,nproc_group_h)
-
-  if(comm_is_root(nproc_id_global))then
-    alpha2=real(zalpha3,8)*dt/a_B**3/fs2eVinv/2.d0/Ry
-    do jj=1,num_fourier_omega
-      write(fileNumber, '(i8)') jj
-      alpha2OutFile = trim("fourier3d.")//adjustl(fileNumber)
-      open(1,file=alpha2OutFile)
-      do iz=lg_sta(3),lg_end(3),1
-      do iy=lg_sta(2),lg_end(2),1
-      do ix=lg_sta(1),lg_end(1),1
-        if(abs(alpha2(ix,iy,iz,jj))>=1.0d-6) then
-          write(1,'(e20.8)') alpha2(ix,iy,iz,jj)
-        else
-          write(1,'(a1)') "0"
-        end if
-      end do
-      end do
-      end do
+  
+    if(iflag_dip2==1)then
+      open(1,file=file_alpha_dip2)
+      if(ae_shape1=='impulse')then
+        write(1,'(a)') "# energy[eV], Re[alpha1](x,y,z)[A**3], Im[alpha1](x,y,z)[A**3], df1/dE(x,y,z)[1/eV],",  &
+                   " Re[alpha2](x,y,z)[A**3], ..."
+        do jj=1,num_dip2
+          Dp_box(:,:)=Dp2(:,:,jj)
+          call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
+          alpha2_R(:,:,jj)=alpha_R_box(:,:)
+          alpha2_I(:,:,jj)=alpha_I_box(:,:)
+        end do
+        do iene=0,Nenergy
+          Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
+          write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+          do jj=1,num_dip2-1
+            write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)**3, iii=1,3)
+            write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)**3, iii=1,3)
+            write(1,'(3e16.8)',advance="no") (Sf2(iii,jj)/2d0/Ry, iii=1,3)
+          end do
+          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="yes") (Sf2(iii,num_dip2)/2d0/Ry, iii=1,3)
+        end do
+      else
+        write(1,'(a)') "# energy[eV], Re[d1(w)](x,y,z)[A*fs],  Im[d1(w)](x,y,z)[A*fs],  |d1(w)|^2(x,y,z)[A**2*fs**2], ", &
+                   " Re[d2(w)](x,y,z)[A*fs],  ..."
+        do jj=1,num_dip2
+          Dp_box(:,:)=Dp2(:,:,jj)
+          call Fourier3D(Dp_box,alpha_R_box,alpha_I_box)
+          alpha2_R(:,:,jj)=alpha_R_box(:,:)
+          alpha2_I(:,:,jj)=alpha_I_box(:,:)
+        end do
+        do iene=0,Nenergy
+          Sf2(1:3,1:num_dip2)=2*iene*dE/(Pi)*alpha2_I(1:3,iene,1:num_dip2)
+          write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+          do jj=1,num_dip2-1
+            write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+            write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3)
+            write(1,'(3e16.8)',advance="no") ((alpha2_R(iii,iene,jj)**2+alpha2_I(iii,iene,jj)**2)  &
+                                              *a_B**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+          end do
+          write(1,'(3e16.8)',advance="no") (alpha2_R(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="no") (alpha2_I(iii,iene,num_dip2)*(a_B)**3, iii=1,3)
+          write(1,'(3e16.8)',advance="yes") ((alpha2_R(iii,iene,num_dip2)**2+alpha2_I(iii,iene,num_dip2)**2)  &
+                                              *a_B**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
+        end do
+      end if
       close(1)
-    end do
+  
+      if(quadrupole=='y')then
+        open(1,file=file_alpha_dip2_q)
+        write(1,'(a)') "# energy[eV], Im[d1(w)](x,y,z)[A*fs],  Im[d2(w)](x,y,z)[A*fs],  ..."
+        do jj=1,num_dip2
+          Qp_box(:,:,:)=Qp2(:,:,:,jj)
+          do iii=1,3
+            call Fourier3D(Qp_box(iii,:,:),alpha_Rq_box(iii,:,:),alpha_Iq_box(iii,:,:)) 
+          end do
+          alpha2q_R(:,:,:,jj)=alpha_Rq_box(:,:,:)
+          alpha2q_I(:,:,:,jj)=alpha_Iq_box(:,:,:)
+        end do
+        do iene=0,Nenergy
+          write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
+          do jj=1,num_dip2-1
+            write(1,'(6e16.8)',advance="no") (alpha2q_R(iii,iii,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3),  &
+                                              alpha2q_R(1,2,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                              alpha2q_R(2,3,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                              alpha2q_R(3,1,iene,jj)*(a_B)*(2.d0*Ry*fs2eVinv)
+          end do
+          write(1,'(6e16.8)',advance="yes") (alpha2q_I(iii,iii,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
+                                             alpha2q_I(1,2,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                             alpha2q_I(2,3,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv),  &
+                                             alpha2q_I(3,1,iene,num_dip2)*(a_B)*(2.d0*Ry*fs2eVinv)
+        end do
+        close(1)
+      end if
+    end if
   end if
-end if
+  
+  if(iflag_fourier_omega==1)then
+  
+    call comm_summation(zalpha2,zalpha3,lg_num(1)*lg_num(2)*lg_num(3)*num_fourier_omega,nproc_group_h)
+  
+    if(comm_is_root(nproc_id_global))then
+      alpha2=real(zalpha3,8)*dt/a_B**3/fs2eVinv/2.d0/Ry
+      do jj=1,num_fourier_omega
+        write(fileNumber, '(i8)') jj
+        alpha2OutFile = trim("fourier3d.")//adjustl(fileNumber)
+        open(1,file=alpha2OutFile)
+        do iz=lg_sta(3),lg_end(3),1
+        do iy=lg_sta(2),lg_end(2),1
+        do ix=lg_sta(1),lg_end(1),1
+          if(abs(alpha2(ix,iy,iz,jj))>=1.0d-6) then
+            write(1,'(e20.8)') alpha2(ix,iy,iz,jj)
+          else
+            write(1,'(a1)') "0"
+          end if
+        end do
+        end do
+        end do
+        close(1)
+      end do
+    end if
+  end if
+  
+case(3)
+  allocate( tfourier_integrand(1:3,0:Ntime) )
+  if(iflag_indA==1)then
+    tfourier_integrand(1:3,0:Ntime)=A_ind(1:3,0:Ntime)
+  else if(iflag_indA==0)then
+    tfourier_integrand(1:3,0:Ntime)=curr(1:3,0:Ntime)
+  end if
+  call Fourier3D(tfourier_integrand,alpha_R,alpha_I)
+  if(comm_is_root(nproc_id_global))then
+    open(1,file=file_alpha_lr)
+    write(1,*) "# energy[eV], Re[epsilon](x,y,z), Im[epsilon](x,y,z)" 
+    do nn=1,Nenergy
+      write(1,'(e13.5)',advance="no") nn*dE*2d0*Ry
+!      write(1,'(3e16.8)',advance="no")      &
+!           (F*(F+alpha_R(iii,n))/((F+alpha_R(iii,n))**2+alpha_I(iii,n)**2), iii=1,3)
+!      write(1,'(3e16.8)',advance="yes")     &
+!           (-F*alpha_I(iii,n)/((F+alpha_R(iii,n))**2+alpha_I(iii,n)**2), iii=1,3)
+      write(1,'(3e16.8)',advance="no") (alpha_R(iii,nn), iii=1,3)
+      write(1,'(3e16.8)',advance="yes") (alpha_I(iii,nn), iii=1,3)
+    end do
+    close(1)
+  end if 
+  deallocate( tfourier_integrand )
+
+end select
 
 
 elp3(411)=get_wtime()
@@ -588,6 +619,12 @@ if(comm_is_root(nproc_id_global))then
   write(*,'(a,f16.8)') "elapsed time for Hartree routine [s]   = ", elp5(536)
   write(*,'(a,f16.8)') "elapsed time for Exc_Cor routine [s]   = ", elp5(537)
   write(*,'(a,f16.8)') "elapsed time for bcast Vhxc [s]        = ", elp5(538)
+  select case(iperiodic)
+  case(0)
+    write(*,'(a,f16.8)') "elapsed time for calculating Dp [s]    = ", elp5(539)
+  case(3)
+    write(*,'(a,f16.8)') "elapsed time for calculating curr [s]  = ", elp5(539)
+  end select
   write(*,'(a,f16.8)') "elapsed time for calculating Dp [s]    = ", elp5(539)
   write(*,'(a,f16.8)') "elapsed time for calculating Etot [s]  = ", elp5(540)
   write(*,'(a,f16.8)') "elapsed time for writing info etc. [s] = ", elp5(541)
@@ -629,6 +666,22 @@ if(comm_is_root(nproc_id_global))then
   write(*,'(a,f16.8)') "Allreduce (not related to num of nodes)= ", &
     elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
   write(*,'(a)') "======================================================"
+  if(iperiodic==3)then
+    write(*,'(a)') "=========== total_energy_periodic ===================="
+    write(*,'(a,f16.8)') "sendrecv [s]                           = ", elp5(1451)
+    write(*,'(a,f16.8)') "orbital energy [s]                     = ", elp5(1452)
+    write(*,'(a,f16.8)') "ion-ion [s]                            = ", elp5(1453)
+    write(*,'(a,f16.8)') "ion-electron [s]                       = ", elp5(1454)
+    write(*,'(a,f16.8)') "nonlocal 1 [s]                         = ", elp5(1455)
+    write(*,'(a,f16.8)') "nonlocal 2 [s]                         = ", elp5(1456)
+    write(*,'(a)') "=========== current =================================="
+    write(*,'(a,f16.8)') "sendrecv [s]                           = ", elp5(1351)
+    write(*,'(a,f16.8)') "current (except nonlocal) [s]          = ", elp5(1352)
+    write(*,'(a,f16.8)') "current nonlocal (1) [s]               = ", elp5(1353)
+    write(*,'(a,f16.8)') "Allreduce nonlocal (1) [s]             = ", elp5(1354)
+    write(*,'(a,f16.8)') "current nonlocal (2) [s]               = ", elp5(1355)
+    write(*,'(a,f16.8)') "Allreduce nonlocal (2) [s]             = ", elp5(1356)
+  end if
 end if
 
 if(timer_process=='y')then
@@ -662,7 +715,12 @@ if(timer_process=='y')then
   write(79,'(a,f16.8)') "elapsed time for Hartree routine [s]   = ", elp5(536)
   write(79,'(a,f16.8)') "elapsed time for Exc_Cor routine [s]   = ", elp5(537)
   write(79,'(a,f16.8)') "elapsed time for bcast Vhxc [s]        = ", elp5(538)
-  write(79,'(a,f16.8)') "elapsed time for calculating Dp [s]    = ", elp5(539)
+  select case(iperiodic)
+  case(0)
+    write(79,'(a,f16.8)') "elapsed time for calculating Dp [s]    = ", elp5(539)
+  case(3)
+    write(79,'(a,f16.8)') "elapsed time for calculating curr [s]  = ", elp5(539)
+  end select
   write(79,'(a,f16.8)') "elapsed time for calculating Etot [s]  = ", elp5(540)
   write(79,'(a,f16.8)') "elapsed time for writing info etc. [s] = ", elp5(541)
   write(79,'(a,f16.8)') "total time for rt iterations [s]       = ", elp5(542)
@@ -703,6 +761,22 @@ if(timer_process=='y')then
   write(79,'(a,f16.8)') "Allreduce (not related to num of nodes)= ", &
     elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
   write(79,'(a)') "======================================================"
+  if(iperiodic==3)then
+    write(79,'(a)') "=========== total_energy_periodic ===================="
+    write(79,'(a,f16.8)') "sendrecv [s]                           = ", elp5(1451)
+    write(79,'(a,f16.8)') "orbital energy [s]                     = ", elp5(1452)
+    write(79,'(a,f16.8)') "ion-ion [s]                            = ", elp5(1453)
+    write(79,'(a,f16.8)') "ion-electron [s]                       = ", elp5(1454)
+    write(79,'(a,f16.8)') "nonlocal 1 [s]                         = ", elp5(1455)
+    write(79,'(a,f16.8)') "nonlocal 2 [s]                         = ", elp5(1456)
+    write(79,'(a)') "=========== current =================================="
+    write(79,'(a,f16.8)') "sendrecv [s]                           = ", elp5(1351)
+    write(79,'(a,f16.8)') "current (except nonlocal) [s]          = ", elp5(1352)
+    write(79,'(a,f16.8)') "current nonlocal (1) [s]               = ", elp5(1353)
+    write(79,'(a,f16.8)') "Allreduce nonlocal (1) [s]             = ", elp5(1354)
+    write(79,'(a,f16.8)') "current nonlocal (2) [s]               = ", elp5(1355)
+    write(79,'(a,f16.8)') "Allreduce nonlocal (2) [s]             = ", elp5(1356)
+  end if
 end if
 
 call deallocate_mat
@@ -720,7 +794,7 @@ use global_variables_rt
 implicit none
 
 complex(8),parameter :: zi=(0.d0,1.d0)
-integer :: ii,iob,i1,i2,i3,ix,iy,iz,jj,mm
+integer :: ii,iob,i1,i2,i3,ix,iy,iz,jj,mm,ik,iik
 real(8),allocatable :: R1(:,:,:)
 character(10):: fileLaser
 integer:: idensity, idiffDensity, ielf
@@ -749,6 +823,13 @@ if(comm_is_root(nproc_id_global).and.iflag_md==1)then
     rtOutFile = "force"//trim(adjustl(fileNumber))//".data"
     open(30+ii,file=rtOutFile)
   end do
+end if
+
+if(comm_is_root(nproc_id_global).and.iperiodic==3) then
+  open(16,file="current.data")
+  open(17,file="Etot.data")
+  open(18,file="Eext.data")
+  open(19,file="Eind.data")
 end if
 
 cumnum=0.d0
@@ -782,16 +863,18 @@ if(ilsda==0)then
   end do
   end do
   
+  do iik=k_sta,k_end
   do iob=1,iobnum
     call calc_allob(iob,iob_allob)
 !$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+zpsi_in(ix,iy,iz,iob,1)*conjg(zpsi_in(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+      rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+zpsi_in(ix,iy,iz,iob,iik)*conjg(zpsi_in(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
     end do
     end do
     end do
+  end do
   end do
   call comm_summation(rhobox,rho,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
 else if(ilsda==1)then
@@ -805,6 +888,7 @@ else if(ilsda==1)then
   end do
   end do
   
+  do iik=k_sta,k_end
   do iob=1,iobnum
     call calc_allob(iob,iob_allob)
     if(iob_allob<=MST(1))then
@@ -812,7 +896,8 @@ else if(ilsda==1)then
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+zpsi_in(ix,iy,iz,iob,1)*conjg(zpsi_in(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+        rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)   &
+                               +zpsi_in(ix,iy,iz,iob,iik)*conjg(zpsi_in(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
       end do
       end do
       end do
@@ -821,11 +906,13 @@ else if(ilsda==1)then
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+zpsi_in(ix,iy,iz,iob,1)*conjg(zpsi_in(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+        rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)   &
+                               +zpsi_in(ix,iy,iz,iob,iik)*conjg(zpsi_in(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
       end do
       end do
       end do
     end if
+  end do
   end do
   call comm_summation(rhobox_s,rho_s,mg_num(1)*mg_num(2)*mg_num(3)*2,nproc_group_grid)
 !$OMP parallel do private(iz,iy,ix)
@@ -1127,20 +1214,24 @@ if(comm_is_root(nproc_id_global))then
 endif
 
 ! Initial wave function
-if(IC_rt==0)then
-if(iobnum.ge.1)then
-  do iob=1,iobnum
-    select case (ikind_eext)
-      case(0)
-        zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-           mg_sta(3):mg_end(3),iob,1)  &
-        = exp(zi*Fst*R1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-           mg_sta(3):mg_end(3)))   &
-           *  zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-                   mg_sta(3):mg_end(3),iob,1) 
-    end select 
-  end do
-end if
+if(iperiodic==0)then
+  if(IC_rt==0)then
+  if(iobnum.ge.1)then
+    do iik=k_sta,k_end
+    do iob=1,iobnum
+      select case (ikind_eext)
+        case(0)
+          zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
+             mg_sta(3):mg_end(3),iob,iik)  &
+          = exp(zi*Fst*R1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
+             mg_sta(3):mg_end(3)))   &
+             *  zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
+                     mg_sta(3):mg_end(3),iob,iik) 
+      end select 
+    end do
+    end do
+  end if
+  end if
 end if
 
 rIe(0)=rbox_array2(4)*Hvol
@@ -1177,17 +1268,19 @@ end do
   end do
 
 allocate (shtpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd,   &
-                 1:iobnum,1))
+                 1:iobnum,k_sta:k_end))
 
+do ik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz,iy,ix)
   do iz=mg_sta(3)-Nd,mg_end(3)+Nd
   do iy=mg_sta(2)-Nd,mg_end(2)+Nd
   do ix=mg_sta(1)-Nd,mg_end(1)+Nd+1
-    shtpsi(ix,iy,iz,iob,1)=0.d0
+    shtpsi(ix,iy,iz,iob,ik)=0.d0
   end do
   end do
   end do
+end do
 end do
 
 if(iflag_comm_rho==2)then
@@ -1217,15 +1310,27 @@ if(iflag_fourier_omega==1)then
   end do
 end if
 
+allocate(k_rd(3,num_kpoints_rd),ksquare(num_kpoints_rd))
+if(iperiodic==3)then
+  call calcAext
+end if
+
 !-------------------------------------------------- Time evolution
 if(iflag_md==1)then
   call calc_force_c(zpsi_in)
 end if
 
 if(comm_is_root(nproc_id_global))then
-  write(*,'(1x,a10,a10,a25,a15,a25,a10)') " timestep ","time[fs]",      &
-                           " Dipole moment(xyz)[A]"      &
-        ,"      electrons","      Total energy[eV]","   iterVh"
+  select case(iperiodic)
+  case(0)
+    write(*,'(1x,a10,a10,a25,a15,a25,a10)') " timestep ","time[fs]",      &
+                             " Dipole moment(xyz)[A]"      &
+          ,"      electrons","      Total energy[eV]","   iterVh"
+  case(3)
+    write(*,'(1x,a10,a10,a25,a15,a25)') " timestep ","time[fs]",      &
+                             " Current(xyz)[a.u.]   "      &
+          ,"      electrons","      Total energy[eV]"
+  end select
   write(*,*) "-------------------------------------"      &
      ,"------------------"
   if(iflag_md==1)then
@@ -1368,11 +1473,25 @@ do iene=0,Nenergy
      t2=nntime*dt ; zalpha(:)=zalpha(:)+exp(zi*hw*t2)*Dp_t(:,nntime) & !hw*t is unitless      
                        *(1-3*(t2/TT)**2+2*(t2/TT)**3)
   end do
-  if(ikind_eext==0.or.ikind_eext==10)then
-    zalpha=zalpha/Fst*dt
-  else
-    zalpha=zalpha*dt 
-  end if
+  select case(iperiodic)
+  case(0)
+    if(ikind_eext==0.or.ikind_eext==10)then
+      zalpha=zalpha/Fst*dt
+    else
+      zalpha=zalpha*dt 
+    end if
+  case(3)
+    if(ikind_eext==0.or.ikind_eext==10)then
+      zalpha=zalpha/Fst*dt
+      if(iflag_indA==0)then
+        zalpha(1:3)=1.d0+4.d0*Pi*zi*zalpha(1:3)/hw
+      else if(iflag_indA==1)then
+        zalpha(1:3)=1.d0/(1.d0-zi*hw*zalpha(1:3))
+      end if
+    else
+      zalpha=zalpha*dt
+    end if
+  end select
   alpha_R(:,iene)=real(zalpha(:),8)    ! Real part
   alpha_I(:,iene)=aimag(zalpha(:))      ! Imaginary part
 end do

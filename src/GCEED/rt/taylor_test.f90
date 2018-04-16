@@ -22,13 +22,13 @@ implicit none
 integer :: nn,ix,iy,iz
 complex(8) :: tzpsi_in(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                    mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 complex(8) :: htpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                     mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 complex(8) :: tzpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                    mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 
 
 iwk_size=2
@@ -209,13 +209,13 @@ subroutine mode_add_polynomial(tpsi,htpsi,tpsi_out,nn)
   implicit none
   complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                      mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                     mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                     mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
   complex(8) :: htpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                       mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                      mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                      mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
   complex(8) :: tpsi_out(mg_sta(1)-Nd:mg_end(1)+Nd+1,    &
                      mg_sta(2)-Nd:mg_end(2)+Nd,    &
-                     mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                     mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
   integer :: nn
   !
   integer :: iobmax

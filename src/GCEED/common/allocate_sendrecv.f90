@@ -71,18 +71,18 @@ subroutine allocate_sendrecv
   
   if(iSCFRT==1.and.icalcforce==1)then
   
-    allocate(srmatbox1_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(srmatbox1_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(srmatbox1_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
-    allocate(srmatbox2_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(srmatbox2_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(srmatbox2_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
-    allocate(srmatbox3_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(srmatbox3_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(srmatbox3_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
-    allocate(srmatbox4_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(srmatbox4_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(srmatbox4_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
+    allocate(srmatbox1_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox1_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox1_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
+    allocate(srmatbox2_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox2_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox2_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
+    allocate(srmatbox3_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox3_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox3_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
+    allocate(srmatbox4_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox4_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(srmatbox4_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
   
     srmatbox1_x_5d=0.d0
     srmatbox1_y_5d=0.d0
@@ -97,20 +97,20 @@ subroutine allocate_sendrecv
     srmatbox4_y_5d=0.d0
     srmatbox4_z_5d=0.d0
     
-  else if(iSCFRT==2.and.nproc_Mxin_mul/=1)then
+  else if(iSCFRT==2)then
   
-    allocate(scmatbox1_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(scmatbox1_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(scmatbox1_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
-    allocate(scmatbox2_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(scmatbox2_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(scmatbox2_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
-    allocate(scmatbox3_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(scmatbox3_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(scmatbox3_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
-    allocate(scmatbox4_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,1))
-    allocate(scmatbox4_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,1))
-    allocate(scmatbox4_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,1))
+    allocate(scmatbox1_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox1_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox1_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
+    allocate(scmatbox2_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox2_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox2_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
+    allocate(scmatbox3_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox3_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox3_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
+    allocate(scmatbox4_x_5d(Nd,mg_num(2),mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox4_y_5d(mg_num(1),Nd,mg_num(3),1:iobnum,k_sta:k_end))
+    allocate(scmatbox4_z_5d(mg_num(1),mg_num(2),Nd,1:iobnum,k_sta:k_end))
   
     scmatbox1_x_5d=0.d0
     scmatbox1_y_5d=0.d0

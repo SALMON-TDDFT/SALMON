@@ -21,92 +21,103 @@ subroutine add_polynomial(tpsi,htpsi,tpsi_out,iobmax,nn,ifunc)
 use scf_data
 implicit none
 complex(8) :: tpsi(iwk2sta(1):iwk2end(1)+1,iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3),   &
-                   1:iobnum,1)
+                   1:iobnum,k_sta:k_end)
 complex(8) :: htpsi(iwk2sta(1):iwk2end(1)+1,  &
                     iwk2sta(2):iwk2end(2),      &
                     iwk2sta(3):iwk2end(3),     &
-                   1:iobnum,1)
+                   1:iobnum,k_sta:k_end)
 complex(8) :: tpsi_out(iwk2sta(1):iwk2end(1)+1,iwk2sta(2):iwk2end(2),iwk2sta(3):iwk2end(3),   &
-                   1:iobnum,1)
+                   1:iobnum,k_sta:k_end)
 integer :: iobmax
 integer :: ifunc
 integer :: nn
-integer :: iob,ix,iy,iz
+integer :: iob,ix,iy,iz,iik
 complex(8) :: cbox
 complex(8), parameter :: zi=(0.d0,1.d0)
 integer :: iob_allob
 
 if(ifunc==0)then
+  do iik=k_sta,k_end
   do iob=1,iobmax
 !$OMP parallel do private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-      tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+      htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+      tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
     end do
     end do
     end do
+  end do
   end do
 else if(ifunc==1)then
+  do iik=k_sta,k_end
   do iob=1,iobmax
     cbox=0.d0
 !$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-      htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-      tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+      cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+      htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+      tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
     end do
     end do
     end do
-    esp2(iob,1)=dble(cbox)*Hvol
+    esp2(iob,iik)=dble(cbox)*Hvol
+  end do
   end do
 else if(ifunc==2)then
+  do iik=k_sta,k_end
   do iob=1,iobmax
 !$OMP parallel do private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-      tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+      htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+      tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
     end do
     end do
     end do
   end do
+  end do
 else if(ifunc==3)then
+  do iik=k_sta,k_end
   do iob=1,iobmax
     cbox=0.d0
 !$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-      htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-      tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+      cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+      htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+      tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
     end do
     end do
     end do
-    esp2(iob,1)=dble(cbox)*Hvol
+    esp2(iob,iik)=dble(cbox)*Hvol
+  end do
   end do
 else if(ifunc==4)then
   if(ilsda==0)then
+    do iik=k_sta,k_end
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
 !$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-        tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+        htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+        tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
         rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
-          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
       end do
       end do
       end do
     end do
+    end do
   else
+    do iik=k_sta,k_end
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       if(iob_allob<=MST(1))then
@@ -114,10 +125,10 @@ else if(ifunc==4)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
@@ -126,18 +137,20 @@ else if(ifunc==4)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
       end if
     end do
+    end do
   end if 
 else if(ifunc==5)then
   if(ilsda==0)then
+    do iik=k_sta,k_end
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       cbox=0.d0
@@ -145,17 +158,19 @@ else if(ifunc==5)then
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-        htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-        tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+        cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+        htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+        tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
         rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
-          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
       end do
       end do
       end do
-      esp2(iob,1)=dble(cbox)*Hvol
+      esp2(iob,iik)=dble(cbox)*Hvol
+    end do
     end do
   else if(ilsda==1)then
+    do iik=k_sta,k_end
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       cbox=0.d0
@@ -164,11 +179,11 @@ else if(ifunc==5)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
@@ -177,35 +192,39 @@ else if(ifunc==5)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
       end if
-      esp2(iob,1)=dble(cbox)*Hvol
+      esp2(iob,iik)=dble(cbox)*Hvol
+    end do
     end do
   end if
 else if(ifunc==6)then
   if(ilsda==0)then
+    do iik=k_sta,k_end
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
 !$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-        tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+        htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+        tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
         rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
-          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
       end do
       end do
       end do
     end do
+    end do
   else if(ilsda==1)then
+    do iik=k_sta,k_end
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       if(iob_allob<=MST(1))then
@@ -213,10 +232,10 @@ else if(ifunc==6)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
@@ -225,35 +244,39 @@ else if(ifunc==6)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
       end if
+    end do
     end do
   end if
 else if(ifunc==7)then
   if(ilsda==0)then
+    do iik=k_sta,k_end
     do iob=1,iobmax
       cbox=0.d0
 !$OMP parallel do reduction(+:cbox) private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-        htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-        tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+        cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+        htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+        tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
         rhobox(ix,iy,iz)=rhobox(ix,iy,iz)+  &
-          tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+          tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
       end do
       end do
       end do
-      esp2(iob,1)=dble(cbox)*Hvol
+      esp2(iob,iik)=dble(cbox)*Hvol
+    end do
     end do
   else if(ilsda==1)then
+    do iik=k_sta,k_end
     do iob=1,iobmax
       call calc_allob(iob,iob_allob)
       cbox=0.d0
@@ -262,11 +285,11 @@ else if(ifunc==7)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,1)=rhobox_s(ix,iy,iz,1)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
@@ -275,30 +298,33 @@ else if(ifunc==7)then
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,1))*htpsi(ix,iy,iz,iob,1)
-          htpsi(ix,iy,iz,iob,1)=-zi*dt*htpsi(ix,iy,iz,iob,1)/dble(nn)
-          tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+          cbox=cbox+conjg(tpsi(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)
+          htpsi(ix,iy,iz,iob,iik)=-zi*dt*htpsi(ix,iy,iz,iob,iik)/dble(nn)
+          tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
           rhobox_s(ix,iy,iz,2)=rhobox_s(ix,iy,iz,2)+  &
-            tpsi_out(ix,iy,iz,iob,1)*conjg(tpsi_out(ix,iy,iz,iob,1))*rocc(iob_allob,1)*wtk(1)
+            tpsi_out(ix,iy,iz,iob,iik)*conjg(tpsi_out(ix,iy,iz,iob,iik))*rocc(iob_allob,iik)*wtk(iik)
         end do
         end do
         end do
       end if
-      esp2(iob,1)=dble(cbox)*Hvol
+      esp2(iob,iik)=dble(cbox)*Hvol
+    end do
     end do
   end if
 else if(ifunc==-1)then
+  do iik=k_sta,k_end
   do iob=1,iobmax
 !$OMP parallel do private(iz,iy,ix) 
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      tpsi(ix,iy,iz,iob,1)=-zi*dt*tpsi(ix,iy,iz,iob,1)/dble(nn-1)
-      htpsi(ix,iy,iz,iob,1)=(-zi*dt)**2*htpsi(ix,iy,iz,iob,1)/dble(nn-1)/dble(nn)
-      tpsi_out(ix,iy,iz,iob,1)=tpsi_out(ix,iy,iz,iob,1)+tpsi(ix,iy,iz,iob,1)+htpsi(ix,iy,iz,iob,1)
+      tpsi(ix,iy,iz,iob,iik)=-zi*dt*tpsi(ix,iy,iz,iob,iik)/dble(nn-1)
+      htpsi(ix,iy,iz,iob,iik)=(-zi*dt)**2*htpsi(ix,iy,iz,iob,iik)/dble(nn-1)/dble(nn)
+      tpsi_out(ix,iy,iz,iob,iik)=tpsi_out(ix,iy,iz,iob,iik)+tpsi(ix,iy,iz,iob,iik)+htpsi(ix,iy,iz,iob,iik)
     end do
     end do
     end do
+  end do
   end do
 end if
 

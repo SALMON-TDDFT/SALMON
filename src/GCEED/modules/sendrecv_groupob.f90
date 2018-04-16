@@ -34,7 +34,7 @@ use persistent_comm,      only: ireq => nreqs_rgroupob, &
 use pack_unpack
 implicit none
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
-                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 integer :: iup,idw,jup,jdw,kup,kdw
 
 iup=iup_array(1)
@@ -122,7 +122,7 @@ use persistent_comm,      only: ireq => nreqs_cgroupob, &
 use pack_unpack
 implicit none
 complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
-                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 integer :: iup,idw,jup,jdw,kup,kdw
 
 iup=iup_array(1)

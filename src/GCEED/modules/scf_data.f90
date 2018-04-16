@@ -199,6 +199,7 @@ real(8),allocatable :: elf(:,:,:)
 complex(8),allocatable :: zpsi(:,:,:,:,:)
 complex(8),allocatable :: zpsi_in(:,:,:,:,:),zpsi_out(:,:,:,:,:)
 complex(8),allocatable :: zpsi_t0(:,:,:,:,:)
+complex(8),allocatable :: ttpsi(:,:,:)
 integer :: iSCFRT
 
 real(8),allocatable :: Vbox(:,:,:)
@@ -237,8 +238,6 @@ integer :: itotNtime
 
 integer :: num_datafiles_OUT2
 
-integer :: iflag_hartree
-
 real(8),allocatable :: Gs(:,:,:),Gl(:,:,:)
 complex(8),allocatable :: tx_exp(:,:),ty_exp(:,:),tz_exp(:,:)
 
@@ -254,7 +253,12 @@ real(8),allocatable :: gridcoo(:,:)
 
 integer :: iobnum
 
+integer :: k_sta,k_end,k_num
+
 integer :: kx_hock_sta(3),kx_hock_end(3),kx_hock_num(3)
+
+integer :: num_kpoints_3d(3)
+integer :: num_kpoints_rd
 
 real(8),allocatable :: wtk(:)
 
@@ -342,6 +346,10 @@ complex(8), allocatable :: zpsi_n(:,:,:,:,:)
 
 complex(8), allocatable :: Ex_static(:,:,:),Ey_static(:,:,:),Ez_static(:,:,:)
 
+real(8),allocatable :: curr(:,:) 
+real(8),allocatable :: sumcurr(:,:)
+real(8),allocatable :: rE_ind(:,:)
+
 integer :: ilasbound_sta(3),ilasbound_end(3)
 real(8) :: rlaser_center(3)
 
@@ -379,6 +387,15 @@ real(8) :: rad_diele
 real(8) :: fcN(0:12)
 real(8) :: fbN(0:12)
 
+real(8),allocatable :: k_rd(:,:),ksquare(:)
+real(8),allocatable :: k_rd0(:,:),ksquare0(:)
+
+real(8),allocatable :: A_ext(:,:)
+real(8),allocatable :: A_ind(:,:)
+real(8),allocatable :: A_tot(:,:)
+real(8),allocatable :: E_ext(:,:)
+real(8),allocatable :: E_ind(:,:)
+real(8),allocatable :: E_tot(:,:)
 
 integer,allocatable :: oblist(:)
 
@@ -400,6 +417,8 @@ integer :: iflag_dos
 integer :: iflag_pdos
 
 integer :: iflag_ELF
+
+integer :: iflag_indA
 
 !filename
 character(100) :: file_OUT

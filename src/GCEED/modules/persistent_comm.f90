@@ -30,14 +30,14 @@ contains
   subroutine init_persistent_requests
     implicit none
 
-    call init_comm_orbital
+    call init_comm_korbital
     call init_comm_groupob
     call init_comm_h
   end subroutine
 
-  subroutine init_comm_orbital
+  subroutine init_comm_korbital
     use init_sendrecv_sub,    only: iup_array,idw_array,jup_array,jdw_array,kup_array,kdw_array
-    use salmon_parallel,      only: icomm => nproc_group_orbital
+    use salmon_parallel,      only: icomm => nproc_group_korbital
     use salmon_communication, only: comm_send_init, comm_recv_init
     use pack_unpack,          only: create_array_shape
     use scf_data
@@ -87,7 +87,7 @@ contains
 
   subroutine init_comm_groupob
     use init_sendrecv_sub,    only: iup_array,idw_array,jup_array,jdw_array,kup_array,kdw_array
-    use salmon_parallel,      only: icomm => nproc_group_orbital
+    use salmon_parallel,      only: icomm => nproc_group_korbital
     use salmon_communication, only: comm_send_init, comm_recv_init
     use pack_unpack,          only: create_array_shape
     use scf_data
@@ -137,10 +137,10 @@ contains
     nshape_groupob(2) = create_array_shape(mg_sta(2)-Nd, mg_end(2)+Nd)
     nshape_groupob(3) = create_array_shape(mg_sta(3)-Nd, mg_end(3)+Nd)
     nshape_groupob(4) = create_array_shape(1,iobnum)
-    nshape_groupob(5) = create_array_shape(1,1)
+    nshape_groupob(5) = create_array_shape(k_sta,k_end)
 
     nrange_groupob(4,:) = create_array_shape(1,iobnum)
-    nrange_groupob(5,:) = create_array_shape(1,1)
+    nrange_groupob(5,:) = create_array_shape(k_sta,k_end)
 
     nrange_groupob(1,1) = create_array_shape(mg_end(1)-Nd+1,mg_end(1))
     nrange_groupob(2,1) = create_array_shape(mg_sta(2),     mg_sta(2)+mg_num(2)-1)

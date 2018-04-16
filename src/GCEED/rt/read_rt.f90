@@ -20,7 +20,7 @@ use scf_data
 use writebox_rt_sub
 use allocate_mat_sub
 implicit none
-integer       :: i1,i2,i3,jj,iob,is,it2,kk
+integer       :: i1,i2,i3,jj,iob,is,it2,kk,iik
 integer       :: ix,iy,iz
 integer :: ibox
 character(100) :: file_OUT_rt_data
@@ -77,9 +77,10 @@ if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc_size_global)then
   end if
 end if
 
+do iik=1,num_kpoints_rd
 do iob=1,itotMST
   call calc_myob(iob,iob_myob)
-  call check_corrkob(iob,icorr_p)
+  call check_corrkob(iob,iik,icorr_p)
 
   cmatbox_l2=0.d0
     if(mod(itotNtime,2)==1)then
@@ -87,7 +88,7 @@ do iob=1,itotMST
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cmatbox_l2(ix,iy,iz)=zpsi_out(ix,iy,iz,iob_myob,1)
+          cmatbox_l2(ix,iy,iz)=zpsi_out(ix,iy,iz,iob_myob,iik)
         end do
         end do
         end do
@@ -97,7 +98,7 @@ do iob=1,itotMST
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cmatbox_l2(ix,iy,iz)=zpsi_in(ix,iy,iz,iob_myob,1)
+          cmatbox_l2(ix,iy,iz)=zpsi_in(ix,iy,iz,iob_myob,iik)
         end do
         end do
         end do
@@ -118,6 +119,7 @@ do iob=1,itotMST
     end if
   end if
   
+end do
 end do
 
 if(num_datafiles_OUT>=2.and.num_datafiles_OUT<=nproc_size_global)then
@@ -263,7 +265,7 @@ use new_world_sub
 use readbox_rt_sub
 use allocate_mat_sub
 implicit none
-integer       :: i1,i2,i3,jj,iob,is,it2,kk
+integer       :: i1,i2,i3,jj,iob,is,it2,kk,iik
 integer       :: ix,iy,iz
 integer       :: Ntime
 character(100) :: file_IN_rt_data
@@ -337,9 +339,10 @@ if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc_size_global)then
   end if
 end if
 
+do iik=k_sta,k_end
 do iob=1,itotMST
   call calc_myob(iob,iob_myob)
-  call check_corrkob(iob,icorr_p)
+  call check_corrkob(iob,iik,icorr_p)
   
   if(num_datafiles_IN==1.or.num_datafiles_IN>nproc_size_global)then
     if(comm_is_root(nproc_id_global))then
@@ -359,19 +362,20 @@ do iob=1,itotMST
   if(mod(Miter_rt,2)==1)then
     if(icorr_p==1)then
       zpsi_out(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-          mg_sta(3):mg_end(3),iob_myob,1)=  &
+          mg_sta(3):mg_end(3),iob_myob,iik)=  &
       cmatbox_l(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),   &
              mg_sta(3):mg_end(3))
     end if
   else
     if(icorr_p==1)then
       zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-          mg_sta(3):mg_end(3),iob_myob,1)=  &
+          mg_sta(3):mg_end(3),iob_myob,iik)=  &
       cmatbox_l(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),   &
              mg_sta(3):mg_end(3))
     end if
   end if
   
+end do
 end do
 
 if(num_datafiles_IN>=2.and.num_datafiles_IN<=nproc_size_global)then

@@ -97,6 +97,7 @@ subroutine set_numcpu_scf
     end if
   end do
 
+  nproc_k=1
   nproc_ob=1
   nproc_mxin(1:3)=nproc_mxin_tmp(1:3)
   nproc_mxin_s(1:3)=nproc_mxin_tmp(1:3)

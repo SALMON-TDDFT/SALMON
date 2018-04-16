@@ -31,13 +31,29 @@ module salmon_parallel
   integer, public :: nproc_id_spin
   integer, public :: nproc_size_spin
 
+  integer, public :: nproc_group_kgrid
+  integer, public :: nproc_id_kgrid
+  integer, public :: nproc_size_kgrid
+
+  integer, public :: nproc_group_korbital
+  integer, public :: nproc_id_korbital
+  integer, public :: nproc_size_korbital
+
+  integer, public :: nproc_group_rho
+  integer, public :: nproc_id_rho
+  integer, public :: nproc_size_rho
+
+  integer, public :: nproc_group_k
+  integer, public :: nproc_id_k
+  integer, public :: nproc_size_k
+
   integer, public :: nproc_group_grid
   integer, public :: nproc_id_grid
   integer, public :: nproc_size_grid
 
-  integer, public :: nproc_group_orbital
-  integer, public :: nproc_id_orbital
-  integer, public :: nproc_size_orbital
+  integer, public :: nproc_group_orbitalgrid
+  integer, public :: nproc_id_orbitalgrid
+  integer, public :: nproc_size_orbitalgrid
 
   integer, public :: nproc_group_h
   integer, public :: nproc_id_h

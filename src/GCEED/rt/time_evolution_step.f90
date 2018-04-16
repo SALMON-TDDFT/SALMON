@@ -17,7 +17,7 @@
 !=======================================================================
 
 SUBROUTINE time_evolution_step(shtpsi)
-use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_group_grid, nproc_group_h, nproc_group_orbital
+use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_group_grid, nproc_group_h, nproc_group_korbital
 use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use misc_routines, only: get_wtime
 use inputoutput
@@ -28,7 +28,7 @@ use read_pslfile_sub
 
 implicit none
 integer :: ix,iy,iz,i1,mm,jj
-integer :: ii,iob,iatom
+integer :: ii,iob,iatom,iik
 real(8) :: rbox1,rbox1q,rbox1q12,rbox1q23,rbox1q31,rbox1e
 complex(8),allocatable :: cmatbox1(:,:,:),cmatbox2(:,:,:)
 real(8) :: absr2
@@ -39,7 +39,7 @@ real(8) :: rNe
 complex(8),parameter :: zi=(0.d0,1.d0)
 
 complex(8) :: shtpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd,   &
-                     1:iobnum,1)
+                     1:iobnum,k_sta:k_end)
 
 complex(8) :: cbox1,cbox2,cbox3
 
@@ -48,6 +48,8 @@ elp3(511)=get_wtime()
 idensity=0
 idiffDensity=1
 ielf=2 
+
+if(iperiodic==3) call init_k_rd(k_rd,ksquare,1)
 
 select case(ikind_eext)
   case(0,3,9:12)
@@ -69,13 +71,15 @@ if(iobnum.ge.1)then
   end if
 end if
 
-if(ikind_eext==0.and.itt>=2)then
-  if(mod(itt,2)==1)then
-    call Total_energy_groupob(zpsi_out,shtpsi,2)
-  else
-    call Total_energy_groupob(zpsi_in,shtpsi,2)
+if(iperiodic==0)then
+  if(ikind_eext==0.and.itt>=2)then
+    if(mod(itt,2)==1)then
+      call Total_energy_groupob(zpsi_out,shtpsi,2)
+    else
+      call Total_energy_groupob(zpsi_in,shtpsi,2)
+    end if
+    call subdip(rNe,2)
   end if
-  call subdip(rNe,2)
 end if
 
 elp3(513)=get_wtime()
@@ -151,22 +155,24 @@ end if
 
 ! result
 
-  if(ikind_eext/=0.or.(ikind_eext==0.and.itt==itotNtime))then
-    elp3(526)=get_wtime()
-
-    ihpsieff=0
-    if(mod(itt,2)==1)then
-      call Total_Energy_groupob(zpsi_out,shtpsi,1)              ! Total energy
-    else
-      call Total_Energy_groupob(zpsi_in,shtpsi,1)              ! Total energy
+  if(iperiodic==0)then
+    if(ikind_eext/=0.or.(ikind_eext==0.and.itt==itotNtime))then
+      elp3(526)=get_wtime()
+  
+      ihpsieff=0
+      if(mod(itt,2)==1)then
+        call Total_Energy_groupob(zpsi_out,shtpsi,1)              ! Total energy
+      else
+        call Total_Energy_groupob(zpsi_in,shtpsi,1)              ! Total energy
+      end if
+      elp3(527)=get_wtime()
+      elp3(540)=elp3(540)+elp3(527)-elp3(526)
+      
+      call subdip(rNe,1)
+      elp3(528)=get_wtime()
+      elp3(539)=elp3(539)+elp3(528)-elp3(527)
+  
     end if
-    elp3(527)=get_wtime()
-    elp3(540)=elp3(540)+elp3(527)-elp3(526)
-    
-    call subdip(rNe,1)
-    elp3(528)=get_wtime()
-    elp3(539)=elp3(539)+elp3(528)-elp3(527)
-
   end if
 
   if(iwrite_projection==1.and.mod(itt,itwproj)==0)then
@@ -274,6 +280,56 @@ end if
   end if
 
 
+  if(iperiodic==3)then
+    call subdip(rNe,1)
+    if(mod(itt,2)==1)then
+      elp3(526)=get_wtime()
+      call calc_current(zpsi_out)
+      elp3(527)=get_wtime()
+      if(itt==1.or.itt==itotNtime.or.mod(itt,itcalc_ene)==0)then
+        call Total_Energy_periodic(zpsi_out,shtpsi)              ! Total energy
+      end if
+      elp3(528)=get_wtime()
+      elp3(539)=elp3(539)+elp3(527)-elp3(526)
+      elp3(540)=elp3(540)+elp3(528)-elp3(527)
+    else
+      elp3(526)=get_wtime()
+      call calc_current(zpsi_in)
+      elp3(527)=get_wtime()
+      if(itt==itotNtime.or.mod(itt,itcalc_ene)==0)then
+        call Total_Energy_periodic(zpsi_in,shtpsi)              ! Total energy
+      end if
+      elp3(528)=get_wtime()
+      elp3(539)=elp3(539)+elp3(527)-elp3(526)
+      elp3(540)=elp3(540)+elp3(528)-elp3(527)
+    end if
+    rbox1=0.d0
+  !$OMP parallel do private(iz,iy,ix) reduction( + : rbox1 )
+    do iz=ng_sta(3),ng_end(3)
+    do iy=ng_sta(2),ng_end(2)
+    do ix=ng_sta(1),ng_end(1)
+      rbox1=rbox1+rho(ix,iy,iz)
+    end do
+    end do
+    end do
+    rbox1=rbox1*Hvol
+    call comm_summation(rbox1,rNe,nproc_group_h)
+  !    write(*,'(1x,i7, 3e16.8, f15.8,f18.8,i5,f16.8)')       &
+  !      itt, (curr(i1,itt),i1=1,3), Ne, Etot*2d0*Ry,iterVh,dble(cumnum)
+    if(comm_is_root(nproc_id_global))then
+      write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8)')       &
+        itt,dble(itt)*dt*2.41888d-2, (curr(i1,itt),i1=1,3), rNe, Etot*2d0*Ry
+      write(16,'(f14.8, 3e16.8, f15.8,f18.8)')       &
+        dble(itt)*dt*2.41888d-2, (curr(i1,itt),i1=1,3), rNe, Etot*2d0*Ry
+      write(17,'(f14.8, 3e16.8)')       &
+        dble(itt)*dt*2.41888d-2, (E_tot(i1,itt),i1=1,3)
+      write(18,'(f14.8, 3e16.8)')       &
+        dble(itt)*dt*2.41888d-2, (E_ext(i1,itt),i1=1,3)
+      write(19,'(f14.8, 3e16.8)')       &
+        dble(itt)*dt*2.41888d-2, (E_ind(i1,itt),i1=1,3)
+    end if
+  end if
+
   elp3(520)=get_wtime()
 
   if(icalcforce==1)then
@@ -313,13 +369,14 @@ end if
     end do
     cbox1=0.d0
 
+    do iik=k_sta,k_end
     do iob=1,iobnum
       if(mod(itt,2)==1)then
 !$OMP parallel do private(iz,iy,ix)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cmatbox1(ix,iy,iz)=zpsi_out(ix,iy,iz,iob,1)
+          cmatbox1(ix,iy,iz)=zpsi_out(ix,iy,iz,iob,iik)
         end do
         end do
         end do
@@ -328,13 +385,13 @@ end if
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          cmatbox1(ix,iy,iz)=zpsi_in(ix,iy,iz,iob,1)
+          cmatbox1(ix,iy,iz)=zpsi_in(ix,iy,iz,iob,iik)
         end do
         end do
         end do
       end if
 
-      call comm_summation(cmatbox1,cmatbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_orbital)
+      call comm_summation(cmatbox1,cmatbox2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_korbital)
       cbox3=0.d0
       do iz=lg_sta(3),lg_end(3)
       do ix=1,lg_end(1)
@@ -353,6 +410,7 @@ end if
       end do
       cbox1=cbox1+cbox3
 
+    end do
     end do
 
     call comm_summation(cbox1,cbox2,nproc_group_global)

@@ -20,7 +20,7 @@ SUBROUTINE init_wf_ns(ifunc)
 use scf_data
 implicit none
 
-integer :: iob,iseed,a,ix,iy,iz
+integer :: ik,iob,iseed,a,ix,iy,iz
 integer :: is,iss,pstart(2),pend(2)
 real(8) :: xx,yy,zz,x1,y1,z1,rr,rnd,Xmax,Ymax,Zmax
 integer :: iob_myob
@@ -39,41 +39,73 @@ else if(ilsda == 1)then
   pstart(2)=MST(1)+1
   pend(2)=itotMST
 end if
-  
-Xmax=0.d0 ; Ymax=0.d0 ; Zmax=0.d0
-if(iflag_ps.eq.1)then
-  do a=1,MI
-    if ( abs(Rion(1,a)) > Xmax ) Xmax=abs(Rion(1,a))
-    if ( abs(Rion(2,a)) > Ymax ) Ymax=abs(Rion(2,a))
-    if ( abs(Rion(3,a)) > Zmax ) Zmax=abs(Rion(3,a))
-  end do
-end if
 
-Xmax=Xmax+1.d0/a_B ; Ymax=Ymax+1.d0/a_B ; Zmax=Zmax+1.d0/a_B
-
-iseed=123
-do is=1,iss
-do iob=pstart(is),pend(is)
-  call calc_myob(iob,iob_myob)
-  call check_corrkob(iob,icorr_p)
-  call quickrnd_ns ; x1=Xmax*(2.d0*rnd-1.d0)
-  call quickrnd_ns ; y1=Ymax*(2.d0*rnd-1.d0)
-  call quickrnd_ns ; z1=Zmax*(2.d0*rnd-1.d0)
-  call check_init_wf(icheck)
-  if(icheck==1.and.icorr_p==1)then
-    do iz=mg_sta(3),mg_end(3)
-    do iy=mg_sta(2),mg_end(2)
-    do ix=mg_sta(1),mg_end(1)
-      xx=gridcoo(ix,1) ; yy=gridcoo(iy,2) ; zz=gridcoo(iz,3)
-      rr=sqrt((xx-x1)**2+(yy-y1)**2+(zz-z1)**2)
-      psi(ix,iy,iz,iob_myob,1)=exp(-0.5d0*(rr*a_B)**2)*(a_B)**(3/2)
-    end do
-    end do
+select case(iperiodic)
+case(0)
+  Xmax=0.d0 ; Ymax=0.d0 ; Zmax=0.d0
+  if(iflag_ps.eq.1)then
+    do a=1,MI
+      if ( abs(Rion(1,a)) > Xmax ) Xmax=abs(Rion(1,a))
+      if ( abs(Rion(2,a)) > Ymax ) Ymax=abs(Rion(2,a))
+      if ( abs(Rion(3,a)) > Zmax ) Zmax=abs(Rion(3,a))
     end do
   end if
-end do
-end do
+  
+  Xmax=Xmax+1.d0/a_B ; Ymax=Ymax+1.d0/a_B ; Zmax=Zmax+1.d0/a_B
+  
+  iseed=123
+  do is=1,iss
+  do iob=pstart(is),pend(is)
+    call calc_myob(iob,iob_myob)
+    call check_corrkob(iob,1,icorr_p)
+    call quickrnd_ns ; x1=Xmax*(2.d0*rnd-1.d0)
+    call quickrnd_ns ; y1=Ymax*(2.d0*rnd-1.d0)
+    call quickrnd_ns ; z1=Zmax*(2.d0*rnd-1.d0)
+    call check_init_wf(icheck)
+    if(icheck==1.and.icorr_p==1)then
+      do iz=mg_sta(3),mg_end(3)
+      do iy=mg_sta(2),mg_end(2)
+      do ix=mg_sta(1),mg_end(1)
+        xx=gridcoo(ix,1) ; yy=gridcoo(iy,2) ; zz=gridcoo(iz,3)
+        rr=sqrt((xx-x1)**2+(yy-y1)**2+(zz-z1)**2)
+        psi(ix,iy,iz,iob_myob,1)=exp(-0.5d0*(rr*a_B)**2)*(a_B)**(3/2)
+      end do
+      end do
+      end do
+    end if
+  end do
+  end do
+case(3)
+  Xmax=rLsize(1,1)
+  Ymax=rLsize(2,1)
+  Zmax=rLsize(3,1)
 
+  iseed=123
+  do is=1,iss
+  do ik=1,num_kpoints_rd
+  do iob=pstart(is),pend(is)
+    call calc_myob(iob,iob_myob)
+    call check_corrkob(iob,ik,icorr_p)
+    call quickrnd_ns ; x1=Xmax*rnd
+    call quickrnd_ns ; y1=Ymax*rnd
+    call quickrnd_ns ; z1=Zmax*rnd
+    call check_init_wf(icheck)
+    if(icheck==1.and.icorr_p==1)then
+      do iz=mg_sta(3),mg_end(3)
+      do iy=mg_sta(2),mg_end(2)
+      do ix=mg_sta(1),mg_end(1)
+        xx=gridcoo(ix,1) ; yy=gridcoo(iy,2) ; zz=gridcoo(iz,3)
+        rr=sqrt((xx-x1)**2+(yy-y1)**2+(zz-z1)**2)
+        zpsi(ix,iy,iz,iob_myob,ik)=exp(-0.5d0*rr**2)
+      end do
+      end do
+      end do
+    end if
+  end do
+  end do
+  end do
+end select
+  
 return
 
 CONTAINS

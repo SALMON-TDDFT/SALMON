@@ -33,7 +33,7 @@ implicit none
 
 real(8) :: tpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),   &
                      1:itotMST,1)
-integer :: ix,iy,iz,iob
+integer :: ix,iy,iz,iob,iik
 integer :: iob_myob
 integer :: icheck_corrkob
 real(8),allocatable :: matbox(:,:,:)
@@ -43,16 +43,17 @@ allocate(matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 allocate(matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 
 if(icopy_psi_mesh==1)then
+  do iik=1,num_kpoints_rd
   do iob=1,itotMST
     call calc_myob(iob,iob_myob)
-    call check_corrkob(iob,icheck_corrkob)
+    call check_corrkob(iob,iik,icheck_corrkob)
     matbox=0.d0
     if(icheck_corrkob==1)then
 !$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        matbox(ix,iy,iz)=psi(ix,iy,iz,iob_myob,1)
+        matbox(ix,iy,iz)=psi(ix,iy,iz,iob_myob,iik)
       end do
       end do
       end do
@@ -64,21 +65,23 @@ if(icopy_psi_mesh==1)then
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      tpsi_mesh(ix,iy,iz,iob,1)=matbox2(ix,iy,iz)
+      tpsi_mesh(ix,iy,iz,iob,iik)=matbox2(ix,iy,iz)
     end do
     end do
     end do
   end do
+  end do
 else if(icopy_psi_mesh==2)then
+  do iik=1,num_kpoints_rd
   do iob=1,itotMST
     call calc_myob(iob,iob_myob)
-    call check_corrkob(iob,icheck_corrkob)
+    call check_corrkob(iob,iik,icheck_corrkob)
     matbox=0.d0
 !$OMP parallel do private(iz,iy,ix) 
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      matbox(ix,iy,iz)=psi_mesh(ix,iy,iz,iob,1)
+      matbox(ix,iy,iz)=psi_mesh(ix,iy,iz,iob,iik)
     end do
     end do
     end do
@@ -90,11 +93,12 @@ else if(icopy_psi_mesh==2)then
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        psi(ix,iy,iz,iob_myob,1)=matbox2(ix,iy,iz)
+        psi(ix,iy,iz,iob_myob,iik)=matbox2(ix,iy,iz)
       end do
       end do
       end do
     end if
+  end do
   end do
 end if
 
@@ -112,7 +116,7 @@ implicit none
 
 complex(8) :: tpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),   &
                         1:itotMST,1)
-integer :: ix,iy,iz,iob,iob_myob
+integer :: ix,iy,iz,iob,iob_myob,iik
 integer :: icheck_corrkob
 complex(8),allocatable :: matbox(:,:,:)
 complex(8),allocatable :: matbox2(:,:,:)
@@ -121,16 +125,17 @@ allocate(matbox(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 allocate(matbox2(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
 
 if(icopy_psi_mesh==1)then
+  do iik=1,num_kpoints_rd
   do iob=1,itotMST
     call calc_myob(iob,iob_myob)
-    call check_corrkob(iob,icheck_corrkob)
+    call check_corrkob(iob,iik,icheck_corrkob)
     matbox=0.d0
     if(icheck_corrkob==1)then
 !$OMP parallel do private(iz,iy,ix) 
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        matbox(ix,iy,iz)=zpsi(ix,iy,iz,iob_myob,1)
+        matbox(ix,iy,iz)=zpsi(ix,iy,iz,iob_myob,iik)
       end do
       end do
       end do
@@ -142,21 +147,23 @@ if(icopy_psi_mesh==1)then
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      tpsi_mesh(ix,iy,iz,iob,1)=matbox2(ix,iy,iz)
+      tpsi_mesh(ix,iy,iz,iob,iik)=matbox2(ix,iy,iz)
     end do
     end do
     end do
   end do
+  end do
 else if(icopy_psi_mesh==2)then
+  do iik=1,num_kpoints_rd
   do iob=1,itotMST
     call calc_myob(iob,iob_myob)
-    call check_corrkob(iob,icheck_corrkob)
+    call check_corrkob(iob,iik,icheck_corrkob)
     matbox=0.d0
 !$OMP parallel do private(iz,iy,ix) 
     do iz=ng_sta(3),ng_end(3)
     do iy=ng_sta(2),ng_end(2)
     do ix=ng_sta(1),ng_end(1)
-      matbox(ix,iy,iz)=psi_mesh(ix,iy,iz,iob,1)
+      matbox(ix,iy,iz)=psi_mesh(ix,iy,iz,iob,iik)
     end do
     end do
     end do
@@ -168,11 +175,12 @@ else if(icopy_psi_mesh==2)then
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)
       do ix=mg_sta(1),mg_end(1)
-        zpsi(ix,iy,iz,iob_myob,1)=matbox2(ix,iy,iz)
+        zpsi(ix,iy,iz,iob_myob,iik)=matbox2(ix,iy,iz)
       end do
       end do
       end do
     end if
+  end do
   end do
 end if
 

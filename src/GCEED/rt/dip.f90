@@ -133,24 +133,26 @@ end if
    end if
 
   if(comm_is_root(nproc_id_global))then
-    if(ifunc==1)then
-      if(circular=='y')then
-        write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5,f16.8)')       &
-          itt,dble(itt)*dt*2.41888d-2, (Dp(i1,itt)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh,dble(cumnum)
-      else
-        write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5)')       &
-          itt,dble(itt)*dt*2.41888d-2, (Dp(i1,itt)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh
+    if(iperiodic==0)then
+      if(ifunc==1)then
+        if(circular=='y')then
+          write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5,f16.8)')       &
+            itt,dble(itt)*dt*2.41888d-2, (Dp(i1,itt)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh,dble(cumnum)
+        else
+          write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5)')       &
+            itt,dble(itt)*dt*2.41888d-2, (Dp(i1,itt)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh
+        end if
+        tene(itt)=Etot
+      else if(ifunc==2)then
+        if(circular=='y')then
+          write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5,f16.8)')       &
+            itt-1,dble(itt-1)*dt*2.41888d-2, (Dp(i1,itt-1)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh,dble(cumnum)
+        else
+          write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5)')       &
+            itt-1,dble(itt-1)*dt*2.41888d-2, (Dp(i1,itt-1)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh
+        end if
+        tene(itt-1)=Etot
       end if
-      tene(itt)=Etot
-    else if(ifunc==2)then
-      if(circular=='y')then
-        write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5,f16.8)')       &
-          itt-1,dble(itt-1)*dt*2.41888d-2, (Dp(i1,itt-1)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh,dble(cumnum)
-      else
-        write(*,'(i8,f14.8, 3e16.8, f15.8,f18.8,i5)')       &
-          itt-1,dble(itt-1)*dt*2.41888d-2, (Dp(i1,itt-1)*a_B,i1=1,3), rNe, Etot*2d0*Ry,iterVh
-      end if
-      tene(itt-1)=Etot
     end if
   end if
 

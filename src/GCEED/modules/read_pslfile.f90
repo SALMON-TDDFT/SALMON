@@ -281,6 +281,14 @@ do i=0,Mr(ak)
   end do
 end do
 
+if(iperiodic==3)then
+  do i=0,Mr(ak)
+    do L=0,Mlps0(ak)
+      upp_f(i,L,ak)=upp_f(i,L,ak)*sqrt(a_B)
+    end do
+  end do
+end if
+
 close(4)
 
 return
@@ -341,6 +349,13 @@ subroutine read_psl_ABINIT(ak,ps_file)
     rhopp_f(i,ak)=0.d0
   end do
 
+  if(iperiodic==3)then
+    do i=0,Mr(ak)
+      do ll=0,Mlps0(ak)
+        upp_f(i,ll,ak)=upp_f(i,ll,ak)*sqrt(a_B)
+      end do
+    end do
+  end if
 
 return
 
@@ -391,6 +406,14 @@ do i=1,Mr(ak)
   rhopp_f(i,ak)=0.d0
 end do
 
+if(iperiodic==3)then
+  do i=0,Mr(ak)
+    do ll=0,Mlps0(ak)
+      upp_f(i,ll,ak)=upp_f(i,ll,ak)*sqrt(a_B)
+    end do
+  end do
+end if
+
 return
 
 End Subroutine read_psl_ABINIT_PBE
@@ -438,6 +461,14 @@ step(ak) = minval(step_tmp(0:Mlps0(ak)))
 do i=1,Mr(ak)
   rhopp_f(i,ak)=0.d0
 end do
+
+if(iperiodic==3)then
+  do i=0,Mr(ak)
+    do ll=0,Mlps0(ak)
+      upp_f(i,ll,ak)=upp_f(i,ll,ak)*sqrt(a_B)
+    end do
+  end do
+end if
 
 return
 

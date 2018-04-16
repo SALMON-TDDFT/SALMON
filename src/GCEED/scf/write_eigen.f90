@@ -19,7 +19,7 @@ use salmon_communication, only: comm_is_root
 use inputoutput, only: uenergy_from_au
 use scf_data
 implicit none
-integer :: iob
+integer :: iob,iik
 
 if(comm_is_root(nproc_id_global))then
   open(101,file=file_eigen)
@@ -31,8 +31,13 @@ if(comm_is_root(nproc_id_global))then
     write(101,'("# Orbital   Energy[eV]")') 
   end select
   write(101,'("#-----------------------")') 
-  do iob=1,itotmst
-    write(101,'(1x,i5,e26.16e3)') iob, esp(iob,1)*uenergy_from_au
+  do iik=1,num_kpoints_rd
+    if(iperiodic==3)then
+      write(101,'("k=",1x,i5)') iik
+    end if
+    do iob=1,itotmst
+      write(101,'(1x,i5,e26.16e3)') iob, esp(iob,iik)*uenergy_from_au
+    end do
   end do
   close(101)
 end if
