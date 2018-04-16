@@ -504,7 +504,7 @@ contains
         & 13, "E_tot_z", trim(t_unit_elec%name), &
         & 14, "Jm_x", trim(t_unit_current%name), &
         & 15, "Jm_y", trim(t_unit_current%name), &
-        & 16, "Jm_z", trim(t_unit_current%name), &
+        & 16, "Jm_z", trim(t_unit_current%name)
 
       write(fh_rt,*)
 
@@ -570,7 +570,7 @@ contains
       write(fh_rt_energy,*)
 
       do iiter = 0, niter
-        if(use_ehrenfest_mod /= 'y' .and. mod(iiter,nstep_energy_calc) /=0)cycle
+        if( use_ehrenfest_md/='y' .and. mod(iiter,nstep_energy_calc)/=0)cycle
         write(fh_rt_energy, "(F16.8,99(1X,ES22.14E3))",advance='no') &
           & iiter * dt * t_unit_time%conv, &
           & Eall_t(iiter) * t_unit_energy%conv, &
