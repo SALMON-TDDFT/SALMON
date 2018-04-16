@@ -89,6 +89,7 @@ Module Global_Variables
   real(8),allocatable :: velocity(:,:),force(:,:),esp(:,:)
   real(8),allocatable :: Floc(:,:),Fnl(:,:),Fion(:,:),FionAc(:,:)          
   real(8),allocatable :: ovlp_occ_l(:,:),ovlp_occ(:,:)
+  integer,allocatable :: assign_grid_atom(:) ! projection + decomp analysis
   integer,allocatable :: NBocc(:) !FS set
   real(8),allocatable :: esp_vb_min(:),esp_vb_max(:) !FS set
   real(8),allocatable :: esp_cb_min(:),esp_cb_max(:) !FS set
@@ -132,6 +133,7 @@ Module Global_Variables
   real(8),allocatable :: kAc(:,:),kAc0(:,:),kAc_new(:,:)     !k+A(t)/c (kAc)
   real(8),allocatable :: Ac_ext(:,:),Ac_ind(:,:),Ac_tot(:,:) !A(t)/c (Ac)
   !alocal_laser option
+  logical :: flag_set_ini_Ac_alocal=.false.
   real(8),allocatable :: weight_Ac_alocal(:), weight_Ac_alocal_ion(:)
   real(8),allocatable :: Ac_ext_al(:,:),Ac_tot_al(:,:)
   real(8),allocatable :: Ac1x_al(:),Ac1y_al(:),Ac1z_al(:),Ac2_al(:,:),divA_al(:)
@@ -148,7 +150,7 @@ Module Global_Variables
   character(256) :: file_epst,file_epse
   character(256) :: file_force_dR,file_j_ac
   character(256) :: file_DoS,file_band
-  character(256) :: file_dns,file_ovlp,file_nex,file_last_band_map
+  character(256) :: file_dns,file_ovlp,file_nex,file_last_band_map,file_nex_atom
   character(256) :: file_dns_gs
   character(256) :: file_dns_rt
   character(256) :: file_dns_dlt
@@ -286,7 +288,9 @@ Module Global_Variables
 
   ! scf
   integer :: PrLv_scf = 3          !(no print=0, all print=3)
-  integer :: Nscf_conv
+  integer :: Nscf_conv, it_last_update_zu_GS_proj=-99
+  logical :: flag_update_only_zu_GS=.false.
+  logical :: flag_scf_conv_ene_force=.false.
 
   ! Rion update flag
   logical :: Rion_update_rt

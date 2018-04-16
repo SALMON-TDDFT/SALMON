@@ -204,6 +204,7 @@ contains
     use salmon_file, only: get_filehandle
     implicit none
     integer :: ii
+    real(8) :: norm
 
     namelist/calculation/ &
       & calc_mode, &
@@ -353,6 +354,7 @@ contains
 
     namelist/analysis/ &
       & projection_option, &
+      & projection_decomp, &
       & nenergy, &
       & de, &
       & out_psi, &
@@ -639,6 +641,7 @@ contains
     file_macropoint = ''
 !! == default for &analysis
     projection_option   = 'no'
+    projection_decomp   = 'n'
     nenergy             = 1000
     de                  = (0.01d0/au_energy_ev)*uenergy_from_au  ! eV
     out_psi             = 'n'
@@ -931,6 +934,9 @@ contains
     omega1 = omega1 * uenergy_to_au
     call comm_bcast(epdir_re1 ,nproc_group_global)
     call comm_bcast(epdir_im1 ,nproc_group_global)
+    norm = sqrt(sum(epdir_re1(:)**2+epdir_im1(:)**2))
+    epdir_re1 = epdir_re1 / norm
+    epdir_im1 = epdir_im1 / norm
     call comm_bcast(phi_cep1  ,nproc_group_global)
     call comm_bcast(ae_shape2 ,nproc_group_global)
     call comm_bcast(amplitude2,nproc_group_global)
@@ -942,6 +948,9 @@ contains
     omega2 = omega2 * uenergy_to_au
     call comm_bcast(epdir_re2,nproc_group_global)
     call comm_bcast(epdir_im2,nproc_group_global)
+    norm = sqrt(sum(epdir_re2(:)**2+epdir_im2(:)**2))
+    epdir_re2 = epdir_re2 / norm
+    epdir_im2 = epdir_im2 / norm
     call comm_bcast(phi_cep2 ,nproc_group_global)
     call comm_bcast(t1_t2    ,nproc_group_global)
     t1_t2 = t1_t2 * utime_to_au
@@ -980,6 +989,7 @@ contains
     
 !! == bcast for &analysis
     call comm_bcast(projection_option,nproc_group_global)
+    call comm_bcast(projection_decomp,nproc_group_global)
     call comm_bcast(nenergy          ,nproc_group_global)
     call comm_bcast(de               ,nproc_group_global)
     de = de * uenergy_to_au
@@ -1522,6 +1532,7 @@ contains
       if(inml_analysis >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis
       write(fh_variables_log, '("#",4X,A,"=",A)') 'projection_option', projection_option
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'projection_decomp', projection_decomp
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'nenergy', nenergy
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'de', de
       write(fh_variables_log, '("#",4X,A,"=",A)') 'out_psi', out_psi
