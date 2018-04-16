@@ -11,7 +11,7 @@
 /
 
 &parallel
-  domain_parallel='y'
+  domain_parallel = 'y'
 /
 
 &system

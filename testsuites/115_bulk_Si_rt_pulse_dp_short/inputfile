@@ -12,6 +12,10 @@
 
 &parallel
   domain_parallel = 'y'
+  nproc_k = 8
+  nproc_ob = 1
+  nproc_domain = 1,1,1
+  nproc_domain_s = 2,2,2
 /
 
 &system
@@ -39,7 +43,7 @@
 /
 
 &tgrid
-  nt = 3000
+  nt = 250
   dt = 0.16
 /
 
