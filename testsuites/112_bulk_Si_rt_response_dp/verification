@@ -13,15 +13,15 @@ print("#" * 60)
 print("# Verification start") 
 
 filelist = [ 
-    "Si_lr.data", 
+    "current.data", 
 ] 
 
 checklist = { 
-    # Imaginary part of dielectric function 
-    "Imaginary part of dielectric function (z-direction, 3.4559eV)": [
+    # Current
+    "Current": [
         -100, # Temporary value for result
-        89.063446,  # Reference value 
-        0.01,  # Permissible error 
+        -1.3501305e-04,  # Reference value 
+        1e-8,  # Permissible error 
     ], 
 } 
 
@@ -34,12 +34,12 @@ for item in filelist:
 print("# Checking calculated result")
 result = {}
 linecount = 0
-for line in open("Si_lr.data"):
+for line in open("current.data"):
     linecount += 1
-    if linecount == 128: # corresponds to a line of 3.4559eV
+    if linecount == 116: # corresponds to a line of 0.4528fs
         for name, [resval, refval, error] in checklist.items(): 
             data = line.split()
-            result[name] = float(data[6])
+            result[name] = float(data[3])
             print(result[name])
 
 for name, [resval, refval, error] in checklist.items():

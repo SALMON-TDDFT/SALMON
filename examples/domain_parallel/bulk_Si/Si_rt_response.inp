@@ -12,10 +12,6 @@
 
 &parallel
   domain_parallel = 'y'
-  nproc_k = 8
-  nproc_ob = 1
-  nproc_domain = 1,1,1
-  nproc_domain_s = 2,2,2
 /
 
 &system
@@ -34,6 +30,10 @@
   lloc_ps(1) = 2
 /
 
+&functional
+  xc = 'PZ'
+/
+
 &rgrid
   dl = 0.855d0, 0.855d0, 0.855d0
 /
@@ -43,7 +43,7 @@
 /
 
 &tgrid
-  nt = 250
+  nt = 3000
   dt = 0.16
 /
 
@@ -54,11 +54,13 @@
 
 &emfield
   trans_longi = 'lo'
-  ae_shape1 = 'Acos2'
-  rlaser_int_wcm2_1 = 1d14
-  omega1 = 0.05696145187d0
-  pulse_tw1 = 441.195136248d0
+  ae_shape1 = 'impulse'
   epdir_re1 = 0., 0., 1.
+/
+
+&analysis
+  nenergy = 1000
+  de = 0.001
 /
 
 &atomic_coor

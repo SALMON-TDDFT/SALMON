@@ -8,6 +8,6 @@
 
 cp ../pseudo/Si_rps.dat ./
 cp ../111_bulk_Si_gs_dp/Si_gs.bin ./
-if [ -e C2H2_lr.data ]; then
-  rm Si_lr.data
+if [ -e current.data ]; then
+  rm current.data
 fi
