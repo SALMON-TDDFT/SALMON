@@ -147,6 +147,7 @@ contains
        write(file_tm_data,"(2A,'_tm.data')") trim(directory),trim(SYSname)
        write(file_rt_data,"(2A,'_rt.data')") trim(directory),trim(SYSname)
        write(file_lr_data,"(2A,'_lr.data')") trim(directory),trim(SYSname)
+       write(file_rt_energy_data,"(2A,'_rt_energy.data')") trim(directory),trim(SYSname)
        
        write(*,*) 'al(1),al(2),al(3)=',real(al(1)),real(al(2)),real(al(3))
        write(*,*) 'Sym=',Sym,'crystal structure=',crystal_structure !sym
@@ -179,6 +180,7 @@ contains
     call comm_bcast(file_eigen_data,nproc_group_global)
     call comm_bcast(file_tm_data,nproc_group_global)
     call comm_bcast(file_rt_data,nproc_group_global)
+    call comm_bcast(file_rt_energy_data,nproc_group_global)
     call comm_bcast(file_kw,nproc_group_global)
 
     if(use_ms_maxwell == 'y')then

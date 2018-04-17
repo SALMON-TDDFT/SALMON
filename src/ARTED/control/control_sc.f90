@@ -207,7 +207,9 @@ subroutine tddft_sc
       call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
       call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
     else
-      call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
+      if(mod(iter,nstep_energy_calc)==0)then
+        call Total_Energy_omp(Rion_update_rt,calc_mode_rt)
+      end if
     end if
 
     call timer_begin(LOG_OTHER)
@@ -473,7 +475,7 @@ contains
   subroutine write_rt_data(niter)
     implicit none
     integer, intent(in) :: niter
-    integer :: fh_rt, iiter
+    integer :: fh_rt, fh_rt_energy, iiter
 
     if (comm_is_root(nproc_id_global)) then
       fh_rt = open_filehandle(file_rt_data)
@@ -485,18 +487,6 @@ contains
       write(fh_rt, '("#",1X,A,":",1X,A)') "Ac_tot", "Total vector potential field"
       write(fh_rt, '("#",1X,A,":",1X,A)') "E_tot", "Total electric field"
       write(fh_rt, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Eall", "Total energy"
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Eall0", "Initial energy"
-      if(use_ehrenfest_md=='y') then
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Tion", "Kinetic energy of ions"
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Temperature_ion", "Temperature of ions"
-      write(fh_rt, '("#",1X,A,":",1X,A)') "E_work", "Work energy of ions(sum f*dr)"
-      if(ensemble=="NVT".and.thermostat=="nose-hoover")then
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Enh", "NH thermostat energy (MD)"
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Hnvt", "Hamiltonian with NH thermostat(MD)"
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Hnvt'","Hnvt using E_work"
-      endif
-      endif
 
       write(fh_rt, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
         & 1, "Time", trim(t_unit_time%name), &
@@ -514,22 +504,8 @@ contains
         & 13, "E_tot_z", trim(t_unit_elec%name), &
         & 14, "Jm_x", trim(t_unit_current%name), &
         & 15, "Jm_y", trim(t_unit_current%name), &
-        & 16, "Jm_z", trim(t_unit_current%name), &
-        & 17, "Eall", trim(t_unit_energy%name), &
-        & 18, "Eall-Eall0", trim(t_unit_energy%name)
+        & 16, "Jm_z", trim(t_unit_current%name)
 
-      if(use_ehrenfest_md=='y') then
-      write(fh_rt, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
-        & 19, "Tion", trim(t_unit_energy%name), &
-        & 20, "Temperature_ion", "K", &
-        & 21, "E_work", trim(t_unit_energy%name)
-      if(ensemble=="NVT".and.thermostat=="nose-hoover")then
-      write(fh_rt, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
-        & 22, "Enh",  trim(t_unit_energy%name), &
-        & 23, "Hnvt", trim(t_unit_energy%name), &
-        & 23, "Hnvt'",trim(t_unit_energy%name)
-      endif
-      endif
       write(fh_rt,*)
 
       do iiter = 0, niter
@@ -557,6 +533,67 @@ contains
         write(fh_rt,*)
       end do
       close(fh_rt)
+
+      fh_rt_energy = open_filehandle(file_rt_energy_data)
+
+      write(fh_rt_energy, '("#",1X,A)') "Real time calculation"
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "Eall", "Total energy"
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "Eall0", "Initial energy"
+      if(use_ehrenfest_md=='y') then
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "Tion", "Kinetic energy of ions"
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "Temperature_ion", "Temperature of ions"
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "E_work", "Work energy of ions(sum f*dr)"
+      if(ensemble=="NVT".and.thermostat=="nose-hoover")then
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "Enh", "NH thermostat energy (MD)"
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "Hnvt", "Hamiltonian with NH thermostat(MD)"
+      write(fh_rt_energy, '("#",1X,A,":",1X,A)') "Hnvt'","Hnvt using E_work"
+      endif
+      endif
+
+      write(fh_rt_energy, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+        & 1, "Eall", trim(t_unit_energy%name), &
+        & 2, "Eall-Eall0", trim(t_unit_energy%name)
+
+      if(use_ehrenfest_md=='y') then
+      write(fh_rt_energy, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+        & 3, "Tion", trim(t_unit_energy%name), &
+        & 4, "Temperature_ion", "K", &
+        & 5, "E_work", trim(t_unit_energy%name)
+      if(ensemble=="NVT".and.thermostat=="nose-hoover")then
+      write(fh_rt_energy, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+        & 6, "Enh",  trim(t_unit_energy%name), &
+        & 7, "Hnvt", trim(t_unit_energy%name), &
+        & 8, "Hnvt'",trim(t_unit_energy%name)
+      endif
+      endif
+
+      write(fh_rt_energy,*)
+
+      do iiter = 0, niter
+        if( use_ehrenfest_md/='y' .and. mod(iiter,nstep_energy_calc)/=0)cycle
+        write(fh_rt_energy, "(F16.8,99(1X,ES22.14E3))",advance='no') &
+          & iiter * dt * t_unit_time%conv, &
+          & Eall_t(iiter) * t_unit_energy%conv, &
+          & (Eall_t(iiter) - Eall0) * t_unit_energy%conv
+        if(use_ehrenfest_md=='y') then
+        write(fh_rt_energy, "(99(1X,ES22.14E3))",advance='no') &
+          & Tion_t(iiter) * t_unit_energy%conv, &
+          & Temperature_ion_t(iiter), &
+          & Ework_integ_fdR(iiter) * t_unit_energy%conv
+        if(ensemble=="NVT".and.thermostat=="nose-hoover")then
+        write(fh_rt_energy, "(99(1X,ES22.14E3))",advance='no') &
+          & Enh_t(iiter) * t_unit_energy%conv, &
+          & Hnvt_t(iiter) * t_unit_energy%conv, &
+          & (Tion_t(iiter)+Ework_integ_fdR(iiter)+Enh_t(iiter)) * t_unit_energy%conv
+        endif
+        endif
+        write(fh_rt_energy,*)
+      end do
+
+
+      close(fh_rt_energy)
+
+
     end if
     call comm_sync_all
     return

@@ -164,6 +164,10 @@ Module Global_Variables
   character(256) :: file_lr_data
   character(256) :: process_directory
 
+! energy computation
+  character(256) :: file_rt_energy_data
+  integer,parameter :: nstep_energy_calc = 10
+
 !  character(2) :: ext_field ! this variable is removed
 !  character(2) :: Longi_Trans ! this variable is replaced by trans_longi
 !  character(1) :: MD_option ! this variable is replaced by use_ehrenfest_md
