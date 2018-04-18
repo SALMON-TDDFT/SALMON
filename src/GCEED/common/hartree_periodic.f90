@@ -44,36 +44,25 @@ subroutine Hartree_periodic(trho,tVh)
     rhoe_G_tmp(n)=0.d0
   end do
 
-  if(nproc_Mxin(3)==1)then
 !$OMP parallel do private(iz,iy,ix)
-    do iz=lg_sta(3),lg_end(3)
-    do iy=ng_sta(2),ng_end(2)
-    do ix=ng_sta(1),ng_end(1)
-      trho3z(ix,iy,iz)=trho(ix,iy,iz)
-    end do
-    end do
-    end do
-  else
+  do iz=lg_sta(3),lg_end(3)
+  do iy=ng_sta(2),ng_end(2)
+  do ix=ng_sta(1),ng_end(1)
+    trho2z(ix,iy,iz)=0.d0
+  end do
+  end do
+  end do
+
 !$OMP parallel do private(iz,iy,ix)
-    do iz=lg_sta(3),lg_end(3)
-    do iy=ng_sta(2),ng_end(2)
-    do ix=ng_sta(1),ng_end(1)
-      trho2z(ix,iy,iz)=0.d0
-    end do
-    end do
-    end do
-  
-!$OMP parallel do private(iz,iy,ix)
-    do iz=ng_sta(3),ng_end(3)
-    do iy=ng_sta(2),ng_end(2)
-    do ix=ng_sta(1),ng_end(1)
-      trho2z(ix,iy,iz)=trho(ix,iy,iz)
-    end do
-    end do
-    end do
-  
-    call comm_summation(trho2z,trho3z,ng_num(1)*ng_num(2)*lg_num(3),nproc_group_bound(3))
-  end if
+  do iz=ng_sta(3),ng_end(3)
+  do iy=ng_sta(2),ng_end(2)
+  do ix=ng_sta(1),ng_end(1)
+    trho2z(ix,iy,iz)=trho(ix,iy,iz)
+  end do
+  end do
+  end do
+
+  call comm_summation(trho2z,trho3z,ng_num(1)*ng_num(2)*lg_num(3),nproc_group_bound(3))
   
 !$OMP parallel do private(ix,kx)
   do ix=lg_sta(1),lg_end(1)
