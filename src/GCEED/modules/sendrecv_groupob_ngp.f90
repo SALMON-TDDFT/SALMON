@@ -30,89 +30,101 @@ contains
 subroutine R_sendrecv_groupob_ngp(tpsi)
 implicit none
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
-                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
-integer :: ix,iy,iz,iob
+                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
+integer :: ix,iy,iz,iob,iik
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
-    tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=    &
-                              tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+    tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)=    &
+                              tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from iup to idw
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
-    tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=   &
-                              tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+    tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)=   &
+                              tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from jdw to jup
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,1)=   &
-                              tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,1)
+    tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,iik)=   &
+                              tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from jup to jdw
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz,iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,1)=   &
-                              tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,1)
+    tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,iik)=   &
+                              tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from kdw to kup
 
+do iik=k_sta,k_end
 do iob=1,iobnum
   do iz=1,Nd
 !$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=  &
-                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
+    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,iik)=  &
+                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,iik)
   end do
   end do
   end do
 end do
+end do
 
 !send from kup to kdw
 
+do iik=k_sta,k_end
 do iob=1,iobnum
   do iz=1,Nd
 !$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)= &
-                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)
+    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,iik)= &
+                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 end subroutine R_sendrecv_groupob_ngp
@@ -122,89 +134,101 @@ end subroutine R_sendrecv_groupob_ngp
 subroutine C_sendrecv_groupob_ngp(tpsi)
 implicit none
 complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
-                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
-integer :: ix,iy,iz,iob
+                   mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
+integer :: ix,iy,iz,iob,iik
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
-    tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=    &
-                              tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+    tpsi(mg_sta(1)-1-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)=    &
+                              tpsi(mg_end(1)-Nd+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from iup to idw
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,mg_num(2)
   do ix=1,Nd
-    tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)=   &
-                              tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,1)
+    tpsi(mg_end(1)+ix,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)=   &
+                              tpsi(mg_sta(1)+ix-1,iy+mg_sta(2)-1,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from jdw to jup
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,1)=   &
-                              tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,1)
+    tpsi(ix+mg_sta(1)-1,mg_sta(2)-1-Nd+iy,iz+mg_sta(3)-1,iob,iik)=   &
+                              tpsi(ix+mg_sta(1)-1,mg_end(2)-Nd+iy,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from jup to jdw
 
+do iik=k_sta,k_end
 do iob=1,iobnum
 !$OMP parallel do private(iz, iy,ix)
   do iz=1,mg_num(3)
   do iy=1,Nd
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,1)=   &
-                              tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,1)
+    tpsi(ix+mg_sta(1)-1,mg_end(2)+iy,iz+mg_sta(3)-1,iob,iik)=   &
+                              tpsi(ix+mg_sta(1)-1,mg_sta(2)+iy-1,iz+mg_sta(3)-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 !send from kdw to kup
 
+do iik=k_sta,k_end
 do iob=1,iobnum
   do iz=1,Nd
 !$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,1)=  &
-                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,1)
+    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)-1-Nd+iz,iob,iik)=  &
+                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)-Nd+iz,iob,iik)
   end do
   end do
   end do
 end do
+end do
 
 !send from kup to kdw
 
+do iik=k_sta,k_end
 do iob=1,iobnum
   do iz=1,Nd
 !$OMP parallel do private(iy,ix)
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
-    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,1)= &
-                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,1)
+    tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_end(3)+iz,iob,iik)= &
+                              tpsi(ix+mg_sta(1)-1,iy+mg_sta(2)-1,mg_sta(3)+iz-1,iob,iik)
   end do
   end do
   end do
+end do
 end do
 
 end subroutine C_sendrecv_groupob_ngp

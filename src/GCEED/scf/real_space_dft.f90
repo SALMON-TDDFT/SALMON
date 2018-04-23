@@ -38,8 +38,10 @@ END MODULE global_variables_scf
 !=======================================================================
 
 subroutine Real_Space_DFT
-use salmon_parallel, only: nproc_id_global, nproc_group_global, nproc_group_h, nproc_id_grid, nproc_id_spin
-use salmon_communication, only: comm_is_root, comm_summation
+use salmon_parallel, only: nproc_id_global, nproc_size_global, nproc_group_global, &
+                           nproc_group_h, nproc_id_kgrid, nproc_id_spin, nproc_id_orbitalgrid, &
+                           nproc_group_spin
+use salmon_communication, only: comm_is_root, comm_summation, comm_bcast
 use misc_routines, only: get_wtime
 use global_variables_scf
 implicit none
@@ -49,6 +51,7 @@ integer :: is
 integer :: iter,iatom,iob,p1,p2,p5,ii,jj,iflag
 real(8) :: sum0,sum1
 character(100) :: file_atoms_coo
+complex(8),allocatable :: zpsi_tmp(:,:,:,:,:)
 real(8) :: rNebox1,rNebox2
 integer :: itmg
 
@@ -72,16 +75,18 @@ call convert_input_scf(file_atoms_coo)
 
 call set_filename
 
+call setk(k_sta, k_end, k_num, num_kpoints_rd, nproc_k, nproc_id_orbitalgrid)
+
 if(ilsda==0)then
-  call calc_iobnum(itotMST,nproc_ob,nproc_id_grid,iobnum,nproc_ob,iparaway_ob)
+  call calc_iobnum(itotMST,nproc_ob,nproc_id_kgrid,iobnum,nproc_ob,iparaway_ob)
 else if(ilsda==1)then
   if(nproc_ob==1)then
     iobnum=itotMST
   else
     if(nproc_id_spin<nproc_ob_spin(1))then
-      call calc_iobnum(MST(1),nproc_ob_spin(1),nproc_id_grid,iobnum,nproc_ob_spin(1),iparaway_ob)
+      call calc_iobnum(MST(1),nproc_ob_spin(1),nproc_id_kgrid,iobnum,nproc_ob_spin(1),iparaway_ob)
     else
-      call calc_iobnum(MST(2),nproc_ob_spin(2),nproc_id_grid,iobnum,nproc_ob_spin(2),iparaway_ob)
+      call calc_iobnum(MST(2),nproc_ob_spin(2),nproc_id_kgrid,iobnum,nproc_ob_spin(2),iparaway_ob)
     end if
   end if
 end if
@@ -111,13 +116,24 @@ if(istopt==1)then
     call init_updown
     call init_itype
     call init_sendrecv_matrix
-    if(MEO==2.or.MEO==3) call make_corr_pole
+    select case(iperiodic)
+    case(0)
+      if(MEO==2.or.MEO==3) call make_corr_pole
+    end select
     call make_icoobox_bound
         
     call allocate_mat
     call set_icoo1d
     call allocate_sendrecv
     call init_persistent_requests
+
+    if(iperiodic==3)then
+      allocate (zpsi_tmp(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd, &
+                 1:iobnum,k_sta:k_end))
+      allocate(k_rd(3,num_kpoints_rd),ksquare(num_kpoints_rd))
+      call init_k_rd(k_rd,ksquare,1)
+    end if
+
     allocate( Vpsl(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
     if(icalcforce==1)then
       allocate( Vpsl_atom(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),MI) )
@@ -132,15 +148,31 @@ if(istopt==1)then
     end if
 
     if(iobnum >= 1)then
-      allocate( psi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1) ) 
+      select case(iperiodic)
+      case(0)
+        allocate( psi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,k_sta:k_end) )
+      case(3)
+        allocate( ttpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
+        allocate( zpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,k_sta:k_end) )
+      end select
     end if
     if(iswitch_orbital_mesh==1.or.iflag_subspace_diag==1)then
-      allocate( psi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:itotMST,1) ) 
+      select case(iperiodic)
+      case(0)
+        allocate( psi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:itotMST,1) ) 
+      case(3)
+        allocate( zpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:itotMST,num_kpoints_rd) )
+      end select
     end if
 
     call init_wf_ns(1)
 
-    call Gram_Schmidt_ns
+    select case(iperiodic)
+    case(0)
+      call Gram_Schmidt_ns
+    case(3)
+      call Gram_Schmidt_periodic
+    end select
 
     allocate( rho(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )  
     allocate( rho_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1) )  
@@ -157,7 +189,12 @@ if(istopt==1)then
     end if
     rho=0.d0 
 
-    call calc_density(psi)
+    select case(iperiodic)
+    case(0)
+      call calc_density(psi)
+    case(3)
+      call calc_density(zpsi)
+    end select
 
     if(ilsda==0)then
       allocate (Vlocal(mg_sta(1):mg_end(1),  &
@@ -180,7 +217,7 @@ if(istopt==1)then
     else if(ilsda == 1) then
       allocate( Vxc_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )  
     end if
-    allocate( esp(itotMST,1) )
+    allocate( esp(itotMST,num_kpoints_rd) )
 
     if(ilsda==0)then
       call conv_core_exc_cor
@@ -190,7 +227,25 @@ if(istopt==1)then
 
     call allgatherv_vlocal
 
-    call Total_Energy(psi)
+    select case(iperiodic)
+    case(0)
+      call Total_Energy(psi)
+    case(3)
+      call Total_Energy_periodic_scf_esp(zpsi)
+      do ik=k_sta,k_end
+      do iob=1,iobnum
+!$OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          zpsi_tmp(ix,iy,iz,iob,ik)=zpsi(ix,iy,iz,iob,ik)
+        end do
+        end do
+        end do
+      end do
+      end do
+      call Total_Energy_periodic_scf(zpsi_tmp)
+    end select
       
 !------------------------------ Continue the previous calculation
 
@@ -202,13 +257,18 @@ if(istopt==1)then
     call allocate_sendrecv
     call init_persistent_requests
 
+    if(iperiodic==3)then
+      allocate (zpsi_tmp(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd, &
+                 1:iobnum,k_sta:k_end))
+      allocate(k_rd(3,num_kpoints_rd),ksquare(num_kpoints_rd))
+      call init_k_rd(k_rd,ksquare,1)
+    end if
+
     if(iflag_ps/=0) then
       call read_pslfile
       call allocate_psl
       call init_ps
     end if
-
-
 
     call init_updown
     call init_itype
@@ -228,15 +288,22 @@ elp3(103)=get_wtime()
 
 if(comm_is_root(nproc_id_global)) then
   write(*,*) '-----------------------------------------------'
-  if(iflag_diisjump == 0) then
-    write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8,5x,"Vh iteration =",i4)') 0,Etot*2d0*Ry,iterVh
-  else if(iflag_diisjump == 1) then
-    write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8,5x,"Vh iteration =",i4,"**")') 0,Etot*2d0*Ry,iterVh
-  end if
-  do p5=1,(itotMST+3)/4
-    p1=4*(p5-1)+1
-    p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
-    write(*,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,1)*2d0*Ry,iob=p1,p2)
+  select case(iperiodic)
+  case(0)
+    write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8,5x,"Vh iteration =",i4)') Miter,Etot*2d0*Ry,iterVh
+  case(3)
+    write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8)') Miter,Etot*2d0*Ry
+  end select
+  do ik=1,num_kpoints_rd
+    if(ik<=3)then
+      if(iperiodic==3) write(*,*) "k=",ik
+      do p5=1,(itotMST+3)/4
+        p1=4*(p5-1)+1
+        p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
+        write(*,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,ik)*2d0*Ry,iob=p1,p2)
+      end do
+      if(iperiodic==3) write(*,*)
+    end if
   end do
 end if
 !---------------------------------------- Iteration
@@ -309,32 +376,57 @@ DFT_Iteration : do iter=1,iDiter(img)
     if( amin_routine == 'cg' .or.       &
    (amin_routine == 'cg-diis' .and. Miter <= iDiterYBCG) ) then
       elp3(181)=get_wtime()
-      call DTcg(psi,iflag)
+      select case(iperiodic)
+      case(0)
+        call DTcg(psi,iflag)
+      case(3)
+        call DTcg_periodic(zpsi,iflag)
+      end select
       elp3(182)=get_wtime()
       elp3(183)=elp3(183)+elp3(182)-elp3(181)
     else if( amin_routine  == 'diis' .or. amin_routine == 'cg-diis' ) then
       elp3(181)=get_wtime()
-      call rmmdiis(psi)
+      select case(iperiodic)
+      case(0)
+        call rmmdiis(psi)
+      case(3)
+        stop "rmmdiis method is not implemented for periodic systems."
+      end select
       elp3(182)=get_wtime()
       elp3(184)=elp3(184)+elp3(182)-elp3(181)
     end if
   
-  
     elp3(113)=get_wtime()
     elp3(123)=elp3(123)+elp3(113)-elp3(112)
-  
-    call Gram_Schmidt_ns
+
+    select case(iperiodic)
+    case(0)
+      call Gram_Schmidt_ns
+    case(3)
+      call Gram_Schmidt_periodic
+    end select
   
     if(iflag_subspace_diag==1)then
       if(Miter>iDiter_nosubspace_diag)then
-        call subspace_diag
+        select case(iperiodic)
+        case(0)
+          call subspace_diag
+        case(3)
+          call subspace_diag_periodic
+        end select
       end if
     end if
   
     elp3(114)=get_wtime()
     elp3(124)=elp3(124)+elp3(114)-elp3(113)
-     
-    call calc_density(psi)
+    
+
+    select case(iperiodic)
+    case(0)
+      call calc_density(psi)
+    case(3)
+      call calc_density(zpsi)
+    end select
 
     select case(amixing)
       case ('simple')
@@ -366,7 +458,25 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(117)=get_wtime()
     elp3(127)=elp3(127)+elp3(117)-elp3(116)
   
-    call Total_Energy(psi)
+    select case(iperiodic)
+    case(0)
+      call Total_Energy(psi)
+    case(3)
+      call Total_Energy(zpsi)
+      do ik=k_sta,k_end
+      do iob=1,iobnum
+!$OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          zpsi_tmp(ix,iy,iz,iob,ik)=zpsi(ix,iy,iz,iob,ik)
+        end do
+        end do
+        end do
+      end do
+      end do
+      call Total_Energy_periodic_scf(zpsi_tmp)
+    end select
   
     elp3(118)=get_wtime()
     elp3(128)=elp3(128)+elp3(118)-elp3(117)
@@ -376,28 +486,65 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(142)=elp3(142)+elp3(132)-elp3(131)
     
     elp3(118)=get_wtime()
-  
-    call change_order(psi)
+
+    if(iperiodic==0)then  
+      call change_order(psi)
+    end if
   
   else if(iscf_order==2)then
 
-    call Gram_Schmidt_ns
+    select case(iperiodic)
+    case(0)
+      call Gram_Schmidt_ns
+    case(3)
+      call Gram_Schmidt_periodic
+    end select
 
     if(Miter>iDiter_nosubspace_diag)then
-      call subspace_diag
+      select case(iperiodic)
+      case(0)
+        call subspace_diag
+      case(3)
+        call subspace_diag_periodic
+      end select
     end if
 
-    call Gram_Schmidt_ns
+    select case(iperiodic)
+    case(0)
+      call Gram_Schmidt_ns
+    case(3)
+      call Gram_Schmidt_periodic
+    end select
 
     if( amin_routine == 'cg' .or. (amin_routine == 'cg-diis' .and. Miter <= iDiterYBCG) ) then
-      call DTcg(psi,iflag)
+      select case(iperiodic)
+      case(0)
+        call DTcg(psi,iflag)
+      case(3)
+        call DTcg_periodic(zpsi,iflag)
+      end select
     else if( amin_routine == 'diis' .or. amin_routine == 'cg-diis' ) then
-      call rmmdiis(psi)
+      select case(iperiodic)
+      case(0)
+        call rmmdiis(psi)
+      case(3)
+        stop "rmmdiis method is not implemented for periodic systems."
+      end select
     end if
 
-    call Gram_Schmidt_ns
+    select case(iperiodic)
+    case(0)
+      call Gram_Schmidt_ns
+    case(3)
+      call Gram_Schmidt_periodic
+    end select
 
-    call calc_density(psi)
+    select case(iperiodic)
+    case(0)
+      call calc_density(psi)
+    case(3)
+      call calc_density(zpsi)
+    end select
 
     select case(amixing)
       case ('simple')
@@ -420,9 +567,32 @@ DFT_Iteration : do iter=1,iDiter(img)
    
     call allgatherv_vlocal
     
-    call Gram_Schmidt_ns
+    select case(iperiodic)
+    case(0)
+      call calc_density(psi)
+    case(3)
+      call calc_density(zpsi)
+    end select
 
-    call Total_Energy(psi)
+    select case(iperiodic)
+    case(0)
+      call Total_Energy(psi)
+    case(3)
+      call Total_Energy(zpsi)
+      do ik=k_sta,k_end
+      do iob=1,iobnum
+!$OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          zpsi_tmp(ix,iy,iz,iob,ik)=zpsi(ix,iy,iz,iob,ik)
+        end do
+        end do
+        end do
+      end do
+      end do
+      call Total_Energy_periodic_scf(zpsi_tmp)
+    end select
   end if
 
   select case(convergence)
@@ -474,14 +644,25 @@ DFT_Iteration : do iter=1,iDiter(img)
 
   if(comm_is_root(nproc_id_global)) then
     write(*,*) '-----------------------------------------------'
-    if(iflag_diisjump == 1) then
-      write(*,'("Diisjump occured. Steepest descent was used.")')
-    end if
-    write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8,5x,"Vh iteration =",i4)') Miter,Etot*2d0*Ry,iterVh
-    do p5=1,(itotMST+3)/4
-      p1=4*(p5-1)+1
-      p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
-      write(*,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,1)*2d0*Ry,iob=p1,p2)
+    select case(iperiodic)
+    case(0)
+      if(iflag_diisjump == 1) then
+        write(*,'("Diisjump occured. Steepest descent was used.")')
+      end if
+      write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8,5x,"Vh iteration =",i4)') Miter,Etot*2d0*Ry,iterVh
+    case(3)
+      write(*,'(1x,"iter =",i6,5x,"Total Energy =",f19.8,5x)') Miter,Etot*2d0*Ry
+    end select
+    do ik=1,num_kpoints_rd
+      if(ik<=3)then
+        if(iperiodic==3) write(*,*) "k=",ik
+        do p5=1,(itotMST+3)/4
+          p1=4*(p5-1)+1
+          p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
+          write(*,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,ik)*2d0*Ry,iob=p1,p2)
+        end do
+        if(iperiodic==3) write(*,*) 
+      end if
     end do
     select case(convergence)
       case('rho_dne')
@@ -730,6 +911,7 @@ END subroutine Real_Space_DFT
 SUBROUTINE init_mesh
 use salmon_parallel, only: nproc_id_global, nproc_size_global
 use salmon_communication, only: comm_is_root
+use inputoutput, only: iperiodic
 use global_variables_scf
 implicit none
 
@@ -740,13 +922,13 @@ if(comm_is_root(nproc_id_global))      &
 
 rLsize1(:)=rLsize(:,img)
 call setlg(lg_sta,lg_end,lg_num,ista_Mx_ori,iend_Mx_ori,inum_Mx_ori,    &
-           Hgs,Nd,rLsize1,imesh_oddeven)
+           Hgs,Nd,rLsize1,imesh_oddeven,iperiodic)
 
 allocate(ista_Mxin(3,0:nproc_size_global-1),iend_Mxin(3,0:nproc_size_global-1))
 allocate(inum_Mxin(3,0:nproc_size_global-1))
 
 call setmg(mg_sta,mg_end,mg_num,ista_Mxin,iend_Mxin,inum_Mxin,  &
-           lg_sta,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_ob,isequential)
+           lg_sta,lg_num,nproc_size_global,nproc_id_global,nproc_Mxin,nproc_k,nproc_ob,isequential)
 
 if(comm_is_root(nproc_id_global)) write(*,*) "Mx     =", iend_Mx_ori
 

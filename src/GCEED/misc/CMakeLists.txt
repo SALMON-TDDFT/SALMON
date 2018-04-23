@@ -1,4 +1,5 @@
 set(SOURCES
+    setk.f90
     setlg.f90
     setmg.f90
     setng.f90

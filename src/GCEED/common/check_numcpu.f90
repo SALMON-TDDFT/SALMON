@@ -20,7 +20,7 @@ use new_world_sub
 implicit none
 integer :: j
 
-if(nproc_ob*nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)/=nproc_size_global)then
+if(nproc_k*nproc_ob*nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)/=nproc_size_global)then
   write(*,*) "inumcpu_check error!"
   write(*,*) "number of cpu is not correct!"
   stop

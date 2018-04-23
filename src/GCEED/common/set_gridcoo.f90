@@ -23,43 +23,59 @@ integer :: itNd
 itNd=max(Nd,Ndh)
 allocate(gridcoo(minval(lg_sta(:))-itNd:maxval(lg_end(:))+itNd,3))
 
-select case(imesh_oddeven(1))
-  case(1)
+select case(iperiodic)
+case(0)
+  select case(imesh_oddeven(1))
+    case(1)
 !$OMP parallel do
-    do ix=lg_sta(1)-itNd,lg_end(1)+itNd
-      gridcoo(ix,1)=dble(ix)*Hgs(1)
-    end do
-  case(2)
+      do ix=lg_sta(1)-itNd,lg_end(1)+itNd
+        gridcoo(ix,1)=dble(ix)*Hgs(1)
+      end do
+    case(2)
 !$OMP parallel do
-    do ix=lg_sta(1)-itNd,lg_end(1)+itNd
-      gridcoo(ix,1)=(dble(ix)-0.5d0)*Hgs(1)
-    end do
-end select
+      do ix=lg_sta(1)-itNd,lg_end(1)+itNd
+        gridcoo(ix,1)=(dble(ix)-0.5d0)*Hgs(1)
+      end do
+  end select
 
-select case(imesh_oddeven(2))
-  case(1)
+  select case(imesh_oddeven(2))
+    case(1)
+!$OMP parallel do
+      do iy=lg_sta(2)-itNd,lg_end(2)+itNd
+        gridcoo(iy,2)=dble(iy)*Hgs(2)
+      end do
+    case(2)
 !$OMP parallel do
     do iy=lg_sta(2)-itNd,lg_end(2)+itNd
-      gridcoo(iy,2)=dble(iy)*Hgs(2)
+      gridcoo(iy,2)=(dble(iy)-0.5d0)*Hgs(2)
     end do
-  case(2)
+  end select
+  
+  select case(imesh_oddeven(3))
+    case(1)
+!$OMP parallel do
+      do iz=lg_sta(3)-itNd,lg_end(3)+itNd
+        gridcoo(iz,3)=dble(iz)*Hgs(3)
+      end do
+    case(2)
+!$OMP parallel do
+      do iz=lg_sta(3)-itNd,lg_end(3)+itNd
+        gridcoo(iz,3)=(dble(iz)-0.5d0)*Hgs(3)
+      end do
+  end select
+case(3)
+!$OMP parallel do
+  do ix=lg_sta(1)-itNd,lg_end(1)+itNd
+    gridcoo(ix,1)=dble(ix-1)*Hgs(1)
+  end do
 !$OMP parallel do
   do iy=lg_sta(2)-itNd,lg_end(2)+itNd
-    gridcoo(iy,2)=(dble(iy)-0.5d0)*Hgs(2)
+    gridcoo(iy,2)=dble(iy-1)*Hgs(2)
   end do
-end select
-
-select case(imesh_oddeven(3))
-  case(1)
 !$OMP parallel do
-    do iz=lg_sta(3)-itNd,lg_end(3)+itNd
-      gridcoo(iz,3)=dble(iz)*Hgs(3)
-    end do
-  case(2)
-!$OMP parallel do
-    do iz=lg_sta(3)-itNd,lg_end(3)+itNd
-      gridcoo(iz,3)=(dble(iz)-0.5d0)*Hgs(3)
-    end do
+  do iz=lg_sta(3)-itNd,lg_end(3)+itNd
+    gridcoo(iz,3)=dble(iz-1)*Hgs(3)
+  end do
 end select
 
 end subroutine set_gridcoo

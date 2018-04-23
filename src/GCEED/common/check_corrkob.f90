@@ -13,24 +13,24 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine check_corrkob(iob,icorr_p)
-use salmon_parallel, only: nproc_id_grid, nproc_id_spin
+subroutine check_corrkob(iob,ik,icorr_p)
+use salmon_parallel, only: nproc_id_kgrid, nproc_id_spin
 use scf_data
 use new_world_sub
 implicit none
-integer :: iob,icorr_p
+integer :: iob,ik,icorr_p
 integer :: iquotient
 
 if(ilsda==0.or.nproc_ob==1)then
   if(iparaway_ob==1)then
     call calc_iquotient(iob,nproc_ob,itotMST,iquotient)
-    if(nproc_id_grid==iquotient)then
+    if(nproc_id_kgrid==iquotient.and.ik>=k_sta.and.ik<=k_end)then
       icorr_p=1
     else
       icorr_p=0
     end if
   else if(iparaway_ob==2)then
-    if(nproc_id_grid==mod(iob-1,nproc_ob))then
+    if(nproc_id_kgrid==mod(iob-1,nproc_ob).and.ik>=k_sta.and.ik<=k_end)then
       icorr_p=1
     else
       icorr_p=0
@@ -40,14 +40,14 @@ else
   if(iparaway_ob==1)then
     if(nproc_id_spin<nproc_ob_spin(1))then
       call calc_iquotient(iob,nproc_ob_spin(1),MST(1),iquotient)
-      if(iob<=MST(1).and.nproc_id_grid==iquotient)then
+      if(iob<=MST(1).and.nproc_id_kgrid==iquotient.and.ik>=k_sta.and.ik<=k_end)then
         icorr_p=1
       else
         icorr_p=0
       end if
     else
       call calc_iquotient(iob-MST(1),nproc_ob_spin(2),MST(2),iquotient)
-      if(iob>=MST(1)+1.and.nproc_id_grid==iquotient)then
+      if(iob>=MST(1)+1.and.nproc_id_kgrid==iquotient.and.ik>=k_sta.and.ik<=k_end)then
         icorr_p=1
       else
         icorr_p=0
@@ -55,13 +55,13 @@ else
     end if
   else if(iparaway_ob==2)then
     if(nproc_id_spin<nproc_ob_spin(1))then
-      if(iob<=MST(1).and.nproc_id_grid==mod(iob-1,nproc_ob_spin(1)))then
+      if(iob<=MST(1).and.nproc_id_kgrid==mod(iob-1,nproc_ob_spin(1)).and.ik>=k_sta.and.ik<=k_end)then
         icorr_p=1
       else
         icorr_p=0
       end if
     else
-      if(iob>=MST(1)+1.and.nproc_id_grid==mod(iob-1-MST(1),nproc_ob_spin(2)))then
+      if(iob>=MST(1)+1.and.nproc_id_kgrid==mod(iob-1-MST(1),nproc_ob_spin(2)).and.ik>=k_sta.and.ik<=k_end)then
         icorr_p=1
       else
         icorr_p=0

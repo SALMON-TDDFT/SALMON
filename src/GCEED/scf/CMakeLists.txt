@@ -8,7 +8,10 @@ set(SOURCES
     copy_density.f90
     deallocate_sendrecv.f90
     eigen_subdiag_${FILE_MATHLIB}.f90
+    eigen_subdiag_periodic_${FILE_MATHLIB}.f90
+    inner_product5.f90
     gram_schmidt.f90
+    gram_schmidt_periodic.f90
     prep_ini.f90
     real_space_dft.f90
     rmmdiis_eigen.f90
@@ -18,8 +21,12 @@ set(SOURCES
     structure_opt.f90
     subdgemm_lapack.f90
     subspace_diag.f90
+    subspace_diag_periodic.f90
+    total_energy_periodic_scf.f90
+    total_energy_periodic_scf_esp.f90
     write_eigen.f90
     ybcg.f90
+    ybcg_periodic.f90
     )
 
 add_library(${GCEED_SCF_LIB} ${SOURCES})

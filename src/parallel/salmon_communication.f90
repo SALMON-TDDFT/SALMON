@@ -148,6 +148,10 @@ module salmon_communication
     ! 4-D array
     module procedure comm_summation_array4d_double
     module procedure comm_summation_array4d_dcomplex
+
+    ! 5-D array
+    module procedure comm_summation_array5d_double
+    module procedure comm_summation_array5d_dcomplex
   end interface
 
   interface comm_bcast
@@ -733,6 +737,36 @@ contains
     implicit none
     complex(8), intent(in)  :: invalue(:,:,:,:)
     complex(8), intent(out) :: outvalue(:,:,:,:)
+    integer, intent(in)     :: N, ngroup
+    integer, optional, intent(in) :: dest
+    integer :: ierr
+    if (present(dest)) then
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, dest, ngroup, ierr))
+    else
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_DOUBLE_COMPLEX, MPI_SUM, ngroup, ierr))
+    end if
+  end subroutine
+
+  subroutine comm_summation_array5d_double(invalue, outvalue, N, ngroup, dest)
+    use mpi, only: MPI_DOUBLE_PRECISION, MPI_SUM
+    implicit none
+    real(8), intent(in)  :: invalue(:,:,:,:,:)
+    real(8), intent(out) :: outvalue(:,:,:,:,:)
+    integer, intent(in)  :: N, ngroup
+    integer, optional, intent(in) :: dest
+    integer :: ierr
+    if (present(dest)) then
+      MPI_ERROR_CHECK(call MPI_Reduce(invalue, outvalue, N, MPI_DOUBLE_PRECISION, MPI_SUM, dest, ngroup, ierr))
+    else
+      MPI_ERROR_CHECK(call MPI_Allreduce(invalue, outvalue, N, MPI_DOUBLE_PRECISION, MPI_SUM, ngroup, ierr))
+    end if
+  end subroutine
+
+  subroutine comm_summation_array5d_dcomplex(invalue, outvalue, N, ngroup, dest)
+    use mpi, only: MPI_DOUBLE_COMPLEX, MPI_SUM
+    implicit none
+    complex(8), intent(in)  :: invalue(:,:,:,:,:)
+    complex(8), intent(out) :: outvalue(:,:,:,:,:)
     integer, intent(in)     :: N, ngroup
     integer, optional, intent(in) :: dest
     integer :: ierr

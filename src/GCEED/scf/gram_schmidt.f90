@@ -16,7 +16,7 @@
 !=======================================================================
 !======================================== Gram-Schmidt orthogonalization
 SUBROUTINE Gram_Schmidt_ns
-use salmon_parallel, only: nproc_group_grid, nproc_group_global
+use salmon_parallel, only: nproc_group_kgrid, nproc_group_global
 use salmon_communication, only: comm_summation, comm_bcast
 use scf_data
 use new_world_sub
@@ -47,7 +47,7 @@ end if
 do is=is_sta,is_end
 do iob=pstart(is),pend(is)
   call calc_myob(iob,iob_myob)
-  call check_corrkob(iob,icorr_p)
+  call check_corrkob(iob,1,icorr_p)
   if(icorr_p==1)then
 !$OMP parallel do private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)
@@ -59,7 +59,7 @@ do iob=pstart(is),pend(is)
     end do
   end if
   call calc_iroot(iob,iroot)
-  call comm_bcast(matbox_m,nproc_group_grid,iroot)
+  call comm_bcast(matbox_m,nproc_group_kgrid,iroot)
 
   ovrp=0.d0
   do job=1,iobnum
@@ -95,10 +95,10 @@ do iob=pstart(is),pend(is)
     end if
   end do
 
-  call comm_summation(matbox_m,matbox_m2,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
+  call comm_summation(matbox_m,matbox_m2,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_kgrid)
 
   rbox=0.d0
-  call check_corrkob(iob,icorr_p)
+  call check_corrkob(iob,1,icorr_p)
   if(icorr_p==1)then
 !$OMP parallel do reduction ( + : rbox ) private(iz,iy,ix)
     do iz=mg_sta(3),mg_end(3)

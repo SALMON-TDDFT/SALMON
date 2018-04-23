@@ -29,19 +29,19 @@ CONTAINS
 !=======================================================================
 
 SUBROUTINE R_Total_Energy(psi_in)
-use salmon_parallel, only: nproc_group_global, nproc_group_orbital, nproc_group_h
+use salmon_parallel, only: nproc_group_global, nproc_group_korbital, nproc_group_h
 use salmon_communication, only: comm_summation
 use misc_routines, only: get_wtime
 implicit none
 
 real(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),  &
-                1:iobnum,1)
+                1:iobnum,k_sta:k_end)
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd)
 real(8) :: htpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
-integer :: iob,ia,ib
+real(8) :: esp3(itotMST,num_kpoints_rd)
+integer :: iob,ia,ib,iik
 integer :: ix,iy,iz
 real(8) :: rab
-real(8) :: esp2(itotMST,1)
 real(8) :: sum1,sum2
 real(8) :: rbox
 integer :: iob_allob
@@ -62,6 +62,7 @@ end do
 end do
 end do
 
+do iik=k_sta,k_end
 do iob=1,iobnum
   call calc_allob(iob,iob_allob)
 
@@ -69,32 +70,35 @@ do iob=1,iobnum
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
-    tpsi(ix,iy,iz)=psi_in(ix,iy,iz,iob,1)
+    tpsi(ix,iy,iz)=psi_in(ix,iy,iz,iob,iik)
   end do
   end do
   end do
 
-  call hpsi2(tpsi,htpsi,iob_allob,0,0)
+  call hpsi2(tpsi,htpsi,iob_allob,iik,0,0)
 
   rbox=0.d0
 !$OMP parallel do reduction ( + : rbox ) private(iz,iy,ix) 
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
-    rbox=rbox+psi_in(ix,iy,iz,iob,1)*htpsi(ix,iy,iz)
+    rbox=rbox+psi_in(ix,iy,iz,iob,iik)*htpsi(ix,iy,iz)
   end do
   end do
   end do
 
-  esp(iob_allob,1)=dble(rbox)*Hvol
+  esp(iob_allob,iik)=dble(rbox)*Hvol
 
 end do
+end do
 
-call comm_summation(esp,esp2,itotMST,nproc_group_global)
-esp=esp2
+call comm_summation(esp,esp3,itotMST*num_kpoints_rd,nproc_group_global)
+esp=esp3
 
 Etot=0.d0
-Etot = Etot + sum( rocc(:itotMST,1)*esp(:itotMST,1) )*wtk(1)
+do iik=1,num_kpoints_rd
+  Etot = Etot + sum( rocc(:itotMST,iik)*esp(:itotMST,iik) )*wtk(iik)
+end do
 
 do ia=1,MI
 do ib=1,ia-1
@@ -127,7 +131,7 @@ else if(ilsda == 1)then
   end do
   end do
   end do
-  call comm_summation(sum1,sum2,nproc_group_orbital)
+  call comm_summation(sum1,sum2,nproc_group_korbital)
   Etot=Etot+sum2*Hvol+Exc
 end if
 
@@ -138,19 +142,19 @@ END SUBROUTINE R_Total_Energy
 !=======================================================================
 
 SUBROUTINE C_Total_Energy(psi_in)
-use salmon_parallel, only: nproc_group_global, nproc_group_orbital, nproc_group_h
+use salmon_parallel, only: nproc_group_global, nproc_group_korbital, nproc_group_h
 use salmon_communication, only: comm_summation
 use misc_routines, only: get_wtime
 implicit none
 
 complex(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),  &
-                1:iobnum,1)
+                1:iobnum,k_sta:k_end)
 complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_sta(3)-Nd:mg_end(3)+Nd)
 complex(8) :: htpsi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
-integer :: iob,ia,ib
+real(8) :: esp3(itotMST,num_kpoints_rd)
+integer :: iob,ia,ib,iik
 integer :: ix,iy,iz
 real(8) :: rab
-real(8) :: esp2(itotMST,1)
 real(8) :: sum1,sum2
 complex(8) :: cbox
 integer :: iob_allob
@@ -162,7 +166,7 @@ call make_iwksta_iwkend
 
 ihpsieff=0
 
-esp2=0.d0
+esp3=0.d0
 
 !$OMP parallel do private(iz,iy,ix) 
 do iz=mg_sta(3)-Nd,mg_end(3)+Nd
@@ -175,6 +179,7 @@ end do
 
 elp3(862)=get_wtime()
 elp3(882)=elp3(882)+elp3(862)-elp3(861)
+do iik=k_sta,k_end
 do iob=1,iobnum
   call calc_allob(iob,iob_allob)
   elp3(863)=get_wtime()
@@ -183,12 +188,12 @@ do iob=1,iobnum
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
-    tpsi(ix,iy,iz)=psi_in(ix,iy,iz,iob,1)
+    tpsi(ix,iy,iz)=psi_in(ix,iy,iz,iob,iik)
   end do
   end do
   end do
 
-  call hpsi2(tpsi,htpsi,iob_allob,0,0)
+  call hpsi2(tpsi,htpsi,iob_allob,iik,0,0)
 
   elp3(864)=get_wtime()
   elp3(884)=elp3(884)+elp3(864)-elp3(863)
@@ -198,25 +203,28 @@ do iob=1,iobnum
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
-    cbox=cbox+conjg(psi_in(ix,iy,iz,iob,1))*htpsi(ix,iy,iz)
+    cbox=cbox+conjg(psi_in(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz)
   end do
   end do
   end do
   
-  esp2(iob_allob,1)=dble(cbox)*Hvol
+  esp3(iob_allob,iik)=dble(cbox)*Hvol
 
   elp3(865)=get_wtime()
   elp3(885)=elp3(885)+elp3(865)-elp3(864)
 end do
+end do
 elp3(866)=get_wtime()
 
-call comm_summation(esp2,esp,itotMST,nproc_group_global)
+call comm_summation(esp3,esp,itotMST*num_kpoints_rd,nproc_group_global)
 
 elp3(867)=get_wtime()
 elp3(887)=elp3(887)+elp3(867)-elp3(866)
 
 Etot=0.d0
-Etot = Etot + sum( rocc(:itotMST,1)*esp(:itotMST,1) )*wtk(1)
+do iik=1,num_kpoints_rd
+  Etot = Etot + sum( rocc(:itotMST,iik)*esp(:itotMST,iik) )*wtk(iik)
+end do
 
 elp3(868)=get_wtime()
 elp3(888)=elp3(888)+elp3(868)-elp3(867)
@@ -255,7 +263,7 @@ else if(ilsda == 1)then
   end do
   end do
   end do
-  call comm_summation(sum1,sum2,nproc_group_orbital)
+  call comm_summation(sum1,sum2,nproc_group_korbital)
   Etot=Etot+sum2*Hvol+Exc
 end if
 

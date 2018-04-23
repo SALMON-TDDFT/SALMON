@@ -15,7 +15,7 @@
 !
 subroutine subspace_diag
 
-use salmon_parallel, only: nproc_group_grid, nproc_group_global, nproc_group_orbital
+use salmon_parallel, only: nproc_group_kgrid, nproc_group_global, nproc_group_korbital
 use salmon_communication, only: comm_summation, comm_bcast
 use misc_routines, only: get_wtime
 use scf_data
@@ -85,7 +85,7 @@ do is=is_sta,is_end
 
   do job=iobsta(is),iobend(is)
     call calc_myob(job,job_myob)
-    call check_corrkob(job,icorr_j)
+    call check_corrkob(job,1,icorr_j)
     if(icorr_j==1)then
 !$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
@@ -95,10 +95,10 @@ do is=is_sta,is_end
       end do
       end do
       end do
-      call hpsi2(tpsi,htpsi,job,0,0)
+      call hpsi2(tpsi,htpsi,job,1,0,0)
     end if
     call calc_iroot(job,iroot)
-    call comm_bcast(htpsi,nproc_group_grid,iroot)
+    call comm_bcast(htpsi,nproc_group_kgrid,iroot)
     
     do iob=1,iobnum
       call calc_allob(iob,iob_allob)
@@ -138,7 +138,7 @@ do is=is_sta,is_end
    
   do job=iobsta(is),iobend(is)
     call calc_myob(job,job_myob)
-    call check_corrkob(job,icorr_j)
+    call check_corrkob(job,1,icorr_j)
     if(icorr_j==1)then
 !$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
@@ -150,7 +150,7 @@ do is=is_sta,is_end
       end do
     end if
     call calc_iroot(job,iroot)
-    call comm_bcast(matbox_m,nproc_group_grid,iroot)
+    call comm_bcast(matbox_m,nproc_group_kgrid,iroot)
     do iob=1,iobnum
       call calc_allob(iob,iob_allob)
       if(iob_allob>=iobsta(is).and.iob_allob<=iobend(is))then
@@ -178,7 +178,7 @@ do is=is_sta,is_end
       end do
       end do
       end do
-      call comm_summation(rbox,rbox1,nproc_group_orbital)
+      call comm_summation(rbox,rbox1,nproc_group_korbital)
 !$OMP parallel do private(iz,iy,ix)
       do iz=mg_sta(3),mg_end(3)
       do iy=mg_sta(2),mg_end(2)

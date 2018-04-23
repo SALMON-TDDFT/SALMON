@@ -29,7 +29,7 @@ CONTAINS
 
 !=======================================================================
 subroutine R_inner_product(matbox1,matbox2,rbox2)
-use salmon_parallel, only: nproc_group_orbital, nproc_group_h
+use salmon_parallel, only: nproc_group_korbital, nproc_group_h
 use salmon_communication, only: comm_summation
 implicit none
 integer :: ix,iy,iz
@@ -48,7 +48,7 @@ end do
 end do
 
 if(iwk_size>=1.and.iwk_size<=2)then
-  call comm_summation(rbox,rbox2,nproc_group_orbital)
+  call comm_summation(rbox,rbox2,nproc_group_korbital)
 else if(iwk_size>=11.and.iwk_size<=12)then
   call comm_summation(rbox,rbox2,nproc_group_h)
 else
@@ -60,7 +60,7 @@ end subroutine R_inner_product
 
 !=======================================================================
 subroutine C_inner_product(matbox1,matbox2,cbox2)
-use salmon_parallel, only: nproc_group_orbital, nproc_group_h
+use salmon_parallel, only: nproc_group_korbital, nproc_group_h
 use salmon_communication, only: comm_summation
 implicit none
 integer :: ix,iy,iz
@@ -79,7 +79,7 @@ end do
 end do
 
 if(iwk_size>=1.and.iwk_size<=2)then
-  call comm_summation(cbox,cbox2,nproc_group_orbital)
+  call comm_summation(cbox,cbox2,nproc_group_korbital)
 else if(iwk_size>=11.and.iwk_size<=12)then
   call comm_summation(cbox,cbox2,nproc_group_h)
 else

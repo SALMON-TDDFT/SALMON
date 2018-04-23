@@ -129,9 +129,10 @@ subroutine set_numcpu_rt
     end if
   end do
 
+  nproc_k=1
   nproc_ob=nproc_ob_tmp
   nproc_mxin(1:3)=nproc_mxin_tmp(1:3)
   nproc_mxin_s(1:3)=nproc_mxin_s_tmp(1:3)
   nproc_mxin_s_dm(1:3)=nproc_mxin_s(1:3)/nproc_mxin(1:3)
-  
+
 end subroutine set_numcpu_rt

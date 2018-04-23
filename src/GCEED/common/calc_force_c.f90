@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine calc_force_c(tzpsi)
-use salmon_parallel, only: nproc_group_orbital, nproc_group_global
+use salmon_parallel, only: nproc_group_korbital, nproc_group_global
 use salmon_communication, only: comm_summation
 use scf_data
 use allocate_mat_sub
@@ -22,8 +22,8 @@ use read_pslfile_sub
 use new_world_sub
 implicit none
 complex(8) :: tzpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
-                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
-integer :: ix,iy,iz,iob,ikoa,jj,j2,iatom,ia,ib,lm,ikoa2
+                    mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
+integer :: ix,iy,iz,iob,ikoa,jj,j2,iatom,ia,ib,lm,ikoa2,iik
 real(8) :: rbox1,rbox2
 complex(8) :: cbox1
 complex(8),allocatable :: uVpsibox(:,:,:,:),uVpsibox2(:,:,:,:)
@@ -64,14 +64,16 @@ call calc_gradient_fast_c(tzpsi,cgrad_wk)
 do iatom=1,MI
 do j2=1,3
   rbox1=0.d0
+  do iik=k_sta,k_end
   do iob=1,iobnum
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      rbox1=rbox1-2.d0*rocc(iob,1)*dble(conjg(cgrad_wk(ix,iy,iz,iob,1,j2))*Vpsl_atom(ix,iy,iz,iatom)*tzpsi(ix,iy,iz,iob,1))
+      rbox1=rbox1-2.d0*rocc(iob,iik)*dble(conjg(cgrad_wk(ix,iy,iz,iob,iik,j2))*Vpsl_atom(ix,iy,iz,iatom)*tzpsi(ix,iy,iz,iob,iik))
     end do
     end do
     end do
+  end do
   end do
   call comm_summation(rbox1,rbox2,nproc_group_global)
   rforce(j2,iatom)=rforce(j2,iatom)+rbox2*Hvol
@@ -81,19 +83,22 @@ end do
 
 ! nonlocal part of force
 
-allocate (uVpsibox(1:iobnum,1,1:maxlm,1:MI))
-allocate (uVpsibox2(1:iobnum,1,1:maxlm,1:MI))
+allocate (uVpsibox(1:iobnum,k_sta:k_end,1:maxlm,1:MI))
+allocate (uVpsibox2(1:iobnum,k_sta:k_end,1:maxlm,1:MI))
 
 do iatom=1,MI
   do lm=1,maxlm
+    do iik=k_sta,k_end
     do iob=1,iobnum
-      uVpsibox(iob,1,lm,iatom)=0.d0
+      uVpsibox(iob,iik,lm,iatom)=0.d0
+    end do
     end do
   end do
 end do
 
 do iatom=1,MI
   ikoa=Kion(iatom)
+  do iik=k_sta,k_end
   do iob=1,iobnum
     loop_lm2 : do lm=1,(Mlps(ikoa)+1)**2
       if ( abs(uVu(lm,iatom))<1.d-5 ) cycle loop_lm2
@@ -101,28 +106,31 @@ do iatom=1,MI
 !$OMP parallel do reduction( + : cbox1 )
       do jj=1,Mps(iatom)
         cbox1=cbox1+uV_all(jj,lm,iatom)*  &
-                      tzpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,1)
+                      tzpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,iik)
       end do
-      uVpsibox(iob,1,lm,iatom)=cbox1*Hvol/uVu(lm,iatom)
+      uVpsibox(iob,iik,lm,iatom)=cbox1*Hvol/uVu(lm,iatom)
     end do loop_lm2
+  end do
   end do
 end do
 
-call comm_summation(uVpsibox,uVpsibox2,iobnum*maxlm*MI,nproc_group_orbital)
+call comm_summation(uVpsibox,uVpsibox2,iobnum*k_num*maxlm*MI,nproc_group_korbital)
 
 do iatom=1,MI
   ikoa=Kion(iatom)
   do j2=1,3
     rbox1=0.d0
+    do iik=k_sta,k_end
     do iob=1,iobnum
       do jj=1,Mps(iatom)
         do lm=1,(Mlps(ikoa)+1)**2
-          rbox1=rbox1-2.d0*rocc(iob,1)*dble(uV(jj,lm,iatom)*   &
+          rbox1=rbox1-2.d0*rocc(iob,iik)*dble(uV(jj,lm,iatom)*   &
                   conjg(cgrad_wk(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),  &
-                                 Jxyz(3,jj,iatom),iob,1,j2))* &
-                  uVpsibox2(iob,1,lm,iatom))
+                                 Jxyz(3,jj,iatom),iob,iik,j2))* &
+                  uVpsibox2(iob,iik,lm,iatom))
         end do
       end do
+    end do
     end do
     call comm_summation(rbox1,rbox2,nproc_group_global)
     rforce(j2,iatom)=rforce(j2,iatom)+rbox2*Hvol

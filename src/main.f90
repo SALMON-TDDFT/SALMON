@@ -18,7 +18,14 @@ program main
   case(0)
     call gceed
   case(3)
-    call arted
+    select case(domain_parallel)
+    case('y')
+      call gceed
+    case('n')
+      call arted
+    case default
+      stop 'invalid domain_parallel'
+    end select
   case default
     stop 'invalid iperiodic'
   end select

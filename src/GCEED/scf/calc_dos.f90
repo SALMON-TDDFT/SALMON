@@ -23,7 +23,7 @@ use allocate_psl_sub
 use new_world_sub
 implicit none
 !integer :: iob,iobmax,iob_allob
-integer :: iob,iobmax,iob_allob
+integer :: iob,iobmax,iob_allob,iik
 real(8) :: dos_l_tmp(1:iout_dos_nenergy)
 real(8) :: dos_l(1:iout_dos_nenergy)
 real(8) :: fk,ww,dw
@@ -31,8 +31,8 @@ integer :: iw
 real(8) :: ene_homo,ene_lumo,ene_min,ene_max,efermi,eshift
 
 call calc_pmax(iobmax)
-ene_min = minval(esp(:,1))
-ene_max = maxval(esp(:,1))
+ene_min = minval(esp(:,:))
+ene_max = maxval(esp(:,:))
 ene_homo = esp(nelec/2,1)
 ene_lumo = esp(nelec/2+1,1)
 if(out_dos_fshift=='y'.and.nstate>nelec/2) then 
@@ -47,22 +47,24 @@ dw=(out_dos_end-out_dos_start)/dble(iout_dos_nenergy-1)
 
 dos_l_tmp=0.d0
  
+do iik=k_sta,k_end
 do iob=1,iobmax
   call calc_allob(iob,iob_allob)
   select case (out_dos_method)
   case('lorentzian') 
     fk=2.d0*out_dos_smearing/pi
     do iw=1,iout_dos_nenergy 
-      ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,1)  
+      ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,iik)  
       dos_l_tmp(iw)=dos_l_tmp(iw)+fk/(ww**2+out_dos_smearing**2) 
     end do 
   case('gaussian')
     fk=2.d0/(sqrt(2.d0*pi)*out_dos_smearing)
     do iw=1,iout_dos_nenergy 
-      ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,1)  
+      ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,iik)  
       dos_l_tmp(iw)=dos_l_tmp(iw)+fk*exp(-(0.5d0/out_dos_smearing**2)*ww**2) 
     end do
   end select
+end do
 end do
 call comm_summation(dos_l_tmp,dos_l,iout_dos_nenergy,nproc_group_grid) 
 

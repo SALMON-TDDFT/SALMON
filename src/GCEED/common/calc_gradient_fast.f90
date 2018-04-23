@@ -18,47 +18,49 @@ use scf_data
 use sendrecv_groupob_sub
 implicit none
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
-                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,1)
+                mg_sta(3)-Nd:mg_end(3)+Nd,1:iobnum,k_sta:k_end)
 real(8) :: grad_wk(mg_sta(1):mg_end(1)+1,mg_sta(2):mg_end(2),mg_sta(3):mg_end(3), &
-                   1:iobnum,1,3)
-integer :: ix,iy,iz,iob
+                   1:iobnum,k_sta:k_end,3)
+integer :: ix,iy,iz,iob,iik
 
 call sendrecv_copy(tpsi)
 call sendrecv_groupob(tpsi)
 
 if(Nd==4)then
+  do iik=k_sta,k_end
   do iob=1,iobnum
 !$OMP parallel private(iz)
     do iz=mg_sta(3),mg_end(3)
 !$OMP do private(iy, ix) 
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      grad_wk(ix,iy,iz,iob,1,1) =  &
-        +bN1/Hgs(1)*( tpsi(ix+1,iy,iz,iob,1) - tpsi(ix-1,iy,iz,iob,1) )    &
-        +bN2/Hgs(1)*( tpsi(ix+2,iy,iz,iob,1) - tpsi(ix-2,iy,iz,iob,1) )    &
-        +bN3/Hgs(1)*( tpsi(ix+3,iy,iz,iob,1) - tpsi(ix-3,iy,iz,iob,1) )    &
-        +bN4/Hgs(1)*( tpsi(ix+4,iy,iz,iob,1) - tpsi(ix-4,iy,iz,iob,1) )
-      grad_wk(ix,iy,iz,iob,1,2) =  &
-        +bN1/Hgs(2)*( tpsi(ix,iy+1,iz,iob,1) - tpsi(ix,iy-1,iz,iob,1) )    &
-        +bN2/Hgs(2)*( tpsi(ix,iy+2,iz,iob,1) - tpsi(ix,iy-2,iz,iob,1) )    &
-        +bN3/Hgs(2)*( tpsi(ix,iy+3,iz,iob,1) - tpsi(ix,iy-3,iz,iob,1) )    &
-        +bN4/Hgs(2)*( tpsi(ix,iy+4,iz,iob,1) - tpsi(ix,iy-4,iz,iob,1) )
+      grad_wk(ix,iy,iz,iob,iik,1) =  &
+        +bN1/Hgs(1)*( tpsi(ix+1,iy,iz,iob,iik) - tpsi(ix-1,iy,iz,iob,iik) )    &
+        +bN2/Hgs(1)*( tpsi(ix+2,iy,iz,iob,iik) - tpsi(ix-2,iy,iz,iob,iik) )    &
+        +bN3/Hgs(1)*( tpsi(ix+3,iy,iz,iob,iik) - tpsi(ix-3,iy,iz,iob,iik) )    &
+        +bN4/Hgs(1)*( tpsi(ix+4,iy,iz,iob,iik) - tpsi(ix-4,iy,iz,iob,iik) )
+      grad_wk(ix,iy,iz,iob,iik,2) =  &
+        +bN1/Hgs(2)*( tpsi(ix,iy+1,iz,iob,iik) - tpsi(ix,iy-1,iz,iob,iik) )    &
+        +bN2/Hgs(2)*( tpsi(ix,iy+2,iz,iob,iik) - tpsi(ix,iy-2,iz,iob,iik) )    &
+        +bN3/Hgs(2)*( tpsi(ix,iy+3,iz,iob,iik) - tpsi(ix,iy-3,iz,iob,iik) )    &
+        +bN4/Hgs(2)*( tpsi(ix,iy+4,iz,iob,iik) - tpsi(ix,iy-4,iz,iob,iik) )
     end do
     end do
 !$OMP end do nowait
 !$OMP do private(iy, ix) 
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      grad_wk(ix,iy,iz,iob,1,3) =  &
-        +bN1/Hgs(3)*( tpsi(ix,iy,iz+1,iob,1) - tpsi(ix,iy,iz-1,iob,1) )    &
-        +bN2/Hgs(3)*( tpsi(ix,iy,iz+2,iob,1) - tpsi(ix,iy,iz-2,iob,1) )    &
-        +bN3/Hgs(3)*( tpsi(ix,iy,iz+3,iob,1) - tpsi(ix,iy,iz-3,iob,1) )    &
-        +bN4/Hgs(3)*( tpsi(ix,iy,iz+4,iob,1) - tpsi(ix,iy,iz-4,iob,1) )
+      grad_wk(ix,iy,iz,iob,iik,3) =  &
+        +bN1/Hgs(3)*( tpsi(ix,iy,iz+1,iob,iik) - tpsi(ix,iy,iz-1,iob,iik) )    &
+        +bN2/Hgs(3)*( tpsi(ix,iy,iz+2,iob,iik) - tpsi(ix,iy,iz-2,iob,iik) )    &
+        +bN3/Hgs(3)*( tpsi(ix,iy,iz+3,iob,iik) - tpsi(ix,iy,iz-3,iob,iik) )    &
+        +bN4/Hgs(3)*( tpsi(ix,iy,iz+4,iob,iik) - tpsi(ix,iy,iz-4,iob,iik) )
     end do
     end do
 !$OMP end do nowait
     end do
 !$OMP end parallel
+  end do
   end do
 end if
 

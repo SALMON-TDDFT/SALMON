@@ -29,9 +29,16 @@ end if
 call storevpp
 
 Mps_all=0
-call calcJxyz_all
-call calcuV
-call calcVpsl
+select case(iperiodic)
+case(0)
+  call calcJxyz_all
+  call calcuV
+  call calcVpsl
+case(3)
+  call calcVpsl_periodic
+  call calcJxyz_all_periodic
+  call calcuV
+end select
 call calcJxyz
 
 return

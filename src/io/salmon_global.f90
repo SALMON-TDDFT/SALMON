@@ -66,6 +66,7 @@ module salmon_global
                  
 !! &parallel
   character(1)   :: domain_parallel
+  integer        :: nproc_k
   integer        :: nproc_ob
   integer        :: nproc_domain(3)
   integer        :: nproc_domain_s(3)
@@ -303,6 +304,7 @@ module salmon_global
   integer        :: iwdenoption
   integer        :: iwdenstep
   integer        :: iflag_estatic
+  integer        :: iflag_hartree
 
 !! &atomic_coor
 !! &atomic_red_coor

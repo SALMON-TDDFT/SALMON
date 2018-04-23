@@ -31,12 +31,12 @@ else
   pend(2)=itotMST
 end if
 
-rocc(1:itotMST,1)=0.d0
+rocc(1:itotMST,:num_kpoints_rd)=0.d0
 if(ilsda==0)then
-  rocc(1:ifMST(1),1)=2.d0
+  rocc(1:ifMST(1),:num_kpoints_rd)=2.d0
 else
-  rocc(1:ifMST(1),1)=1.d0
-  rocc(MST(1)+1:MST(1)+ifMST(2),1)=1.d0
+  rocc(1:ifMST(1),:num_kpoints_rd)=1.d0
+  rocc(MST(1)+1:MST(1)+ifMST(2),:num_kpoints_rd)=1.d0
 end if
 
 end subroutine calc_occupation

@@ -29,7 +29,7 @@ use inner_product_sub
 implicit none
 
 real(8) :: psi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),   &
-                  1:iobnum,1)
+                  1:iobnum,k_sta:k_end)
 integer :: iob,iter,ix,iy,iz
 integer,allocatable :: iflagdiis(:)
 integer,allocatable :: iobcheck(:,:)
@@ -51,7 +51,7 @@ allocate (phi(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),0:Ncg)
 allocate (R1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),0:Ncg))
 allocate (phibar(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),0:Ncg))
 allocate (Rbar(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),0:Ncg))
-allocate (psi_stock(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,1))
+allocate (psi_stock(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum,k_sta:k_end))
 
 allocate (iobcheck(1:itotMST,0:Ncg))
 iobcheck=0
@@ -104,7 +104,7 @@ do iob=1,iobnum
   end do
   end do
 
-    call hpsi2(tpsi,htphi(:,:,:),iob,0,0)
+    call hpsi2(tpsi,htphi(:,:,:),iob,1,0,0)
     call inner_product3(phi(mg_sta(1),mg_sta(2),mg_sta(3),0),htphi(mg_sta(1),mg_sta(2),mg_sta(3)),rbox1)
 
 !$OMP parallel do
@@ -153,7 +153,7 @@ do iob=1,iobnum
     end do
     end do
 
-    call hpsi2(tpsi,htphi(:,:,:),iob,0,0)
+    call hpsi2(tpsi,htphi(:,:,:),iob,1,0,0)
     call inner_product3(phi(mg_sta(1),mg_sta(2),mg_sta(3),iter),htphi(mg_sta(1),mg_sta(2),mg_sta(3)),rbox1)
 !$OMP parallel do
     do iz=mg_sta(3),mg_end(3)
@@ -207,7 +207,7 @@ do iob=1,iobnum
     end do
     end do
 
-    call hpsi2(tpsi,htphi(:,:,:),iob,0,0)
+    call hpsi2(tpsi,htphi(:,:,:),iob,1,0,0)
     call inner_product3(phi(mg_sta(1),mg_sta(2),mg_sta(3),iter),htphi(mg_sta(1),mg_sta(2),mg_sta(3)),rbox1)
     
     end if
@@ -227,7 +227,7 @@ do iob=1,iobnum
   end do
   end do
 
-  call hpsi2(tpsi,htphi(:,:,:),iob,0,0)
+  call hpsi2(tpsi,htphi(:,:,:),iob,1,0,0)
   call inner_product3(psi_in(mg_sta(1),mg_sta(2),mg_sta(3),iob,1),htphi(mg_sta(1),mg_sta(2),mg_sta(3)),rbox1)
   rbox1=sum(psi_in(:,:,:,iob,1)*htphi(:,:,:))*Hvol
   if(rbox1-esp(iob,1)>5.d0) iflag_diisjump=1
@@ -252,7 +252,7 @@ else if(iflag_diisjump==1)then
     end do
     end do
 
-    call hpsi2(tpsi,htphi(:,:,:),iob,0,0)
+    call hpsi2(tpsi,htphi(:,:,:),iob,1,0,0)
 
     call inner_product3(phi(mg_sta(1),mg_sta(2),mg_sta(3),0),htphi(mg_sta(1),mg_sta(2),mg_sta(3)),rbox1)
 

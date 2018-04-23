@@ -15,7 +15,7 @@
 !
 !=======================================================================
 subroutine inner_product4(matbox1,matbox2,cbox2)
-use salmon_parallel, only: nproc_group_orbital
+use salmon_parallel, only: nproc_group_korbital
 use salmon_communication, only: comm_summation
 use scf_data
 use new_world_sub
@@ -36,6 +36,6 @@ end do
 end do
 end do
 cbox=cbox*Hvol
-call comm_summation(cbox,cbox2,nproc_group_orbital)
+call comm_summation(cbox,cbox2,nproc_group_korbital)
 
 end subroutine inner_product4
