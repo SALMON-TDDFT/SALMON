@@ -57,6 +57,7 @@ end do
 
 tpsi=0.d0
 do iob=1,iobnum
+!$OMP parallel do private(ix,iy,iz)
   do iz=mg_sta(3),mg_end(3)
   do iy=mg_sta(2),mg_end(2)
   do ix=mg_sta(1),mg_end(1)
@@ -73,6 +74,7 @@ do iatom=1,MI
 do j2=1,3
   rbox1=0.d0
   do iob=1,iobnum
+!$OMP parallel do private(ix,iy,iz) reduction( + : rbox1 )
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
@@ -136,13 +138,6 @@ do iatom=1,MI
     rforce3(j2,iatom)=rbox2*Hvol
   end do
 end do
-
-if(comm_is_root(nproc_id_global))then
-  write(*,*) "===== force ====="
-  do iatom=1,MI
-    write(*,'(i6,3e16.8)') iatom,(rforce(j2,iatom)*2.d0*Ry/a_B,j2=1,3)
-  end do
-end if
 
 deallocate(uVpsibox,uVpsibox2)
 
