@@ -141,6 +141,7 @@ integer :: ilsda
 integer :: iflag_stopt
 integer :: iter_stopt
 integer :: istopt
+integer :: istopt_tranc
 
 integer :: MST(2),ifMST(2),itotMST
 integer :: itotfMST

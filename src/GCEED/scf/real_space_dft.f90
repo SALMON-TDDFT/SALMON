@@ -31,6 +31,7 @@ use change_order_sub
 use read_pslfile_sub
 use allocate_psl_sub
 use persistent_comm
+use structure_opt_sub
 implicit none
 
 END MODULE global_variables_scf
@@ -89,6 +90,11 @@ else if(ilsda==1)then
       call calc_iobnum(MST(2),nproc_ob_spin(2),nproc_id_kgrid,iobnum,nproc_ob_spin(2),iparaway_ob)
     end if
   end if
+end if
+
+if(iflag_stopt==1)then
+  call structure_opt_ini(MI)
+  istopt_tranc=0
 end if
 
 Structure_Optimization_Iteration : do istopt=1,iter_stopt
@@ -724,20 +730,47 @@ elp3(104)=get_wtime()
 
 deallocate(idiis_sd)
 
-if(icalcforce==1) call calc_force
-
-if(iflag_stopt==1) then
-  call structure_opt
+if(icalcforce==1) then
+  if(iperiodic==0) then
+    call calc_force
+  elseif(iperiodic==3) then
+    if(comm_is_root(nproc_id_global)) write(*,*) &
+      "This version is not supporting force-calculation with spatial-grid parallelization."
+    stop
+  end if
   if(comm_is_root(nproc_id_global))then
-    write(*,*) "atomic coordinate"
+    write(*,*) "===== force ====="
     do iatom=1,MI
-      write(*,'(a3,3f16.8,2i3)') AtomName(iatom), (Rion(jj,iatom)*a_B,jj=1,3),Kion(iatom),istopt_a(iatom)
+      select case(unit_system)
+      case('au','a.u.')
+        write(*,'(i6,3e16.8)') iatom,(rforce(ix,iatom),ix=1,3)
+      case('A_eV_fs')
+        write(*,'(i6,3e16.8)') iatom,(rforce(ix,iatom)*2.d0*Ry/a_B,ix=1,3)
+      end select
     end do
   end if
 end if
 
-end do Multigrid_Iteration
+if(iflag_stopt==1) then
+  call structure_opt_check(MI,istopt,istopt_tranc,rforce)
+  if(istopt_tranc/=1) call structure_opt(MI,istopt,rforce,Rion)
+  if(comm_is_root(nproc_id_global))then
+    write(*,*) "atomic coordinate"
+    do iatom=1,MI
+      write(*,'(a3,3f16.8,i3,a3)') AtomName(Kion(iatom)), (Rion(jj,iatom)*ulength_from_au,jj=1,3), &
+                                   Kion(iatom),flag_geo_opt_atom(iatom)
+    end do
+  end if
+  if(istopt_tranc==1) then
+    call structure_opt_fin
+    exit Multigrid_Iteration
+  end if
+end if
 
+end do Multigrid_Iteration
+if(istopt_tranc==1)then
+  exit Structure_Optimization_Iteration
+end if
 end do Structure_Optimization_Iteration
 
 !---------------------------------------- Output
