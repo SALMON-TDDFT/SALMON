@@ -243,6 +243,10 @@ Module Global_Variables
   real(8) :: total_energy_absorb_old, total_energy_absorb
   real(8) :: total_energy_elec_old, total_energy_elec
   real(8) :: total_energy_em_old, total_energy_em  
+
+  !! Calculate Pure FDTD Calculation without TDDFT:
+  !! NOTE: This switch will be removed after marging the common FDTD routine..
+  logical :: debug_switch_no_radiation
   
 #ifdef _OPENACC
   complex(8),allocatable,pinned :: zu_m(:,:,:,:)

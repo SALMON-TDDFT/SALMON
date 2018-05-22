@@ -220,6 +220,7 @@ subroutine tddft_maxwell_ms
     
     Macro_loop : do imacro = nmacro_s, nmacro_e
       
+      
       !===========================================================================
       !! Extract microscopic state of "imacro"-th macropoint
       call timer_begin(LOG_OTHER)
@@ -254,6 +255,16 @@ subroutine tddft_maxwell_ms
       if(Sym /= 1)then
         jav(1:2) = 0d0
       end if
+      
+      !===========================================================================
+      !! Special rule for debug mode (macroscopic system does not have a matter)
+      !! NOTE: This condition will be removed and replaced by FDTD mode
+      !!       after merging the common Maxwell calculation routine.
+      if (debug_switch_no_radiation) then
+        jav(:) = 0d0
+      end if
+      !===========================================================================
+      
       if (comm_is_root(nproc_id_tdks)) then
         jm_new_m_tmp(1:3, imacro) = jav(1:3)
       end if
