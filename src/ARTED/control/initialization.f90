@@ -619,6 +619,11 @@ contains
     use Global_Variables
     use salmon_parallel
     implicit none
+    !! Special Rule for Debug and Calculation Check
+    if (nmacro < 1) then
+      nmacro = 1
+      debug_switch_no_radiation = .true.
+    end if
     !! Assign the macropoint into the every MPI procs    
     if (nproc_size_global <= nmacro) then
       !! Parallization Case 1:
@@ -793,13 +798,15 @@ contains
         & fdtddim, TwoD_shape, & 
         & nmacro, nmacro_attr, &
         & nbg_media, nbg_media_attr, &
-        & ninit_acfield
+        & ninit_acfield, &
+        & debug_switch_no_radiation
       
       nmacro = 1
       nmacro_attr = 0
       nbg_media = 0
       nbg_media_attr = 0
       ninit_acfield = 0
+      debug_switch_no_radiation = .false.
 
       if(comm_is_root(nproc_id_global)) then
         fh = open_filehandle(trim(directory) // trim(file_macropoint))
@@ -822,6 +829,7 @@ contains
       call comm_bcast(nbg_media,nproc_group_global)
       call comm_bcast(nbg_media_attr,nproc_group_global)
       call comm_bcast(ninit_acfield,nproc_group_global)
+      call comm_bcast(debug_switch_no_radiation,nproc_group_global)
 
       allocate(macropoint(1:4, nmacro))
       allocate(macropoint_attr(1:nattr_column, nmacro_attr))
