@@ -56,13 +56,16 @@ contains
 
   subroutine print_xc_info()
     implicit none
-    integer :: major, minor, micro
+    integer :: vmajor, vminor, vmicro
     
+    print '(A)', 'Exchange Correlations:'
 #ifdef SALMON_USE_LIBXC
-    call xc_version(major, minor, micro)
-    print '(A,3(I3,"."))', 'Libxc version ', major, minor, micro
+    call xc_f90_version(vmajor, vminor, vmicro)
+    print '("  Libxc version: ",I1,".",I1,".",I1)', vmajor, vminor, vmicro
+#else
+    print '(A)', '  Libxc (not linked)'
 #endif
-    print '(A)', 'SALMON version 1.0.0 builtin functionals'
+    print '(A)', '  SALMON version: 1.0.0 built-in PZ/PZM/PBE/TBmBJ'
     return
   end subroutine print_xc_info
     
