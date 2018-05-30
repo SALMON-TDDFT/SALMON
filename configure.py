@@ -20,6 +20,7 @@
 #
 from optparse import OptionParser, OptionGroup
 import os
+import os.path
 
 SOURCE_DIR = os.path.dirname(__file__)
 
@@ -87,6 +88,12 @@ group.add_option('--nvtx',        action='store_true',                dest='nvtx
 group.add_option('--hpsi_test',   action='store_true',                dest='hpsi_test',  help='use joint hpsi subroutine (test).')
 parser.add_option_group(group)
 
+group = OptionGroup(parser, 'Additional library options')
+group.add_option('--with-libxc',           action='store', type=str, default=None, dest='libxc', help='Use LibXC, specify path to LibXC package')
+group.add_option('--with-libxc-includes',  action='store', type=str, default=None, dest='libxc_includes', help='Specify path LibXC include and modules headers')
+group.add_option('--with-libxc-libraries', action='store', type=str, default=None, dest='libxc_libraries', help='Specify path LibXC libraries and modules headers')
+parser.add_option_group(group)
+
 (options, args) = parser.parse_args()
 
 ### check options
@@ -97,6 +104,7 @@ if options.prefix is not None:
   dict['CMAKE_INSTALL_PREFIX']     = options.prefix
 dict['CMAKE_BUILD_TYPE']           = debug_or_release(options.debug)
 dict['CMAKE_VERBOSE_MAKEFILE']     = on_or_off(options.verbose)
+
 
 add_option(dict, 'USE_MPI',             options.mpi)
 add_option(dict, 'USE_SCALAPACK',       options.scalapack)
@@ -113,6 +121,16 @@ add_option(dict, 'USE_NVTX',            options.nvtx)
 add_option(dict, 'HPSI_TEST',           options.hpsi_test)
 if options.simd is not None:
   dict['SIMD_SET'] = options.simd.upper()
+ 
+# LibXC Configulation:
+if options.libxc is not None:
+    dict['LIBXC_INCLUDES'] = os.path.join(options.libxc, 'include')
+    dict['LIBXC_LIBRARIES'] = os.path.join(options.libxc, 'lib')
+if options.libxc_includes is not None:
+    dict['LIBXC_INCLUDES'] = options.libxc_includes
+if options.libxc_libraries is not None:
+    dict['LIBXC_LIBRARIES'] = options.libxc_libraries 
+add_option(dict, 'USE_LIBXC', ('LIBXC_INCLUDES' in dict) and ('LIBXC_LIBRARIES' in dict))
 
 define = ''
 for k,v in dict.items():
