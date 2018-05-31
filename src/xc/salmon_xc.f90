@@ -58,14 +58,12 @@ contains
     implicit none
     integer :: vmajor, vminor, vmicro
     
-    print '(A)', 'Exchange Correlations:'
 #ifdef SALMON_USE_LIBXC
     call xc_f90_version(vmajor, vminor, vmicro)
-    print '("  Libxc version: ",I1,".",I1,".",I1)', vmajor, vminor, vmicro
+    print '(2X,A,1X,I1,".",I1,".",I1)', "Libxc: [enabled]", vmajor, vminor, vmicro
 #else
-    print '(A)', '  Libxc (not linked)'
+    print '(2X,A)', "Libxc: [disabled]"
 #endif
-    print '(A)', '  SALMON version: 1.0.0 built-in PZ/PZM/PBE/TBmBJ'
     return
   end subroutine print_xc_info
     
