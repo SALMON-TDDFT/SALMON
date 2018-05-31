@@ -30,13 +30,13 @@ module salmon_xc
   integer, parameter :: salmon_xctype_pz   = 1
   integer, parameter :: salmon_xctype_pzm  = 2
   integer, parameter :: salmon_xctype_pbe  = 3
-  integer, parameter :: salmon_xctype_bj   = 4
+  integer, parameter :: salmon_xctype_tbmbj = 4
   integer, parameter :: salmon_xctype_tpss = 5
   integer, parameter :: salmon_xctype_vs98 = 6
 #ifdef SALMON_USE_LIBXC
-  integer, parameter :: salmon_xctype_libxc_lda = 101
-  integer, parameter :: salmon_xctype_libxc_gga = 102 ! Future Plan
-  integer, parameter :: salmon_xctype_libxc_mgga = 103 ! Future Plan
+  integer, parameter :: salmon_xctype_libxc_nonmag = 101
+  integer, parameter :: salmon_xctype_libxc_spin = 102
+  integer, parameter :: salmon_xctype_libxc_spinor = 103
 #endif
 
   type xc_functional
@@ -93,11 +93,11 @@ contains
     xc%use_gradient = .true.
 
   case ('tbmbj', 'TBmBJ', 'TBMBJ')
-    xc%xctype = salmon_xctype_bj
+    xc%xctype = salmon_xctype_tbmbj
     xc%use_gradient = .true.
     
   case ('bj_pw', 'BJ_PW')
-    xc%xctype = salmon_xctype_bj; xc%cval = 1d0
+    xc%xctype = salmon_xctype_tbmbj; xc%cval = 1d0
     xc%use_gradient = .true.
     
   case ('tpss', 'TPSS')
@@ -111,13 +111,13 @@ contains
 #ifdef SALMON_USE_LIBXC
   ! Presently only for spin-unpolarized xc only...
   case('libxc_pz')
-    xc%xctype = salmon_xctype_libxc_lda; xc%nfunc = 2
+    xc%xctype = salmon_xctype_libxc_nonmag; xc%nfunc = 2
     xc%use_gradient = .false.
     call xc_f90_func_init(xc%func(1), xc%info(1), XC_LDA_X, XC_UNPOLARIZED)
     call xc_f90_func_init(xc%func(2), xc%info(2), XC_LDA_C_PZ, XC_UNPOLARIZED)
     
   case('libxc_pzm')
-    xc%xctype = salmon_xctype_libxc_lda; xc%nfunc = 2
+    xc%xctype = salmon_xctype_libxc_nonmag; xc%nfunc = 2
     xc%use_gradient = .false.
     call xc_f90_func_init(xc%func(1), xc%info(1), XC_LDA_X, XC_UNPOLARIZED)
     call xc_f90_func_init(xc%func(2), xc%info(2), XC_LDA_C_PZ_MOD, XC_UNPOLARIZED)
@@ -215,9 +215,12 @@ contains
     case(salmon_xctype_pbe) 
       call exec_builtin_pbe()
     
+    case(salmon_xctype_tbmbj) 
+      call exec_builtin_tbmbj()
+    
 #ifdef SALMON_USE_LIBXC
-    case(salmon_xctype_libxc_lda)
-          call exec_libxc_lda()
+case(salmon_xctype_libxc_nonmag)
+      call exec_libxc_nonmag()
 #endif
 
 #ifdef SALMON_DEBUG_XC
@@ -306,13 +309,13 @@ contains
     subroutine exec_builtin_pbe()
       implicit none
       real(8) :: rho_1d(nl)
-      real(8) :: grho_s_1d(nl)
+      real(8) :: grho_s_1d(nl, 3)
       real(8) :: exc_1d(nl)
       real(8) :: eexc_1d(nl)
       real(8) :: vexc_1d(nl)
       
       rho_1d = reshape(rho, (/nl/))
-      grho_s_1d = reshape(grho(:, :, :, :), (/nl/)) * 0.5
+      grho_s_1d = reshape(grho(:, :, :, :), (/nl, 3/)) * 0.5
       
       call exc_cor_pbe(nl, rho_1d, grho_s_1d, exc_1d, eexc_1d, vexc_1d, &
       & nd, ifdx, ifdy, ifdz, nabx, naby, nabz)
@@ -338,10 +341,10 @@ contains
       implicit none
       real(8) :: rho_1d(nl)
       real(8) :: rho_s_1d(nl)
-      real(8) :: grho_s_1d(nl)
+      real(8) :: grho_s_1d(nl, 3)
       real(8) :: rlrho_s_1d(nl)
       real(8) :: tau_s_1d(nl)
-      real(8) :: j_s_1d(nl)
+      real(8) :: j_s_1d(nl, 3)
       real(8) :: eexc_1d(nl)
       real(8) :: vexc_1d(nl)
       integer :: ii
@@ -352,10 +355,10 @@ contains
         rho_s_1d = rho_s_1d + reshape(rho_nlcc, (/nl/)) * 0.5
       endif
 #endif
-      grho_s_1d = reshape(grho(:, :, :, :), (/nl/)) * 0.5
+      grho_s_1d = reshape(grho(:, :, :, :), (/nl, 3/)) * 0.5
       rlrho_s_1d = reshape(rlrho(:, :, :), (/nl/)) * 0.5
       tau_s_1d = reshape(tau(:, :, :), (/nl/)) * 0.5
-      j_s_1d = reshape(rj(:, :, :, :), (/nl/)) * 0.5
+      j_s_1d = reshape(rj(:, :, :, :), (/nl, 3/)) * 0.5
 
       call exc_cor_tbmbj(nl, rho_1d, rho_s_1d,  grho_s_1d, rlrho_s_1d, tau_s_1d, j_s_1d, xc%cval, eexc_1d, vexc_1d, Hxyz, aLxyz)
 
@@ -378,12 +381,12 @@ contains
 
 
 #ifdef SALMON_USE_LIBXC
-    subroutine exec_libxc_lda()
+    subroutine exec_libxc_nonmag()
       implicit none
-      real(8) :: rho_1d(nl), grho_1d(3, nl), sigma_1d(nl)
+      real(8) :: rho_1d(nl), grho_1d(nl, 3), sigma_1d(nl)
       real(8) :: exc_1d(nl), exc_tmp_1d(nl)
       real(8) :: vxc_1d(nl), vxc_tmp_1d(nl)
-      real(8) :: gvxc_tmp_1d(3*nl)
+      real(8) :: gvxc_tmp_1d(3 * nl)
       integer :: ii
 
       exc_1d = 0d0
@@ -395,17 +398,18 @@ contains
       end if
       
       if (xc%use_gradient) then
-        grho_1d = reshape(grho, (/3, nl/))
-        sigma_1d = (grho_1d(1, :)**2 + grho_1d(2, :)**2 + grho_1d(3, :)**2)
+        grho_1d = reshape(grho, (/nl, 3/))
+        sigma_1d = (grho_1d(:, 1)**2 + grho_1d(:, 2)**2 + grho_1d(:, 3)**2)
       end if
       
       do ii = 1, xc%nfunc
-        select case (xc_f90_info_family(xc%func(ii)))
+        select case (xc_f90_info_family(xc%info(ii)))
         case(XC_FAMILY_LDA)
           call xc_f90_lda_exc_vxc( &
             & xc%func(ii), nl, rho_1d(1), &
             & exc_tmp_1d(1), vxc_tmp_1d(1) &
             & )
+
         case(XC_FAMILY_GGA, XC_FAMILY_HYB_GGA)
           call xc_f90_gga_exc_vxc( &
             & xc%func(ii), nl, rho_1d(1), sigma_1d(1), &
@@ -429,12 +433,8 @@ contains
       endif
       
       return
-    end subroutine exec_libxc_lda
+    end subroutine exec_libxc_nonmag
     
-    
-      
-
-
 #endif
 
   end subroutine calc_xc
