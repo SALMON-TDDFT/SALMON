@@ -133,16 +133,21 @@ add_definitions_if(CURRENT_PREPROCESSING -DARTED_CURRENT_PREPROCESSING)
 add_definitions_if(REDUCE_FOR_MANYCORE   -DARTED_REDUCE_FOR_MANYCORE)
 add_definitions_if(LARGE_BLOCKING        -DARTED_LBLK)
 
-### Additional Library
+### Additional Libraries:
 ### LibXC 
 if (USE_LIBXC)
+  if (LIBXC_INSTALLDIR)
+    include_directories(${LIBXC_INSTALLDIR}/include)
+    link_directories(${LIBXC_INSTALLDIR}/lib)
+    set(EXTERNAL_LIBS ${EXTERNAL_LIBS} xcf90 xc)
+  else()
+    find_package(LIBXCF90 REQUIRED)
+    include_directories(${LIBXCF90_INCLUDES})
+    set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${LIBXCF90_LIBRARIES})
+  endif()
   add_definitions(-DSALMON_USE_LIBXC)
-  include_directories(${LIBXC_INCLUDES})
-  link_directories(${LIBXC_LIBRARIES})
-  set(EXTERNAL_LIBS ${EXTERNAL_LIBS} xcf90 xc)
 endif ()
-# M. Uemoto
-  
+
 
 if (OPT_STENCIL)
   add_definitions(-DARTED_STENCIL_OPTIMIZED)

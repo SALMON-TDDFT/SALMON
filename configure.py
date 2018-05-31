@@ -59,7 +59,11 @@ group = OptionGroup(parser, 'Library options')
 group.add_option('--enable-mpi',        action='store_true',  dest='mpi')
 group.add_option('--disable-mpi',       action='store_false', dest='mpi',       help='enable/disable MPI parallelization.')
 group.add_option('--enable-scalapack',  action='store_true',  dest='scalapack')
-group.add_option('--disable-scalapack', action='store_false', dest='scalapack', help='disable/disable computations with ScaLAPACK library.')
+group.add_option('--disable-scalapack', action='store_false', dest='scalapack', help='enable/disable computations with ScaLAPACK library.')
+group.add_option('--enable-libxc',  action='store_true', default=False, dest='libxc', help='enable Libxc library.')
+#group.add_option('--disable-libxc', action='store_false', dest='libxc', help='enable/disable Libxc library.')
+group.add_option('--with-libxc', action='store', type=str, default=None, dest='libxc_installdir', help='specify install path to LibXC package')
+
 parser.add_option_group(group)
 
 group = OptionGroup(parser, 'Optimization options')
@@ -88,11 +92,6 @@ group.add_option('--nvtx',        action='store_true',                dest='nvtx
 group.add_option('--hpsi_test',   action='store_true',                dest='hpsi_test',  help='use joint hpsi subroutine (test).')
 parser.add_option_group(group)
 
-group = OptionGroup(parser, 'Additional library options')
-group.add_option('--with-libxc',           action='store', type=str, default=None, dest='libxc', help='Use LibXC, specify path to LibXC package')
-group.add_option('--with-libxc-includes',  action='store', type=str, default=None, dest='libxc_includes', help='Specify path LibXC include and modules headers')
-group.add_option('--with-libxc-libraries', action='store', type=str, default=None, dest='libxc_libraries', help='Specify path LibXC libraries and modules headers')
-parser.add_option_group(group)
 
 (options, args) = parser.parse_args()
 
@@ -121,16 +120,10 @@ add_option(dict, 'USE_NVTX',            options.nvtx)
 add_option(dict, 'HPSI_TEST',           options.hpsi_test)
 if options.simd is not None:
   dict['SIMD_SET'] = options.simd.upper()
- 
-# LibXC Configulation:
-if options.libxc is not None:
-    dict['LIBXC_INCLUDES'] = os.path.join(options.libxc, 'include')
-    dict['LIBXC_LIBRARIES'] = os.path.join(options.libxc, 'lib')
-if options.libxc_includes is not None:
-    dict['LIBXC_INCLUDES'] = options.libxc_includes
-if options.libxc_libraries is not None:
-    dict['LIBXC_LIBRARIES'] = options.libxc_libraries 
-add_option(dict, 'USE_LIBXC', ('LIBXC_INCLUDES' in dict) and ('LIBXC_LIBRARIES' in dict))
+
+# Libxc library
+add_option(dict, 'USE_LIBXC', options.libxc or (options.libxc_installdir is not None))
+add_env(dict, 'LIBXC_INSTALLDIR', options.libxc_installdir)
 
 define = ''
 for k,v in dict.items():
