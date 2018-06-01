@@ -43,26 +43,8 @@ contains
     real(8) :: exlda,Ex(NL),Ec(NL),Vx(NL),Vc(NL)
     real(8) :: dFxdrho_tbl(NL,3),dHksrho_tbl(NL,3)
     
-
     ! call rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
-    
-    ! rho -> rho_s
-    ! |tau_s_l_omp, j_s_l_omp, thr_id,
-    ! ?ND branch and loop:
-    ! | (nabla + ikAc) zu_GS -> zs
-    ! | zs**2 * occ -> tau_s_l_omp
-    ! | zu_GS.T * 1j * zs * occ -> j_s_l_omp
-    ! tau_s_l_omp -> tau_s_l [reduction omp]
-    ! j_s_l_omp -> j_s_l [reduction omp]
-    ! tau_s_l -> tau_s [reduction mpi]
-    ! j_s_l -> j_s [reduction mpi]
-    ! tau_s += 0.5d0*tau_nlcc ???
-    ! ?Sym branch and loop:
-    ! | nabla * rho_s -> grho_s
-    ! | lap * rho_s -> ss
-    ! | ss**2 -> lrho_s
-    ! Symmetry Expansion!
-    
+        
     agrho_s(:)=sqrt(grho_s(:,1)**2+grho_s(:,2)**2+grho_s(:,3)**2)
     grho(:,1)=2*grho_s(:,1)
     grho(:,2)=2*grho_s(:,2)

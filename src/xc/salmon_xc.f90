@@ -124,11 +124,9 @@ contains
     
 #endif
 
-#ifdef SALMON_DEBUG_XC
   case default
     print *, "Undefined functional type: " // trim(xcname)
     stop
-#endif 
     
   end select
 
@@ -153,6 +151,7 @@ contains
       & grho, grho_s, rlrho, rlrho_s, tau, tau_s, rj, rj_s, &
       & rho_nlcc, &
       & nd, ifdx, ifdy, ifdz, nabx, naby, nabz, Hxyz, aLxyz)
+    use salmon_parallel, only : nproc_id_global
     implicit none
     type(xc_functional), intent(in) :: xc
     real(8), intent(in), optional :: rho(:, :, :) ! ispin = 1
@@ -216,6 +215,7 @@ contains
       call exec_builtin_pbe()
     
     case(salmon_xctype_tbmbj) 
+
       call exec_builtin_tbmbj()
     
 #ifdef SALMON_USE_LIBXC
@@ -348,13 +348,15 @@ case(salmon_xctype_libxc_nonmag)
       real(8) :: eexc_1d(nl)
       real(8) :: vexc_1d(nl)
       integer :: ii
-      
+
       rho_1d = reshape(rho, (/nl/))
+      rho_s_1d = rho_1d * 0.5
 #ifndef SALMON_DEBUG_NEGLECT_NLCC
       if (present(rho_nlcc)) then
         rho_s_1d = rho_s_1d + reshape(rho_nlcc, (/nl/)) * 0.5
       endif
 #endif
+
       grho_s_1d = reshape(grho(:, :, :, :), (/nl, 3/)) * 0.5
       rlrho_s_1d = reshape(rlrho(:, :, :), (/nl/)) * 0.5
       tau_s_1d = reshape(tau(:, :, :), (/nl/)) * 0.5
@@ -388,7 +390,7 @@ case(salmon_xctype_libxc_nonmag)
       real(8) :: vxc_1d(nl), vxc_tmp_1d(nl)
       real(8) :: gvxc_tmp_1d(3 * nl)
       integer :: ii
-
+      
       exc_1d = 0d0
       vxc_1d = 0d0
       
@@ -401,7 +403,7 @@ case(salmon_xctype_libxc_nonmag)
         grho_1d = reshape(grho, (/nl, 3/))
         sigma_1d = (grho_1d(:, 1)**2 + grho_1d(:, 2)**2 + grho_1d(:, 3)**2)
       end if
-      
+            
       do ii = 1, xc%nfunc
         select case (xc_f90_info_family(xc%info(ii)))
         case(XC_FAMILY_LDA)
@@ -415,9 +417,11 @@ case(salmon_xctype_libxc_nonmag)
             & xc%func(ii), nl, rho_1d(1), sigma_1d(1), &
             & exc_tmp_1d(1), vxc_tmp_1d(1), gvxc_tmp_1d(1) &
             & )
+          
         end select
         exc_1d = exc_1d + exc_tmp_1d
         vxc_1d = vxc_1d + vxc_tmp_1d
+        
       end do
       
       if (present(exc)) then
