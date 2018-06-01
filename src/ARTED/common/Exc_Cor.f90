@@ -92,8 +92,6 @@ subroutine exec_salmon_xc_gga_mgga()
   real(8) :: grho_s(NL, 3)
   real(8) :: lrho_s(NL)
   
-
-
   rho_tmp = reshape(rho, (/nl, 1, 1/))
   
   if (flag_nlcc) then
@@ -102,8 +100,6 @@ subroutine exec_salmon_xc_gga_mgga()
     rho_nlcc_tmp = 0d0
   end if
 
-
-
   call rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
 
   grho_tmp = reshape(grho_s * 2, (/nl, 1, 1, 3/))
@@ -111,7 +107,6 @@ subroutine exec_salmon_xc_gga_mgga()
   tau_tmp = reshape(tau_s * 2, (/nl, 1, 1/))
   rj_tmp = reshape(j_s * 2, (/nl, 1, 1, 3/))
 
-  
   call calc_xc(xc_func, &
     & rho=rho_tmp, eexc=Eexc_tmp, vxc=vexc_tmp, &
     & grho=grho_tmp, rlrho=rlrho_tmp, tau=tau_tmp, rj=rj_tmp, &
@@ -119,7 +114,6 @@ subroutine exec_salmon_xc_gga_mgga()
     & nd=ND, ifdx=ifdx, ifdy=ifdy, ifdz=ifdz, &
     & nabx=nabx, naby=naby, nabz=nabz, Hxyz=Hxyz, aLxyz=aLxyz &
     & )
-
 
   Eexc = reshape(eexc_tmp, (/NL/))
   Vexc = reshape(vexc_tmp, (/NL/))

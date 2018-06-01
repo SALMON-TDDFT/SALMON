@@ -99,7 +99,7 @@ contains
     case('TPSS', 'tpss', 'VS98', 'vs98')
       ! Do nothing
     case default
-      call init_xc(functional, 1, cval, xc_func)
+      call init_xc(xc, 1, cval, xc_func)
     end select
 
   end subroutine initialize
