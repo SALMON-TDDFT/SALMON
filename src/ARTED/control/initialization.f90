@@ -790,6 +790,10 @@ contains
       use global_variables
       implicit none
       integer :: fh, icount, itmp
+      real(8) :: ms_theta_x
+      real(8) :: ms_theta_y
+      real(8) :: ms_theta_z
+      !real(8), parameter :: pi = 3.141592653589793
 
       namelist/macroscopic_system/ &
         & nx_origin_m, nx_m, hx_m, &
@@ -799,7 +803,10 @@ contains
         & nmacro, nmacro_attr, &
         & nbg_media, nbg_media_attr, &
         & ninit_acfield, &
-        & debug_switch_no_radiation
+        & debug_switch_no_radiation, &
+        & ms_angle_x, &
+        & ms_angle_y, &
+        & ms_angle_z
       
       nmacro = 1
       nmacro_attr = 0
@@ -807,6 +814,10 @@ contains
       nbg_media_attr = 0
       ninit_acfield = 0
       debug_switch_no_radiation = .false.
+      ms_angle_x = 0d0
+      ms_angle_y = 0d0
+      ms_angle_z = 0d0
+  
 
       if(comm_is_root(nproc_id_global)) then
         fh = open_filehandle(trim(directory) // trim(file_macropoint))
@@ -830,6 +841,9 @@ contains
       call comm_bcast(nbg_media_attr,nproc_group_global)
       call comm_bcast(ninit_acfield,nproc_group_global)
       call comm_bcast(debug_switch_no_radiation,nproc_group_global)
+      call comm_bcast(ms_angle_x,nproc_group_global)
+      call comm_bcast(ms_angle_y,nproc_group_global)
+      call comm_bcast(ms_angle_z,nproc_group_global)
 
       allocate(macropoint(1:4, nmacro))
       allocate(macropoint_attr(1:nattr_column, nmacro_attr))
@@ -857,15 +871,58 @@ contains
         end do
         close(fh)
       end if
+      
       call comm_bcast(macropoint,nproc_group_global)
       call comm_bcast(macropoint_attr,nproc_group_global)
       call comm_bcast(bg_media_point,nproc_group_global)
       call comm_bcast(bg_media_attr,nproc_group_global)
       call comm_bcast(init_acfield_point,nproc_group_global)
       call comm_bcast(init_acfield_val,nproc_group_global)
+      
+      ms_theta_x = ms_angle_x * (pi / 180)
+      ms_theta_y = ms_angle_y * (pi / 180)
+      ms_theta_z = ms_angle_z * (pi / 180)
+      
+      trans_mat(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+      trans_mat(1, 2) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+      trans_mat(1, 3) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+      trans_mat(2, 1) = sin(ms_theta_z)*cos(ms_theta_y)
+      trans_mat(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+      trans_mat(2, 3) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+      trans_mat(3, 1) = -sin(ms_theta_y)
+      trans_mat(3, 2) = sin(ms_theta_x)*cos(ms_theta_y)
+      trans_mat(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+      
+      trans_inv(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+      trans_inv(1, 2) = sin(ms_theta_z)*cos(ms_theta_y)
+      trans_inv(1, 3) = -sin(ms_theta_y)
+      trans_inv(2, 1) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+      trans_inv(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+      trans_inv(2, 3) = sin(ms_theta_x)*cos(ms_theta_y)
+      trans_inv(3, 1) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+      trans_inv(3, 2) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+      trans_inv(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+      
+      if(comm_is_root(nproc_id_global)) then
+        write(*,'(a)') "# Multiscale Rotation:"
+        write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_x", ms_angle_x, ms_theta_x, "rad"
+        write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_y", ms_angle_y, ms_theta_y, "rad"
+        write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_z", ms_angle_z, ms_theta_z, "rad"
+        write(*,'(a)') "# trans_mat(3,3):"
+        do itmp = 1, 3
+            write(*,'(3(1x,f12.5))') trans_mat(itmp, 1:3)
+        end do
+        write(*,'(a)') "# trans_inv(3,3):"
+        do itmp = 1, 3
+            write(*,'(3(1x,f12.5))') trans_inv(itmp, 1:3)
+        end do
+      end if
+      
+      call comm_bcast(trans_mat,nproc_group_global)
+      call comm_bcast(trans_inv,nproc_group_global)
+
       return
   end subroutine set_macropoint_from_file
-
 
   !AY just temporal but need this function in future (hidden option now)
   Subroutine read_external_input_for_restart
