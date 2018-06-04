@@ -252,6 +252,7 @@ module salmon_global
   character(256) :: file_ini_velocity
   character(256) :: file_set_shake
   real(8)        :: thermostat_tau
+  real(8)        :: friction
   character(1)   :: stop_system_momt
 
 !! &group_fundamental
@@ -312,6 +313,7 @@ integer,allocatable :: kion(:)
 real(8),allocatable :: rion(:,:)  
 real(8),allocatable :: rion_red(:,:)  
 character(1),allocatable :: flag_geo_opt_atom(:)
+character(256),allocatable :: atom_name(:)
 
 
 end module salmon_global

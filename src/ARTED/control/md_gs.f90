@@ -60,6 +60,7 @@ subroutine calc_md_ground_state
        if(ensemble=="NVT" .and. thermostat=="nose-hoover") &
        &  write(comment_line,112) trim(comment_line), xi_nh
        call write_xyz(comment_line,"new","rvf")
+       call write_xyz(comment_line,"add","rvf")
   endif
 
   it=entrance_it+1
@@ -291,7 +292,7 @@ end subroutine calc_md_ground_state
     implicit none
     integer :: ia,unit_atomic_coor_tmp=201,ik,j
     real(8) :: tmpr(3), uconv
-    character(100)  :: char_atom,atom_name
+    character(100)  :: char_atom
 
     if(comm_is_root(nproc_id_global)) then
 
@@ -315,8 +316,7 @@ end subroutine calc_md_ground_state
        write(*,9000) "&atomic_coor"
        do ia = 1,NI
           read(unit_atomic_coor_tmp,*) char_atom, (tmpr(j),j=1,3),ik
-          atom_name = char_atom(1:len_trim(char_atom))
-          write(*,7000) trim(atom_name), Rion(1:3,ia)*uconv, ik
+          write(*,7000) trim(char_atom), Rion(1:3,ia)*uconv, ik
 7000      format("     '",a,"'  ",3f18.10,i4)
        enddo
        write(*,9000) "/"
@@ -389,47 +389,35 @@ end subroutine calc_md_ground_state
     use salmon_parallel, only: nproc_id_global
     use salmon_communication, only: comm_is_root
     implicit none
-    integer :: ia,unit_xyz=200,unit_atomic_coor_tmp=201
+    integer :: ia,unit_xyz=200
     character(3) :: action,rvf
-    character(100)  :: char_atom,atom_name
     character(1024) :: file_trj
     character(*) :: comment
 
     if(.not. comm_is_root(nproc_id_global)) return
 
-    select case(iflag_atom_coor)
-    case(ntype_atom_coor_cartesian)
-       open(unit_atomic_coor_tmp,file='.atomic_coor.tmp',status='old')
-    case(ntype_atom_coor_reduced)
-       open(unit_atomic_coor_tmp,file='.atomic_red_coor.tmp',status='old')
-    end select
+    if(action=='new') then
 
-    file_trj=trim(SYSname)//'_trj.xyz'
-    open(unit_xyz,file=trim(file_trj),status="unknown")
+       file_trj=trim(SYSname)//'_trj.xyz'
+       open(unit_xyz,file=trim(file_trj),status="unknown")
 
-    if(action=='new') goto 1
-    if(action=='add') then
-       do
-         read(unit_xyz,*,end=1)
-      enddo
+    else if(action=='add') then
+
+       write(unit_xyz,*) NI
+       write(unit_xyz,*) trim(comment)
+       do ia=1,NI
+          if(      rvf=="r  " ) then
+             write(unit_xyz,100) trim(atom_name(ia)),Rion(1:3,ia)*au_length_aa
+          else if( rvf=="rv " ) then
+             write(unit_xyz,110) trim(atom_name(ia)),Rion(1:3,ia)*au_length_aa,velocity(1:3,ia)
+          else if( rvf=="rvf" ) then
+             write(unit_xyz,120) trim(atom_name(ia)),Rion(1:3,ia)*au_length_aa,velocity(1:3,ia),force(1:3,ia)
+          endif
+       enddo
+
+    else if(action=='end') then
+       close(unit_xyz)
     endif
-
-1   write(unit_xyz,*) NI
-    write(unit_xyz,*) trim(comment)
-    do ia=1,NI
-       read(unit_atomic_coor_tmp,*) char_atom
-       atom_name = char_atom(1:len_trim(char_atom))
-       if(      rvf=="r  " ) then
-          write(unit_xyz,100) trim(atom_name),Rion(1:3,ia)*au_length_aa
-       else if( rvf=="rv " ) then
-          write(unit_xyz,110) trim(atom_name),Rion(1:3,ia)*au_length_aa,velocity(1:3,ia)
-       else if( rvf=="rvf" ) then
-          write(unit_xyz,120) trim(atom_name),Rion(1:3,ia)*au_length_aa,velocity(1:3,ia),force(1:3,ia)
-       endif
-    enddo
-
-    close(unit_xyz) 
-    close(unit_atomic_coor_tmp)
 
 100 format(a2,3f18.10)
 110 format(a2,3f18.10, "  #v=",3f18.10)

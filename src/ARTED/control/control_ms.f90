@@ -39,6 +39,9 @@ subroutine tddft_maxwell_ms
   logical :: flag_shutdown = .false.
   logical :: flg_out_ms_step, flg_out_ms_next_step
   logical :: flg_out_projection_step, flg_out_projection_next_step
+  real(8) :: aforce(3,NI),Temperature_ion
+ !real(8) :: Enh, Enh_gkTlns, gkT, Qnh   !NVT
+  character(100) :: comment_line
 
 #ifdef ARTED_LBLK
   call opt_vars_init_t4ppt()
@@ -97,7 +100,29 @@ subroutine tddft_maxwell_ms
     entrance_iter=-1
     call reset_rt_timer
   end if
-  
+ 
+  ! Export to file_trj (initial step)
+  if (out_rvf_rt=='y')then
+       write(comment_line,110) -1, 0.0d0
+      !if(ensemble=="NVT" .and. thermostat=="nose-hoover") &
+      !&  write(comment_line,112) trim(comment_line), xi_nh
+
+       do imacro = nmacro_s, nmacro_e
+         call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
+         call write_xyz_ms(comment_line,"new","rvf",imacro)
+         call write_xyz_ms(comment_line,"add","rvf",imacro)
+       enddo
+  endif
+
+  !if(use_ehrenfest_md=='y') then
+    !Enh_gkTlns = 0d0
+    !Enh        = 0d0
+    !if(ensemble=="NVT" .and. thermostat=="nose-hoover") then
+    !   gkT = 3d0*NI * kB/hartree2J*temperature0_ion
+    !   Qnh = gkT * thermostat_tau**2d0
+    !endif
+  !endif
+ 
   ! Output filename
   write(file_energy_transfer, "(A,'energy-transfer.data')") trim(directory)
   
@@ -134,7 +159,7 @@ subroutine tddft_maxwell_ms
       end if
     end if
 
-    !! Update of the Microscopic System
+    !! Update of the Macroscopic System
     
     !===========================================================================
     call timer_begin(LOG_OTHER)
@@ -229,6 +254,13 @@ subroutine tddft_maxwell_ms
       !===========================================================================
 
       !===========================================================================
+      !! update ion coordinate and velocity in MD option (part-1)
+      if (use_ehrenfest_md == 'y') then
+         call dt_evolve_MD_1_MS(iter,imacro)
+      endif
+      !===========================================================================
+
+      !===========================================================================
       call dt_evolve_KB_MS(imacro) ! Timer: LOG_DT_EVOLVE
       !===========================================================================
 
@@ -248,6 +280,9 @@ subroutine tddft_maxwell_ms
       !===========================================================================
 !$acc update device(kAc,kAc_new)
       call current_RT_MS(imacro) ! Timer: LOG_CURRENT
+      if (use_ehrenfest_md == 'y') then
+         call current_RT_ion_MS(imacro)
+      endif
       !===========================================================================
 
       !===========================================================================
@@ -269,12 +304,19 @@ subroutine tddft_maxwell_ms
         jm_new_m_tmp(1:3, imacro) = jav(1:3)
       end if
       javt(iter+1,:) = jav(:)
+      if (use_ehrenfest_md == 'y') then
+         if (comm_is_root(nproc_id_tdks)) then
+            jm_ion_new_m_tmp(1:3, imacro) = jav_ion(1:3)
+         end if
+      end if
       call timer_end(LOG_OTHER)
       !===========================================================================
 
       if (use_ehrenfest_md == 'y') then
 !$acc update self(zu_m(:,:,:,imacro))
+        aforce(:,:) = force_m(:,:,imacro)
         call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
+        call Ion_Force_Ac_MS(imacro)
         if (flg_out_ms_next_step) then
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
         end if
@@ -297,6 +339,12 @@ subroutine tddft_maxwell_ms
       call timer_end(LOG_OTHER)
       !===========================================================================
 
+      !===========================================================================
+      !! update ion coordinate and velocity in MD option (part-2)
+      if (use_ehrenfest_md == 'y') then
+         call dt_evolve_MD_2_MS(aforce,iter,imacro)
+      endif
+      !===========================================================================
 
       !===========================================================================
       ! Calculate + store excitation number (if required in the next iteration..)
@@ -310,12 +358,26 @@ subroutine tddft_maxwell_ms
       end if
       call timer_end(LOG_ANA_RT_USEGS)
       !===========================================================================
+
+      ! Export to file_trj
+      if (out_rvf_rt=='y' .and. mod(iter,out_rvf_rt_step)==0)then
+         if(use_ehrenfest_md=='n') &
+         &  call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
+         write(comment_line,110) iter, iter*dt
+110      format("#rt   step=",i8,"   time",e16.6)
+        !if(ensemble=="NVT" .and. thermostat=="nose-hoover") &
+        !&  write(comment_line,112) trim(comment_line), xi_nh
+!112      format(a,"  xi_nh=",e18.10)
+         call write_xyz_ms(comment_line,"add","rvf",imacro)
+      endif
     
     end do Macro_loop !end of Macro_loop iteraction========================
       
     !===========================================================================
     call timer_begin(LOG_ALLREDUCE)
     call comm_summation(jm_new_m_tmp, Jm_new_m, 3 * nmacro, nproc_group_global)
+    if(use_ehrenfest_md=='y') &
+    & call comm_summation(jm_ion_new_m_tmp, Jm_ion_m, 3*nmacro,nproc_group_global)
     if (flg_out_ms_next_step) then
       call comm_summation(energy_elec_Matter_new_m_tmp, energy_elec_Matter_new_m, nmacro, nproc_group_global)
     end if
@@ -340,11 +402,13 @@ subroutine tddft_maxwell_ms
       !! Map the local macropoint current into the jm field
       Jm_new_ms(1:3, ix_m, iy_m, iz_m) = Jm_new_ms(1:3, ix_m, iy_m, iz_m) & 
                                      & + Jm_new_m(1:3, imacro)
+      if(use_ehrenfest_md=='y') &
+      Jm_ion_ms(1:3, ix_m, iy_m, iz_m) = Jm_ion_ms(1:3, ix_m, iy_m, iz_m) & 
+                                     & + Jm_ion_m(1:3, imacro)
     end do
 !$omp end parallel do
     call timer_end(LOG_OTHER)
     !===========================================================================
-
 
     ! Shutdown sequence
     call timer_begin(LOG_OTHER)
@@ -530,6 +594,7 @@ contains
       end if
     end do
 !$omp end parallel do
+    if(use_ehrenfest_md=='y') Jm_ion_ms(:,:,:,:) = 0d0
   end subroutine proceed_ms_variables_omp
 
 
@@ -544,6 +609,7 @@ contains
       !! Assign the vector potential into the local macropoint variables
       Ac_m(1:3, iimacro) = Ac_ms(1:3, iix_m, iiy_m, iiz_m)
       Ac_new_m(1:3, iimacro) = Ac_new_ms(1:3, iix_m, iiy_m, iiz_m)
+      Ac_old_m(1:3, iimacro) = Ac_old_ms(1:3, iix_m, iiy_m, iiz_m)
     end do
 !$omp end parallel do
   end subroutine assign_mp_variables_omp
@@ -557,6 +623,8 @@ contains
       !! Store data_local_Ac, data_local_Jm
       data_local_Ac(1:3, iimacro, iter) = Ac_m(1:3, iimacro)
       data_local_jm(1:3, iimacro, iter) = Jm_m(1:3, iimacro)
+      if(use_ehrenfest_md=='y') &
+      &  data_local_jm_ion(1:3,iimacro,iter) = Jm_ion_m(1:3,iimacro)
     end do
 !$omp end parallel do
   end subroutine store_data_local_ac_jm
@@ -614,8 +682,11 @@ contains
       write(fh_ac, '("#",1X,A,":",1X,A)') "Eex", "Electron excitation energy"
       write(fh_ac, '("#",1X,A,":",1X,A)') "Eabs", "Absorbed energy"
       write(fh_ac, '("#",1X,A,":",1X,A)') "Eemf", "Total EM field energy"
-      
-      write(fh_ac, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+      !if(use_ehrenfest_md=='y') then
+      !   write(fh_ac, '("#",1X,A,":",1X,A)') "Jmi", "Matter current density of Ion"
+      !   write(fh_ac, '("#",1X,A,":",1X,A)') "Tmp_ion", "Temperature of Ion"
+      !endif
+      write(fh_ac, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
         & 1, "Ix", "none", &
         & 2, "Iy", "none", &
         & 3, "Iz", "none", &
@@ -634,20 +705,33 @@ contains
         & 16, "Eex", "a.u./unitcell", & !!, trim(t_unit_current%name), &
         & 17, "Eabs", "a.u./unitcell", & !!, trim(t_unit_current%name), &
         & 18, "Eemf", "a.u./unitcell" !!, trim(t_unit_current%name)
+      !if(use_ehrenfest_md=='y') then
+      !  write(fh_ac, '(99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+      !  & 19, "Jmi_x", "a.u.", & !!, trim(t_unit_current%name), &
+      !  & 20, "Jmi_y", "a.u.", & !!, trim(t_unit_current%name), &
+      !  & 21, "Jmi_z", "a.u.", & !!, trim(t_unit_current%name), &
+      !  & 22, "Tmp_ion", "K"
+      !endif
+      write(fh_ac,*)
+
       !! TODO: Support the automatic unit-system conversion of _ac.data files
 
       do iiz_m = nz1_m, nz2_m
         do iiy_m = ny1_m, ny2_m
           do iix_m = nx1_m, nx2_m
-            write(fh_ac,'(I6,1X,I6,1X,I6,99(1X,ES22.14E3))')  &
+            write(fh_ac,'(I6,1X,I6,1X,I6,99(1X,ES22.14E3))',advance='no')  &
               & iix_m, iiy_m, iiz_m, &
               & data_out(1:ndata_out_column, iix_m, iiy_m, iiz_m, ipos)
+           !if(use_ehrenfest_md=='y') then
+           !    !Add Jm_ion_xyz and Temperature_ion for MD (Later)
+           !endif
+            write(fh_ac,*)
           end do
         end do
       end do
     end if
     close(fh_ac)
-    
+   
     return
   end subroutine write_data_out
 
@@ -762,8 +846,12 @@ contains
         write(fh_ac_m, "('#',1X,A,':',3(1X,I6))") "Macropoint", macropoint(1:3, iimacro)
         write(fh_ac_m, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
         write(fh_ac_m, '("#",1X,A,":",1X,A)') "Ac", "External vector potential field"
-        
-        write(fh_ac_m, '("#",99(1X,I0,":",A,"[",A,"]"))') &
+        if(use_ehrenfest_md=='y') then
+           write(fh_ac_m, '("#",1X,A,":",1X,A)') "Jmi", "Matter current density of Ion"
+           write(fh_ac_m, '("#",1X,A,":",1X,A)') "Tmp_ion", "Temperature of Ion"
+        endif
+
+        write(fh_ac_m, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
           & 1, "Time", trim(t_unit_time%name), &
           & 2, "Ac_x", trim(t_unit_ac%name), &
           & 3, "Ac_y", trim(t_unit_ac%name), &
@@ -771,11 +859,25 @@ contains
           & 5, "Jm_x", trim(t_unit_current%name), &
           & 6, "Jm_y", trim(t_unit_current%name), &
           & 7, "Jm_z", trim(t_unit_current%name)
+        if(use_ehrenfest_md=='y') then
+          write(fh_ac_m, '(99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+          & 8, "Jmi_x", trim(t_unit_current%name), &
+          & 9, "Jmi_y", trim(t_unit_current%name), &
+          &10, "Jmi_z", trim(t_unit_current%name), &
+          &11, "Tmp_ion", "K"
+        endif
+        write(fh_ac_m,*)
         do iiter = 0, Nt
-          write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))") &
+          write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
             & iiter * dt * t_unit_time%conv, &
             & data_local_Ac(1:3, iimacro, iiter) * t_unit_ac%conv, &
             & data_local_jm(1:3, iimacro, iiter) * t_unit_current%conv
+          if(use_ehrenfest_md=='y') then
+            write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
+            data_local_jm_ion(1:3, iimacro, iiter) * t_unit_current%conv, &
+            data_local_Tmp_ion(iimacro, iiter)
+          endif
+          write(fh_ac_m,*)
         end do
       end do
       close(fh_ac_m)
@@ -819,7 +921,206 @@ contains
     end if
     call comm_sync_all  
   end subroutine write_data_vac_ac
-  
+
+  subroutine write_xyz_ms(comment,action,rvf,imacro)
+
+  ! Write xyz in xyz format but also velocity and force are printed if necessary
+  ! (these can be used for restart of opt and md)
+    use Global_Variables
+    use inputoutput, only: au_length_aa
+    use salmon_global, only: SYSname,iflag_atom_coor,ntype_atom_coor_cartesian,ntype_atom_coor_reduced
+    use salmon_parallel, only: nproc_id_global
+    use salmon_communication, only: comm_is_root
+    use salmon_file
+    implicit none
+    integer :: ia,unit_xyz,imacro 
+    character(3) :: action,rvf
+    character(1024) :: file_trj
+    character(*) :: comment
+
+    if(comm_is_root(nproc_id_tdks)) then
+
+      unit_xyz = 1000 + imacro
+
+      if(action=='new') then
+
+        write(file_trj, "(A, A, '_trj_',I6.6,'.xyz')") &
+          & trim(process_directory), trim(SYSname), imacro
+        open(unit_xyz,file=trim(file_trj),status="unknown")
+
+      else if(action=='add') then
+
+         write(unit_xyz,*) NI
+         write(unit_xyz,*) trim(comment)
+         do ia=1,NI
+            if(      rvf=="r  " ) then
+               write(unit_xyz,100) trim(atom_name(ia)), &
+                                 & Rion_m(1:3,ia,imacro)*au_length_aa
+            else if( rvf=="rv " ) then
+               write(unit_xyz,110) trim(atom_name(ia)), &
+                                 & Rion_m(1:3,ia,imacro)*au_length_aa,&
+                                 & velocity_m(1:3,ia,imacro)
+            else if( rvf=="rvf" ) then
+               write(unit_xyz,120) trim(atom_name(ia)), &
+                                 & Rion_m(1:3,ia,imacro)*au_length_aa,&
+                                 & velocity_m(1:3,ia,imacro), force_m(1:3,ia,imacro)
+            endif
+         enddo
+
+      else if(action=='end') then
+
+         close(unit_xyz)
+
+      endif
+
+100 format(a2,3f18.10)
+110 format(a2,3f18.10, "  #v=",3f18.10)
+120 format(a2,3f18.10, "  #v=",3f18.10, "  #f=",3f18.10)
+
+    endif
+
+    call comm_sync_all
+  end subroutine
+
+  subroutine dt_evolve_MD_1_MS(iter,imacro)
+  ! Velocity Verlet integrator for ion dynamics in multi-scale
+  ! Currentry, NVT ensemble is not supported
+    use md_ground_state
+    implicit none
+    integer :: iter,imacro,ia
+    real(8) :: dt_h,mass_au
+  character(100) :: comment_line
+
+    dt_h = dt/2d0
+    velocity(:,:) = velocity_m(:,:,imacro)
+    force(:,:)    = force_m(:,:,imacro)
+    Rion(:,:)     = Rion_m(:,:,imacro)
+    Rion_eq(:,:)  = Rion_eq_m(:,:,imacro)
+    dRion(:,:,iter:iter+1)  = dRion_m(:,:,iter:iter+1,imacro)
+
+
+    !!NHC act on velocity with dt/2
+    !if(ensemble=="NVT" .and. thermostat=="nose-hoover")then
+    !   call apply_nose_hoover_velocity(dt_h)
+    !endif
+    !update ion velocity with dt/2
+
+    if(iter==0) then
+       dRion(:,:,iter-1)= dRion(:,:,iter) - velocity(:,:)*dt
+       dRion_m(:,:,iter-1,imacro) = dRion(:,:,iter-1)
+    endif
+
+    do ia=1,NI
+       mass_au = umass*Mass(Kion(ia))
+      !velocity(:,ia) = velocity(:,ia) + force(:,ia)/mass_au * dt_h
+       velocity(:,ia) = velocity(:,ia) + force(:,ia)/mass_au * dt_h &
+       &                               - friction/mass_au * velocity(:,ia) * dt_h
+    enddo
+
+    !velocity scaling
+    if(step_velocity_scaling>=1 .and. mod(iter,step_velocity_scaling)==0)then
+       call cal_Tion_Temperature_ion(Tion,Temperature_ion,velocity(:,:))
+       call apply_velocity_scaling_ion(Temperature_ion,velocity(:,:))
+    endif
+
+    !update ion coordinate with dt
+    do ia=1,NI
+       mass_au = umass*Mass(Kion(ia))
+       dRion(:,ia,iter+1) = dRion(:,ia,iter) + velocity(:,ia)*dt
+       Rion(:,ia) = Rion_eq(:,ia) + dRion(:,ia,iter+1)
+    enddo
+
+    !update pseudopotential (check .... different in each macrogrid)
+    if (mod(iter,step_update_ps)==0 ) then
+       call prep_ps_periodic('update_all       ')
+    else if (mod(iter,step_update_ps2)==0 ) then
+       call prep_ps_periodic('update_wo_realloc')
+    endif
+
+    !!NHC act on thermostat with dt
+    !if(ensemble=="NVT" .and. thermostat=="nose-hoover")then
+    !   call cal_Tion_Temperature_ion(Tion,Temperature_ion,velocity)
+    !   call apply_nose_hoover_thermostat(Temperature_ion,dt)
+    !   Enh_gkTlns = Enh_gkTlns + gkT * xi_nh*dt
+    !   Enh        = Enh_gkTlns + 0.5d0 * Qnh * xi_nh*xi_nh
+    !endif
+
+    velocity_m(:,:,imacro) = velocity(:,:)
+    Rion_m(:,:,imacro)     = Rion(:,:)
+    dRion_m(:,:,iter:iter+1,imacro) = dRion(:,:,iter:iter+1)
+    
+  end subroutine
+
+  subroutine dt_evolve_MD_2_MS(aforce,iter,imacro)
+    use md_ground_state
+    implicit none
+    integer :: iter,imacro, ia
+    real(8) :: dt_h,Ework,aforce(3,NI),Temperature_ion, mass_au
+
+    dt_h = dt/2d0
+    velocity(:,:) = velocity_m(:,:,imacro)
+    force(:,:)    = force_m(:,:,imacro)
+    dRion(:,:,iter:iter+1)  = dRion_m(:,:,iter:iter+1,imacro)
+
+    aforce(:,:) = 0.5d0*( aforce(:,:) + force(:,:) )
+
+    !update ion velocity with dt/2
+    Ework = 0d0
+    do ia=1,NI
+       mass_au = umass*Mass(Kion(ia))
+      !velocity(:,ia) = velocity(:,ia) + force(:,ia)/mass_au * dt_h
+       velocity(:,ia) = velocity(:,ia) + force(:,ia)/mass_au * dt_h &
+       &                               - friction/mass_au * velocity(:,ia) * dt_h
+       Ework = Ework - sum(aforce(:,ia)*(dRion(:,ia,iter+1)-dRion(:,ia,iter)))
+    enddo
+
+    !!NHC act on velocity with dt/2
+    !if(ensemble=="NVT" .and. thermostat=="nose-hoover")then
+    !   call apply_nose_hoover_velocity(dt_h)
+    !endif
+
+    if (stop_system_momt=='y') call remove_system_momentum(0)
+    call cal_Tion_Temperature_ion(Tion,Temperature_ion,velocity)
+
+
+!    Eall=Eall+Tion
+    
+!    Eall_t(iter) = Eall
+!    Tion_t(iter) = Tion
+     data_local_Tmp_ion(imacro,iter) = Temperature_ion
+!    Ework_integ_fdR(iter) = Ework_integ_fdR(iter-1) + Ework
+
+    !if(ensemble=="NVT".and.thermostat=="nose-hoover")then
+    !   Enh_t(iter)  = Enh
+    !   Hnvt_t(iter) = Eall + Enh
+    !endif
+
+    velocity_m(:,:,imacro) = velocity(:,:)
+
+  end subroutine
+
+  subroutine Ion_Force_Ac_MS(imacro)
+    implicit none
+    integer :: ia,imacro
+    real(8) :: E_tot(3),FionAc(3,NI)
+
+!    E_ext(iter,:)=-(Ac_ext(iter+1,:)-Ac_ext(iter-1,:))/(2*dt)
+!    E_ind(iter,:)=-(Ac_ind(iter+1,:)-Ac_ind(iter-1,:))/(2*dt)
+!    E_tot(iter,:)=-(Ac_tot(iter+1,:)-Ac_tot(iter-1,:))/(2*dt)
+    E_tot(:)= -(Ac_new_m(:,imacro)-Ac_old_m(:,imacro))/(2*dt)
+
+!    Eelemag= aLxyz*sum(E_tot(iter,:)**2)/(8.d0*Pi)
+!    Eall   = Eall + Eelemag
+
+    do ia=1,NI
+      FionAc(:,ia)=Zps(Kion(ia))*E_tot(:)
+      force_m(:,ia,imacro) = force_m(:,ia,imacro) + FionAc(:,ia)
+    enddo
+
+  end subroutine
+
+
+
 end subroutine tddft_maxwell_ms
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 

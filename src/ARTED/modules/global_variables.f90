@@ -73,7 +73,7 @@ Module Global_Variables
   real(8),allocatable :: occ(:,:),wk(:)
 
 ! physical quantities
-  real(8) :: Eall,Eall0,Eall_GS0,jav(3),Tion
+  real(8) :: Eall,Eall0,Eall_GS0,jav(3),jav_ion(3),Tion
   real(8) :: Ekin,Eloc,Enl,Eh,Exc,Eion,Eelemag                      
   real(8),allocatable :: javt(:,:)
   real(8),allocatable :: Vpsl(:),Vpsl_ia(:,:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)!yabana
@@ -234,6 +234,7 @@ Module Global_Variables
   !!       indicate the data at the time "iter+1" and "iter-1", respectively.
   real(8),allocatable :: Ac_old_ms(:,:,:,:),  Ac_ms(:,:,:,:), Ac_new_ms(:,:,:,:)
   real(8),allocatable :: Jm_old_ms(:,:,:,:),  Jm_ms(:,:,:,:), Jm_new_ms(:,:,:,:)
+  real(8),allocatable :: Jm_ion_ms(:,:,:,:),  Jm_ion_m(:,:)
   real(8),allocatable :: elec_ms(:,:,:,:)
   real(8),allocatable :: bmag_ms(:,:,:,:)
   real(8),allocatable :: energy_joule_ms(:,:,:)
@@ -253,15 +254,17 @@ Module Global_Variables
 #else
   complex(8),allocatable :: zu_m(:,:,:,:)
 #endif
+  real(8),allocatable :: Rion_m(:,:,:),velocity_m(:,:,:),force_m(:,:,:)
+  real(8),allocatable :: Rion_eq_m(:,:,:),dRion_m(:,:,:,:)
   real(8),allocatable :: Vh_m(:,:)
   real(8),allocatable :: Vexc_m(:,:)
   real(8),allocatable :: Eexc_m(:,:)
   real(8),allocatable :: Vloc_m(:,:),Vloc_old_m(:,:,:)
   real(8),allocatable :: rho_m(:,:)
   
-  real(8),allocatable :: Ac_m(:,:), Ac_new_m(:,:)
+  real(8),allocatable :: Ac_m(:,:), Ac_new_m(:,:), Ac_old_m(:,:)
   real(8),allocatable :: Jm_m(:,:), Jm_new_m(:,:)
-  real(8),allocatable :: jm_new_m_tmp(:,:)
+  real(8),allocatable :: jm_new_m_tmp(:,:),jm_ion_new_m_tmp(:,:)
   real(8),allocatable :: energy_elec_Matter_new_m(:)
   real(8),allocatable :: energy_elec_Matter_new_m_tmp(:)
   real(8),allocatable :: excited_electron_new_m(:)
@@ -272,7 +275,9 @@ Module Global_Variables
   integer :: ndata_out, ndata_out_per_proc
   real(8), allocatable :: data_local_ac(:,:,:)
   real(8), allocatable :: data_local_jm(:,:,:)
+  real(8), allocatable :: data_local_jm_ion(:,:,:)
   real(8), allocatable :: data_vac_ac(:,:,:)
+  real(8), allocatable :: data_local_Tmp_ion(:,:)
   
   integer :: ix_detect_l, ix_detect_r, iy_detect, iz_detect
 

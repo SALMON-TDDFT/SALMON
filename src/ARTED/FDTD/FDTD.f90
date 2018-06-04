@@ -379,6 +379,17 @@ subroutine dt_evolve_Ac_1d
       & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
   end do
 !$omp end parallel do
+
+!!(add ion current)
+  if(use_ehrenfest_md=='y')then
+!$omp parallel do default(shared) private(ix_m)
+    do ix_m = nx1_m, nx2_m
+       Ac_new_ms(:,ix_m,iy_m,iz_m) = Ac_new_ms(:,ix_m,iy_m,iz_m) &
+                                   & - Jm_ion_ms(:,ix_m,iy_m,iz_m)* 4d0*pi*(dt**2)
+    end do
+!$omp end parallel do
+  endif
+
   return
 end subroutine dt_evolve_Ac_1d
 !===========================================================
