@@ -24,15 +24,15 @@ contains
   
   
   
-  subroutine exc_cor_tbmbj(nl, rho, rho_s,  grho_s, lrho_s, tau_s, j_s, cval, eexc, vexc, Hxyz, aLxyz)
+  subroutine exc_cor_tbmbj(nl, rho, rho_s,  grho_s, lrho_s, tau_s, j_s, cval, eexc, vexc)
+  !subroutine exc_cor_tbmbj(nl, rho, rho_s,  grho_s, lrho_s, tau_s, j_s, cval, eexc, vexc, Hxyz, aLxyz)
     implicit none
     integer, intent(in) :: nl
     real(8), intent(in) :: rho(nl), rho_s(nl)
     real(8), intent(in) :: grho_s(nl, 3), lrho_s(nl), tau_s(nl), j_s(nl, 3)
     real(8), intent(in) :: cval
     real(8), intent(out) :: eexc(nl), vexc(nl)
-    real(8), intent(in) :: Hxyz, aLxyz
-    ! NOTE: Requirements of Hxyz, aLxyz will be replaced to n(x|y|z) for future
+    !real(8), intent(in) :: Hxyz, aLxyz
     
     real(8),parameter :: alpha=-0.012d0,beta=1.023d0,gamma=0.80d0
     real(8) :: c,tau_s_jrho,D_s_jrho,Q_s,rhs,x_s,b_s,Vx_BR,Vx_MBJ
@@ -46,7 +46,8 @@ contains
        if(cval > 1d-10) then
          c=cval ! use c-value given by input file
        else
-         c=sum(sqrt(grho_s(:,1)**2+grho_s(:,2)**2+grho_s(:,3)**2)/rho_s(:))*Hxyz/aLxyz
+         !c=sum(sqrt(grho_s(:,1)**2+grho_s(:,2)**2+grho_s(:,3)**2)/rho_s(:))*Hxyz/aLxyz
+         c=sum(sqrt(grho_s(:,1)**2+grho_s(:,2)**2+grho_s(:,3)**2)/rho_s(:)) / nl
          c=alpha+beta*sqrt(c)
        endif
     ! case('BJ_PW')

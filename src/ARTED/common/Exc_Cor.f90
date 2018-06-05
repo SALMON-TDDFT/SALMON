@@ -112,8 +112,8 @@ subroutine exec_salmon_xc_gga_mgga()
     & grho=grho_tmp, rlrho=rlrho_tmp, tau=tau_tmp, rj=rj_tmp, &
     & rho_nlcc=rho_nlcc_tmp, &
     & nd=ND, ifdx=ifdx, ifdy=ifdy, ifdz=ifdz, &
-    & nabx=nabx, naby=naby, nabz=nabz, Hxyz=Hxyz, aLxyz=aLxyz &
-    & )
+    & nabx=nabx, naby=naby, nabz=nabz)!, Hxyz=Hxyz, aLxyz=aLxyz &
+    !& )
 
   Eexc = reshape(eexc_tmp, (/NL/))
   Vexc = reshape(vexc_tmp, (/NL/))

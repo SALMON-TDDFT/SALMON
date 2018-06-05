@@ -35,6 +35,7 @@ contains
     use restart,only: prep_restart_read
     use io_gs_wfn_k,only: modify_initial_guess_copy_1stk_to_all
     implicit none
+    integer :: itmp
 !$ integer :: omp_get_max_threads  
 
     call timer_initialize
@@ -99,7 +100,8 @@ contains
     case('TPSS', 'tpss', 'VS98', 'vs98')
       ! Do nothing
     case default
-      call init_xc(xc, 1, cval, xc_func)
+      ! Default initialization routine
+      call init_xc(xc_func, 1, cval, xcname=xc, xname=xname, cname=cname)
     end select
 
   end subroutine initialize
