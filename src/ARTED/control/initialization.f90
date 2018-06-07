@@ -101,7 +101,7 @@ contains
       ! Do nothing
     case default
       ! Default initialization routine
-      call init_xc(xc_func, 1, cval, xcname=xc, xname=xname, cname=cname)
+      call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
     end select
 
   end subroutine initialize

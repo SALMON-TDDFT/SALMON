@@ -17,6 +17,7 @@
 module salmon_xc
   use builtin_pz, only: exc_cor_pz
   use builtin_pzm, only: exc_cor_pzm
+  use builtin_pz_sp, only: exc_cor_pz_sp
   use builtin_pbe, only: exc_cor_pbe
   use builtin_tbmbj, only: exc_cor_tbmbj
 #ifdef SALMON_USE_LIBXC
@@ -295,7 +296,7 @@ contains
         stop
       end if
 
-      if (ispin > 1) then
+      if (ispin > 0) then
         print '(A)', "Spin polarized is not available"
         stop
       end if
@@ -350,22 +351,22 @@ contains
 !      & nd, ifdx, ifdy, ifdz, nabx, naby, nabz, Hxyz, aLxyz)
     implicit none
     type(xc_functional), intent(in) :: xc
-    real(8), intent(in), optional :: rho(:, :, :) ! ispin = 1
-    real(8), intent(in), optional :: rho_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: rho(:, :, :) ! ispin = 0
+    real(8), intent(in), optional :: rho_s(:, :, :, :) ! ispin = 1
     real(8), intent(out), optional :: exc(:, :, :) ! epsilon_xc[rho]
     real(8), intent(out), optional :: eexc(:, :, :) ! rho * epsilon_xc[rho]
-    real(8), intent(out), optional :: vxc(:, :, :) ! v_xc[rho] for ispin=1
-    real(8), intent(out), optional :: vxc_s(:, :, :, :) ! v_xc[rho] ispin=2
-    !real(8), intent(out), optional :: gvxc(:, :, :) ! v_xc[rho] for ispin=1
-    !real(8), intent(out), optional :: gvxc_s(:, :, :, :) ! v_xc[rho] ispin=2
+    real(8), intent(out), optional :: vxc(:, :, :) ! v_xc[rho] for ispin=0
+    real(8), intent(out), optional :: vxc_s(:, :, :, :) ! v_xc[rho] ispin=1
+    !real(8), intent(out), optional :: gvxc(:, :, :) ! v_xc[rho] for ispin=0
+    !real(8), intent(out), optional :: gvxc_s(:, :, :, :) ! v_xc[rho] ispin=1
     real(8), intent(in), optional :: grho(:, :, :, :)
-    real(8), intent(in), optional :: grho_s(:, :, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: grho_s(:, :, :, :, :) ! ispin = 1
     real(8), intent(in), optional :: rlrho(:, :, :)
-    real(8), intent(in), optional :: rlrho_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: rlrho_s(:, :, :, :) ! ispin = 1
     real(8), intent(in), optional :: rj(:, :, :, :)
-    real(8), intent(in), optional :: rj_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: rj_s(:, :, :, :) ! ispin = 1
     real(8), intent(in), optional :: tau(:, :, :)
-    real(8), intent(in), optional :: tau_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: tau_s(:, :, :, :) ! ispin = 1
 
     real(8), intent(in), optional :: rho_nlcc(:, :, :)
 
@@ -389,7 +390,7 @@ contains
     integer :: nx, ny, nz, nl
 
     ! Detect size of 3-dimensional grid
-    if (xc%ispin == 1) then
+    if (xc%ispin == 0) then
       nx = ubound(rho, 1) - lbound(rho, 1) + 1;
       ny = ubound(rho, 2) - lbound(rho, 2) + 1;
       nz = ubound(rho, 3) - lbound(rho, 3) + 1;
@@ -447,11 +448,18 @@ contains
     subroutine exec_builtin_pz()
       implicit none
       real(8) :: rho_s_1d(nl)
+      real(8) :: rho_s_sp_1d(nl,2)
       real(8) :: exc_1d(nl)
       real(8) :: eexc_1d(nl)
       real(8) :: vexc_1d(nl)
+      real(8) :: vexc_sp_1d(nl,2)
 
-      rho_s_1d = reshape(rho, (/nl/)) * 0.5
+      
+      if (xc%ispin == 0) then
+        rho_s_1d = reshape(rho, (/nl/)) * 0.5
+      else
+        rho_s_sp_1d = reshape(rho_s, (/nl, 2/))
+      end if
 
 #ifndef SALMON_DEBUG_NEGLECT_NLCC
       if (present(rho_nlcc)) then
@@ -459,10 +467,20 @@ contains
       endif
 #endif
 
-      call exc_cor_pz(nl, rho_s_1d, exc_1d, eexc_1d, vexc_1d)
+      if (xc%ispin == 0) then
+        call exc_cor_pz(nl, rho_s_1d, exc_1d, eexc_1d, vexc_1d)
+      else
+        call exc_cor_pz_sp(nl, rho_s_sp_1d, exc_1d, eexc_1d, vexc_sp_1d)
+      end if
 
-      if (present(vxc)) then
-         vxc = vxc + reshape(vexc_1d, (/nx, ny, nz/))
+      if (xc%ispin == 0) then
+        if (present(vxc)) then
+          vxc = vxc + reshape(vexc_1d, (/nx, ny, nz/))
+        end if
+      else
+        if (present(vxc_s)) then
+          vxc_s = vxc_s + reshape(vexc_sp_1d, (/nx, ny, nz, 2/))
+        end if
       endif
 
       if (present(exc)) then
