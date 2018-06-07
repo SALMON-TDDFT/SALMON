@@ -22,7 +22,7 @@ subroutine exc_cor_ns
   use allocate_mat_sub
   use sendrecvh_sub
   implicit none
-  integer :: ix,iy,iz
+  integer :: ix,iy,iz,is
   integer :: jspin
   real(8) :: tot_exc
   real(8),allocatable :: rhd(:,:,:), delr(:,:,:,:)
@@ -35,6 +35,18 @@ subroutine exc_cor_ns
   end do
   end do
   end do
+  
+  if(ispin==1)then
+    do is=1,2
+    do iz=1,ng_num(3)
+    do iy=1,ng_num(2)
+    do ix=1,ng_num(1)
+      rho_s_tmp(ix,iy,iz,is)=rho_s(ng_sta(1)+ix-1,ng_sta(2)+iy-1,ng_sta(3)+iz-1,is)
+    end do
+    end do
+    end do
+    end do
+  end if
 
   if(xc=='pz'.or.xc=='PZ')then
     continue
@@ -88,7 +100,11 @@ subroutine exc_cor_ns
   end if
 
   if(xc=='pz'.or.xc=='PZ')then
-    call calc_xc(xc_func, rho=rho_tmp, eexc=eexc_tmp, vxc=vxc_tmp)
+    if(ispin==0)then
+      call calc_xc(xc_func, rho=rho_tmp, eexc=eexc_tmp, vxc=vxc_tmp)
+    else
+      call calc_xc(xc_func, rho=rho_tmp, rho_s=rho_s_tmp, eexc=eexc_tmp, vxc=vxc_tmp)
+    end if
   else
     call calc_xc(xc_func, rho=rho_tmp, grho=delr, eexc=eexc_tmp, vxc=vxc_tmp)
   end if
