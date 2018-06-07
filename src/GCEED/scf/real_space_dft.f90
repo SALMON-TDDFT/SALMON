@@ -57,7 +57,7 @@ complex(8),allocatable :: zpsi_tmp(:,:,:,:,:)
 real(8) :: rNebox1,rNebox2
 integer :: itmg
 
-call init_xc(xc_func, 1, cval, xcname=xc, xname=xname, cname=cname)
+call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
 
 iSCFRT=1
 ihpsieff=0

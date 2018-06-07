@@ -295,7 +295,7 @@ contains
         stop
       end if
 
-      if (ispin > 1) then
+      if (ispin > 0) then
         print '(A)', "Spin polarized is not available"
         stop
       end if
@@ -350,22 +350,22 @@ contains
 !      & nd, ifdx, ifdy, ifdz, nabx, naby, nabz, Hxyz, aLxyz)
     implicit none
     type(xc_functional), intent(in) :: xc
-    real(8), intent(in), optional :: rho(:, :, :) ! ispin = 1
-    real(8), intent(in), optional :: rho_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: rho(:, :, :) ! ispin = 0
+    real(8), intent(in), optional :: rho_s(:, :, :, :) ! ispin = 1
     real(8), intent(out), optional :: exc(:, :, :) ! epsilon_xc[rho]
     real(8), intent(out), optional :: eexc(:, :, :) ! rho * epsilon_xc[rho]
-    real(8), intent(out), optional :: vxc(:, :, :) ! v_xc[rho] for ispin=1
-    real(8), intent(out), optional :: vxc_s(:, :, :, :) ! v_xc[rho] ispin=2
-    !real(8), intent(out), optional :: gvxc(:, :, :) ! v_xc[rho] for ispin=1
-    !real(8), intent(out), optional :: gvxc_s(:, :, :, :) ! v_xc[rho] ispin=2
+    real(8), intent(out), optional :: vxc(:, :, :) ! v_xc[rho] for ispin=0
+    real(8), intent(out), optional :: vxc_s(:, :, :, :) ! v_xc[rho] ispin=1
+    !real(8), intent(out), optional :: gvxc(:, :, :) ! v_xc[rho] for ispin=0
+    !real(8), intent(out), optional :: gvxc_s(:, :, :, :) ! v_xc[rho] ispin=1
     real(8), intent(in), optional :: grho(:, :, :, :)
-    real(8), intent(in), optional :: grho_s(:, :, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: grho_s(:, :, :, :, :) ! ispin = 1
     real(8), intent(in), optional :: rlrho(:, :, :)
-    real(8), intent(in), optional :: rlrho_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: rlrho_s(:, :, :, :) ! ispin = 1
     real(8), intent(in), optional :: rj(:, :, :, :)
-    real(8), intent(in), optional :: rj_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: rj_s(:, :, :, :) ! ispin = 1
     real(8), intent(in), optional :: tau(:, :, :)
-    real(8), intent(in), optional :: tau_s(:, :, :, :) ! ispin = 2
+    real(8), intent(in), optional :: tau_s(:, :, :, :) ! ispin = 1
 
     real(8), intent(in), optional :: rho_nlcc(:, :, :)
 
@@ -389,7 +389,7 @@ contains
     integer :: nx, ny, nz, nl
 
     ! Detect size of 3-dimensional grid
-    if (xc%ispin == 1) then
+    if (xc%ispin == 0) then
       nx = ubound(rho, 1) - lbound(rho, 1) + 1;
       ny = ubound(rho, 2) - lbound(rho, 2) + 1;
       nz = ubound(rho, 3) - lbound(rho, 3) + 1;
