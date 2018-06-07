@@ -26,6 +26,8 @@ set(SOURCES
     conv_core_exc_cor.f90
     conv_p0.f90
     conv_p.f90
+    exc_cor_ns.f90
+    exc_cor_lsda.f90
     hartree_boundary.f90
     hartree_cg.f90
     hartree_periodic.f90
@@ -57,7 +59,6 @@ set(SOURCES
     writeestatic.f90
     writepsi.f90
     writevtk.f90
-    xc.f90
     ylm.f90
     )
 

@@ -59,6 +59,7 @@ end if
 
 deallocate (rho_tmp)
 deallocate (vxc_tmp)
+deallocate (eexc_tmp)
 deallocate (exc_dummy)
 deallocate (exc_dummy2)
 deallocate (exc_dummy3)

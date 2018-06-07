@@ -16,7 +16,7 @@
 !=======================================================================
 !=================================================== LDA (Perdew-Zunger)
 
-SUBROUTINE Exc_Cor_ns
+SUBROUTINE exc_cor_lsda
 use scf_data
 
 implicit none
@@ -55,13 +55,13 @@ if(ilsda == 1) then
   end do
 end if
 
-call xc_LDA(trho,trho_s)
+call xc_lsda(trho,trho_s)
 
-END SUBROUTINE Exc_Cor_ns
+END SUBROUTINE exc_cor_lsda
 
 !======================================================================
 
-SUBROUTINE xc_LDA(trho,trho_s)
+SUBROUTINE xc_lsda(trho,trho_s)
 use salmon_parallel, only: nproc_group_h
 use salmon_communication, only: comm_summation
 use scf_data
@@ -261,6 +261,6 @@ call comm_summation(sum1,Exc,nproc_group_h)
 
 if(ilsda==1) deallocate(Ecu,Ecp,Vcu,Vcp)
 
-END SUBROUTINE xc_LDA
+END SUBROUTINE xc_lsda
 
 !======================================================================
