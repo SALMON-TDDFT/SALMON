@@ -101,8 +101,102 @@ contains
     Eall_GS0=Eall
     if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'Eall =',Eall
 
-
   end subroutine read_write_gs_wfn_k
+
+  subroutine read_gs_wfn_k_ms_each_macro_grid
+    use inputoutput, only: au_length_aa
+    implicit none
+    integer :: ik,imacro,nfile_occ_ms,nfile_gs_wfn_ms
+    integer :: nproc_group_kpoint_ms
+    integer :: nproc_id_kpoint_ms
+    integer :: nproc_size_kpoint_ms
+    integer :: unit_ini_rv,ia,j
+    character(1024) :: file_ini_rv
+    real(8) :: ulength_to_au
+
+    do imacro = nmacro_s, nmacro_e
+
+       nfile_occ_ms    = 7000 + imacro
+       nfile_gs_wfn_ms = nfile_occ_ms
+       write (gs_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/gs_wfn_k/'
+       
+       if(comm_is_root(nproc_id_tdks)) then
+          occ_file = trim(gs_wfn_directory)//'occupation'
+          open(nfile_occ_ms,file=trim(occ_file),form='unformatted')
+          read(nfile_occ_ms) occ
+          close(nfile_occ_ms)
+
+          do ik=NK_s,NK_e
+             write(gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
+             open(nfile_gs_wfn_ms,file=trim(gs_wfn_file),form='unformatted')
+             read(nfile_gs_wfn_ms) zu_GS(:,:,ik)
+             close(nfile_gs_wfn_ms)
+          end do
+       end if
+
+       call comm_bcast(occ,nproc_group_tdks)
+
+       nproc_group_kpoint_ms = comm_create_group(nproc_group_global,NK_s,nmacro_s)
+       call comm_get_groupinfo(nproc_group_kpoint_ms, nproc_id_kpoint_ms, nproc_size_kpoint_ms)
+       call comm_bcast(zu_GS,nproc_group_kpoint_ms)
+
+       zu_GS0(:,:,:) = zu_GS(:,:,:)
+       zu_t(:,:,:) = zu_GS(:,1:NBoccmax,:)
+
+
+       if(set_ini_coor_vel=='y') then
+ 
+           select case(unit_length)
+           case('au','a.u.')
+              ulength_to_au   = 1d0
+           case('AA','angstrom','Angstrom')
+              ulength_to_au   = 1d0/au_length_aa
+           end select
+
+           ! file for initial atomic coordinate and velocity in each macro grid
+           ! must be "(parent dir)/multiscale/M00XXXX/ini_coor_vel.dat"
+           ! the file format is
+           !  r_x  r_y  r_z  v_x  v_y  v_z  (for 1th atom)
+           !  r_x  r_y  r_z  v_x  v_y  v_z  (for 2th atom)
+           !    ..................
+           !  r_x  r_y  r_z  v_x  v_y  v_z  (for NI-th atom)
+           ! (unit of coordinate is A or a.u., but velocity must be a.u.)
+           if(comm_is_root(nproc_id_tdks)) then
+              unit_ini_rv = 5000 + imacro
+              file_ini_rv = trim(dir_ms_M(imacro))//'ini_coor_vel.dat'
+              open(unit_ini_rv,file=trim(file_ini_rv),status="old")
+              do ia=1,NI
+                 read(unit_ini_rv,*) (Rion(j,ia),j=1,3),(velocity(j,ia),j=1,3)
+              enddo
+              Rion(:,:)    = Rion(:,:)*ulength_to_au
+              Rion_eq(:,:) = Rion(:,:)
+              close(unit_ini_rv)
+           endif
+           
+           call comm_bcast(Rion,    nproc_group_tdks)
+           call comm_bcast(Rion_eq, nproc_group_tdks)
+           call comm_bcast(velocity,nproc_group_tdks)
+
+           Rion_m(:,:,imacro)     = Rion(:,:)
+           Rion_eq_m(:,:,imacro)  = Rion_m(:,:,imacro)
+           velocity_m(:,:,imacro) = velocity(:,:)
+           
+       endif
+
+       call psi_rho_GS
+       call Hartree
+       call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
+
+       Vloc(1:NL) = Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
+       Vloc_GS(:) = Vloc(:)
+       call Total_Energy_omp(rion_update_on,calc_mode_gs)
+       call Ion_Force_omp(rion_update_on,calc_mode_gs)
+       Eall0    = Eall
+       Eall_GS0 = Eall
+
+    enddo !imacro
+
+  end subroutine read_gs_wfn_k_ms_each_macro_grid
 
   subroutine modify_initial_guess_copy_1stk_to_all
     implicit none

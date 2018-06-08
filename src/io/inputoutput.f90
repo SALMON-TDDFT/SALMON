@@ -221,11 +221,16 @@ contains
       & sysname, &
       & directory, &
       & dump_filename, &
-      & read_gs_wfn_k, &    !changed from read_initial_guess
-      & write_gs_wfn_k, &
       & modify_gs_wfn_k, &  !changed from modify_initial_guess
-      & read_rt_wfn_k, &
-      & write_rt_wfn_k
+      & read_gs_wfn_k,   &  !changed from read_initial_guess
+      & read_rt_wfn_k,   &
+      & write_gs_wfn_k,  &
+      & write_rt_wfn_k,  &
+      & read_gs_wfn_k_ms,  &
+      & read_rt_wfn_k_ms,  &
+      & write_gs_wfn_k_ms, &
+      & write_rt_wfn_k_ms
+
 
     namelist/units/ &
       & unit_system
@@ -350,7 +355,8 @@ contains
       & ny_origin_m, &
       & nz_origin_m, &
       & file_macropoint, &
-      & num_macropoint
+      & num_macropoint,  &
+      & set_ini_coor_vel
 
     namelist/analysis/ &
       & projection_option, &
@@ -520,11 +526,16 @@ contains
     sysname          = 'default'
     directory        = './'
     dump_filename    = 'default'
-    read_gs_wfn_k    = 'n'
-    write_gs_wfn_k   = 'n'
     modify_gs_wfn_k  = 'n'
+    read_gs_wfn_k    = 'n'
     read_rt_wfn_k    = 'n'
+    write_gs_wfn_k   = 'n'
     write_rt_wfn_k   = 'n'
+    read_gs_wfn_k_ms = 'n'
+    read_rt_wfn_k_ms = 'n'
+    write_gs_wfn_k_ms= 'n'
+    write_rt_wfn_k_ms= 'n'
+
 !! == default for &parallel
     domain_parallel   = 'n'
     nproc_k           = 0
@@ -640,6 +651,7 @@ contains
     ny_origin_m = 1
     nz_origin_m = 1
     file_macropoint = ''
+    set_ini_coor_vel= 'n'
 !! == default for &analysis
     projection_option   = 'no'
     projection_decomp   = 'n'
@@ -843,12 +855,19 @@ contains
     call comm_bcast(time_shutdown   ,nproc_group_global)
     call comm_bcast(sysname         ,nproc_group_global)
     call comm_bcast(directory       ,nproc_group_global)
+    if(directory(len_trim(directory):len_trim(directory)).ne.'/') &
+    &  directory = trim(directory)//'/'
     call comm_bcast(dump_filename   ,nproc_group_global)
-    call comm_bcast(read_gs_wfn_k   ,nproc_group_global)
-    call comm_bcast(write_gs_wfn_k  ,nproc_group_global)
     call comm_bcast(modify_gs_wfn_k ,nproc_group_global)
+    call comm_bcast(read_gs_wfn_k   ,nproc_group_global)
     call comm_bcast(read_rt_wfn_k   ,nproc_group_global)
+    call comm_bcast(write_gs_wfn_k  ,nproc_group_global)
     call comm_bcast(write_rt_wfn_k  ,nproc_group_global)
+    call comm_bcast(read_gs_wfn_k_ms ,nproc_group_global)
+    call comm_bcast(read_rt_wfn_k_ms ,nproc_group_global)
+    call comm_bcast(write_gs_wfn_k_ms,nproc_group_global)
+    call comm_bcast(write_rt_wfn_k_ms,nproc_group_global)
+
 
 !! == bcast for &parallel
     call comm_bcast(domain_parallel  ,nproc_group_global)
@@ -984,9 +1003,9 @@ contains
     call comm_bcast(nx_origin_m,nproc_group_global)
     call comm_bcast(ny_origin_m,nproc_group_global)
     call comm_bcast(nz_origin_m,nproc_group_global)
-    call comm_bcast(file_macropoint,nproc_group_global)
-    call comm_bcast(num_macropoint,nproc_group_global)
-    
+    call comm_bcast(file_macropoint, nproc_group_global)
+    call comm_bcast(num_macropoint,  nproc_group_global)
+    call comm_bcast(set_ini_coor_vel,nproc_group_global)
     
     
 !! == bcast for &analysis
@@ -1217,7 +1236,6 @@ contains
     call comm_bcast(flag_geo_opt_atom,nproc_group_global)
     call comm_bcast(atom_name,nproc_group_global)
 
-
   end subroutine read_atomic_coordinates
 
   subroutine initialize_inputoutput_units
@@ -1373,11 +1391,16 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'sysname', trim(sysname)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'directory', trim(directory)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'dump_filename', trim(dump_filename)
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_gs_wfn_k', trim(read_gs_wfn_k)
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_gs_wfn_k', trim(write_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'modify_gs_wfn_k', trim(modify_gs_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_gs_wfn_k', trim(read_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'read_rt_wfn_k', trim(read_rt_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_gs_wfn_k', trim(write_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'write_rt_wfn_k', trim(write_rt_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_gs_wfn_k_ms', trim(read_gs_wfn_k_ms)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_rt_wfn_k_ms', trim(read_rt_wfn_k_ms)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_gs_wfn_k_ms', trim(write_gs_wfn_k_ms)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_rt_wfn_k_ms', trim(write_rt_wfn_k_ms)
+
 
       if(inml_units >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'units', inml_units
@@ -1535,6 +1558,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nz_origin_m', nz_origin_m
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_macropoint', trim(file_macropoint)
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'num_macropoint', num_macropoint
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_coor_vel', set_ini_coor_vel
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis

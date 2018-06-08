@@ -100,7 +100,10 @@ subroutine tddft_maxwell_ms
     entrance_iter=-1
     call reset_rt_timer
   end if
- 
+
+  ! create directory for exporting
+  call create_dir_ms
+
   ! Export to file_trj (initial step)
   if (out_rvf_rt=='y')then
        write(comment_line,110) -1, 0.0d0
@@ -400,11 +403,13 @@ subroutine tddft_maxwell_ms
       iy_m = macropoint(2, imacro)
       iz_m = macropoint(3, imacro)
       !! Map the local macropoint current into the jm field
-      Jm_new_ms(1:3, ix_m, iy_m, iz_m) = Jm_new_ms(1:3, ix_m, iy_m, iz_m) & 
-                                     & + Jm_new_m(1:3, imacro)
+      !Jm_new_ms(1:3, ix_m, iy_m, iz_m) = Jm_new_ms(1:3, ix_m, iy_m, iz_m) & 
+      !                               & + Jm_new_m(1:3, imacro)
+      Jm_new_ms(1:3, ix_m, iy_m, iz_m) = matmul(trans_inv(1:3,1:3), Jm_new_m(1:3, imacro))
       if(use_ehrenfest_md=='y') &
-      Jm_ion_ms(1:3, ix_m, iy_m, iz_m) = Jm_ion_ms(1:3, ix_m, iy_m, iz_m) & 
-                                     & + Jm_ion_m(1:3, imacro)
+      !Jm_ion_ms(1:3, ix_m, iy_m, iz_m) = Jm_ion_ms(1:3, ix_m, iy_m, iz_m) & 
+      !                               & + Jm_ion_m(1:3, imacro)
+      Jm_ion_ms(1:3, ix_m, iy_m, iz_m) = matmul(trans_inv(1:3,1:3), Jm_ion_m(1:3, imacro))
     end do
 !$omp end parallel do
     call timer_end(LOG_OTHER)
@@ -485,6 +490,15 @@ subroutine tddft_maxwell_ms
   
   call write_data_local_ac_jm()
   call write_data_vac_ac()
+
+  ! Export last atomic coordinate and velocity & Close file_trj
+  if (use_ehrenfest_md=='y')then
+     do imacro = nmacro_s, nmacro_e
+         call write_xyz_ms(comment_line,"end","rvf",imacro)
+         call write_ini_coor_vel_ms_for_restart(imacro)
+     enddo
+  endif
+
 
   call timer_end(LOG_IO)
   if(comm_is_root(nproc_id_global)) then
@@ -607,9 +621,12 @@ contains
       iiy_m = macropoint(2, iimacro)
       iiz_m = macropoint(3, iimacro)
       !! Assign the vector potential into the local macropoint variables
-      Ac_m(1:3, iimacro) = Ac_ms(1:3, iix_m, iiy_m, iiz_m)
-      Ac_new_m(1:3, iimacro) = Ac_new_ms(1:3, iix_m, iiy_m, iiz_m)
-      Ac_old_m(1:3, iimacro) = Ac_old_ms(1:3, iix_m, iiy_m, iiz_m)
+      !Ac_m(1:3, iimacro) = Ac_ms(1:3, iix_m, iiy_m, iiz_m)
+      !Ac_new_m(1:3, iimacro) = Ac_new_ms(1:3, iix_m, iiy_m, iiz_m)
+      !Ac_old_m(1:3, iimacro) = Ac_old_ms(1:3, iix_m, iiy_m, iiz_m)
+      Ac_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_ms(1:3, iix_m, iiy_m, iiz_m))
+      Ac_new_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_new_ms(1:3, iix_m, iiy_m, iiz_m))
+      Ac_old_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_old_ms(1:3, iix_m, iiy_m, iiz_m))
     end do
 !$omp end parallel do
   end subroutine assign_mp_variables_omp
@@ -659,6 +676,19 @@ contains
   end subroutine
   
   
+  subroutine create_dir_ms
+    implicit none
+    integer :: imacro
+
+    call create_directory(dir_ms)
+    call create_directory(dir_ms_RT_Ac)
+
+    do imacro = nmacro_s, nmacro_e
+       call create_directory(dir_ms_M(imacro))
+    enddo
+
+  end subroutine
+
   subroutine write_data_out(index)
     implicit none
     integer, intent(in) :: index
@@ -669,8 +699,7 @@ contains
     ipos = (index - iproc) / nproc_size_global
     if (iproc == nproc_id_global) then
       write(file_ac, "(A,A,'_Ac_',I6.6,'.data')") & 
-        & trim(process_directory), trim(SYSname),  out_ms_step * index
-      
+        & trim(dir_ms_RT_Ac), trim(SYSname),  out_ms_step * index
       fh_ac = open_filehandle(file_ac)
       write(fh_ac, '("#",1X,A)') "Macroscopic field distribution"
       
@@ -838,9 +867,9 @@ contains
     character(100) :: file_ac_m
     if(comm_is_root(nproc_id_tdks)) then
       do iimacro = nmacro_s, nmacro_e
-        write(file_ac_m, "(A, A, '_Ac_M_',I6.6,'.data')") &
-          & trim(process_directory), trim(SYSname), iimacro
+        write(file_ac_m,"(A,A,'_Ac_M.data')")trim(dir_ms_M(iimacro)),trim(SYSname)
         fh_ac_m = open_filehandle(file_ac_m)
+
         write(fh_ac_m, '("#",1X,A)') "Local variable at macro point"
         
         write(fh_ac_m, "('#',1X,A,':',3(1X,I6))") "Macropoint", macropoint(1:3, iimacro)
@@ -894,8 +923,7 @@ contains
     character(100) :: file_ac_vac
     
     if (comm_is_root(nproc_id_global)) then
-      write(file_ac_vac, "(A, A, '_Ac_vac.data')") &
-        & trim(process_directory), trim(SYSname)
+      write(file_ac_vac,"(A, A, '_Ac_vac.data')") trim(dir_ms_RT_Ac),trim(SYSname)
       fh_ac_vac = open_filehandle(file_ac_vac)
       write(fh_ac_vac, '("#",1X,A)') "Ac vacuum region"
       write(fh_ac_vac, '("#",1X,A)') "Data of Ac field at the end of media"
@@ -944,8 +972,7 @@ contains
 
       if(action=='new') then
 
-        write(file_trj, "(A, A, '_trj_',I6.6,'.xyz')") &
-          & trim(process_directory), trim(SYSname), imacro
+        write(file_trj, "(A,A,'_trj.xyz')") trim(dir_ms_M(imacro)),trim(SYSname)
         open(unit_xyz,file=trim(file_trj),status="unknown")
 
       else if(action=='add') then
@@ -955,15 +982,15 @@ contains
          do ia=1,NI
             if(      rvf=="r  " ) then
                write(unit_xyz,100) trim(atom_name(ia)), &
-                                 & Rion_m(1:3,ia,imacro)*au_length_aa
+                           & Rion_m(1:3,ia,imacro)*au_length_aa
             else if( rvf=="rv " ) then
                write(unit_xyz,110) trim(atom_name(ia)), &
-                                 & Rion_m(1:3,ia,imacro)*au_length_aa,&
-                                 & velocity_m(1:3,ia,imacro)
+                           & Rion_m(1:3,ia,imacro)*au_length_aa,&
+                           & velocity_m(1:3,ia,imacro)
             else if( rvf=="rvf" ) then
                write(unit_xyz,120) trim(atom_name(ia)), &
-                                 & Rion_m(1:3,ia,imacro)*au_length_aa,&
-                                 & velocity_m(1:3,ia,imacro), force_m(1:3,ia,imacro)
+                           & Rion_m(1:3,ia,imacro)*au_length_aa,&
+                           & velocity_m(1:3,ia,imacro), force_m(1:3,ia,imacro)
             endif
          enddo
 
@@ -976,6 +1003,47 @@ contains
 100 format(a2,3f18.10)
 110 format(a2,3f18.10, "  #v=",3f18.10)
 120 format(a2,3f18.10, "  #v=",3f18.10, "  #f=",3f18.10)
+
+    endif
+
+    call comm_sync_all
+  end subroutine
+
+  subroutine write_ini_coor_vel_ms_for_restart(imacro)
+  !print atomic coordinate and velocity at the last step just to set_ini_coor_vel option
+    use Global_Variables
+    use inputoutput, only: au_length_aa
+!    use salmon_global, only: SYSname,iflag_atom_coor,ntype_atom_coor_cartesian,ntype_atom_coor_reduced
+    use salmon_parallel, only: nproc_id_global
+    use salmon_communication, only: comm_is_root
+    use salmon_file
+    implicit none
+    integer :: ia,unit_ini_rv,imacro 
+    character(1024) :: file_ini_rv
+    real(8) :: ulength_to_au
+
+    if(comm_is_root(nproc_id_tdks)) then
+
+      unit_ini_rv = 5000 + imacro
+
+      write(file_ini_rv, "(A,'last_coor_vel.data')") trim(dir_ms_M(imacro))
+      open(unit_ini_rv,file=trim(file_ini_rv),status="unknown")
+
+      select case(unit_length)
+      case('au','a.u.')
+         ulength_to_au   = 1d0
+      case('AA','angstrom','Angstrom')
+         ulength_to_au   = 1d0/au_length_aa
+      end select
+      
+      do ia=1,NI
+         write(unit_ini_rv,110)  &
+              & Rion_m(1:3,ia,imacro)/ulength_to_au,&
+              & velocity_m(1:3,ia,imacro)
+      enddo
+110   format(6e24.12)
+
+      close(unit_ini_rv)
 
     endif
 

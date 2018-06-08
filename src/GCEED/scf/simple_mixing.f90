@@ -20,6 +20,26 @@ implicit none
 integer :: ix,iy,iz
 real(8),intent(IN) :: c1,c2
 
+if(ilsda == 0)then
+!$OMP parallel do private(iz,iy,ix)
+  do iz=ng_sta(3),ng_end(3)
+  do iy=ng_sta(2),ng_end(2)
+  do ix=ng_sta(1),ng_end(1)
+    rho_out(ix,iy,iz,num_rho_stock)=rho(ix,iy,iz)
+  end do
+  end do
+  end do
+elseif( ilsda==1 )then
+!$OMP parallel do private(iz,iy,ix)
+  do iz=ng_sta(3),ng_end(3)
+  do iy=ng_sta(2),ng_end(2)
+  do ix=ng_sta(1),ng_end(1)
+    rho_s_out(ix,iy,iz,num_rho_stock,1:2)=rho_s(ix,iy,iz,1:2)
+  end do
+  end do
+  end do
+end if
+
 !rho = c1*rho + c2*matmul( psi**2, occ )
 if(ilsda == 0)then
   do iz=ng_sta(3),ng_end(3)

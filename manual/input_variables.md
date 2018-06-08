@@ -103,7 +103,7 @@ Default is the current directoy, <code>./</code>.
 
 ><dt>write_gs_wfn_k; <code>Character</code>; 3d</dt>
 ><dd>
->Write ground state wave function into "gs_wfn_k" directory if this is <code>y</code>. (Useful for <code>calc=mode=GS_RT</code>. But the data is always written in the case of <code>calc_mode=GS</code> calculation.) 
+>Write ground state wave function into "gs_wfn_k" directory if this is <code>y</code>. (Useful for <code>calc_mode=GS_RT</code>. But the data is always written in the case of <code>calc_mode=GS</code> calculation.) 
 >Default is <code>n</code>.
 ></dd>
 
@@ -126,6 +126,11 @@ Default is the current directoy, <code>./</code>.
 >Default is <code>n</code>.
 ></dd>
 
+><dt>read_gs_wfn_k_ms; <code>Character</code>; 3d</dt>
+><dd>
+>Read ground state wave function as initial state for multiscale calculation. This should be used together with <code>use_ms_maxwell='y'</code>, <code>calc_mode='RT'</code> and <code>set_ini_coor_vel='y'</code>. The ground state wave function data must be pre-calculated for each configuration(or atomic coordinate) and be put the obtained directories 'gs_wfn_k' into specific directories: <code>directory</code>/multiscale/MXXXXXX/ where is the index number of the macro-grid point of the material region usually starting from '000001' up to the number of macro-grid point (the same place of 'ini_coor_vel.dat' used by the option <code>set_ini_coor_vel</code>).
+>Default is <code>n</code>.
+></dd>
 
 </dl>
 
@@ -778,6 +783,13 @@ while
 Origin coordinat of the grid points.
 Default value is <code>'1'</code>.
 </dd>
+
+><dt>set_ini_coor_vel; <code>Character</code>; 3d</dt>
+><dd>
+>Set initial atomic coordinates and velocities for each macro-grid point. This must be given with specific directories and files: 
+>Prepare <code>directory</code>/multiscale/MXXXXXX/ini_coor_vel.dat, where 'XXXXXX' is the index number of the macro-grid point of the material region usually starting from '000001' up to the number of macro-grid point. The format of the file 'ini_coor_vel.dat' is just Rx, Ry, Rz, Vx, Vy, Vz (with space separation) for each atom (i.e. for each line), where the unit of the coordinates, Rx, Ry, Rz, is angstrom or a.u. speficied by <code>unit_system</code> but that of velocities is always a.u.. This option should be used together with <code>read_gs_wfn_k_ms</code> which is the option to read the ground state wave function for each macro-grid point. 
+>Default value is <code>'y'</code>.
+></dd>
 
 ><dt>file_macropoint; <code>Character</code>; 3d</dt>
 ><dd>

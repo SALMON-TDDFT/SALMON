@@ -51,11 +51,15 @@ module salmon_global
   character(256) :: sysname
   character(256) :: directory
   character(256) :: dump_filename
-  character(1)   :: read_gs_wfn_k
-  character(1)   :: write_gs_wfn_k
   character(20)  :: modify_gs_wfn_k
+  character(1)   :: read_gs_wfn_k
   character(1)   :: read_rt_wfn_k
+  character(1)   :: write_gs_wfn_k
   character(1)   :: write_rt_wfn_k
+  character(1)   :: read_gs_wfn_k_ms
+  character(1)   :: read_rt_wfn_k_ms
+  character(1)   :: write_gs_wfn_k_ms
+  character(1)   :: write_rt_wfn_k_ms
 
 !! &units
   character(16)  :: unit_system
@@ -188,6 +192,7 @@ module salmon_global
   integer        :: nz_origin_m
   character(100) :: file_macropoint
   integer        :: num_macropoint
+  character(1)   :: set_ini_coor_vel
   !! TODO: remove num_macropoint later
   
 !! &analysis
