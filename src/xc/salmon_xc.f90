@@ -17,7 +17,6 @@
 module salmon_xc
   use builtin_pz, only: exc_cor_pz
   use builtin_pzm, only: exc_cor_pzm
-  use builtin_pz_sp, only: exc_cor_pz_sp
   use builtin_pbe, only: exc_cor_pbe
   use builtin_tbmbj, only: exc_cor_tbmbj
 #ifdef SALMON_USE_LIBXC
@@ -448,18 +447,11 @@ contains
     subroutine exec_builtin_pz()
       implicit none
       real(8) :: rho_s_1d(nl)
-      real(8) :: rho_s_sp_1d(nl,2)
       real(8) :: exc_1d(nl)
       real(8) :: eexc_1d(nl)
       real(8) :: vexc_1d(nl)
-      real(8) :: vexc_sp_1d(nl,2)
 
-      
-      if (xc%ispin == 0) then
-        rho_s_1d = reshape(rho, (/nl/)) * 0.5
-      else
-        rho_s_sp_1d = reshape(rho_s, (/nl, 2/))
-      end if
+      rho_s_1d = reshape(rho, (/nl/)) * 0.5
 
 #ifndef SALMON_DEBUG_NEGLECT_NLCC
       if (present(rho_nlcc)) then
@@ -467,20 +459,10 @@ contains
       endif
 #endif
 
-      if (xc%ispin == 0) then
-        call exc_cor_pz(nl, rho_s_1d, exc_1d, eexc_1d, vexc_1d)
-      else
-        call exc_cor_pz_sp(nl, rho_s_sp_1d, exc_1d, eexc_1d, vexc_sp_1d)
-      end if
+      call exc_cor_pz(nl, rho_s_1d, exc_1d, eexc_1d, vexc_1d)
 
-      if (xc%ispin == 0) then
-        if (present(vxc)) then
-          vxc = vxc + reshape(vexc_1d, (/nx, ny, nz/))
-        end if
-      else
-        if (present(vxc_s)) then
-          vxc_s = vxc_s + reshape(vexc_sp_1d, (/nx, ny, nz, 2/))
-        end if
+      if (present(vxc)) then
+         vxc = vxc + reshape(vexc_1d, (/nx, ny, nz/))
       endif
 
       if (present(exc)) then

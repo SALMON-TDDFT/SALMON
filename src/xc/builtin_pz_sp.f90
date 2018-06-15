@@ -30,7 +30,7 @@ contains
 
     do i=1,NL
       trho=rho_s(i,1)+rho_s(i,2)+1.d-20
-      trho_s(1:2)=2*rho_s(i,1:2)+5.d-21
+      trho_s(1:2)=rho_s(i,1:2)+5.d-21
       call PZxc_sp(trho,trho_s,e_xc,vxc_s)
       exc(i)=e_xc
       Eexc(i)=e_xc*trho

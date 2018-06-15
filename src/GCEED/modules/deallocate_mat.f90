@@ -58,9 +58,12 @@ else if(iSCFRT==2.and.icalcforce==1)then
 end if
 
 deallocate (rho_tmp)
-deallocate (rho_s_tmp)
 deallocate (vxc_tmp)
 deallocate (eexc_tmp)
+if(ispin==1)then
+  deallocate (exc_m_tmp)
+  deallocate (eexc_m_tmp)
+end if
 deallocate (exc_dummy)
 deallocate (exc_dummy2)
 deallocate (exc_dummy3)

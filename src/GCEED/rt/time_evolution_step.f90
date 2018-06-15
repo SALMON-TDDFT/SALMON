@@ -141,7 +141,7 @@ end if
     if(ilsda==0)then
       call exc_cor_ns
     else if(ilsda==1)then
-      call exc_cor_lsda
+      call exc_cor_lsda_ns
     end if
   end if
 
