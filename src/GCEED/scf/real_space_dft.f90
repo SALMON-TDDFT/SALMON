@@ -231,7 +231,7 @@ if(istopt==1)then
     if(ilsda==0)then
       call exc_cor_ns
     else if(ilsda==1)then
-      call exc_cor_lsda
+      call exc_cor_lsda_ns
     end if
 
     call allgatherv_vlocal
@@ -458,7 +458,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       if(ilsda==0)then
         call exc_cor_ns
       else if(ilsda==1)then
-        call exc_cor_lsda
+        call exc_cor_lsda_ns
       end if
     end if
    
@@ -570,7 +570,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       if(ilsda==0)then
         call exc_cor_ns
       else if(ilsda==1)then
-        call exc_cor_lsda
+        call exc_cor_lsda_ns
       end if
     end if
    
