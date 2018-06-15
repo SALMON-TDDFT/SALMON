@@ -73,8 +73,28 @@ subroutine tddft_maxwell_ms
       call init_Ac_ms
     endif
 
+    !(for restarting with read_rt_wfn_k_ms=y option)
+    if(read_rt_wfn_k_ms=='y') then
+       call add_init_Ac_ms
+       call assign_mp_variables_omp()
+       do imacro = nmacro_s, nmacro_e
+          call psi_rho_RT(zu_t)
+          call Hartree
+          call Exc_Cor(calc_mode_rt,NBoccmax,zu_t)
+          Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
+          call Total_Energy_omp(rion_update_on,calc_mode_rt,imacro)
+          call Ion_Force_omp(rion_update_on,calc_mode_rt,imacro)
+       enddo
+       do imacro = 1, nmacro
+          ix_m = macropoint(1,imacro)
+          iy_m = macropoint(2,imacro)
+          iz_m = macropoint(3,imacro)
+          Jm_new_m(1:3,imacro)=matmul(trans_mat(1:3,1:3),Jm_new_ms(1:3,ix_m,iy_m,iz_m))
+       end do
+    endif
+
     rho_gs(:)=rho(:)
-    
+
     Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
     
     do imacro = nmacro_s, nmacro_e
@@ -115,6 +135,23 @@ subroutine tddft_maxwell_ms
          call write_xyz_ms(comment_line,"new","rvf",imacro)
          call write_xyz_ms(comment_line,"add","rvf",imacro)
        enddo
+  endif
+
+  !(get ion current for initial step)
+  if(use_ehrenfest_md=='y') then 
+     do imacro = nmacro_s, nmacro_e
+        call current_RT_ion_MS(imacro)
+        if (comm_is_root(nproc_id_tdks)) then
+            jm_ion_new_m_tmp(1:3, imacro) = jav_ion(1:3)
+        end if
+     enddo
+     call comm_summation(jm_ion_new_m_tmp,Jm_ion_m,3*nmacro,nproc_group_global)
+     do imacro = 1, nmacro
+        ix_m = macropoint(1,imacro)
+        iy_m = macropoint(2,imacro)
+        iz_m = macropoint(3,imacro)
+        Jm_ion_ms(1:3,ix_m,iy_m,iz_m) = matmul(trans_inv(1:3,1:3),Jm_ion_m(1:3,imacro))
+     enddo
   endif
 
   !if(use_ehrenfest_md=='y') then
@@ -247,7 +284,6 @@ subroutine tddft_maxwell_ms
     end if
     
     Macro_loop : do imacro = nmacro_s, nmacro_e
-      
       
       !===========================================================================
       !! Extract microscopic state of "imacro"-th macropoint
@@ -608,7 +644,7 @@ contains
       end if
     end do
 !$omp end parallel do
-    if(use_ehrenfest_md=='y') Jm_ion_ms(:,:,:,:) = 0d0
+
   end subroutine proceed_ms_variables_omp
 
 
@@ -624,9 +660,9 @@ contains
       !Ac_m(1:3, iimacro) = Ac_ms(1:3, iix_m, iiy_m, iiz_m)
       !Ac_new_m(1:3, iimacro) = Ac_new_ms(1:3, iix_m, iiy_m, iiz_m)
       !Ac_old_m(1:3, iimacro) = Ac_old_ms(1:3, iix_m, iiy_m, iiz_m)
-      Ac_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_ms(1:3, iix_m, iiy_m, iiz_m))
-      Ac_new_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_new_ms(1:3, iix_m, iiy_m, iiz_m))
-      Ac_old_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_old_ms(1:3, iix_m, iiy_m, iiz_m))
+      Ac_m(1:3, iimacro)     = matmul(trans_mat(1:3,1:3),Ac_ms(    1:3, iix_m, iiy_m, iiz_m))
+      Ac_new_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3),Ac_new_ms(1:3, iix_m, iiy_m, iiz_m))
+      Ac_old_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3),Ac_old_ms(1:3, iix_m, iiy_m, iiz_m))
     end do
 !$omp end parallel do
   end subroutine assign_mp_variables_omp
@@ -1172,9 +1208,6 @@ contains
     integer :: ia,imacro
     real(8) :: E_tot(3),FionAc(3,NI)
 
-!    E_ext(iter,:)=-(Ac_ext(iter+1,:)-Ac_ext(iter-1,:))/(2*dt)
-!    E_ind(iter,:)=-(Ac_ind(iter+1,:)-Ac_ind(iter-1,:))/(2*dt)
-!    E_tot(iter,:)=-(Ac_tot(iter+1,:)-Ac_tot(iter-1,:))/(2*dt)
     E_tot(:)= -(Ac_new_m(:,imacro)-Ac_old_m(:,imacro))/(2*dt)
 
 !    Eelemag= aLxyz*sum(E_tot(iter,:)**2)/(8.d0*Pi)

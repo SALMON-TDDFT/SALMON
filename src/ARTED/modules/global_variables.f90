@@ -235,6 +235,7 @@ Module Global_Variables
   !!       In the RT iteration, the variable with suffix "new" and "old" 
   !!       indicate the data at the time "iter+1" and "iter-1", respectively.
   real(8),allocatable :: Ac_old_ms(:,:,:,:),  Ac_ms(:,:,:,:), Ac_new_ms(:,:,:,:)
+  real(8),allocatable :: add_Ac_ms(:,:,:,:),  add_Ac_new_ms(:,:,:,:)
   real(8),allocatable :: Jm_old_ms(:,:,:,:),  Jm_ms(:,:,:,:), Jm_new_ms(:,:,:,:)
   real(8),allocatable :: Jm_ion_ms(:,:,:,:),  Jm_ion_m(:,:)
   real(8),allocatable :: elec_ms(:,:,:,:)

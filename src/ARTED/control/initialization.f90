@@ -514,8 +514,6 @@ contains
        call set_initial_velocity
        if(set_ini_velocity=='r') call read_initial_velocity
 
-      !if (comm_is_root(nproc_id_global)) write(*,*) "test-debug"
-
        if (use_ms_maxwell == 'y') then
           if(nmacro_s .ne. nmacro_e)then
              write(*,*) "Error: "
@@ -706,6 +704,10 @@ contains
     allocate(Ac_old_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
     allocate(Ac_new_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
     Ac_ms = 0d0; Ac_old_ms = 0d0; Ac_new_ms = 0d0
+    if(read_rt_wfn_k_ms=='y') then
+      allocate(add_Ac_new_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
+      allocate(add_Ac_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
+    endif
     allocate(Jm_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
     allocate(Jm_old_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
     allocate(Jm_new_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))

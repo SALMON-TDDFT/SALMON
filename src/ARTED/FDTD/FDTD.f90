@@ -351,6 +351,19 @@ subroutine init_ac_ms
 end subroutine init_ac_ms
 !
 
+subroutine add_init_ac_ms
+  ! work only for 1D with read_rt_wfn_k_ms=y option
+  ! this is just connection from pumpin simulation to probing simulation, 
+  ! where vector potential on material at each macro-grid is necessary
+  ! to be consistent restarting
+  use Global_variables, only:Ac_new_ms,Ac_ms,add_Ac_new_ms,add_Ac_ms
+  implicit none
+
+  Ac_new_ms(:,:,:,:) = Ac_new_ms(:,:,:,:) + add_Ac_new_ms(:,:,:,:)
+  Ac_ms(:,:,:,:)     = Ac_ms(:,:,:,:)     + add_Ac_ms(:,:,:,:)
+
+  return
+end subroutine add_init_ac_ms
 
 
 !===========================================================
@@ -372,13 +385,14 @@ subroutine dt_evolve_Ac_1d
     rr(1) = 0d0
     rr(2:3) = -( &
             &      + Ac_ms(2:3,ix_m+1, iy_m, iz_m) &
-            & -2d0 * Ac_ms(2:3,ix_m, iy_m, iz_m) &
+            & -2d0 * Ac_ms(2:3,ix_m,   iy_m, iz_m) &
             &      + Ac_ms(2:3,ix_m-1, iy_m, iz_m) &
             & ) * (1d0 / HX_m ** 2)
     Ac_new_ms(:,ix_m, iy_m, iz_m) = (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
       & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
   end do
 !$omp end parallel do
+
 
 !!(add ion current)
   if(use_ehrenfest_md=='y')then

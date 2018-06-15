@@ -132,6 +132,17 @@ Default is the current directoy, <code>./</code>.
 >Default is <code>n</code>.
 ></dd>
 
+><dt>read_rt_wfn_k_ms; <code>Character</code>; 3d</dt>
+><dd> Read wave function and field information as initial state in multiscale calculation. These are generated in pre-calculation by using <code>write_rt_wfn_k_ms='y'</code>. If you give incident pulse from input file option, the field is added to the read initial data.
+>Default is <code>n</code>.
+></dd>
+
+><dt>write_rt_wfn_k_ms; <code>Character</code>; 3d</dt>
+><dd> Write wave function and field information at the last step in multiscale calculation. It is used for restarting by using <code>read_rt_wfn_k_ms='y'</code>. 
+>Default is <code>n</code>.
+></dd>
+
+
 </dl>
 
 
