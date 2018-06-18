@@ -24,7 +24,7 @@ subroutine Exc_Cor(GS_RT,NBtmp,zu)
   integer,intent(in)       :: NBtmp
   complex(8),intent(inout) :: zu(NL,NBtmp,NK_s:NK_e)
   call timer_begin(LOG_EXC_COR)
-
+  
   select case(functional)
   case('TPSS')
      call Exc_Cor_TPSS(GS_RT)

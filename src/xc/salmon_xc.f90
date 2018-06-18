@@ -81,7 +81,7 @@ contains
     character(*), intent(in), optional :: cname
 
     ! Initialization of xc variable
-    xc%xctype = salmon_xctype_none
+    xc%xctype(1:3) = salmon_xctype_none
     xc%ispin = ispin
     xc%cval = cval
     xc%use_gradient = .false.
@@ -118,14 +118,14 @@ contains
       ! Libxc prefix is used...
       if (lower(name(1:6)) == 'libxc:') then
         xc%xctype(1) = salmon_xctype_libxc
-        call setup_libxc(name(7:), 1)
+        call init_libxc(name(7:), 1)
         return
       end if
 #endif
 
       select case(lower(name))
       case('none')
-        xc%xctype(1) = salmon_xctype_none
+        ! xc%xctype(1) = salmon_xctype_none ! default
         return
       
       case ('pz')
@@ -173,7 +173,7 @@ contains
         xc%use_current = .true.
         return
 
-      ! Please write additional functional here:
+      ! Please insert additional functional here:
       ! e.g.
       ! case ('additional_functional')
       !   initialization_process_of_functional
@@ -183,22 +183,22 @@ contains
       case('libxc_pz')
         xc%xctype(2) = salmon_xctype_libxc
         xc%xctype(3) = salmon_xctype_libxc
-        call setup_libxc('LDA_X', 2)
-        call setup_libxc('LDA_C_PZ', 3)
+        call init_libxc('LDA_X', 2)
+        call init_libxc('LDA_C_PZ', 3)
         return
 
       case('libxc_pzm')
         xc%xctype(2) = salmon_xctype_libxc
         xc%xctype(3) = salmon_xctype_libxc
-        call setup_libxc('LDA_X', 2)
-        call setup_libxc('LDA_C_PZ_MOD', 3)
+        call init_libxc('LDA_X', 2)
+        call init_libxc('LDA_C_PZ_MOD', 3)
         return
 
       case('libxc_pbe')
         xc%xctype(2) = salmon_xctype_libxc
         xc%xctype(3) = salmon_xctype_libxc
-        call setup_libxc('GGA_X_PBE', 2)
-        call setup_libxc('GGA_C_PBE', 3)
+        call init_libxc('GGA_X_PBE', 2)
+        call init_libxc('GGA_C_PBE', 3)
         return
 #endif
 
@@ -220,17 +220,17 @@ contains
 #ifdef SALMON_USE_LIBXC
       if (lower(name(1:6)) == 'libxc:') then
         xc%xctype(2) = salmon_xctype_libxc
-        call setup_libxc(name(7:), 2)
+        call init_libxc(name(7:), 2)
         return
       end if
 #endif
 
       select case(name)
       case('none')
-        xc%xctype(2) = salmon_xctype_none
+        ! xc%xctype(2) = salmon_xctype_none ! default
         return
 
-      ! Please write additional functional here:
+      ! Please insert additional functional here:
       ! e.g.
       ! case ('additional_functional')
       !   initialization_process_of_functional
@@ -254,17 +254,17 @@ contains
 #ifdef SALMON_USE_LIBXC
       if (lower(name(1:6)) == 'libxc:') then
         xc%xctype(3) = salmon_xctype_libxc
-        call setup_libxc(name(7:), 3)
+        call init_libxc(name(7:), 3)
         return
       end if
 #endif
 
       select case(name)
       case('none')
-        xc%xctype(3) = salmon_xctype_none
+        ! xc%xctype(3) = salmon_xctype_none ! default
         return
 
-      ! Please write additional functional here:
+      ! Please insert additional functional here:
       ! e.g.
       ! case ('additional_functional')
       !   initialization_process_of_functional
@@ -282,7 +282,7 @@ contains
 
 
 #ifdef SALMON_USE_LIBXC
-    subroutine setup_libxc(libxc_name, ii)
+    subroutine init_libxc(libxc_name, ii)
       implicit none
       character(*), intent(in) :: libxc_name
       integer, intent(in) :: ii
@@ -321,7 +321,7 @@ contains
       end select
 
       return
-    end subroutine setup_libxc
+    end subroutine init_libxc
 #endif
 
   end subroutine init_xc
@@ -593,12 +593,13 @@ contains
     subroutine exec_libxc(ii)
       implicit none
       integer, intent(in) :: ii
+      ! character(256) :: name
 
       real(8) :: rho_1d(nl), grho_1d(nl, 3)
       real(8) :: sigma_1d(nl), rlrho_1d(nl), tau_1d(nl)
       real(8) :: exc_tmp_1d(nl), vxc_tmp_1d(nl)
       real(8) :: gvxc_tmp_1d(nl), lvxc_tmp_1d(nl), tvxc_tmp_1d(nl)
-
+      
       rho_1d = reshape(rho, (/nl/))
       if (present(rho_nlcc)) then
         rho_1d = rho_1d + reshape(rho_nlcc, (/nl/))
