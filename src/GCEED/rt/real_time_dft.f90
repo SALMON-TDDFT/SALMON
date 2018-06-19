@@ -41,6 +41,7 @@ END MODULE global_variables_rt
 subroutine Real_Time_DFT
 use salmon_parallel, only: nproc_id_global, nproc_group_h
 use salmon_communication, only: comm_is_root, comm_summation
+use salmon_xc, only: init_xc, finalize_xc
 use misc_routines, only: get_wtime
 use global_variables_rt
 implicit none
@@ -59,6 +60,8 @@ character(100):: alpha2OutFile
 integer :: ia,ib
 real(8) :: rab
 real(8),allocatable :: tfourier_integrand(:,:)
+
+call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
 
 call check_cep
 call check_ae_shape
@@ -781,6 +784,8 @@ end if
 
 call deallocate_mat
 
+call finalize_xc(xc_func)
+  
 END subroutine Real_Time_DFT
 
 !=======================================================================

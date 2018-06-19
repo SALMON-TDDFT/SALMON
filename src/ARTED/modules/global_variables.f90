@@ -15,6 +15,7 @@
 !
 Module Global_Variables
   use salmon_global
+  use salmon_xc, only: xc_functional
 !ARTED version
   character(50),parameter :: ARTED_ver='ARTED.1.6.0 (based on 2014.08.10.2)'
 
@@ -307,6 +308,9 @@ Module Global_Variables
   logical :: Rion_update_rt
   logical, parameter :: rion_update_on  = .true.
   logical, parameter :: rion_update_off = .false.
+  
+  ! Exchange Correlation
+  type(xc_functional) :: xc_func
 
   interface 
     subroutine total_Energy_omp(Rion_update,GS_RT,ixy_m)

@@ -39,6 +39,9 @@ if (HPSI_TEST)
   set(HPSI_TEST_SUFFIX "_test")
 endif()
 
+## Additional library options
+option_set(USE_LIBXC                "Use LibXC library"                 OFF)
+
 # cross-compile or native-compile
 if (${CMAKE_CROSSCOMPILING})
   #
@@ -129,6 +132,22 @@ endif ()
 add_definitions_if(CURRENT_PREPROCESSING -DARTED_CURRENT_PREPROCESSING)
 add_definitions_if(REDUCE_FOR_MANYCORE   -DARTED_REDUCE_FOR_MANYCORE)
 add_definitions_if(LARGE_BLOCKING        -DARTED_LBLK)
+
+### Additional Libraries:
+### LibXC 
+if (USE_LIBXC)
+  if (LIBXC_INSTALLDIR)
+    include_directories(${LIBXC_INSTALLDIR}/include)
+    link_directories(${LIBXC_INSTALLDIR}/lib)
+    set(EXTERNAL_LIBS ${EXTERNAL_LIBS} xcf90 xc)
+  else()
+    find_package(LIBXCF90 REQUIRED)
+    include_directories(${LIBXCF90_INCLUDES})
+    set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${LIBXCF90_LIBRARIES})
+  endif()
+  add_definitions(-DSALMON_USE_LIBXC)
+endif ()
+
 
 if (OPT_STENCIL)
   add_definitions(-DARTED_STENCIL_OPTIMIZED)

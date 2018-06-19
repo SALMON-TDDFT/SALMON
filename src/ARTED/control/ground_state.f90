@@ -26,10 +26,12 @@ contains
     use salmon_communication, only: comm_bcast, comm_sync_all, comm_is_root
     use broyden_sub
     use io_gs_wfn_k, only: iflag_read,read_write_gs_wfn_k
+    use salmon_xc, only: init_xc, finalize_xc
     implicit none
     integer :: iter, ik, ib, ia
-    character(10) :: functional_t
+    ! character(10) :: functional_t
     real(8) :: fave,fave_prev
+    logical :: flag_functional_override
 
     allocate(rho_in(1:NL,1:Nscf+1),rho_out(1:NL,1:Nscf+1))
     rho_in(1:NL,1:Nscf+1)=0.d0; rho_out(1:NL,1:Nscf+1)=0.d0
@@ -58,11 +60,25 @@ contains
 
     endif
 
-    functional_t = functional
-    if(functional_t == 'TBmBJ' .or. functional_t == 'BJ_PW') functional = 'PZM'
+
+    ! NOTE:
+    !  In the former-loop of the SCF calculation (iter < 20), the LDA(PZM)
+    !  is used in stead of MetaGGA(TBmBJ), due to the unstability of MGGA.
+    !  At iter<20, the functional is overrided here.
+    select case(functional)
+    case('TBmBJ', 'BJ_PW')
+      flag_functional_override = .true.
+      call finalize_xc(xc_func)
+      call init_xc(xc_func, 0, cval, xcname="PZM")
+    case default
+      flag_functional_override = .false.
+    end select
+    ! functional_t = functional
+    ! if(functional_t == 'TBmBJ' .or. functional_t == 'BJ_PW') functional = 'PZM'
     call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
-    if(functional_t == 'TBmBJ') functional = 'TBmBJ'
-    if(functional_t == 'BJ_PW') functional = 'BJ_PW'
+    ! if(functional_t == 'TBmBJ') functional = 'TBmBJ'
+    ! if(functional_t == 'BJ_PW') functional = 'BJ_PW'
+
 
     Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
     call Total_Energy_omp(rion_update_on,calc_mode_gs)
@@ -127,13 +143,23 @@ contains
        call broyden(rho,rho_in,rho_out,nl,iter,iter,nscf-1)
        call Hartree
 
-       functional_t = functional
-       if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'PZM'
-       if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'PZM'
-       call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
-       if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'TBmBJ'
-       if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'BJ_PW'
 
+       ! NOTE:
+       !  In the former-loop of the SCF calculation (iter < 20), the LDA(PZM)
+       !  is used in stead of MetaGGA(TBmBJ), due to the unstability of MGGA.
+       !  At iter=>20, the original functional setting is wrote backed in
+       !  
+       if (flag_functional_override .and. (iter == 20)) then
+         call finalize_xc(xc_func)
+         call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
+       end if
+       ! functional_t = functional
+       ! if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'PZM'
+       ! if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'PZM'
+       call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
+       ! if(functional_t == 'TBmBJ' .and. iter < 20) functional = 'TBmBJ'
+       ! if(functional_t == 'BJ_PW' .and. iter < 20) functional = 'BJ_PW'
+       
        Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
        fave_prev=fave
        call Total_Energy_omp(rion_update_off,calc_mode_gs)

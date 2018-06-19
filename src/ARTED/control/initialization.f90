@@ -29,11 +29,13 @@ contains
     use opt_variables
     use salmon_parallel
     use salmon_communication
+    use salmon_xc, only: init_xc
     use misc_routines
     use inputfile,only: transfer_input
     use restart,only: prep_restart_read
     use io_gs_wfn_k,only: modify_initial_guess_copy_1stk_to_all
     implicit none
+    integer :: itmp
 !$ integer :: omp_get_max_threads  
 
     call timer_initialize
@@ -92,6 +94,15 @@ contains
           call modify_initial_guess_copy_1stk_to_all
        endif
     endif
+
+    ! Initialization of Exchange Correlation Potential
+    select case (functional)
+    case('TPSS', 'tpss', 'VS98', 'vs98')
+      ! Do nothing
+    case default
+      ! Default initialization routine
+      call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
+    end select
 
   end subroutine initialize
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

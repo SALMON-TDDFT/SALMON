@@ -139,9 +139,9 @@ end if
 
   if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
     if(ilsda==0)then
-      call conv_core_exc_cor
+      call exc_cor_ns
     else if(ilsda==1)then
-      call Exc_cor_ns
+      call exc_cor_lsda_ns
     end if
   end if
 
