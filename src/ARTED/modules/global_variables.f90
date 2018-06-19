@@ -244,9 +244,6 @@ Module Global_Variables
   real(8) :: total_energy_absorb_old, total_energy_absorb
   real(8) :: total_energy_elec_old, total_energy_elec
   real(8) :: total_energy_em_old, total_energy_em  
-  
-  real(8) :: ms_angle_x, ms_angle_y, ms_angle_z
-  real(8) :: trans_mat(3, 3), trans_inv(3, 3)
 
   !! Calculate Pure FDTD Calculation without TDDFT:
   !! NOTE: This switch will be removed after marging the common FDTD routine..

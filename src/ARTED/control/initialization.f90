@@ -308,6 +308,15 @@ contains
        call set_macropoint_from_file()
      else
        call set_macropoint()
+       ! Avoiding numerical error by set_trans_mat
+       trans_mat = 0d0
+       trans_mat(1,1) = 1d0
+       trans_mat(2,2) = 1d0
+       trans_mat(3,3) = 1d0
+       trans_inv = 0d0
+       trans_inv(1,1) = 1d0
+       trans_inv(2,2) = 1d0
+       trans_inv(3,3) = 1d0
      end if
      !! Determine NXYsplit and NKsplit from the number of MPI processes
      call set_nksplit_nxysplit()
@@ -821,10 +830,7 @@ contains
         & nmacro, nmacro_attr, &
         & nbg_media, nbg_media_attr, &
         & ninit_acfield, &
-        & debug_switch_no_radiation, &
-        & ms_angle_x, &
-        & ms_angle_y, &
-        & ms_angle_z
+        & debug_switch_no_radiation
       
       nmacro = 1
       nmacro_attr = 0
@@ -832,10 +838,6 @@ contains
       nbg_media_attr = 0
       ninit_acfield = 0
       debug_switch_no_radiation = .false.
-      ms_angle_x = 0d0
-      ms_angle_y = 0d0
-      ms_angle_z = 0d0
-  
 
       if(comm_is_root(nproc_id_global)) then
         fh = open_filehandle(trim(directory) // trim(file_macropoint))
@@ -859,9 +861,6 @@ contains
       call comm_bcast(nbg_media_attr,nproc_group_global)
       call comm_bcast(ninit_acfield,nproc_group_global)
       call comm_bcast(debug_switch_no_radiation,nproc_group_global)
-      call comm_bcast(ms_angle_x,nproc_group_global)
-      call comm_bcast(ms_angle_y,nproc_group_global)
-      call comm_bcast(ms_angle_z,nproc_group_global)
 
       allocate(macropoint(1:4, nmacro))
       allocate(macropoint_attr(1:nattr_column, nmacro_attr))
@@ -889,14 +888,12 @@ contains
         end do
         close(fh)
       end if
-      
       call comm_bcast(macropoint,nproc_group_global)
       call comm_bcast(macropoint_attr,nproc_group_global)
       call comm_bcast(bg_media_point,nproc_group_global)
       call comm_bcast(bg_media_attr,nproc_group_global)
       call comm_bcast(init_acfield_point,nproc_group_global)
       call comm_bcast(init_acfield_val,nproc_group_global)
-        
       call set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
 
       return
@@ -958,6 +955,7 @@ contains
         
     return
   end subroutine set_trans_mat
+
 
   !AY just temporal but need this function in future (hidden option now)
   Subroutine read_external_input_for_restart

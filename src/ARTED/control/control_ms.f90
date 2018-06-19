@@ -338,9 +338,8 @@ subroutine tddft_maxwell_ms
       iy_m = macropoint(2, imacro)
       iz_m = macropoint(3, imacro)
       !! Map the local macropoint current into the jm field
-      !Jm_new_ms(1:3, ix_m, iy_m, iz_m) = Jm_new_ms(1:3, ix_m, iy_m, iz_m) & 
-      !                               & + Jm_new_m(1:3, imacro)
-      Jm_new_ms(1:3, ix_m, iy_m, iz_m) = matmul(trans_inv(1:3,1:3), Jm_new_m(1:3, imacro))
+      Jm_new_ms(1:3, ix_m, iy_m, iz_m) = Jm_new_ms(1:3, ix_m, iy_m, iz_m) & 
+                                     & + Jm_new_m(1:3, imacro)
     end do
 !$omp end parallel do
     call timer_end(LOG_OTHER)
@@ -543,11 +542,8 @@ contains
       iiy_m = macropoint(2, iimacro)
       iiz_m = macropoint(3, iimacro)
       !! Assign the vector potential into the local macropoint variables
-      !Ac_m(1:3, iimacro) = Ac_ms(1:3, iix_m, iiy_m, iiz_m)
-      !Ac_new_m(1:3, iimacro) = Ac_new_ms(1:3, iix_m, iiy_m, iiz_m)
-      
-      Ac_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_ms(1:3, iix_m, iiy_m, iiz_m))
-      Ac_new_m(1:3, iimacro) = matmul(trans_mat(1:3,1:3), Ac_new_ms(1:3, iix_m, iiy_m, iiz_m))
+      Ac_m(1:3, iimacro) = Ac_ms(1:3, iix_m, iiy_m, iiz_m)
+      Ac_new_m(1:3, iimacro) = Ac_new_ms(1:3, iix_m, iiy_m, iiz_m)
     end do
 !$omp end parallel do
   end subroutine assign_mp_variables_omp
