@@ -309,14 +309,14 @@ contains
      else
        call set_macropoint()
        ! Avoiding numerical error by set_trans_mat
-       trans_mat = 0d0
-       trans_mat(1,1) = 1d0
-       trans_mat(2,2) = 1d0
-       trans_mat(3,3) = 1d0
-       trans_inv = 0d0
-       trans_inv(1,1) = 1d0
-       trans_inv(2,2) = 1d0
-       trans_inv(3,3) = 1d0
+       ! trans_mat = 0d0
+       ! trans_mat(1,1) = 1d0
+       ! trans_mat(2,2) = 1d0
+       ! trans_mat(3,3) = 1d0
+       ! trans_inv = 0d0
+       ! trans_inv(1,1) = 1d0
+       ! trans_inv(2,2) = 1d0
+       ! trans_inv(3,3) = 1d0
      end if
      !! Determine NXYsplit and NKsplit from the number of MPI processes
      call set_nksplit_nxysplit()
@@ -894,67 +894,67 @@ contains
       call comm_bcast(bg_media_attr,nproc_group_global)
       call comm_bcast(init_acfield_point,nproc_group_global)
       call comm_bcast(init_acfield_val,nproc_group_global)
-      call set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
+      ! call set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
 
       return
   end subroutine set_macropoint_from_file
   
-  subroutine set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
-    use salmon_parallel, only: nproc_id_global
-    use salmon_communication, only: comm_is_root
-    use global_variables, only: trans_mat, trans_inv
-    implicit none
-    real(8), intent(in) :: ms_angle_x
-    real(8), intent(in) :: ms_angle_y
-    real(8), intent(in) :: ms_angle_z
-    real(8) :: ms_theta_x
-    real(8) :: ms_theta_y
-    real(8) :: ms_theta_z
-    integer :: itmp
-    real(8), parameter :: pi = 3.141592653589793
-
-    
-    ms_theta_x = ms_angle_x * (pi / 180)
-    ms_theta_y = ms_angle_y * (pi / 180)
-    ms_theta_z = ms_angle_z * (pi / 180)
-
-    trans_mat(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
-    trans_mat(1, 2) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
-    trans_mat(1, 3) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
-    trans_mat(2, 1) = sin(ms_theta_z)*cos(ms_theta_y)
-    trans_mat(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
-    trans_mat(2, 3) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
-    trans_mat(3, 1) = -sin(ms_theta_y)
-    trans_mat(3, 2) = sin(ms_theta_x)*cos(ms_theta_y)
-    trans_mat(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
-    
-    trans_inv(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
-    trans_inv(1, 2) = sin(ms_theta_z)*cos(ms_theta_y)
-    trans_inv(1, 3) = -sin(ms_theta_y)
-    trans_inv(2, 1) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
-    trans_inv(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
-    trans_inv(2, 3) = sin(ms_theta_x)*cos(ms_theta_y)
-    trans_inv(3, 1) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
-    trans_inv(3, 2) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
-    trans_inv(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
-    
-    if(comm_is_root(nproc_id_global)) then
-      write(*,'(a)') "# Multiscale Rotation:"
-      write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_x", ms_angle_x, ms_theta_x, "rad"
-      write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_y", ms_angle_y, ms_theta_y, "rad"
-      write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_z", ms_angle_z, ms_theta_z, "rad"
-      write(*,'(a)') "# trans_mat(3,3):"
-      do itmp = 1, 3
-          write(*,'(3(1x,f12.5))') trans_mat(itmp, 1:3)
-      end do
-      write(*,'(a)') "# trans_inv(3,3):"
-      do itmp = 1, 3
-          write(*,'(3(1x,f12.5))') trans_inv(itmp, 1:3)
-      end do
-    end if
-        
-    return
-  end subroutine set_trans_mat
+  ! subroutine set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
+  !   use salmon_parallel, only: nproc_id_global
+  !   use salmon_communication, only: comm_is_root
+  !   use global_variables, only: trans_mat, trans_inv
+  !   implicit none
+  !   real(8), intent(in) :: ms_angle_x
+  !   real(8), intent(in) :: ms_angle_y
+  !   real(8), intent(in) :: ms_angle_z
+  !   real(8) :: ms_theta_x
+  !   real(8) :: ms_theta_y
+  !   real(8) :: ms_theta_z
+  !   integer :: itmp
+  !   real(8), parameter :: pi = 3.141592653589793
+  ! 
+  ! 
+  !   ms_theta_x = ms_angle_x * (pi / 180)
+  !   ms_theta_y = ms_angle_y * (pi / 180)
+  !   ms_theta_z = ms_angle_z * (pi / 180)
+  ! 
+  !   trans_mat(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+  !   trans_mat(1, 2) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_mat(1, 3) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_mat(2, 1) = sin(ms_theta_z)*cos(ms_theta_y)
+  !   trans_mat(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_mat(2, 3) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_mat(3, 1) = -sin(ms_theta_y)
+  !   trans_mat(3, 2) = sin(ms_theta_x)*cos(ms_theta_y)
+  !   trans_mat(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+  ! 
+  !   trans_inv(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+  !   trans_inv(1, 2) = sin(ms_theta_z)*cos(ms_theta_y)
+  !   trans_inv(1, 3) = -sin(ms_theta_y)
+  !   trans_inv(2, 1) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_inv(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_inv(2, 3) = sin(ms_theta_x)*cos(ms_theta_y)
+  !   trans_inv(3, 1) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_inv(3, 2) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_inv(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+  ! 
+  !   if(comm_is_root(nproc_id_global)) then
+  !     write(*,'(a)') "# Multiscale Rotation:"
+  !     write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_x", ms_angle_x, ms_theta_x, "rad"
+  !     write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_y", ms_angle_y, ms_theta_y, "rad"
+  !     write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_z", ms_angle_z, ms_theta_z, "rad"
+  !     write(*,'(a)') "# trans_mat(3,3):"
+  !     do itmp = 1, 3
+  !         write(*,'(3(1x,f12.5))') trans_mat(itmp, 1:3)
+  !     end do
+  !     write(*,'(a)') "# trans_inv(3,3):"
+  !     do itmp = 1, 3
+  !         write(*,'(3(1x,f12.5))') trans_inv(itmp, 1:3)
+  !     end do
+  !   end if
+  ! 
+  !   return
+  ! end subroutine set_trans_mat
 
 
   !AY just temporal but need this function in future (hidden option now)
