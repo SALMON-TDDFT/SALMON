@@ -15,7 +15,7 @@ add_custom_target("test_preparations" ALL
                   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/pseudo" "${CMAKE_CURRENT_BINARY_DIR}/pseudo")
 
 # test directories
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/001_bulk_gs_rt")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/001_bulk_gs")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/011_bulk_ms")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/101_C2H2_gs")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/102_C2H2_rt_response")

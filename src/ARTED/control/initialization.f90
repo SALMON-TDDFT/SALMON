@@ -302,7 +302,7 @@ contains
    !! Assign the number of macropoints into "nmacro"
    if (use_ms_maxwell == 'y') then     
      !! Initialize Transpose Matrix
-      call set_trans_mat(0d0, 0d0, 0d0)
+      !call set_trans_mat(0d0, 0d0, 0d0)
      !! Number of the macropoint and bg_media in Multiscale grid     
      if (len_trim(file_macropoint) > 0) then
        call set_macropoint_from_file()
