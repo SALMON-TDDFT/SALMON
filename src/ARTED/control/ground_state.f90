@@ -66,7 +66,7 @@ contains
     !  is used in stead of MetaGGA(TBmBJ), due to the unstability of MGGA.
     !  At iter<20, the functional is overrided here.
     select case(functional)
-    case('TBmBJ', 'BJ_PW')
+    case('TBmBJ', 'BJ_PW', 'tbmbj', 'bj_pw')
       flag_functional_override = .true.
       call finalize_xc(xc_func)
       call init_xc(xc_func, 0, cval, xcname="PZM")
