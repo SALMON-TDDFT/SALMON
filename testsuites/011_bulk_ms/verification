@@ -15,7 +15,7 @@ return_code = 0
 
 ###############################################################################
 # Check of Ac field
-output = np.loadtxt("Si_Ac_000200.data")[2001]
+output = np.loadtxt("multiscale/RT_Ac/Si_Ac_000200.data")[2001]
 
 reference = np.array([
     1.00000000e+00,   1.00000000e+00,   1.00000000e+00,
