@@ -325,7 +325,7 @@ if(ilsda == 1)then
               ng_sta(3):ng_end(3))   &
         = rho_s_out(ng_sta(1):ng_end(1),   &
                 ng_sta(2):ng_end(2),   &
-                ng_sta(3):ng_end(3),is,ii)
+                ng_sta(3):ng_end(3),ii,is)
 
       call comm_summation(matbox2,matbox,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_h)
 
