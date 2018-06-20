@@ -34,7 +34,7 @@ subroutine tddft_maxwell_ms
   implicit none
   integer :: iter
   integer :: ix_m, iy_m, iz_m
-  integer :: imacro
+  integer :: imacro,igroup,i
   integer :: index
   logical :: flag_shutdown = .false.
   logical :: flg_out_ms_step, flg_out_ms_next_step
@@ -372,7 +372,7 @@ subroutine tddft_maxwell_ms
       call timer_begin(LOG_OTHER)
       if (flg_out_ms_next_step) then !! mod(iter+1, out_ms_step) == 0
         if(comm_is_root(nproc_id_tdks)) then ! sato
-          energy_elec_Matter_new_m_tmp(imacro) = Eall - Eall0
+          energy_elec_Matter_new_m_tmp(imacro) = Eall - Eall0_m(imacro)
         end if
       end if ! sato
       call timer_end(LOG_OTHER)
@@ -382,6 +382,11 @@ subroutine tddft_maxwell_ms
       !! update ion coordinate and velocity in MD option (part-2)
       if (use_ehrenfest_md == 'y') then
          call dt_evolve_MD_2_MS(aforce,iter,imacro)
+      endif
+      !(for exporting to file_trj later)
+      if (out_rvf_rt=='y' .and. mod(iter,out_rvf_rt_step)==0)then
+         if(use_ehrenfest_md=='n') &
+         &  call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
       endif
       !===========================================================================
 
@@ -396,19 +401,6 @@ subroutine tddft_maxwell_ms
         end if ! sato
       end if
       call timer_end(LOG_ANA_RT_USEGS)
-      !===========================================================================
-
-      ! Export to file_trj
-      if (out_rvf_rt=='y' .and. mod(iter,out_rvf_rt_step)==0)then
-         if(use_ehrenfest_md=='n') &
-         &  call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
-         write(comment_line,110) iter, iter*dt
-110      format("#rt   step=",i8,"   time",e16.6)
-        !if(ensemble=="NVT" .and. thermostat=="nose-hoover") &
-        !&  write(comment_line,112) trim(comment_line), xi_nh
-!112      format(a,"  xi_nh=",e18.10)
-         call write_xyz_ms(comment_line,"add","rvf",imacro)
-      endif
     
     end do Macro_loop !end of Macro_loop iteraction========================
       
@@ -416,7 +408,7 @@ subroutine tddft_maxwell_ms
     call timer_begin(LOG_ALLREDUCE)
     call comm_summation(jm_new_m_tmp, Jm_new_m, 3 * nmacro, nproc_group_global)
     if(use_ehrenfest_md=='y') &
-    & call comm_summation(jm_ion_new_m_tmp, Jm_ion_m, 3*nmacro,nproc_group_global)
+    & call comm_summation(jm_ion_new_m_tmp, Jm_ion_new_m, 3*nmacro,nproc_group_global)
     if (flg_out_ms_next_step) then
       call comm_summation(energy_elec_Matter_new_m_tmp, energy_elec_Matter_new_m, nmacro, nproc_group_global)
     end if
@@ -443,14 +435,30 @@ subroutine tddft_maxwell_ms
       !                               & + Jm_new_m(1:3, imacro)
       Jm_new_ms(1:3, ix_m, iy_m, iz_m) = matmul(trans_inv(1:3,1:3), Jm_new_m(1:3, imacro))
       if(use_ehrenfest_md=='y') &
-      !Jm_ion_ms(1:3, ix_m, iy_m, iz_m) = Jm_ion_ms(1:3, ix_m, iy_m, iz_m) & 
-      !                               & + Jm_ion_m(1:3, imacro)
-      Jm_ion_ms(1:3, ix_m, iy_m, iz_m) = matmul(trans_inv(1:3,1:3), Jm_ion_m(1:3, imacro))
+      Jm_ion_new_ms(1:3,ix_m,iy_m,iz_m) = matmul(trans_inv(1:3,1:3), Jm_ion_new_m(1:3,imacro))
     end do
 !$omp end parallel do
     call timer_end(LOG_OTHER)
     !===========================================================================
 
+    ! Export to file_trj
+    if (out_rvf_rt=='y' .and. mod(iter,out_rvf_rt_step)==0)then
+       write(comment_line,110) iter, iter*dt
+110    format("#rt   step=",i8,"   time",e16.6)
+       !if(ensemble=="NVT" .and. thermostat=="nose-hoover") &
+       !&  write(comment_line,112) trim(comment_line), xi_nh
+       !112      format(a,"  xi_nh=",e18.10)
+       do igroup=1,ndivide_macro
+          do i=1,nmacro_write_group
+             imacro = (igroup-1)*nmacro_write_group + i
+             if(imacro.ge.nmacro_s .and. imacro.le.nmacro_e) &
+             & call write_xyz_ms(comment_line,"add","rvf",imacro)
+          enddo
+          call comm_sync_all
+       enddo
+    endif
+    !===========================================================================
+    
     ! Shutdown sequence
     call timer_begin(LOG_OTHER)
     if(mod(iter,10) == 1) then
@@ -529,10 +537,20 @@ subroutine tddft_maxwell_ms
 
   ! Export last atomic coordinate and velocity & Close file_trj
   if (use_ehrenfest_md=='y')then
-     do imacro = nmacro_s, nmacro_e
-         call write_xyz_ms(comment_line,"end","rvf",imacro)
-         call write_ini_coor_vel_ms_for_restart(imacro)
+     do igroup=1,ndivide_macro
+        do i=1,nmacro_write_group
+           imacro = (igroup-1)*nmacro_write_group + i
+           if(imacro.ge.nmacro_s .and. imacro.le.nmacro_e) then
+              call write_xyz_ms(comment_line,"end","rvf",imacro)
+              call write_ini_coor_vel_ms_for_restart(imacro)
+           endif
+        enddo
+        call comm_sync_all
      enddo
+     !do imacro = nmacro_s, nmacro_e
+     !    call write_xyz_ms(comment_line,"end","rvf",imacro)
+     !    call write_ini_coor_vel_ms_for_restart(imacro)
+     !enddo
   endif
 
 
@@ -644,6 +662,26 @@ contains
       end if
     end do
 !$omp end parallel do
+
+  if(use_ehrenfest_md=='y')then
+!$omp parallel do collapse(3) default(shared) private(iix_m, iiy_m, iiz_m)
+    do iiz_m = nz1_m, nz2_m
+      do iiy_m = ny1_m, ny2_m
+        do iix_m = nx1_m, nx2_m
+          Jm_ion_old_ms(1:3,iix_m,iiy_m,iiz_m) = Jm_ion_ms    (1:3,iix_m,iiy_m,iiz_m)
+          Jm_ion_ms    (1:3,iix_m,iiy_m,iiz_m) = Jm_ion_new_ms(1:3,iix_m,iiy_m,iiz_m)
+          Jm_ion_new_ms(1:3,iix_m,iiy_m,iiz_m) = 0d0
+        end do
+      end do
+    end do
+!$omp end parallel do
+
+!$omp parallel do default(shared) private(iimacro)
+    do iimacro = 1, nmacro
+      Jm_ion_m(1:3, iimacro) = Jm_ion_new_m(1:3, iimacro)
+    end do
+!$omp end parallel do
+  endif
 
   end subroutine proceed_ms_variables_omp
 
@@ -901,22 +939,28 @@ contains
     integer :: fh_ac_m
     integer :: iimacro, iiter
     character(100) :: file_ac_m
+
     if(comm_is_root(nproc_id_tdks)) then
-      do iimacro = nmacro_s, nmacro_e
-        write(file_ac_m,"(A,A,'_Ac_M.data')")trim(dir_ms_M(iimacro)),trim(SYSname)
-        fh_ac_m = open_filehandle(file_ac_m)
+    !do iimacro = nmacro_s, nmacro_e
+    do igroup=1,ndivide_macro
+       do i=1,nmacro_write_group
+          iimacro = (igroup-1)*nmacro_write_group + i
+          if(iimacro.ge.nmacro_s .and. iimacro.le.nmacro_e) then
 
-        write(fh_ac_m, '("#",1X,A)') "Local variable at macro point"
+          write(file_ac_m,"(A,A,'_Ac_M.data')")trim(dir_ms_M(iimacro)),trim(SYSname)
+          fh_ac_m = open_filehandle(file_ac_m)
+
+          write(fh_ac_m, '("#",1X,A)') "Local variable at macro point"
         
-        write(fh_ac_m, "('#',1X,A,':',3(1X,I6))") "Macropoint", macropoint(1:3, iimacro)
-        write(fh_ac_m, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
-        write(fh_ac_m, '("#",1X,A,":",1X,A)') "Ac", "External vector potential field"
-        if(use_ehrenfest_md=='y') then
-           write(fh_ac_m, '("#",1X,A,":",1X,A)') "Jmi", "Matter current density of Ion"
-           write(fh_ac_m, '("#",1X,A,":",1X,A)') "Tmp_ion", "Temperature of Ion"
-        endif
+          write(fh_ac_m, "('#',1X,A,':',3(1X,I6))") "Macropoint", macropoint(1:3, iimacro)
+          write(fh_ac_m, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
+          write(fh_ac_m, '("#",1X,A,":",1X,A)') "Ac", "External vector potential field"
+          if(use_ehrenfest_md=='y') then
+            write(fh_ac_m, '("#",1X,A,":",1X,A)') "Jmi", "Matter current density of Ion"
+            write(fh_ac_m, '("#",1X,A,":",1X,A)') "Tmp_ion", "Temperature of Ion"
+          endif
 
-        write(fh_ac_m, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+          write(fh_ac_m, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
           & 1, "Time", trim(t_unit_time%name), &
           & 2, "Ac_x", trim(t_unit_ac%name), &
           & 3, "Ac_y", trim(t_unit_ac%name), &
@@ -924,30 +968,37 @@ contains
           & 5, "Jm_x", trim(t_unit_current%name), &
           & 6, "Jm_y", trim(t_unit_current%name), &
           & 7, "Jm_z", trim(t_unit_current%name)
-        if(use_ehrenfest_md=='y') then
-          write(fh_ac_m, '(99(1X,I0,":",A,"[",A,"]"))',advance='no') &
-          & 8, "Jmi_x", trim(t_unit_current%name), &
-          & 9, "Jmi_y", trim(t_unit_current%name), &
-          &10, "Jmi_z", trim(t_unit_current%name), &
-          &11, "Tmp_ion", "K"
-        endif
-        write(fh_ac_m,*)
-        do iiter = 0, Nt
-          write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
+          if(use_ehrenfest_md=='y') then
+            write(fh_ac_m, '(99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+            & 8, "Jmi_x", trim(t_unit_current%name), &
+            & 9, "Jmi_y", trim(t_unit_current%name), &
+            &10, "Jmi_z", trim(t_unit_current%name), &
+            &11, "Tmp_ion", "K"
+          endif
+          write(fh_ac_m,*)
+          do iiter = 0, Nt
+            write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
             & iiter * dt * t_unit_time%conv, &
             & data_local_Ac(1:3, iimacro, iiter) * t_unit_ac%conv, &
             & data_local_jm(1:3, iimacro, iiter) * t_unit_current%conv
-          if(use_ehrenfest_md=='y') then
-            write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
-            data_local_jm_ion(1:3, iimacro, iiter) * t_unit_current%conv, &
-            data_local_Tmp_ion(iimacro, iiter)
-          endif
-          write(fh_ac_m,*)
-        end do
-      end do
-      close(fh_ac_m)
+            if(use_ehrenfest_md=='y') then
+              write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
+              data_local_jm_ion(1:3, iimacro, iiter) * t_unit_current%conv, &
+              data_local_Tmp_ion(iimacro, iiter)
+            endif
+            write(fh_ac_m,*)
+          end do !iiter
+
+          close(fh_ac_m)
+
+          endif !<--if(imacro.ge.nmacro_s .and. imacro.le.nmacro_e)
+
+       enddo !i
+       call comm_sync_all
+    enddo !igroup
+
     end if
-    call comm_sync_all
+    !call comm_sync_all
   end subroutine
   
   

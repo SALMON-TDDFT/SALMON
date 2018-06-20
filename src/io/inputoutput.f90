@@ -356,7 +356,8 @@ contains
       & nz_origin_m, &
       & file_macropoint, &
       & num_macropoint,  &
-      & set_ini_coor_vel
+      & set_ini_coor_vel,&
+      & nmacro_write_group
 
     namelist/analysis/ &
       & projection_option, &
@@ -652,6 +653,7 @@ contains
     nz_origin_m = 1
     file_macropoint = ''
     set_ini_coor_vel= 'n'
+    nmacro_write_group=-1
 !! == default for &analysis
     projection_option   = 'no'
     projection_decomp   = 'n'
@@ -1006,6 +1008,7 @@ contains
     call comm_bcast(file_macropoint, nproc_group_global)
     call comm_bcast(num_macropoint,  nproc_group_global)
     call comm_bcast(set_ini_coor_vel,nproc_group_global)
+    call comm_bcast(nmacro_write_group,nproc_group_global)
     
     
 !! == bcast for &analysis
@@ -1559,6 +1562,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_macropoint', trim(file_macropoint)
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'num_macropoint', num_macropoint
       write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_coor_vel', set_ini_coor_vel
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nmacro_write_group', nmacro_write_group
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis

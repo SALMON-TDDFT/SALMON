@@ -802,6 +802,12 @@ Default value is <code>'1'</code>.
 >Default value is <code>'y'</code>.
 ></dd>
 
+><dt>nmacro_write_group; <code>Integer</code>; 3d</dt>
+><dd>
+>If the number of macroscopic grids are very large, computers can be unstable by writing all information of all macroscopic grid points at the same time. To avoid that, the writings are divided by specifying this option. Writings will be done by each <code>nmacro_write_group</code> macroscopic grid points. (this number must be aliquot part of the total number of macroscopic grid points)
+>Default value is <code>'-1'</code>.
+></dd>
+
 ><dt>file_macropoint; <code>Character</code>; 3d</dt>
 ><dd>
 >If this variable is specified, the coordinates of the macropoints are set from the file.

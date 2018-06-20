@@ -98,6 +98,7 @@ contains
     call Total_Energy_omp(rion_update_on,calc_mode_gs)
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     Eall0=Eall
+    if(use_ms_maxwell == 'y') Eall0_m(:)=Eall
     Eall_GS0=Eall
     if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'Eall =',Eall
 
@@ -185,7 +186,7 @@ contains
        Vloc_GS(:) = Vloc(:)
        call Total_Energy_omp(rion_update_on,calc_mode_gs)
        call Ion_Force_omp(rion_update_on,calc_mode_gs)
-       Eall0    = Eall
+       Eall0_m(imacro) = Eall
        Eall_GS0 = Eall
 
     enddo !imacro
@@ -450,8 +451,12 @@ contains
   subroutine read_write_rt_wfn_k_ms_each_macro_grid(iflag_read_write_ms)
     implicit none
     integer,intent(in) :: iflag_read_write_ms
-    integer :: ik,imacro,nfile_rt_wfn_ms,nfile_occ_ms,nfile_md_ms,nfile_ae_ms
-    character(1024) :: md_file_ms, ae_file_ms, dir_ae_file_ms
+    integer :: ik,imacro
+    integer :: nfile_rt_wfn_ms,nfile_occ_ms,nfile_md_ms,nfile_ae_ms,nfile_other_ms
+    integer :: ix_m,iy_m,iz_m
+    character(1024) :: md_file_ms, ae_file_ms, dir_ae_file_ms, other_file_ms
+    real(8),allocatable :: energy_joule_ms_tmp(:,:,:)
+    allocate(energy_joule_ms_tmp(nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
 
     if (comm_is_root(nproc_id_global)) then
        nfile_ae_ms = 7000
@@ -461,22 +466,25 @@ contains
        open(nfile_ae_ms,file=trim(ae_file_ms),form='unformatted')
        select case(iflag_read_write_ms)
        case(iflag_write_rt)
-          write(nfile_ae_ms)     Ac_new_ms,    Ac_ms,Jm_new_ms
+          write(nfile_ae_ms)     Ac_new_ms,    Ac_ms,Jm_new_ms,Jm_ms
        case(iflag_read_rt )
-          read(nfile_ae_ms ) add_Ac_new_ms,add_Ac_ms,Jm_new_ms
+          read(nfile_ae_ms ) add_Ac_new_ms,add_Ac_ms,Jm_new_ms,Jm_ms
        end select
        close(nfile_ae_ms)
     end if
 
     do imacro = nmacro_s, nmacro_e
 
-       nfile_occ_ms    = 7000 + imacro
-       nfile_rt_wfn_ms = nfile_occ_ms
-       nfile_md_ms     = nfile_occ_ms
-       write (rt_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/rt_wfn_k/'
-       if(iflag_read_write_ms==iflag_write_rt) call create_directory(rt_wfn_directory)
-
        if(comm_is_root(nproc_id_tdks)) then
+
+          write (rt_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/rt_wfn_k/'
+          if(iflag_read_write_ms==iflag_write_rt) call create_directory(rt_wfn_directory)
+
+          nfile_occ_ms    = 7000 + imacro
+          nfile_rt_wfn_ms = nfile_occ_ms
+          nfile_md_ms     = nfile_occ_ms
+          nfile_other_ms  = nfile_occ_ms
+
           occ_file = trim(rt_wfn_directory)//'occupation'
           open(nfile_occ_ms,file=trim(occ_file),form='unformatted')
           select case(iflag_read_write_ms)
@@ -492,6 +500,17 @@ contains
           case(iflag_read_rt ); read(nfile_md_ms ) Rion,velocity
           end select
           close(nfile_md)
+
+          other_file_ms = trim(rt_wfn_directory)//'others'
+          open(nfile_other_ms,file=trim(other_file_ms),form='unformatted')
+          ix_m = macropoint(1,imacro)
+          iy_m = macropoint(2,imacro)
+          iz_m = macropoint(3,imacro)
+          select case(iflag_read_write_ms)
+          case(iflag_write_rt); write(nfile_other_ms) Eall0_m(imacro), energy_joule_ms(ix_m,iy_m,iz_m)
+          case(iflag_read_rt ); read(nfile_other_ms ) Eall0_m(imacro), energy_joule_ms_tmp(ix_m,iy_m,iz_m)
+          end select
+          close(nfile_other_ms)
 
           !! maybe must be out of "if(comm_is_root(nproc_id_tdks)) then"
           do ik=NK_s,NK_e
@@ -516,9 +535,11 @@ contains
           Rion_eq_m(:,:,imacro)  = Rion_m(:,:,imacro)
           velocity_m(:,:,imacro) = velocity(:,:)
 
+          call comm_summation(energy_joule_ms_tmp,energy_joule_ms,(nx2_m-nx1_m+1)*(ny2_m-ny1_m+1)*(nz2_m-nz1_m+1),nproc_group_global)
           call comm_bcast(add_Ac_ms,     nproc_group_global)
           call comm_bcast(add_Ac_new_ms, nproc_group_global)
           call comm_bcast(Jm_new_ms,     nproc_group_global)
+          call comm_bcast(Jm_ms,         nproc_group_global)
 
           call psi_rho_RT(zu_t)
           call Hartree

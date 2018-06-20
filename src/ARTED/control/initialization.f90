@@ -440,6 +440,13 @@ contains
        do imacro = nmacro_s, nmacro_e
           write(dir_ms_M(imacro), "(A,'M',I6.6,'/')") trim(dir_ms),imacro
        enddo
+       if(nmacro_write_group.lt.0) nmacro_write_group=nmacro
+       if(mod(nmacro,nmacro_write_group).ne.0) then
+          write(*,*) "wrong number of nmacro_write_group"
+          call end_parallel
+          stop
+       endif
+       ndivide_macro=int(dble(nmacro)/dble(nmacro_write_group))
     end if
     
     ! sato ---------------------------------------------------------------------------------------
@@ -733,14 +740,19 @@ contains
     allocate(jm_new_m_tmp(1:3, nmacro))
     if(use_ehrenfest_md=='y') then
        allocate(jm_ion_new_m_tmp(1:3, nmacro))
-       allocate(Jm_ion_m(1:3, nmacro))
-       allocate(Jm_ion_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
-       Jm_ion_m = 0d0 ; Jm_ion_ms = 0d0
+       allocate(Jm_ion_m(    1:3, nmacro))
+       allocate(Jm_ion_new_m(1:3, nmacro))
+       allocate(Jm_ion_ms(    1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+       allocate(Jm_ion_old_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+       allocate(Jm_ion_new_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+       Jm_ion_m = 0d0  ; Jm_ion_new_m = 0d0
+       Jm_ion_ms = 0d0 ; Jm_ion_old_ms = 0d0 ; Jm_ion_new_ms = 0d0
        allocate(data_local_jm_ion(3, nmacro_s:nmacro_e, 0:Nt))
        allocate(data_local_Tmp_ion(nmacro_s:nmacro_e, 0:Nt))
     endif
     Ac_m = 0d0; Ac_new_m = 0d0;
     Jm_m = 0d0; Jm_new_m = 0d0; jm_new_m_tmp = 0d0
+    allocate(Eall0_m(nmacro))
 
     allocate(energy_elec_Matter_new_m(1:nmacro))
     allocate(energy_elec_Matter_new_m_tmp(1:nmacro))

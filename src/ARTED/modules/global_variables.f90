@@ -165,6 +165,7 @@ Module Global_Variables
   character(256) :: process_directory
   character(1024):: dir_ms, dir_ms_RT_Ac
   character(1024),allocatable :: dir_ms_M(:)
+  integer        :: ndivide_macro
 
 ! energy computation
   character(256) :: file_rt_energy_data
@@ -237,11 +238,11 @@ Module Global_Variables
   real(8),allocatable :: Ac_old_ms(:,:,:,:),  Ac_ms(:,:,:,:), Ac_new_ms(:,:,:,:)
   real(8),allocatable :: add_Ac_ms(:,:,:,:),  add_Ac_new_ms(:,:,:,:)
   real(8),allocatable :: Jm_old_ms(:,:,:,:),  Jm_ms(:,:,:,:), Jm_new_ms(:,:,:,:)
-  real(8),allocatable :: Jm_ion_ms(:,:,:,:),  Jm_ion_m(:,:)
+  real(8),allocatable :: Jm_ion_old_ms(:,:,:,:),Jm_ion_ms(:,:,:,:),Jm_ion_new_ms(:,:,:,:)
   real(8),allocatable :: elec_ms(:,:,:,:)
   real(8),allocatable :: bmag_ms(:,:,:,:)
   real(8),allocatable :: energy_joule_ms(:,:,:)
-  real(8),allocatable :: energy_elec_ms(:,:,:)
+  real(8),allocatable :: energy_elec_ms(:,:,:), Eall0_m(:)
   real(8),allocatable :: energy_elemag_ms(:,:,:)
   real(8) :: total_energy_elemag_old, total_energy_elemag
   real(8) :: total_energy_absorb_old, total_energy_absorb
@@ -270,6 +271,7 @@ Module Global_Variables
   
   real(8),allocatable :: Ac_m(:,:), Ac_new_m(:,:), Ac_old_m(:,:)
   real(8),allocatable :: Jm_m(:,:), Jm_new_m(:,:)
+  real(8),allocatable :: Jm_ion_m(:,:), Jm_ion_new_m(:,:)
   real(8),allocatable :: jm_new_m_tmp(:,:),jm_ion_new_m_tmp(:,:)
   real(8),allocatable :: energy_elec_Matter_new_m(:)
   real(8),allocatable :: energy_elec_Matter_new_m_tmp(:)
