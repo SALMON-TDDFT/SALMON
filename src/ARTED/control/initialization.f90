@@ -522,9 +522,9 @@ contains
        if(set_ini_velocity=='r') call read_initial_velocity
 
        if (use_ms_maxwell == 'y') then
-          if(nmacro_s .ne. nmacro_e)then
+          if(nmacro_s .ne. nmacro_e .or. nproc_size_global.ne.nmacro)then
              write(*,*) "Error: "
-             write(*,*) "  number of parallelization nodes must be less than number of macro grids"
+             write(*,*) "  number of parallelization nodes must be equal to number of macro grids"
              write(*,*) "  in ehrenfest md option with multi-scale"
              call end_parallel
              stop
@@ -856,7 +856,6 @@ contains
       real(8) :: ms_theta_x
       real(8) :: ms_theta_y
       real(8) :: ms_theta_z
-      !real(8), parameter :: pi = 3.141592653589793
 
       namelist/macroscopic_system/ &
         & nx_origin_m, nx_m, hx_m, &
@@ -880,7 +879,6 @@ contains
       ms_angle_x = 0d0
       ms_angle_y = 0d0
       ms_angle_z = 0d0
-  
 
       if(comm_is_root(nproc_id_global)) then
         fh = open_filehandle(trim(directory) // trim(file_macropoint))
@@ -934,7 +932,6 @@ contains
         end do
         close(fh)
       end if
-      
       call comm_bcast(macropoint,nproc_group_global)
       call comm_bcast(macropoint_attr,nproc_group_global)
       call comm_bcast(bg_media_point,nproc_group_global)
