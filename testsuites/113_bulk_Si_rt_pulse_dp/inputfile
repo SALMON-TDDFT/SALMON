@@ -52,6 +52,10 @@
   nscf = 120
 /
 
+&functional
+  xc = 'PZ'
+/
+
 &emfield
   trans_longi = 'lo'
   ae_shape1 = 'Acos2'

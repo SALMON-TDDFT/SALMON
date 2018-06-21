@@ -1,6 +1,5 @@
 &calculation
-  calc_mode = 'GS_RT'
-  use_ms_maxwell = 'y'
+  calc_mode = 'GS'
 /
 
 &control
@@ -34,36 +33,9 @@
   num_kgrid = 4, 4, 4
 /
 
-&tgrid
-  nt = 2200
-  dt = 0.10
-/
-
-&propagation
-  propagator = 'middlepoint'
-/
-
 &scf
   ncg = 5
   nscf = 100
-/
-
-&emfield
-  ae_shape1 = 'Acos2'
-  rlaser_int_wcm2_1 = 1d12
-  pulse_tw1 = 441.195136248d0
-  omega1 = 0.05696145187d0
-  epdir_re1 = 0., 0., 1.
-/
-
-&multiscale
-  fdtddim = '1d'
-  twod_shape = 'periodic'
-  nx_m = 4
-  ny_m = 1
-  hx_m = 250d0
-  nxvacl_m = -2000
-  nxvacr_m = 256
 /
 
 &atomic_red_coor

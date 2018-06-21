@@ -32,4 +32,4 @@ set(SOURCES
   #  share_mesh_1d_old.f90
 
 add_library(${GCEED_MODULE_LIB} ${SOURCES})
-add_dependencies(${GCEED_MODULE_LIB} ${SALMON_IO_LIB} ${GCEED_MISC_LIB})
+add_dependencies(${GCEED_MODULE_LIB} ${SALMON_IO_LIB} ${SALMON_XC_LIB} ${GCEED_MISC_LIB})

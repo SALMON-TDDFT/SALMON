@@ -29,11 +29,13 @@ contains
     use opt_variables
     use salmon_parallel
     use salmon_communication
+    use salmon_xc, only: init_xc
     use misc_routines
     use inputfile,only: transfer_input
     use restart,only: prep_restart_read
     use io_gs_wfn_k,only: modify_initial_guess_copy_1stk_to_all
     implicit none
+    integer :: itmp
 !$ integer :: omp_get_max_threads  
 
     call timer_initialize
@@ -72,6 +74,18 @@ contains
     call fd_coef
     call init
 
+
+    ! Initialization of Exchange Correlation Potential
+    select case (functional)
+    case('TPSS', 'tpss', 'VS98', 'vs98')
+      ! Do nothing
+    case default
+      ! Default initialization routine
+      call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
+    end select
+
+
+
 ! initialize for optimization.
     call opt_vars_initialize_p1
 
@@ -92,6 +106,7 @@ contains
           call modify_initial_guess_copy_1stk_to_all
        endif
     endif
+
 
   end subroutine initialize
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
@@ -124,7 +139,7 @@ contains
        write(*,*) 'directory=',trim(directory)
        !yabana
        write(*,*) 'functional=',functional
-       if(functional == 'TBmBJ') write(*,*) 'cvalue=',cval
+       if(functional == 'TBmBJ' .or. functional == 'tbmbj') write(*,*) 'cvalue=',cval
        !yabana
        write(*,*) 'propagator=',propagator
        write(*,*) 'pseudo_file =',(trim(pseudo_file(i)),i=1,NE)
@@ -202,8 +217,10 @@ contains
     !sym ---
     select case(crystal_structure)
     case("diamond2")
-       if(functional == "PZ" .or. functional == "PZM" &
-            .or. functional == "TBmBJ" .or. functional == "BJ_PW")then
+      if (functional == "PZ" .or. functional == "pz" .or. &
+        & functional == "PZM" .or. functional == "pzm" .or. &
+        & functional == "TBmBJ" .or. functional == "tbmbj" .or. &
+        & functional == "BJ_PW" .or. functional == "bj_pw") then
           if(Sym == 8)then
              if((mod(NLx,2)+mod(NLy,2)+mod(NLz,4)) /= 0)call err_finalize('Bad grid point')
              if(NLx /= NLy) call err_finalize('Bad grid point: NLx /= NLy')
@@ -215,8 +232,10 @@ contains
           if(Sym /= 1)call err_finalize('Bad crystal structure')
        end if
     case("diamond")
-       if(functional == "PZ" .or. functional == "PZM" &
-            .or. functional == "TBmBJ"  .or. functional == "BJ_PW")then
+      if (functional == "PZ" .or. functional == "pz" .or. &
+        & functional == "PZM" .or. functional == "pzm" .or. &
+        & functional == "TBmBJ" .or. functional == "tbmbj" .or. &
+        & functional == "BJ_PW" .or. functional == "bj_pw") then
           if(Sym == 8)then
              if((mod(NLx,4)+mod(NLy,4)+mod(NLz,4)) /= 0)call err_finalize('Bad grid point')
              if(NLx /= NLy) call err_finalize('Bad grid point')
@@ -231,7 +250,8 @@ contains
           if(Sym /= 1)call err_finalize('Bad crystal structure')
        end if
     case("tetragonal")
-       if(functional == "PZ" .or. functional == "PZM")then
+      if (functional == "PZ" .or. functional == "pz" .or. &
+        & functional == "PZM" .or. functional == "pzm") then
           if((mod(NLx,4)+mod(NLy,4)+mod(NLz,4)) /= 0)call err_finalize('Bad grid point')
           if(NLx /= NLy)call err_finalize('Bad grid point')
           if(NKx /= NKy) call err_finalize('NKx /= NKy')
@@ -280,12 +300,23 @@ contains
     endif
   
    !! Assign the number of macropoints into "nmacro"
-   if (use_ms_maxwell == 'y') then
-     !! Number of the macropoint and bg_media in Multiscale grid
+   if (use_ms_maxwell == 'y') then     
+     !! Initialize Transpose Matrix
+      !call set_trans_mat(0d0, 0d0, 0d0)
+     !! Number of the macropoint and bg_media in Multiscale grid     
      if (len_trim(file_macropoint) > 0) then
        call set_macropoint_from_file()
      else
        call set_macropoint()
+       ! Avoiding numerical error by set_trans_mat
+       ! trans_mat = 0d0
+       ! trans_mat(1,1) = 1d0
+       ! trans_mat(2,2) = 1d0
+       ! trans_mat(3,3) = 1d0
+       ! trans_inv = 0d0
+       ! trans_inv(1,1) = 1d0
+       ! trans_inv(2,2) = 1d0
+       ! trans_inv(3,3) = 1d0
      end if
      !! Determine NXYsplit and NKsplit from the number of MPI processes
      call set_nksplit_nxysplit()
@@ -863,8 +894,67 @@ contains
       call comm_bcast(bg_media_attr,nproc_group_global)
       call comm_bcast(init_acfield_point,nproc_group_global)
       call comm_bcast(init_acfield_val,nproc_group_global)
+      ! call set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
+
       return
   end subroutine set_macropoint_from_file
+  
+  ! subroutine set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
+  !   use salmon_parallel, only: nproc_id_global
+  !   use salmon_communication, only: comm_is_root
+  !   use global_variables, only: trans_mat, trans_inv
+  !   implicit none
+  !   real(8), intent(in) :: ms_angle_x
+  !   real(8), intent(in) :: ms_angle_y
+  !   real(8), intent(in) :: ms_angle_z
+  !   real(8) :: ms_theta_x
+  !   real(8) :: ms_theta_y
+  !   real(8) :: ms_theta_z
+  !   integer :: itmp
+  !   real(8), parameter :: pi = 3.141592653589793
+  ! 
+  ! 
+  !   ms_theta_x = ms_angle_x * (pi / 180)
+  !   ms_theta_y = ms_angle_y * (pi / 180)
+  !   ms_theta_z = ms_angle_z * (pi / 180)
+  ! 
+  !   trans_mat(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+  !   trans_mat(1, 2) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_mat(1, 3) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_mat(2, 1) = sin(ms_theta_z)*cos(ms_theta_y)
+  !   trans_mat(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_mat(2, 3) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_mat(3, 1) = -sin(ms_theta_y)
+  !   trans_mat(3, 2) = sin(ms_theta_x)*cos(ms_theta_y)
+  !   trans_mat(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+  ! 
+  !   trans_inv(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+  !   trans_inv(1, 2) = sin(ms_theta_z)*cos(ms_theta_y)
+  !   trans_inv(1, 3) = -sin(ms_theta_y)
+  !   trans_inv(2, 1) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_inv(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_inv(2, 3) = sin(ms_theta_x)*cos(ms_theta_y)
+  !   trans_inv(3, 1) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+  !   trans_inv(3, 2) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+  !   trans_inv(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+  ! 
+  !   if(comm_is_root(nproc_id_global)) then
+  !     write(*,'(a)') "# Multiscale Rotation:"
+  !     write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_x", ms_angle_x, ms_theta_x, "rad"
+  !     write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_y", ms_angle_y, ms_theta_y, "rad"
+  !     write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_z", ms_angle_z, ms_theta_z, "rad"
+  !     write(*,'(a)') "# trans_mat(3,3):"
+  !     do itmp = 1, 3
+  !         write(*,'(3(1x,f12.5))') trans_mat(itmp, 1:3)
+  !     end do
+  !     write(*,'(a)') "# trans_inv(3,3):"
+  !     do itmp = 1, 3
+  !         write(*,'(3(1x,f12.5))') trans_inv(itmp, 1:3)
+  !     end do
+  !   end if
+  ! 
+  !   return
+  ! end subroutine set_trans_mat
 
 
   !AY just temporal but need this function in future (hidden option now)

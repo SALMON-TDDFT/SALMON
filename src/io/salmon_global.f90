@@ -100,7 +100,12 @@ module salmon_global
   real(8)        :: eta_mask
 
 !! &functional
-  character(32)  :: xc
+  character(64)  :: xc !, xcname
+  character(64)  :: xname
+  character(64)  :: cname
+  character(64)  :: alibx
+  character(64)  :: alibc
+  character(64)  :: alibxc
   real(8)        :: cval
   character(1)   :: no_update_func
 

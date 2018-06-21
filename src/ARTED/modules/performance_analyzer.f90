@@ -178,7 +178,7 @@ contains
     integer :: ncalls_in_loop
 
     select case(functional)
-      case('VS98','TPSS','TBmBJ')
+    case('VS98','TPSS','TBmBJ', 'tbmbj', "BJ_PW", "bj_pw")
         ncalls_in_loop = 3
       case default
         ncalls_in_loop = 2
