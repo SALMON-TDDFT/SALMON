@@ -1,6 +1,5 @@
 &calculation
   calc_mode = 'RT'
-  use_ms_maxwell = 'y'
 /
 
 &control
@@ -35,7 +34,7 @@
 /
 
 &tgrid
-  nt = 2200
+  nt = 1200
   dt = 0.10
 /
 
@@ -51,19 +50,9 @@
 &emfield
   ae_shape1 = 'Acos2'
   rlaser_int_wcm2_1 = 1d12
-  pulse_tw1 = 441.195136248d0
-  omega1 = 0.05696145187d0
+  pulse_tw1 = 110.30592311334672d0
+  omega1 = 0.05696144984638035d0
   epdir_re1 = 0., 0., 1.
-/
-
-&multiscale
-  fdtddim = '1d'
-  twod_shape = 'periodic'
-  nx_m = 4
-  ny_m = 1
-  hx_m = 250d0
-  nxvacl_m = -2000
-  nxvacr_m = 256
 /
 
 &atomic_red_coor
@@ -76,3 +65,4 @@
   'Si'	.25	.75	.75	1
   'Si'	.75	.75	.25	1
 /
+

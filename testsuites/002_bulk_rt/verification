@@ -12,37 +12,27 @@ import numpy as np
 # test rule
 reference = {}
 
-reference['Si_k.data'] = [
+reference['Si_rt.data'] = [
     # Row, Col, Reference, Tolerance, Info
-    [1-1, 2-1, -0.37500, 1e-4, 'kx ik=1'],
-    [1-1, 3-1, -0.37500, 0.00001, 'ky ik=1'],
-    [1-1, 4-1, -0.37500, 0.00001, 'kz ik=1'],
-    [1-1, 5-1, +1.00000, 0.00001, 'kw ik=1'],
-    [2-1, 2-1, -0.37500, 0.00001, 'kx ik=2'],
-    [2-1, 3-1, -0.37500, 0.00001, 'ky ik=2'],
-    [2-1, 4-1, -0.12500, 0.00001, 'kz ik=2'],
-    [2-1, 5-1, +1.00000, 0.00001, 'kw ik=2'],
+    [ 600, 10-1, -2.5062e-02, 3e-06, 'Ac_z(t=60au)'],
+    [ 600, 13-1, +4.8402e-03, 2e-07, 'E_z(t=60au)'],
+    [ 600, 16-1, -4.6521e-04, 3e-05, 'Jm_z(t=60au)'],
+    [1200, 10-1, +0.0000e+00, 1e-05, 'Ac_z(t=120au)'],
+    [1200, 13-1, +0.0000e+00, 1e-05, 'E_z(t=120au)'],
+    [1200, 16-1, +1.7546e-04, 4e-06, 'Jm_z(t=120au)'],
 ]
 
-reference['Si_eigen.data'] = [
+reference['Si_rt_energy.data'] = [
     # Row, Col, Reference, Tolerance, Info
-    [14, 3-1, +1.2341e-01, 1e-03, 'Eigenenergy ik=1 ib=15'],
-    [15, 3-1, +1.4209e-01, 1e-03, 'Eigenenergy ik=1 ib=16'],
-    [16, 3-1, +1.4189e-01, 1e-03, 'Eigenenergy ik=1 ib=17'],
-    [17, 3-1, +1.4903e-01, 1e-03, 'Eigenenergy ik=1 ib=18'],
-    [14, 4-1, +2.0000e+00, 1e-05, 'Occupation ik=1 ib=15'],
-    [15, 4-1, +2.0000e+00, 1e-05, 'Occupation ik=1 ib=16'],
-    [16, 4-1, +0.0000e+00, 1e-05, 'Occupation ik=1 ib=17'],
-    [17, 4-1, +0.0000e+00, 1e-05, 'Occupation ik=1 ib=18'],
-    [2030, 3-1, +1.2341e-01, 1e-03, 'Eigenenergy ik=64 ib=15'],
-    [2031, 3-1, +1.4209e-01, 1e-03, 'Eigenenergy ik=64 ib=16'],
-    [2032, 3-1, +1.4189e-01, 1e-03, 'Eigenenergy ik=64 ib=17'],
-    [2033, 3-1, +1.4903e-01, 1e-03, 'Eigenenergy ik=64 ib=18'],
-    [2030, 4-1, +2.0000e+00, 1e-05, 'Occupation ik=64 ib=15'],
-    [2031, 4-1, +2.0000e+00, 1e-05, 'Occupation ik=64 ib=16'],
-    [2032, 4-1, +0.0000e+00, 1e-05, 'Occupation ik=64 ib=17'],
-    [2033, 4-1, +0.0000e+00, 1e-05, 'Occupation ik=64 ib=18'],
+    [ 60, 3-1, +3.3138e-02, 1e-03, 'Energy(t=60au)'],
+    [120, 3-1, +4.1325e-02, 2e-03, 'Energy(t=120au)'],
 ]
+
+
+
+
+
+
 
 
 
@@ -86,7 +76,7 @@ def main():
                 else:
                     status, cmp = 'Failure', '>'
                     return_code = -1
-                    
+
                 print(message.format(
                     STATUS=status, INFO=info, ITEM=item, I=i, J=j, VAL=data[i, j],
                     REF=ref, ERR=err, CMP=cmp, TOL=tol
