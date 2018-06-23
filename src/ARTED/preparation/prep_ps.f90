@@ -461,7 +461,7 @@ Subroutine prep_ps_periodic(property)
           rc = rad(i,ik)
           exit
         end if
-        if(i == Nrmax) stop"no-cut-off"
+        if(i == Nrmax) stop "no-cut-off"
       end do
       
       do ix=-2,2; do iy=-2,2; do iz=-2,2
