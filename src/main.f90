@@ -34,6 +34,7 @@ program main
 
 contains
   subroutine print_software_version
+    use salmon_xc, only: print_xc_info
     implicit none
     include 'versionf.h'
     print '(A)',       '##############################################################################'
@@ -45,5 +46,7 @@ contains
       print '(A,A,A,A)', '#   [Git revision] ', GIT_COMMIT_HASH, ' in ', GIT_BRANCH
     endif
     print '(A)',       '##############################################################################'
+    
+    call print_xc_info()    
   end subroutine
 end program main

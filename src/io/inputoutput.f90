@@ -272,8 +272,16 @@ contains
 
     namelist/functional/ &
       & xc, &
+      & cname, &
+      & xname, &
+#ifdef SALMON_USE_LIBXC
+      & alibx, &
+      & alibc, &
+      & alibxc, &
+#endif
       & cval, &
       & no_update_func
+
 
     namelist/rgrid/ &
       & dl, &
@@ -570,7 +578,13 @@ contains
     gamma_mask    = 1.8d0
     eta_mask      = 15d0
 !! == default for &functional
-    xc   = 'PZ'
+    xc   = 'none'
+    ! xcname = 'PZ'
+    xname = 'none'
+    cname = 'none'
+    alibx = 'none'
+    alibc = 'none'
+    alibxc = 'none'
     cval = -1d0
     no_update_func = 'n'
 !! == default for &rgrid
@@ -905,8 +919,21 @@ contains
     call comm_bcast(gamma_mask   ,nproc_group_global)
     call comm_bcast(eta_mask     ,nproc_group_global)
 !! == bcast for &functional
-    call comm_bcast(xc            ,nproc_group_global)
-    call comm_bcast(cval          ,nproc_group_global)
+
+#ifdef SALMON_USE_LIBXC
+    if (alibxc .ne. 'none') xc = 'libxc:' // trim(alibxc)
+    if (alibx .ne. 'none') xname = 'libxc:' // trim(alibx)
+    if (alibc .ne. 'none') cname = 'libxc:' // trim(alibc)
+#endif
+    call comm_bcast(xc           ,nproc_group_global)
+    call comm_bcast(cname        ,nproc_group_global)
+    call comm_bcast(xname        ,nproc_group_global)
+#ifdef SALMON_USE_LIBXC
+    call comm_bcast(alibxc       ,nproc_group_global)
+    call comm_bcast(alibx        ,nproc_group_global)
+    call comm_bcast(alibc        ,nproc_group_global)
+#endif
+    call comm_bcast(cval         ,nproc_group_global)
     call comm_bcast(no_update_func,nproc_group_global)
 !! == bcast for &rgrid
     call comm_bcast(dl,nproc_group_global)
@@ -1458,6 +1485,13 @@ contains
       if(inml_functional >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'functional', inml_functional
       write(fh_variables_log, '("#",4X,A,"=",A)') 'xc', trim(xc)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'xname', trim(xname)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'cname', trim(cname)
+#ifdef SALMON_USE_LIBXC
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'alibxc', trim(alibxc)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'alibx', trim(alibx)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'alibc', trim(alibc)
+#endif
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'cval', cval
       write(fh_variables_log, '("#",4X,A,"=",A)') 'no_update_func', no_update_func
 

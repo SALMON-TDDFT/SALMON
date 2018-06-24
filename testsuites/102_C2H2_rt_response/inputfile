@@ -25,6 +25,9 @@
   Lloc_ps(1)=1
   Lloc_ps(2)=0
 /
+&functional
+  xc = 'PZ'
+/
 &tgrid
   dt=1.25d-3
   nt=5000

@@ -9,4 +9,3 @@
 cp ../pseudo/Si_rps.dat ./
 cp -r ../001_bulk_gs/gs_wfn_k ./
 
-

@@ -18,31 +18,110 @@ subroutine Exc_Cor(GS_RT,NBtmp,zu)
   use Global_Variables
   use timer
   use salmon_math
+  use salmon_parallel, only : nproc_id_global
   implicit none
   integer,intent(in)       :: GS_RT
   integer,intent(in)       :: NBtmp
   complex(8),intent(inout) :: zu(NL,NBtmp,NK_s:NK_e)
   call timer_begin(LOG_EXC_COR)
-
+  
   select case(functional)
-  case('PZ')
-     call Exc_Cor_PZ
-  case('PZM')
-     call Exc_Cor_PZM
-  case('PBE')
-     call Exc_Cor_PBE(GS_RT)
-  case('TBmBJ','BJ_PW')
-     call Exc_Cor_TBmBJ(GS_RT)
   case('TPSS')
      call Exc_Cor_TPSS(GS_RT)
   case('VS98')
      call Exc_Cor_VS98(GS_RT)
+  case default
+
+      if (xc_func%use_gradient) then
+
+        call exec_salmon_xc_gga_mgga()
+      else
+
+        call exec_salmon_xc_lda()
+      end if
+      
   end select
 
   call timer_end(LOG_EXC_COR)
 
 contains
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+
+subroutine exec_salmon_xc_lda()
+  use salmon_xc, only: calc_xc
+  implicit none
+  real(8) :: rho_tmp(NL, 1, 1)
+  real(8) :: eexc_tmp(NL, 1, 1)
+  real(8) :: vexc_tmp(NL, 1, 1)
+  real(8) :: rho_nlcc(NL, 1, 1)
+  real(8) :: rho_nlcc_tmp(NL, 1, 1)
+  
+  rho_tmp = reshape(rho, (/NL, 1, 1/))
+  
+  if (flag_nlcc) then
+    rho_nlcc_tmp = reshape(rho_nlcc, (/nl, 1, 1/))
+  else
+    rho_nlcc_tmp = 0d0
+  end if
+  
+  call calc_xc(xc_func, &
+    & rho=rho_tmp, eexc=Eexc_tmp, vxc=vexc_tmp, &
+    & rho_nlcc=rho_nlcc_tmp &
+    & )
+  
+  Eexc = reshape(eexc_tmp, (/nl/))
+  Vexc = reshape(vexc_tmp, (/nl/))
+  return
+end subroutine
+  
+  
+subroutine exec_salmon_xc_gga_mgga()
+  use salmon_xc, only: calc_xc
+  implicit none
+  real(8) :: rho_tmp(NL, 1, 1)
+  real(8) :: eexc_tmp(NL, 1, 1)
+  real(8) :: vexc_tmp(NL, 1, 1)
+  real(8) :: grho_tmp(NL, 1, 1, 3)
+  real(8) :: rlrho_tmp(NL, 1, 1)
+  real(8) :: tau_tmp(NL, 1, 1)
+  real(8) :: rj_tmp(NL, 1, 1, 3)
+  real(8) :: rho_nlcc_tmp(NL, 1, 1)
+  real(8) :: rho_s(NL)
+  real(8) :: tau_s(NL)
+  real(8) :: j_s(NL, 3)
+  real(8) :: grho_s(NL, 3)
+  real(8) :: lrho_s(NL)
+  
+  rho_tmp = reshape(rho, (/nl, 1, 1/))
+  
+  if (flag_nlcc) then
+    rho_nlcc_tmp = reshape(rho_nlcc, (/nl, 1, 1/))
+  else
+    rho_nlcc_tmp = 0d0
+  end if
+
+  call rho_j_tau(GS_RT,rho_s,tau_s,j_s,grho_s,lrho_s)
+
+  grho_tmp = reshape(grho_s * 2, (/nl, 1, 1, 3/))
+  rlrho_tmp = reshape(lrho_s * 2, (/nl, 1, 1/))
+  tau_tmp = reshape(tau_s * 2, (/nl, 1, 1/))
+  rj_tmp = reshape(j_s * 2, (/nl, 1, 1, 3/))
+
+  call calc_xc(xc_func, &
+    & rho=rho_tmp, eexc=Eexc_tmp, vxc=vexc_tmp, &
+    & grho=grho_tmp, rlrho=rlrho_tmp, tau=tau_tmp, rj=rj_tmp, &
+    & rho_nlcc=rho_nlcc_tmp, &
+    & nd=ND, ifdx=ifdx, ifdy=ifdy, ifdz=ifdz, &
+    & nabx=nabx, naby=naby, nabz=nabz)!, Hxyz=Hxyz, aLxyz=aLxyz &
+    !& )
+
+  Eexc = reshape(eexc_tmp, (/NL/))
+  Vexc = reshape(vexc_tmp, (/NL/))
+  
+  return
+end subroutine
+
+
 Subroutine Exc_Cor_PZ()
   use Global_Variables
   implicit none

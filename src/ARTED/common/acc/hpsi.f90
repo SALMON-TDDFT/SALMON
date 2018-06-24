@@ -39,10 +39,11 @@ subroutine hpsi_acc_KB_RT_LBLK(tpsi,htpsi, ikb_s,ikb_e)
 
   NVTX_BEG('hpsi_acc_KB_RT_LBLK()', 3)
   select case(functional)
-    case('PZ','PZM', 'PBE','TBmBJ','BJ_PW')
+  case('TPSS','VS98')
+    call err_finalize('hpsi_acc_KB_RT_LBLK: TPSS/VS98 ver. not implemented.')
+  case default
+  !case('PZ','PZM', 'PBE','TBmBJ','BJ_PW','pz','pzm', 'pbe','tbmbj','bj_pw' etc)
       call hpsi1_LBLK(tpsi(:,:),htpsi(:,:), ikb_s,ikb_e)
-    case('TPSS','VS98')
-      call err_finalize('hpsi_acc_KB_RT_LBLK: TPSS/VS98 ver. not implemented.')
   end select
   NVTX_END()
 

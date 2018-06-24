@@ -184,7 +184,7 @@ subroutine tddft_maxwell_ms
   call timer_begin(LOG_DYNAMICS)
 !$acc enter data copyin(zu_m)
   RTiteratopm : do iter=entrance_iter+1, Nt ! sato
-    
+
     !! NOTE: flg_out_ms_step (the macroscopic field will exported in this step)
     flg_out_ms_step = .false.
     if (mod(iter, out_ms_step) == 0) then
@@ -247,7 +247,7 @@ subroutine tddft_maxwell_ms
     end if
     call timer_end(LOG_OTHER)
     !===========================================================================
-    
+
     !===========================================================================
     call timer_begin(LOG_OTHER)
     if (flg_out_ms_step .and. comm_is_root(nproc_id_global)) then
@@ -255,7 +255,7 @@ subroutine tddft_maxwell_ms
     end if
     call timer_end(LOG_OTHER)
     !===========================================================================
-    
+
     !! Update of the Microscopic System
     
     ! if (iter == Nt) break
@@ -403,7 +403,7 @@ subroutine tddft_maxwell_ms
       call timer_end(LOG_ANA_RT_USEGS)
     
     end do Macro_loop !end of Macro_loop iteraction========================
-      
+
     !===========================================================================
     call timer_begin(LOG_ALLREDUCE)
     call comm_summation(jm_new_m_tmp, Jm_new_m, 3 * nmacro, nproc_group_global)
@@ -500,7 +500,7 @@ subroutine tddft_maxwell_ms
   enddo RTiteratopm !end of RT iteraction========================
 !$acc exit data copyout(zu_m)
   call timer_end(LOG_DYNAMICS)
-  
+
   if(comm_is_root(nproc_id_global)) then
     write(*,'(1X,A)') '-----------------------------------------------'
 
@@ -526,7 +526,7 @@ subroutine tddft_maxwell_ms
 
   if(comm_is_root(nproc_id_global)) write(*,*) 'This is the start of write section'
   call timer_begin(LOG_IO)
-  
+
   ! Write data out by using MPI
   do index = 0, Ndata_out-1
     call write_data_out(index)
@@ -832,8 +832,8 @@ contains
           end do
         end do
       end do
+      close(fh_ac)
     end if
-    close(fh_ac)
    
     return
   end subroutine write_data_out
@@ -940,10 +940,12 @@ contains
     integer :: iimacro, iiter
     character(100) :: file_ac_m
 
-    if(comm_is_root(nproc_id_tdks)) then
     !do iimacro = nmacro_s, nmacro_e
     do igroup=1,ndivide_macro
        do i=1,nmacro_write_group
+
+          if(comm_is_root(nproc_id_tdks)) then
+
           iimacro = (igroup-1)*nmacro_write_group + i
           if(iimacro.ge.nmacro_s .and. iimacro.le.nmacro_e) then
 
@@ -993,12 +995,12 @@ contains
 
           endif !<--if(imacro.ge.nmacro_s .and. imacro.le.nmacro_e)
 
+          endif ! nproc_id_tdks
+
        enddo !i
        call comm_sync_all
     enddo !igroup
 
-    end if
-    !call comm_sync_all
   end subroutine
   
   

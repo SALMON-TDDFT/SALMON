@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+
+# This verification script file is automatically executed after the SALMON.
+# If necessary, this script file can used for the verification of the result.
+# The script MUST indicate a "return-code 0", if the calculation is successful.
+# If a negative value is returned, it is treated as a test failure.
+
+import sys
+import os
+import numpy as np
+
+# test rule
+reference = {}
+
+reference['Si_rt.data'] = [
+    # Row, Col, Reference, Tolerance, Info
+    [ 600, 10-1, -2.5062e-02, 3e-06, 'Ac_z(t=60au)'],
+    [ 600, 13-1, +4.8402e-03, 2e-07, 'E_z(t=60au)'],
+    [ 600, 16-1, -4.6521e-04, 3e-05, 'Jm_z(t=60au)'],
+    [1200, 10-1, +0.0000e+00, 1e-05, 'Ac_z(t=120au)'],
+    [1200, 13-1, +0.0000e+00, 1e-05, 'E_z(t=120au)'],
+    [1200, 16-1, +1.7546e-04, 4e-06, 'Jm_z(t=120au)'],
+]
+
+reference['Si_rt_energy.data'] = [
+    # Row, Col, Reference, Tolerance, Info
+    [ 60, 3-1, +3.3138e-02, 1e-03, 'Energy(t=60au)'],
+    [120, 3-1, +4.1325e-02, 2e-03, 'Energy(t=120au)'],
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+message = """[{STATUS}] {INFO}
+    {ITEM}[{I:d},{J:d}]: {VAL:+.18e} (ref: {REF:+.4e})
+    err: {ERR:1.4e} {CMP} tol: {TOL:1.4e}"""
+
+def main():
+    print("#" * 60)
+    print("# Verification start")
+
+    return_code = 0
+
+    for item, table in reference.items():
+        if os.path.isfile(item):
+            data = np.loadtxt(item)
+            for i, j, ref, tol, info in table:
+                err = np.abs(data[i, j] - ref)
+                if err <= tol:
+                    status, cmp = 'Success', '<='
+                else:
+                    status, cmp = 'Failure', '>'
+                    return_code = -1
+
+                print(message.format(
+                    STATUS=status, INFO=info, ITEM=item, I=i, J=j, VAL=data[i, j],
+                    REF=ref, ERR=err, CMP=cmp, TOL=tol
+                ))
+        else:
+            print('[Error] "%s" is not found' % item)
+            return_code = -1
+
+    print("# Verification end")
+    print("#" * 60)
+
+    sys.exit(return_code)
+
+
+if __name__ == "__main__":
+    main()

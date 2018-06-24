@@ -5,9 +5,130 @@
 # The script MUST indicate a "return-code 0", if the calculation is successful.
 # If a negative value is returned, it is treated as a test failure.
 
-import numpy as np
 import sys
+import os
+import numpy as np
 
+# test rule
+reference = {}
+
+reference['Si_Ac_M_000001.data'] = [
+    # Row, Col, Reference, Tolerance, Info
+    [2200, 4-1, -1.080e-02, 1e-3, "Ac_z(imacro=1,t=220.0)"],
+    [2200, 7-1, -1.824e-04, 1e-5, "Jm_z(imacro=1,t=220.0)"],
+]
+
+reference['Si_Ac_M_000002.data'] = [
+    # Row, Col, Reference, Tolerance, Info
+    [2200, 4-1, -4.110e-03, 1e-3, "Ac_z(imacro=2,t=220.0)"],
+    [2200, 7-1, -8.896e-05, 5e-7, "Jm_z(imacro=2,t=220.0)"],
+]
+
+reference['Si_Ac_M_000003.data'] = [
+    # Row, Col, Reference, Tolerance, Info
+    [2200, 4-1, -1.040e-03, 5e-4, "Ac_z(imacro=3,t=220.0)"],
+    [2200, 7-1, -4.140e-05, 2e-6, "Jm_z(imacro=3,t=220.0)"],
+]
+
+reference['Si_Ac_M_000004.data'] = [
+    # Row, Col, Reference, Tolerance, Info
+    [2200, 7-1, -2.000e-05, 3e-6, "Jm_z(imacro=4,t=220.0)"],
+]
+
+reference['Si_Ac_002200.data'] = [
+    # Row, Col, Reference, Tolerance, Info
+    [2001,  6-1, -1.100000e-02, 5e-03, "Ac(ix_m=1,t=220.0)"],
+    [2001, 15-1, -1.900000e-04, 5e-05, "Jm_z(ix_m=1,t=220.0)"],
+    [2001, 16-1, +5.900000e-03, 5e-04, "Eex(ix_m=1,t=220.0)"],
+    [2001, 17-1, +5.700000e-03, 3e-04, "Eabs(ix_m=1,t=220.0)"],
+    [2001, 18-1, +1.470000e-03, 3e-05, "Eemf(ix_m=1,t=220.0)"],
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+message = """[{STATUS}] {INFO}
+    {ITEM}[{I:d},{J:d}]: {VAL:+.18e} (ref: {REF:+.4e})
+    err: {ERR:1.4e} {CMP} tol: {TOL:1.4e}"""
+
+def main():
+    print("#" * 60)
+    print("# Verification start")
+
+    return_code = 0
+
+    for item, table in reference.items():
+        if os.path.isfile(item):
+            data = np.loadtxt(item)
+            for i, j, ref, tol, info in table:
+                err = np.abs(data[i, j] - ref)
+                if err <= tol:
+                    status, cmp = 'Success', '<='
+                else:
+                    status, cmp = 'Failure', '>'
+                    return_code = -1
+
+                print(message.format(
+                    STATUS=status, INFO=info, ITEM=item, I=i, J=j, VAL=data[i, j],
+                    REF=ref, ERR=err, CMP=cmp, TOL=tol
+                ))
+        else:
+            print('[Error] "%s" is not found' % item)
+            return_code = -1
+
+    print("# Verification end")
+    print("#" * 60)
+
+    sys.exit(return_code)
+
+
+<<<<<<< HEAD
 print("#" * 60)
 print("# Verification start")
 
@@ -49,3 +170,7 @@ print("# Verification end")
 print("#" * 60)
 
 sys.exit(0)  # Success
+=======
+if __name__ == "__main__":
+    main()
+>>>>>>> e0530b1665da5404bdb86eb4483aa18af151f2c3
