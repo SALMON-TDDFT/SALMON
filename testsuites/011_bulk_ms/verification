@@ -12,30 +12,30 @@ import numpy as np
 # test rule
 reference = {}
 
-reference['Si_Ac_M_000001.data'] = [
+reference['multiscale/M000001/Si_Ac_M.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2200, 4-1, -1.080e-02, 1e-3, "Ac_z(imacro=1,t=220.0)"],
     [2200, 7-1, -1.824e-04, 1e-5, "Jm_z(imacro=1,t=220.0)"],
 ]
 
-reference['Si_Ac_M_000002.data'] = [
+reference['multiscale/M000002/Si_Ac_M.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2200, 4-1, -4.110e-03, 1e-3, "Ac_z(imacro=2,t=220.0)"],
     [2200, 7-1, -8.896e-05, 5e-7, "Jm_z(imacro=2,t=220.0)"],
 ]
 
-reference['Si_Ac_M_000003.data'] = [
+reference['multiscale/M000003/Si_Ac_M.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2200, 4-1, -1.040e-03, 5e-4, "Ac_z(imacro=3,t=220.0)"],
     [2200, 7-1, -4.140e-05, 2e-6, "Jm_z(imacro=3,t=220.0)"],
 ]
 
-reference['Si_Ac_M_000004.data'] = [
+reference['multiscale/M000004/Si_Ac_M.data'] = [    
     # Row, Col, Reference, Tolerance, Info
     [2200, 7-1, -2.000e-05, 3e-6, "Jm_z(imacro=4,t=220.0)"],
 ]
 
-reference['Si_Ac_002200.data'] = [
+reference['multiscale/RT_Ac/Si_Ac_002200.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2001,  6-1, -1.100000e-02, 5e-03, "Ac(ix_m=1,t=220.0)"],
     [2001, 15-1, -1.900000e-04, 5e-05, "Jm_z(ix_m=1,t=220.0)"],
@@ -127,50 +127,6 @@ def main():
 
     sys.exit(return_code)
 
-
-<<<<<<< HEAD
-print("#" * 60)
-print("# Verification start")
-
-return_code = 0
-
-###############################################################################
-# Check of Ac field
-output = np.loadtxt("multiscale/RT_Ac/Si_Ac_000200.data")[2001]
-
-reference = np.array([
-    1.00000000e+00,   1.00000000e+00,   1.00000000e+00,
-    6.77753437e-10,  -1.22124829e-09,  -5.81807885e-05,
-    8.43941922e-11,   3.85063684e-10,   2.09441220e-05,
-    0.00000000e+00,  -4.01759658e-05,  -2.77705523e-10,
-    1.50294427e-11,   2.31384734e-12,  -1.30128280e-06,
-    -8.30721412e-08,   4.21811379e-08,   8.82147779e-08
-])
-
-checklist = {
-    "Ac_z": [output[6 - 1], reference[6 - 1], 1e-7],
-    "E_z": [output[9 - 1], reference[9 - 1], 1e-7],
-    "Jm_z": [output[15 - 1], reference[15 - 1], 1e-8],
-    "Eex": [output[16 - 1], reference[16 - 1], 1e-10],
-    "Eabs": [output[17 - 1], reference[17 - 1], 1e-10],
-    "Eemf": [output[18 - 1], reference[18 - 1], 1e-10],
-}
-
-for tag, [val, ref, eps] in checklist.items():
-    if np.abs(val - ref) > eps:
-        return_code = -1
-        flag, msg = ">", "FAILURE"
-    else:
-        flag, msg ="<=", "SUCCESS"
-    print("{TAG:10s} |{VAL:e}{SREF:+e}|{FLAG}{EPS:e} {MSG}".format(
-        TAG=tag, VAL=val, SREF=-ref, EPS=eps, FLAG=flag, MSG=msg
-    ))
-
-print("# Verification end")
-print("#" * 60)
-
-sys.exit(0)  # Success
-=======
 if __name__ == "__main__":
     main()
->>>>>>> e0530b1665da5404bdb86eb4483aa18af151f2c3
+
