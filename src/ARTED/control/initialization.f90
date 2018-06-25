@@ -63,8 +63,6 @@ contains
     if(restart_option == 'restart') then
       if (comm_is_root(nproc_id_global)) call timer_show_current_hour('Restore...', LOG_ALL)
       call prep_restart_read
-      !AY read external input keyword for restart (hidden option now)
-      call read_external_input_for_restart
       return
     end if
 
@@ -120,7 +118,7 @@ contains
     use misc_routines
     use timer
     implicit none
-    integer :: ia,i,j
+    integer :: ia,i,j,imacro
     
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Nprocs=',nproc_size_global
@@ -467,6 +465,19 @@ contains
     if (use_ms_maxwell == 'y') then
        !! Allocate multiscale variables
        call allocate_multiscale_vars()
+       !set directory name for input & output
+       dir_ms       = trim(process_directory)//'multiscale/'
+       dir_ms_RT_Ac = trim(dir_ms)//'RT_Ac/'
+       do imacro = nmacro_s, nmacro_e
+          write(dir_ms_M(imacro), "(A,'M',I6.6,'/')") trim(dir_ms),imacro
+       enddo
+       if(nmacro_write_group.lt.0) nmacro_write_group=nmacro
+       if(mod(nmacro,nmacro_write_group).ne.0) then
+          write(*,*) "wrong number of nmacro_write_group"
+          call end_parallel
+          stop
+       endif
+       ndivide_macro=int(dble(nmacro)/dble(nmacro_write_group))
     end if
     
     ! sato ---------------------------------------------------------------------------------------
@@ -497,6 +508,14 @@ contains
        Rion(2,:)=Rion_red(2,:)*aLy
        Rion(3,:)=Rion_red(3,:)*aLz
     end select
+
+    if(use_ms_maxwell == 'y')then
+       do imacro = nmacro_s, nmacro_e
+          Rion_m(:,:,imacro)     = Rion(:,:)
+          Rion_eq_m(:,:,imacro)  = Rion_m(:,:,imacro)
+          velocity_m(:,:,imacro) = velocity(:,:)
+       enddo
+    endif
     
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Zatom=',(Zatom(j),j=1,NE)
@@ -507,6 +526,7 @@ contains
           write(*,'(3f12.8)') (Rion_red(j,ia),j=1,3)
        end do
     endif
+
     call comm_sync_all
     
     return
@@ -531,6 +551,16 @@ contains
        if(set_ini_velocity=='y' .or. step_velocity_scaling>=1) &
        call set_initial_velocity
        if(set_ini_velocity=='r') call read_initial_velocity
+
+       if (use_ms_maxwell == 'y') then
+          if(nmacro_s .ne. nmacro_e .or. nproc_size_global.ne.nmacro)then
+             write(*,*) "Error: "
+             write(*,*) "  number of parallelization nodes must be equal to number of macro grids"
+             write(*,*) "  in ehrenfest md option with multi-scale"
+             call end_parallel
+             stop
+          endif
+       endif
     endif
 
   End Subroutine init_md
@@ -712,6 +742,10 @@ contains
     allocate(Ac_old_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
     allocate(Ac_new_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
     Ac_ms = 0d0; Ac_old_ms = 0d0; Ac_new_ms = 0d0
+    if(read_rt_wfn_k_ms=='y') then
+      allocate(add_Ac_new_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
+      allocate(add_Ac_ms(1:3, mx1_m:mx2_m, my1_m:my2_m, mz1_m:mz2_m))
+    endif
     allocate(Jm_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
     allocate(Jm_old_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
     allocate(Jm_new_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
@@ -731,11 +765,25 @@ contains
     !! Allocate local macropoint field variables
     allocate(Ac_m(1:3, 1:nmacro))
     allocate(Ac_new_m(1:3, 1:nmacro))
+    allocate(Ac_old_m(1:3, 1:nmacro))
     allocate(Jm_m(1:3, nmacro))
     allocate(Jm_new_m(1:3, nmacro))
     allocate(jm_new_m_tmp(1:3, nmacro))
+    if(use_ehrenfest_md=='y') then
+       allocate(jm_ion_new_m_tmp(1:3, nmacro))
+       allocate(Jm_ion_m(    1:3, nmacro))
+       allocate(Jm_ion_new_m(1:3, nmacro))
+       allocate(Jm_ion_ms(    1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+       allocate(Jm_ion_old_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+       allocate(Jm_ion_new_ms(1:3, nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+       Jm_ion_m = 0d0  ; Jm_ion_new_m = 0d0
+       Jm_ion_ms = 0d0 ; Jm_ion_old_ms = 0d0 ; Jm_ion_new_ms = 0d0
+       allocate(data_local_jm_ion(3, nmacro_s:nmacro_e, 0:Nt))
+       allocate(data_local_Tmp_ion(nmacro_s:nmacro_e, 0:Nt))
+    endif
     Ac_m = 0d0; Ac_new_m = 0d0;
     Jm_m = 0d0; Jm_new_m = 0d0; jm_new_m_tmp = 0d0
+    allocate(Eall0_m(nmacro))
 
     allocate(energy_elec_Matter_new_m(1:nmacro))
     allocate(energy_elec_Matter_new_m_tmp(1:nmacro))
@@ -755,20 +803,28 @@ contains
     ! Temporal Storage of Microscopic System
     allocate(zu_m(NL,NBoccmax,NK_s:NK_e,nmacro_s:nmacro_e))
     if(NXYsplit /= 1)then
-      allocate(rho_m(NL, nmacro_s:nmacro_e))
-      allocate(Vh_m(NL, nmacro_s:nmacro_e))
+      allocate(rho_m( NL, nmacro_s:nmacro_e))
+      allocate(Vh_m(  NL, nmacro_s:nmacro_e))
       allocate(Vexc_m(NL, nmacro_s:nmacro_e))
       allocate(Eexc_m(NL, nmacro_s:nmacro_e))
       allocate(Vloc_m(NL, nmacro_s:nmacro_e))
       allocate(Vloc_old_m(NL, 2, nmacro_s:nmacro_e))
     end if
-    
+    allocate(Rion_m(    3,NI,nmacro_s:nmacro_e))
+    allocate(velocity_m(3,NI,nmacro_s:nmacro_e)) ; velocity_m(:,:,:)=0d0
+    allocate(force_m(   3,NI,nmacro_s:nmacro_e))
+    allocate(Rion_eq_m( 3,NI,nmacro_s:nmacro_e))
+    allocate(dRion_m(   3,NI,-1:Nt+1,nmacro_s:nmacro_e)) ; dRion_m(:,:,-1:0,:)=0d0
+
     !! Detecting Positioning of Vac_Ac file
     ! TODO: Generalize the detector positioning for multidimensional case
     ix_detect_r = min(NX_m+1, nx2_m)
     ix_detect_l = 0
     iy_detect = ny1_m
     iz_detect = nz1_m
+
+    allocate(dir_ms_M(nmacro_s:nmacro_e))
+
   end subroutine allocate_multiscale_vars
   
   
@@ -777,7 +833,7 @@ contains
     use salmon_global
     use Global_variables
     implicit none
-    integer :: ix_m, iy_m, iz_m, icount
+    integer :: ix_m, iy_m, iz_m, icount,i
     
     select case (FDTDdim)
     case("1D", "1d")
@@ -811,7 +867,14 @@ contains
         end do
       end do
     end do    
-      
+
+    trans_mat(:,:) = 0d0
+    trans_inv(:,:) = 0d0
+    do i=1,3
+       trans_mat(i,i) = 1d0
+       trans_inv(i,i) = 1d0
+    enddo
+
     end subroutine
     
     subroutine set_macropoint_from_file()
@@ -821,6 +884,9 @@ contains
       use global_variables
       implicit none
       integer :: fh, icount, itmp
+      real(8) :: ms_theta_x
+      real(8) :: ms_theta_y
+      real(8) :: ms_theta_z
 
       namelist/macroscopic_system/ &
         & nx_origin_m, nx_m, hx_m, &
@@ -830,7 +896,10 @@ contains
         & nmacro, nmacro_attr, &
         & nbg_media, nbg_media_attr, &
         & ninit_acfield, &
-        & debug_switch_no_radiation
+        & debug_switch_no_radiation, &
+        & ms_angle_x, &
+        & ms_angle_y, &
+        & ms_angle_z
       
       nmacro = 1
       nmacro_attr = 0
@@ -838,6 +907,9 @@ contains
       nbg_media_attr = 0
       ninit_acfield = 0
       debug_switch_no_radiation = .false.
+      ms_angle_x = 0d0
+      ms_angle_y = 0d0
+      ms_angle_z = 0d0
 
       if(comm_is_root(nproc_id_global)) then
         fh = open_filehandle(trim(directory) // trim(file_macropoint))
@@ -861,6 +933,9 @@ contains
       call comm_bcast(nbg_media_attr,nproc_group_global)
       call comm_bcast(ninit_acfield,nproc_group_global)
       call comm_bcast(debug_switch_no_radiation,nproc_group_global)
+      call comm_bcast(ms_angle_x,nproc_group_global)
+      call comm_bcast(ms_angle_y,nproc_group_global)
+      call comm_bcast(ms_angle_z,nproc_group_global)
 
       allocate(macropoint(1:4, nmacro))
       allocate(macropoint_attr(1:nattr_column, nmacro_attr))
@@ -894,7 +969,50 @@ contains
       call comm_bcast(bg_media_attr,nproc_group_global)
       call comm_bcast(init_acfield_point,nproc_group_global)
       call comm_bcast(init_acfield_val,nproc_group_global)
+
       ! call set_trans_mat(ms_angle_x, ms_angle_y, ms_angle_z)
+      
+      ms_theta_x = ms_angle_x * (pi / 180)
+      ms_theta_y = ms_angle_y * (pi / 180)
+      ms_theta_z = ms_angle_z * (pi / 180)
+      
+      trans_mat(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+      trans_mat(1, 2) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+      trans_mat(1, 3) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+      trans_mat(2, 1) = sin(ms_theta_z)*cos(ms_theta_y)
+      trans_mat(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+      trans_mat(2, 3) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+      trans_mat(3, 1) = -sin(ms_theta_y)
+      trans_mat(3, 2) = sin(ms_theta_x)*cos(ms_theta_y)
+      trans_mat(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+      
+      trans_inv(1, 1) = cos(ms_theta_y)*cos(ms_theta_z)
+      trans_inv(1, 2) = sin(ms_theta_z)*cos(ms_theta_y)
+      trans_inv(1, 3) = -sin(ms_theta_y)
+      trans_inv(2, 1) = sin(ms_theta_x)*sin(ms_theta_y)*cos(ms_theta_z) - sin(ms_theta_z)*cos(ms_theta_x)
+      trans_inv(2, 2) = sin(ms_theta_x)*sin(ms_theta_y)*sin(ms_theta_z) + cos(ms_theta_x)*cos(ms_theta_z)
+      trans_inv(2, 3) = sin(ms_theta_x)*cos(ms_theta_y)
+      trans_inv(3, 1) = sin(ms_theta_x)*sin(ms_theta_z) + sin(ms_theta_y)*cos(ms_theta_x)*cos(ms_theta_z)
+      trans_inv(3, 2) = -sin(ms_theta_x)*cos(ms_theta_z) + sin(ms_theta_y)*sin(ms_theta_z)*cos(ms_theta_x)
+      trans_inv(3, 3) = cos(ms_theta_x)*cos(ms_theta_y)
+      
+      if(comm_is_root(nproc_id_global)) then
+        write(*,'(a)') "# Multiscale Rotation:"
+        write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_x", ms_angle_x, ms_theta_x, "rad"
+        write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_y", ms_angle_y, ms_theta_y, "rad"
+        write(*,'(a, 2(1x,f12.5), a)') "# ms_angle_z", ms_angle_z, ms_theta_z, "rad"
+        write(*,'(a)') "# trans_mat(3,3):"
+        do itmp = 1, 3
+            write(*,'(3(1x,f12.5))') trans_mat(itmp, 1:3)
+        end do
+        write(*,'(a)') "# trans_inv(3,3):"
+        do itmp = 1, 3
+            write(*,'(3(1x,f12.5))') trans_inv(itmp, 1:3)
+        end do
+      end if
+      
+      call comm_bcast(trans_mat,nproc_group_global)
+      call comm_bcast(trans_inv,nproc_group_global)
 
       return
   end subroutine set_macropoint_from_file
@@ -955,92 +1073,5 @@ contains
   ! 
   !   return
   ! end subroutine set_trans_mat
-
-
-  !AY just temporal but need this function in future (hidden option now)
-  Subroutine read_external_input_for_restart
-    use salmon_global
-    use Global_Variables
-    use salmon_parallel
-    use salmon_communication
-    implicit none
-    character(1024) :: line,keyword
-    integer :: flag_access
-    integer access
-
-    if(comm_is_root(nproc_id_global))then
-      flag_access = access("input_for_restart.inp", "r")
-    end if
-    call comm_bcast(flag_access, nproc_group_global)
-    if(flag_access .ne. 0) then
-      return
-    end if
-    
-    if(comm_is_root(nproc_id_global))then
-       open(123,file="input_for_restart.inp",status="old",err=999)
-       write(*,*) "Opened input_for_restart.inp"
-       do
-          read(123,'(a)',end=100) line
-          write(*,*) "   ", trim(line)
-          read(line,*) keyword
-
-          if(     keyword=='projection_option') then
-             read(line,*) keyword, projection_option
-             file_ovlp=trim(directory)//trim(SYSname)//'_ovlp.out'
-             file_nex=trim(directory)//trim(SYSname)//'_nex.out'
-             file_last_band_map=trim(directory)//trim(SYSname)//'_last_band_map.out'
-
-          else if(keyword=='out_projection_step') then
-             read(line,*) keyword, out_projection_step
-
-          else if(keyword=='format3d') then
-             read(line,*) keyword, format3d
-
-          else if(keyword=='out_dns_rt') then
-             read(line,*) keyword, out_dns_rt
-
-          else if(keyword=='out_dns_rt_step') then
-             read(line,*) keyword, out_dns_rt_step
-
-          else if(keyword=='omp_loop') then
-             read(line,*) keyword, omp_loop
-
-          else if(keyword=='step_velocity_scaling') then
-             read(line,*) keyword, step_velocity_scaling
-
-          else if(keyword=='temperature0_ion') then
-             read(line,*) keyword, temperature0_ion
-
-          else if(keyword=='set_ini_velocity') then
-             read(line,*) keyword, set_ini_velocity
-
-          else if(keyword=='step_update_ps') then
-             read(line,*) keyword, step_update_ps
-
-          else
-             write(*,*) "This keyword in input_for_restart.inp is not supported"
-          endif
-       enddo
-100    continue
-       close(123)
-    endif
-
-    call comm_bcast(file_ovlp,             nproc_group_global)
-    call comm_bcast(file_nex,              nproc_group_global)
-    call comm_bcast(file_last_band_map,    nproc_group_global)
-    call comm_bcast(projection_option,     nproc_group_global)
-    call comm_bcast(out_projection_step,   nproc_group_global)
-    call comm_bcast(format3d,              nproc_group_global)
-    call comm_bcast(out_dns_rt,            nproc_group_global)
-    call comm_bcast(out_dns_rt_step,       nproc_group_global)
-    call comm_bcast(omp_loop,              nproc_group_global)
-    call comm_bcast(step_velocity_scaling, nproc_group_global)
-    call comm_bcast(temperature0_ion,      nproc_group_global)
-    call comm_bcast(set_ini_velocity,      nproc_group_global)
-    call comm_bcast(step_update_ps,        nproc_group_global)
-
-999 return
-
-  End Subroutine read_external_input_for_restart
 
 end module initialization

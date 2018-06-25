@@ -290,3 +290,18 @@ contains
     call timer_end(LOG_ALLREDUCE)
   end subroutine
 end subroutine
+
+subroutine current_RT_ion_MS(ixy_m)
+  use Global_Variables, only: jav_ion,NI,Zps,Kion,velocity_m,aLxyz
+  implicit none
+  integer,intent(in) :: ixy_m
+  integer :: ia
+
+  !matter current of ion: defined by positive charge-->minus sign
+  jav_ion(:)=0d0
+  do ia=1,NI
+     jav_ion(:) = jav_ion(:) - Zps(Kion(ia))*velocity_m(:,ia,ixy_m)
+  enddo
+  jav_ion(:) = jav_ion(:) /aLxyz
+
+end subroutine

@@ -74,7 +74,7 @@ Module Global_Variables
   real(8),allocatable :: occ(:,:),wk(:)
 
 ! physical quantities
-  real(8) :: Eall,Eall0,Eall_GS0,jav(3),Tion
+  real(8) :: Eall,Eall0,Eall_GS0,jav(3),jav_ion(3),Tion
   real(8) :: Ekin,Eloc,Enl,Eh,Exc,Eion,Eelemag                      
   real(8),allocatable :: javt(:,:)
   real(8),allocatable :: Vpsl(:),Vpsl_ia(:,:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)!yabana
@@ -164,6 +164,9 @@ Module Global_Variables
   character(256) :: file_rt_data
   character(256) :: file_lr_data
   character(256) :: process_directory
+  character(1024):: dir_ms, dir_ms_RT_Ac
+  character(1024),allocatable :: dir_ms_M(:)
+  integer        :: ndivide_macro
 
 ! energy computation
   character(256) :: file_rt_energy_data
@@ -234,16 +237,21 @@ Module Global_Variables
   !!       In the RT iteration, the variable with suffix "new" and "old" 
   !!       indicate the data at the time "iter+1" and "iter-1", respectively.
   real(8),allocatable :: Ac_old_ms(:,:,:,:),  Ac_ms(:,:,:,:), Ac_new_ms(:,:,:,:)
+  real(8),allocatable :: add_Ac_ms(:,:,:,:),  add_Ac_new_ms(:,:,:,:)
   real(8),allocatable :: Jm_old_ms(:,:,:,:),  Jm_ms(:,:,:,:), Jm_new_ms(:,:,:,:)
+  real(8),allocatable :: Jm_ion_old_ms(:,:,:,:),Jm_ion_ms(:,:,:,:),Jm_ion_new_ms(:,:,:,:)
   real(8),allocatable :: elec_ms(:,:,:,:)
   real(8),allocatable :: bmag_ms(:,:,:,:)
   real(8),allocatable :: energy_joule_ms(:,:,:)
-  real(8),allocatable :: energy_elec_ms(:,:,:)
+  real(8),allocatable :: energy_elec_ms(:,:,:), Eall0_m(:)
   real(8),allocatable :: energy_elemag_ms(:,:,:)
   real(8) :: total_energy_elemag_old, total_energy_elemag
   real(8) :: total_energy_absorb_old, total_energy_absorb
   real(8) :: total_energy_elec_old, total_energy_elec
   real(8) :: total_energy_em_old, total_energy_em  
+
+  real(8) :: ms_angle_x, ms_angle_y, ms_angle_z
+  real(8) :: trans_mat(3, 3), trans_inv(3, 3)
 
   !! Calculate Pure FDTD Calculation without TDDFT:
   !! NOTE: This switch will be removed after marging the common FDTD routine..
@@ -254,15 +262,18 @@ Module Global_Variables
 #else
   complex(8),allocatable :: zu_m(:,:,:,:)
 #endif
+  real(8),allocatable :: Rion_m(:,:,:),velocity_m(:,:,:),force_m(:,:,:)
+  real(8),allocatable :: Rion_eq_m(:,:,:),dRion_m(:,:,:,:)
   real(8),allocatable :: Vh_m(:,:)
   real(8),allocatable :: Vexc_m(:,:)
   real(8),allocatable :: Eexc_m(:,:)
   real(8),allocatable :: Vloc_m(:,:),Vloc_old_m(:,:,:)
   real(8),allocatable :: rho_m(:,:)
   
-  real(8),allocatable :: Ac_m(:,:), Ac_new_m(:,:)
+  real(8),allocatable :: Ac_m(:,:), Ac_new_m(:,:), Ac_old_m(:,:)
   real(8),allocatable :: Jm_m(:,:), Jm_new_m(:,:)
-  real(8),allocatable :: jm_new_m_tmp(:,:)
+  real(8),allocatable :: Jm_ion_m(:,:), Jm_ion_new_m(:,:)
+  real(8),allocatable :: jm_new_m_tmp(:,:),jm_ion_new_m_tmp(:,:)
   real(8),allocatable :: energy_elec_Matter_new_m(:)
   real(8),allocatable :: energy_elec_Matter_new_m_tmp(:)
   real(8),allocatable :: excited_electron_new_m(:)
@@ -273,7 +284,9 @@ Module Global_Variables
   integer :: ndata_out, ndata_out_per_proc
   real(8), allocatable :: data_local_ac(:,:,:)
   real(8), allocatable :: data_local_jm(:,:,:)
+  real(8), allocatable :: data_local_jm_ion(:,:,:)
   real(8), allocatable :: data_vac_ac(:,:,:)
+  real(8), allocatable :: data_local_Tmp_ion(:,:)
   
   integer :: ix_detect_l, ix_detect_r, iy_detect, iz_detect
 

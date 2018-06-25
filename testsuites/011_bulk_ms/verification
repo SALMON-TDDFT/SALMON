@@ -12,30 +12,30 @@ import numpy as np
 # test rule
 reference = {}
 
-reference['Si_Ac_M_000001.data'] = [
+reference['multiscale/M000001/Si_Ac_M.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2200, 4-1, -1.080e-02, 1e-3, "Ac_z(imacro=1,t=220.0)"],
     [2200, 7-1, -1.824e-04, 1e-5, "Jm_z(imacro=1,t=220.0)"],
 ]
 
-reference['Si_Ac_M_000002.data'] = [
+reference['multiscale/M000002/Si_Ac_M.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2200, 4-1, -4.110e-03, 1e-3, "Ac_z(imacro=2,t=220.0)"],
     [2200, 7-1, -8.896e-05, 5e-7, "Jm_z(imacro=2,t=220.0)"],
 ]
 
-reference['Si_Ac_M_000003.data'] = [
+reference['multiscale/M000003/Si_Ac_M.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2200, 4-1, -1.040e-03, 5e-4, "Ac_z(imacro=3,t=220.0)"],
     [2200, 7-1, -4.140e-05, 2e-6, "Jm_z(imacro=3,t=220.0)"],
 ]
 
-reference['Si_Ac_M_000004.data'] = [
+reference['multiscale/M000004/Si_Ac_M.data'] = [    
     # Row, Col, Reference, Tolerance, Info
     [2200, 7-1, -2.000e-05, 3e-6, "Jm_z(imacro=4,t=220.0)"],
 ]
 
-reference['Si_Ac_002200.data'] = [
+reference['multiscale/RT_Ac/Si_Ac_002200.data'] = [
     # Row, Col, Reference, Tolerance, Info
     [2001,  6-1, -1.100000e-02, 5e-03, "Ac(ix_m=1,t=220.0)"],
     [2001, 15-1, -1.900000e-04, 5e-05, "Jm_z(ix_m=1,t=220.0)"],
@@ -127,6 +127,6 @@ def main():
 
     sys.exit(return_code)
 
-
 if __name__ == "__main__":
     main()
+

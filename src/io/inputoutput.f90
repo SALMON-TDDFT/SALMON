@@ -221,11 +221,16 @@ contains
       & sysname, &
       & directory, &
       & dump_filename, &
-      & read_gs_wfn_k, &    !changed from read_initial_guess
-      & write_gs_wfn_k, &
       & modify_gs_wfn_k, &  !changed from modify_initial_guess
-      & read_rt_wfn_k, &
-      & write_rt_wfn_k
+      & read_gs_wfn_k,   &  !changed from read_initial_guess
+      & read_rt_wfn_k,   &
+      & write_gs_wfn_k,  &
+      & write_rt_wfn_k,  &
+      & read_gs_wfn_k_ms,  &
+      & read_rt_wfn_k_ms,  &
+      & write_gs_wfn_k_ms, &
+      & write_rt_wfn_k_ms
+
 
     namelist/units/ &
       & unit_system
@@ -358,7 +363,9 @@ contains
       & ny_origin_m, &
       & nz_origin_m, &
       & file_macropoint, &
-      & num_macropoint
+      & num_macropoint,  &
+      & set_ini_coor_vel,&
+      & nmacro_write_group
 
     namelist/analysis/ &
       & projection_option, &
@@ -422,6 +429,7 @@ contains
       & file_ini_velocity, &
       & file_set_shake, &
       & thermostat_tau, &
+      & friction, &
       & stop_system_momt
 
     namelist/group_fundamental/ &
@@ -527,11 +535,16 @@ contains
     sysname          = 'default'
     directory        = './'
     dump_filename    = 'default'
-    read_gs_wfn_k    = 'n'
-    write_gs_wfn_k   = 'n'
     modify_gs_wfn_k  = 'n'
+    read_gs_wfn_k    = 'n'
     read_rt_wfn_k    = 'n'
+    write_gs_wfn_k   = 'n'
     write_rt_wfn_k   = 'n'
+    read_gs_wfn_k_ms = 'n'
+    read_rt_wfn_k_ms = 'n'
+    write_gs_wfn_k_ms= 'n'
+    write_rt_wfn_k_ms= 'n'
+
 !! == default for &parallel
     domain_parallel   = 'n'
     nproc_k           = 0
@@ -653,6 +666,8 @@ contains
     ny_origin_m = 1
     nz_origin_m = 1
     file_macropoint = ''
+    set_ini_coor_vel= 'n'
+    nmacro_write_group=-1
 !! == default for &analysis
     projection_option   = 'no'
     projection_decomp   = 'n'
@@ -713,6 +728,7 @@ contains
     file_ini_velocity     = 'none'
     file_set_shake        = 'none'
     thermostat_tau        =  41.34d0  !=1fs: just test value
+    friction              =  0d0
     stop_system_momt      = 'n'
 !! == default for &group_fundamental
     iditerybcg             = 20
@@ -855,12 +871,19 @@ contains
     call comm_bcast(time_shutdown   ,nproc_group_global)
     call comm_bcast(sysname         ,nproc_group_global)
     call comm_bcast(directory       ,nproc_group_global)
+    if(directory(len_trim(directory):len_trim(directory)).ne.'/') &
+    &  directory = trim(directory)//'/'
     call comm_bcast(dump_filename   ,nproc_group_global)
-    call comm_bcast(read_gs_wfn_k   ,nproc_group_global)
-    call comm_bcast(write_gs_wfn_k  ,nproc_group_global)
     call comm_bcast(modify_gs_wfn_k ,nproc_group_global)
+    call comm_bcast(read_gs_wfn_k   ,nproc_group_global)
     call comm_bcast(read_rt_wfn_k   ,nproc_group_global)
+    call comm_bcast(write_gs_wfn_k  ,nproc_group_global)
     call comm_bcast(write_rt_wfn_k  ,nproc_group_global)
+    call comm_bcast(read_gs_wfn_k_ms ,nproc_group_global)
+    call comm_bcast(read_rt_wfn_k_ms ,nproc_group_global)
+    call comm_bcast(write_gs_wfn_k_ms,nproc_group_global)
+    call comm_bcast(write_rt_wfn_k_ms,nproc_group_global)
+
 
 !! == bcast for &parallel
     call comm_bcast(domain_parallel  ,nproc_group_global)
@@ -998,20 +1021,21 @@ contains
     call comm_bcast(nz_m      ,nproc_group_global)
     call comm_bcast(hx_m      ,nproc_group_global)
     hx_m = hx_m * ulength_to_au
-    call comm_bcast(hy_m,nproc_group_global)
+    call comm_bcast(hy_m      ,nproc_group_global)
     hy_m = hy_m * ulength_to_au
-    call comm_bcast(hz_m,nproc_group_global)
+    call comm_bcast(hz_m      ,nproc_group_global)
     hz_m = hz_m * ulength_to_au
-    call comm_bcast(nksplit ,nproc_group_global)
-    call comm_bcast(nxysplit,nproc_group_global)
-    call comm_bcast(nxvacl_m,nproc_group_global)
-    call comm_bcast(nxvacr_m,nproc_group_global)
+    call comm_bcast(nksplit   ,nproc_group_global)
+    call comm_bcast(nxysplit  ,nproc_group_global)
+    call comm_bcast(nxvacl_m  ,nproc_group_global)
+    call comm_bcast(nxvacr_m  ,nproc_group_global)
     call comm_bcast(nx_origin_m,nproc_group_global)
     call comm_bcast(ny_origin_m,nproc_group_global)
     call comm_bcast(nz_origin_m,nproc_group_global)
-    call comm_bcast(file_macropoint,nproc_group_global)
-    call comm_bcast(num_macropoint,nproc_group_global)
-    
+    call comm_bcast(file_macropoint, nproc_group_global)
+    call comm_bcast(num_macropoint,  nproc_group_global)
+    call comm_bcast(set_ini_coor_vel,nproc_group_global)
+    call comm_bcast(nmacro_write_group,nproc_group_global)
     
     
 !! == bcast for &analysis
@@ -1079,6 +1103,7 @@ contains
     call comm_bcast(file_set_shake         ,nproc_group_global)
     call comm_bcast(thermostat_tau         ,nproc_group_global)
     thermostat_tau = thermostat_tau * utime_to_au
+    call comm_bcast(friction               ,nproc_group_global)
     call comm_bcast(stop_system_momt       ,nproc_group_global)
 !! == bcast for &group_fundamental
     call comm_bcast(iditerybcg            ,nproc_group_global)
@@ -1202,6 +1227,7 @@ contains
        stop
     end if
 
+    allocate(atom_name(natom))
     allocate(rion(3,natom), rion_red(3,natom),kion(natom), flag_geo_opt_atom(natom))
     rion = 0d0
     rion_red = 0d0
@@ -1218,6 +1244,7 @@ contains
             else
                read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i)
             end if
+            atom_name(i) = char_atom
          end do
          rion = rion*ulength_to_au
       case(ntype_atom_coor_reduced)
@@ -1227,6 +1254,7 @@ contains
             else
                read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i)
             end if
+            atom_name(i) = char_atom
          end do
       end select
       close(fh_atomic_coor)
@@ -1236,7 +1264,7 @@ contains
     call comm_bcast(rion_red,nproc_group_global)
     call comm_bcast(kion,nproc_group_global)
     call comm_bcast(flag_geo_opt_atom,nproc_group_global)
-
+    call comm_bcast(atom_name,nproc_group_global)
 
   end subroutine read_atomic_coordinates
 
@@ -1366,6 +1394,7 @@ contains
     use salmon_parallel
     use salmon_communication
     use salmon_file, only: get_filehandle
+    use misc_routines, only: create_directory
     implicit none
     integer :: i,ierr_nml
     ierr_nml = 0
@@ -1392,11 +1421,16 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'sysname', trim(sysname)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'directory', trim(directory)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'dump_filename', trim(dump_filename)
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_gs_wfn_k', trim(read_gs_wfn_k)
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_gs_wfn_k', trim(write_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'modify_gs_wfn_k', trim(modify_gs_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_gs_wfn_k', trim(read_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'read_rt_wfn_k', trim(read_rt_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_gs_wfn_k', trim(write_gs_wfn_k)
       write(fh_variables_log, '("#",4X,A,"=",A)') 'write_rt_wfn_k', trim(write_rt_wfn_k)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_gs_wfn_k_ms', trim(read_gs_wfn_k_ms)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'read_rt_wfn_k_ms', trim(read_rt_wfn_k_ms)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_gs_wfn_k_ms', trim(write_gs_wfn_k_ms)
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'write_rt_wfn_k_ms', trim(write_rt_wfn_k_ms)
+
 
       if(inml_units >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'units', inml_units
@@ -1557,11 +1591,12 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nxvacl_m', nxvacl_m
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nxvacr_m', nxvacr_m
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nx_origin_m', nx_origin_m
-      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nx_origin_m', nx_origin_m
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'ny_origin_m', ny_origin_m
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nz_origin_m', nz_origin_m
-      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_macropoint', file_macropoint
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_macropoint', trim(file_macropoint)
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'num_macropoint', num_macropoint
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_coor_vel', set_ini_coor_vel
+      write(fh_variables_log, '("#",4X,A,"=",I5)') 'nmacro_write_group', nmacro_write_group
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis
@@ -1631,6 +1666,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_ini_velocity', trim(file_ini_velocity)
 !      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_set_shake', trim(file_set_shake)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'thermostat_tau', thermostat_tau
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'friction', friction
       write(fh_variables_log, '("#",4X,A,"=",A)') 'stop_system_momt', stop_system_momt
 
       if(inml_group_fundamental >0)ierr_nml = ierr_nml +1
@@ -1724,6 +1760,10 @@ contains
       stop
     end if
 
+    !(create output directory)
+    if (comm_is_root(nproc_id_global)) then
+       if(directory(1:3).ne."./ ") call create_directory(directory)
+    endif
 
   end subroutine dump_input_common
 

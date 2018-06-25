@@ -27,10 +27,10 @@ module io_gs_wfn_k
   character(256) :: gs_wfn_directory
   character(256) :: gs_wfn_file, occ_file
   integer,parameter :: nfile_gs_wfn = 41
-  integer,parameter :: nfile_occ = 42
+  integer,parameter :: nfile_occ    = 42
 
   integer,parameter :: iflag_read = 0
-  integer,parameter :: iflag_write = 1
+  integer,parameter :: iflag_write= 1
 
 contains
   subroutine read_write_gs_wfn_k(iflag_read_write)
@@ -98,11 +98,100 @@ contains
     call Total_Energy_omp(rion_update_on,calc_mode_gs)
     call Ion_Force_omp(rion_update_on,calc_mode_gs)
     Eall0=Eall
+    if(use_ms_maxwell == 'y') Eall0_m(:)=Eall
     Eall_GS0=Eall
     if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'Eall =',Eall
 
-
   end subroutine read_write_gs_wfn_k
+
+  subroutine read_gs_wfn_k_ms_each_macro_grid
+    use inputoutput, only: au_length_aa
+    implicit none
+    integer :: ik,imacro,nfile_occ_ms,nfile_gs_wfn_ms
+    integer :: unit_ini_rv,ia,j
+    character(1024) :: file_ini_rv
+    real(8) :: ulength_to_au
+
+    do imacro = nmacro_s, nmacro_e
+
+       nfile_occ_ms    = 7000 + imacro
+       nfile_gs_wfn_ms = nfile_occ_ms
+       write (gs_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/gs_wfn_k/'
+       
+       if(comm_is_root(nproc_id_tdks)) then
+          occ_file = trim(gs_wfn_directory)//'occupation'
+          open(nfile_occ_ms,file=trim(occ_file),form='unformatted')
+          read(nfile_occ_ms) occ
+          close(nfile_occ_ms)
+
+          !! maybe must be out of "if(comm_is_root(nproc_id_tdks)) then"
+          do ik=NK_s,NK_e
+             write(gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
+             open(nfile_gs_wfn_ms,file=trim(gs_wfn_file),form='unformatted')
+             read(nfile_gs_wfn_ms) zu_GS(:,:,ik)
+             close(nfile_gs_wfn_ms)
+          end do
+       end if
+
+       call comm_bcast(occ,nproc_group_tdks)
+
+       zu_GS0(:,:,:) = zu_GS(:,:,:)
+       zu_t(:,:,:) = zu_GS(:,1:NBoccmax,:)
+
+
+       if(set_ini_coor_vel=='y') then
+ 
+           select case(unit_length)
+           case('au','a.u.')
+              ulength_to_au   = 1d0
+           case('AA','angstrom','Angstrom')
+              ulength_to_au   = 1d0/au_length_aa
+           end select
+
+           ! file for initial atomic coordinate and velocity in each macro grid
+           ! must be "(parent dir)/multiscale/M00XXXX/ini_coor_vel.dat"
+           ! the file format is
+           !  r_x  r_y  r_z  v_x  v_y  v_z  (for 1th atom)
+           !  r_x  r_y  r_z  v_x  v_y  v_z  (for 2th atom)
+           !    ..................
+           !  r_x  r_y  r_z  v_x  v_y  v_z  (for NI-th atom)
+           ! (unit of coordinate is A or a.u., but velocity must be a.u.)
+           if(comm_is_root(nproc_id_tdks)) then
+              unit_ini_rv = 5000 + imacro
+              file_ini_rv = trim(dir_ms_M(imacro))//'ini_coor_vel.dat'
+              open(unit_ini_rv,file=trim(file_ini_rv),status="old")
+              do ia=1,NI
+                 read(unit_ini_rv,*) (Rion(j,ia),j=1,3),(velocity(j,ia),j=1,3)
+              enddo
+              Rion(:,:)    = Rion(:,:)*ulength_to_au
+              Rion_eq(:,:) = Rion(:,:)
+              close(unit_ini_rv)
+           endif
+           
+           call comm_bcast(Rion,    nproc_group_tdks)
+           call comm_bcast(Rion_eq, nproc_group_tdks)
+           call comm_bcast(velocity,nproc_group_tdks)
+
+           Rion_m(:,:,imacro)     = Rion(:,:)
+           Rion_eq_m(:,:,imacro)  = Rion_m(:,:,imacro)
+           velocity_m(:,:,imacro) = velocity(:,:)
+           
+       endif
+
+       call psi_rho_GS
+       call Hartree
+       call Exc_Cor(calc_mode_gs,NBoccmax,zu_t)
+
+       Vloc(1:NL) = Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
+       Vloc_GS(:) = Vloc(:)
+       call Total_Energy_omp(rion_update_on,calc_mode_gs)
+       call Ion_Force_omp(rion_update_on,calc_mode_gs)
+       Eall0_m(imacro) = Eall
+       Eall_GS0 = Eall
+
+    enddo !imacro
+
+  end subroutine read_gs_wfn_k_ms_each_macro_grid
 
   subroutine modify_initial_guess_copy_1stk_to_all
     implicit none
@@ -195,6 +284,7 @@ module io_rt_wfn_k
 
   integer,parameter :: iflag_read_rt = 0
   integer,parameter :: iflag_write_rt= 1
+
   character(1) :: alocal_laser_tmp
 
 contains
@@ -357,5 +447,112 @@ contains
     if(PrLv_scf==3 .and. comm_is_root(nproc_id_global)) write(*,*)'Eall =',Eall
 
   end subroutine read_write_rt_wfn_k
+
+  subroutine read_write_rt_wfn_k_ms_each_macro_grid(iflag_read_write_ms)
+    implicit none
+    integer,intent(in) :: iflag_read_write_ms
+    integer :: ik,imacro
+    integer :: nfile_rt_wfn_ms,nfile_occ_ms,nfile_md_ms,nfile_ae_ms,nfile_other_ms
+    integer :: ix_m,iy_m,iz_m
+    character(1024) :: md_file_ms, ae_file_ms, dir_ae_file_ms, other_file_ms
+    real(8),allocatable :: energy_joule_ms_tmp(:,:,:)
+    allocate(energy_joule_ms_tmp(nx1_m:nx2_m, ny1_m:ny2_m, nz1_m:nz2_m))
+
+    if (comm_is_root(nproc_id_global)) then
+       nfile_ae_ms = 7000
+       dir_ae_file_ms = trim(dir_ms)//'rt_ae_field/'
+       if(iflag_read_write_ms==iflag_write_rt) call create_directory(dir_ae_file_ms)
+       ae_file_ms = trim(dir_ae_file_ms)//'ae_field'
+       open(nfile_ae_ms,file=trim(ae_file_ms),form='unformatted')
+       select case(iflag_read_write_ms)
+       case(iflag_write_rt)
+          write(nfile_ae_ms)     Ac_new_ms,    Ac_ms,Jm_new_ms,Jm_ms
+       case(iflag_read_rt )
+          read(nfile_ae_ms ) add_Ac_new_ms,add_Ac_ms,Jm_new_ms,Jm_ms
+       end select
+       close(nfile_ae_ms)
+    end if
+
+    do imacro = nmacro_s, nmacro_e
+
+       if(comm_is_root(nproc_id_tdks)) then
+
+          write (rt_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/rt_wfn_k/'
+          if(iflag_read_write_ms==iflag_write_rt) call create_directory(rt_wfn_directory)
+
+          nfile_occ_ms    = 7000 + imacro
+          nfile_rt_wfn_ms = nfile_occ_ms
+          nfile_md_ms     = nfile_occ_ms
+          nfile_other_ms  = nfile_occ_ms
+
+          occ_file = trim(rt_wfn_directory)//'occupation'
+          open(nfile_occ_ms,file=trim(occ_file),form='unformatted')
+          select case(iflag_read_write_ms)
+          case(iflag_write_rt); write(nfile_occ_ms) occ
+          case(iflag_read_rt ); read(nfile_occ_ms ) occ
+          end select
+          close(nfile_occ_ms)
+
+          md_file_ms = trim(rt_wfn_directory)//'Rion_velocity'
+          open(nfile_md_ms,file=trim(md_file_ms),form='unformatted')
+          select case(iflag_read_write_ms)
+          case(iflag_write_rt); write(nfile_md_ms) Rion,velocity
+          case(iflag_read_rt ); read(nfile_md_ms ) Rion,velocity
+          end select
+          close(nfile_md)
+
+          other_file_ms = trim(rt_wfn_directory)//'others'
+          open(nfile_other_ms,file=trim(other_file_ms),form='unformatted')
+          ix_m = macropoint(1,imacro)
+          iy_m = macropoint(2,imacro)
+          iz_m = macropoint(3,imacro)
+          select case(iflag_read_write_ms)
+          case(iflag_write_rt); write(nfile_other_ms) Eall0_m(imacro), energy_joule_ms(ix_m,iy_m,iz_m)
+          case(iflag_read_rt ); read(nfile_other_ms ) Eall0_m(imacro), energy_joule_ms_tmp(ix_m,iy_m,iz_m)
+          end select
+          close(nfile_other_ms)
+
+          !! maybe must be out of "if(comm_is_root(nproc_id_tdks)) then"
+          do ik=NK_s,NK_e
+             write(rt_wfn_file,'(A,A,I7.7,A)') trim(rt_wfn_directory),'/wfn_rt_k',ik,'.wfn'
+             open(nfile_rt_wfn_ms,file=trim(rt_wfn_file),form='unformatted')
+             select case(iflag_read_write_ms)
+             case(iflag_write_rt); write(nfile_rt_wfn_ms) zu_m(:,:,ik,imacro)
+             case(iflag_read_rt ); read( nfile_rt_wfn_ms) zu_t(:,:,ik)
+             end select
+             close(nfile_rt_wfn_ms)
+          end do
+
+       end if
+
+       if(iflag_read_write_ms == iflag_read_rt) then
+
+          call comm_bcast(occ,     nproc_group_tdks)
+          call comm_bcast(Rion,    nproc_group_tdks)
+          call comm_bcast(velocity,nproc_group_tdks)
+          Rion_eq(:,:)           = Rion(:,:)
+          Rion_m(:,:,imacro)     = Rion(:,:)
+          Rion_eq_m(:,:,imacro)  = Rion_m(:,:,imacro)
+          velocity_m(:,:,imacro) = velocity(:,:)
+
+          call comm_summation(energy_joule_ms_tmp,energy_joule_ms,(nx2_m-nx1_m+1)*(ny2_m-ny1_m+1)*(nz2_m-nz1_m+1),nproc_group_global)
+          call comm_bcast(add_Ac_ms,     nproc_group_global)
+          call comm_bcast(add_Ac_new_ms, nproc_group_global)
+          call comm_bcast(Jm_new_ms,     nproc_group_global)
+          call comm_bcast(Jm_ms,         nproc_group_global)
+
+          call psi_rho_RT(zu_t)
+          call Hartree
+          call Exc_Cor(calc_mode_rt,NBoccmax,zu_t)
+
+          Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
+          call Total_Energy_omp(rion_update_on,calc_mode_rt,imacro)
+          call Ion_Force_omp(rion_update_on,calc_mode_rt,imacro)
+
+       endif
+
+    enddo  !imacro
+
+  end subroutine read_write_rt_wfn_k_ms_each_macro_grid
 
 end module io_rt_wfn_k
