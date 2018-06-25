@@ -339,7 +339,11 @@ contains
       & quadrupole_pot, &
       & alocal_laser , &
       & rlaserbound_sta , &
-      & rlaserbound_end
+      & rlaserbound_end , &
+      & nump , &
+      & vecp , &
+      & coop , &
+      & radp_diele
 
     namelist/multiscale/ &
       & fdtddim, &
@@ -636,6 +640,10 @@ contains
     rlaserbound_end(1) =  1.d7*ulength_from_au ! a.u.
     rlaserbound_end(2) =  1.d7*ulength_from_au ! a.u.
     rlaserbound_end(3) =  1.d7*ulength_from_au ! a.u.
+    nump       = 0
+    vecp       = 0d0
+    coop       = 0d0
+    radp_diele = 2d0 ! a.u.
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'
@@ -990,6 +998,13 @@ contains
     rlaserbound_sta = rlaserbound_sta * ulength_to_au
     call comm_bcast(rlaserbound_end,nproc_group_global)
     rlaserbound_end = rlaserbound_end * ulength_to_au
+    call comm_bcast(nump,nproc_group_global)
+    call comm_bcast(vecp,nproc_group_global)
+    vecp = vecp * ulength_to_au
+    call comm_bcast(coop,nproc_group_global)
+    coop = coop * ulength_to_au
+    call comm_bcast(radp_diele,nproc_group_global)
+    radp_diele = radp_diele * ulength_to_au
 !! == bcast for &multiscale
     call comm_bcast(fdtddim   ,nproc_group_global)
     call comm_bcast(twod_shape,nproc_group_global)
@@ -1542,6 +1557,20 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(1)', rlaserbound_end(1)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(2)', rlaserbound_end(2)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'rlaserbound_end(3)', rlaserbound_end(3)
+      write(fh_variables_log, '("#",4X,A,"=",I4)') 'nump', nump
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'vecp(1,1)', vecp(1,1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'vecp(2,1)', vecp(2,1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'vecp(3,1)', vecp(3,1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'vecp(1,2)', vecp(1,2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'vecp(2,2)', vecp(2,2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'vecp(3,2)', vecp(3,2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'coop(1,1)', coop(1,1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'coop(2,1)', coop(2,1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'coop(3,1)', coop(3,1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'coop(1,2)', coop(1,2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'coop(2,2)', coop(2,2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'coop(3,2)', coop(3,2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'radp_diele', radp_diele
 
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'multiscale', inml_multiscale
       write(fh_variables_log, '("#",4X,A,"=",A)') 'fdtddim', fdtddim

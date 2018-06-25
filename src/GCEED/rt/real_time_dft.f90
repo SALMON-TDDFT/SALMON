@@ -1038,6 +1038,13 @@ else
   end do
 end if
 
+if(nump>=1)then
+  allocate(vonf_sd(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
+  allocate(eonf_sd(3,mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
+  vonf_sd=0.d0
+  eonf_sd=0.d0
+  call set_vonf_sd
+end if
 
 if(iflag_dip2==1) then
   allocate(rbox_array_dip2(4,num_dip2),rbox_array2_dip2(4,num_dip2))
