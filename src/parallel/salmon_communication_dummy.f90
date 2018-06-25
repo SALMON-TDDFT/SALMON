@@ -170,6 +170,11 @@ module salmon_communication
     ! 3-D array
     module procedure comm_bcast_array3d_double
     module procedure comm_bcast_array3d_dcomplex
+
+    ! 4-D array
+    module procedure comm_bcast_array4d_double
+    ! module procedure comm_bcast_array3d_dcomplex
+    !! TODO: create broadcast routine for rank-4 tensor later ...
   end interface
 
   interface comm_allgatherv
@@ -854,7 +859,18 @@ contains
     UNUSED_VARIABLE(root)
     ! do nothing
   end subroutine
-
+  
+  subroutine comm_bcast_array4d_double(val, ngroup, root)
+    implicit none
+    real(8), intent(inout)        :: val(:,:,:,:)
+    integer, intent(in)           :: ngroup
+    integer, intent(in), optional :: root
+    UNUSED_VARIABLE(val)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(root)
+    ! do nothing
+  end subroutine
+  
   subroutine comm_bcast_array1d_character(val, ngroup, root)
     implicit none
     character(*), intent(inout)        :: val(:)
