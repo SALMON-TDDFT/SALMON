@@ -15,7 +15,7 @@
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine Ion_Force_omp(Rion_update,GS_RT,ixy_m)
-  use Global_Variables, only: zu_t,zu_m,zu_GS,NB,NBoccmax,calc_mode_gs,calc_mode_rt
+  use Global_Variables, only: zu_t,zu_m,zu_GS,NB,NBoccmax,calc_mode_gs,calc_mode_rt,Rion,Rion_m,force,force_m
   implicit none
   integer,intent(in) :: GS_RT
   logical,intent(in) :: Rion_update
@@ -26,7 +26,9 @@ subroutine Ion_Force_omp(Rion_update,GS_RT,ixy_m)
       call impl(Rion_update,zu_GS,NB)
     case(calc_mode_rt)
       if (present(ixy_m)) then
+        Rion(:,:) = Rion_m(:,:,ixy_m) 
         call impl(Rion_update,zu_m(:,:,:,ixy_m),NBoccmax)
+        force_m(:,:,ixy_m) = force(:,:)
       else
         call impl(Rion_update,zu_t,NBoccmax)
       end if

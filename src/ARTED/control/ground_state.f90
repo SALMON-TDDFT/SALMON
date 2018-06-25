@@ -287,6 +287,10 @@ contains
     zu_t(:,:,:)=zu_GS(:,1:NBoccmax,:)
     Rion_eq=Rion
     dRion(:,:,-1)=0.d0; dRion(:,:,0)=0.d0
+    if (use_ms_maxwell == 'y') then
+        Rion_eq_m(:,:,:) = Rion_m(:,:,:)
+    endif
+
 
     call psi_rho_GS
     call Hartree

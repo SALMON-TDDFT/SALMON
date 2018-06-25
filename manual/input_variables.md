@@ -103,7 +103,7 @@ Default is the current directoy, <code>./</code>.
 
 ><dt>write_gs_wfn_k; <code>Character</code>; 3d</dt>
 ><dd>
->Write ground state wave function into "gs_wfn_k" directory if this is <code>y</code>. (Useful for <code>calc=mode=GS_RT</code>. But the data is always written in the case of <code>calc_mode=GS</code> calculation.) 
+>Write ground state wave function into "gs_wfn_k" directory if this is <code>y</code>. (Useful for <code>calc_mode=GS_RT</code>. But the data is always written in the case of <code>calc_mode=GS</code> calculation.) 
 >Default is <code>n</code>.
 ></dd>
 
@@ -123,6 +123,22 @@ Default is the current directoy, <code>./</code>.
 ><dt>read_rt_wfn_k; <code>Character</code>; 3d</dt>
 ><dd>
 >Read RT wave function (pre-calculated "rt_wfn_k" directory printed by <code>calc_mode=RT</code> with <code>write_rt_wfn_k=y</code>) if this is <code>y</code>. This is used for restarting <code>calc_mode=RT</code> (supporting <code>use_ehrenfest_md=y</code>, too: Coordinates and velocities of atoms for restarting are also included), then, "gs_wfn_k" directory is also necessary (actually used only for some analysis options). Note that, currently, field is taken over after restarting only if <code>ae_shape1=AcosX</code> type is used.
+>Default is <code>n</code>.
+></dd>
+
+><dt>read_gs_wfn_k_ms; <code>Character</code>; 3d</dt>
+><dd>
+>Read ground state wave function as initial state for multiscale calculation. This should be used together with <code>use_ms_maxwell='y'</code>, <code>calc_mode='RT'</code> and <code>set_ini_coor_vel='y'</code>. The ground state wave function data must be pre-calculated for each configuration(or atomic coordinate) and be put the obtained directories 'gs_wfn_k' into specific directories: <code>directory</code>/multiscale/MXXXXXX/ where is the index number of the macro-grid point of the material region usually starting from '000001' up to the number of macro-grid point (the same place of 'ini_coor_vel.dat' used by the option <code>set_ini_coor_vel</code>).
+>Default is <code>n</code>.
+></dd>
+
+><dt>read_rt_wfn_k_ms; <code>Character</code>; 3d</dt>
+><dd> Read wave function and field information as initial state in multiscale calculation. These are generated in pre-calculation by using <code>write_rt_wfn_k_ms='y'</code>. If you give incident pulse from input file option, the field is added to the read initial data.
+>Default is <code>n</code>.
+></dd>
+
+><dt>write_rt_wfn_k_ms; <code>Character</code>; 3d</dt>
+><dd> Write wave function and field information at the last step in multiscale calculation. It is used for restarting by using <code>read_rt_wfn_k_ms='y'</code>. 
 >Default is <code>n</code>.
 ></dd>
 
@@ -778,6 +794,19 @@ while
 Origin coordinat of the grid points.
 Default value is <code>'1'</code>.
 </dd>
+
+><dt>set_ini_coor_vel; <code>Character</code>; 3d</dt>
+><dd>
+>Set initial atomic coordinates and velocities for each macro-grid point. This must be given with specific directories and files: 
+>Prepare <code>directory</code>/multiscale/MXXXXXX/ini_coor_vel.dat, where 'XXXXXX' is the index number of the macro-grid point of the material region usually starting from '000001' up to the number of macro-grid point. The format of the file 'ini_coor_vel.dat' is just Rx, Ry, Rz, Vx, Vy, Vz (with space separation) for each atom (i.e. for each line), where the unit of the coordinates, Rx, Ry, Rz, is angstrom or a.u. speficied by <code>unit_system</code> but that of velocities is always a.u.. This option should be used together with <code>read_gs_wfn_k_ms</code> which is the option to read the ground state wave function for each macro-grid point. 
+>Default value is <code>'y'</code>.
+></dd>
+
+><dt>nmacro_write_group; <code>Integer</code>; 3d</dt>
+><dd>
+>If the number of macroscopic grids are very large, computers can be unstable by writing all information of all macroscopic grid points at the same time. To avoid that, the writings are divided by specifying this option. Writings will be done by each <code>nmacro_write_group</code> macroscopic grid points. (this number must be aliquot part of the total number of macroscopic grid points)
+>Default value is <code>'-1'</code>.
+></dd>
 
 ><dt>file_macropoint; <code>Character</code>; 3d</dt>
 ><dd>

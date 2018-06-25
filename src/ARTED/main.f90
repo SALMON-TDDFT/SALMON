@@ -66,8 +66,14 @@ subroutine arted
       if(use_adiabatic_md=='y') call calc_md_ground_state
       return
     case(iflag_calc_mode_rt)
-      call read_write_gs_wfn_k(iflag_read)
-      if(read_rt_wfn_k=='y') call read_write_rt_wfn_k(iflag_read_rt)
+      if(     use_ms_maxwell=='y' .and. read_gs_wfn_k_ms=='y' ) then
+         call read_gs_wfn_k_ms_each_macro_grid
+      else if(use_ms_maxwell=='y' .and. read_rt_wfn_k_ms=='y') then
+         call read_write_rt_wfn_k_ms_each_macro_grid(iflag_read_rt)
+      else
+         call read_write_gs_wfn_k(iflag_read)
+         if(read_rt_wfn_k=='y') call read_write_rt_wfn_k(iflag_read_rt)
+      endif
     end select
   else if(restart_option == 'restart')then
   else
@@ -77,6 +83,7 @@ subroutine arted
   select case(use_ms_maxwell)
   case ('y')
     call tddft_maxwell_ms
+    if(write_rt_wfn_k_ms=='y') call read_write_rt_wfn_k_ms_each_macro_grid(iflag_write_rt)
   case ('n')
     call tddft_sc
     if(write_rt_wfn_k=='y') call read_write_rt_wfn_k(iflag_write_rt)
