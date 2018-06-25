@@ -29,6 +29,10 @@ F_SRCS = \
 	parallel/salmon_parallel.f90 \
 	io/salmon_file.f90 \
 	io/salmon_global.f90 \
+	misc/backup_routines.f90 \
+	misc/misc_routines.f90 \
+	misc/unusedvar.f90 \
+	misc/timer.f90 \
 	io/inputoutput.f90 \
 	math/math_constants.f90 \
 	math/salmon_math.f90 \
@@ -38,10 +42,6 @@ F_SRCS = \
 	xc/builtin_pzm.f90 \
 	xc/builtin_tbmbj.f90 \
 	xc/salmon_xc.f90 \
-	misc/backup_routines.f90 \
-	misc/misc_routines.f90 \
-	misc/unusedvar.f90 \
-	misc/timer.f90 \
 	common/broyden.f90 \
 	common/stencil.f90 \
 	common/update_overlap.f90 \
@@ -82,8 +82,8 @@ F_SRCS = \
 	ARTED/common/hpsi.f90 \
 	ARTED/common/total_energy.f90 \
 	ARTED/control/ana_RT_useGS.f90 \
-	ARTED/control/control_ms.f90 \
 	ARTED/control/md_gs.f90 \
+	ARTED/control/control_ms.f90 \
 	ARTED/GS/CG.f90 \
 	ARTED/GS/diag.f90 \
 	ARTED/GS/sp_energy.f90 \
