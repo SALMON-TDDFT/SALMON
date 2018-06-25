@@ -1,16 +1,18 @@
-# intel
+# intel without mpi environment
 
-SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
-
-TARGET = $(SALMON)/bin/salmon.cpu
+TARGET = salmon.cpu
 FC = ifort
 CC = icc
 FFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -fpp -nogen-interface -std03 -warn all
 CFLAGS = -O3 -qopenmp -ansi-alias -fno-alias -Wall -restrict
 FILE_MATHLIB = lapack
-LIBLAPACK = -mkl=cluster
-LIBSCALAPACK = -mkl=cluster
+LIBLAPACK = -mkl=sequential
+LIBSCALAPACK = -mkl=sequential
 MODULE_SWITCH = -module
 COMM_SET = dummy
 
-include $(SALMON)/gnu_makefiles/make.body
+ifneq (,$(wildcard make.body))
+include make.body
+else 
+include gnu_makefiles/make.body
+endif

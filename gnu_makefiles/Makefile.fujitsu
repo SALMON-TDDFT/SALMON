@@ -1,8 +1,6 @@
 # fujitsu
 
-SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
-
-TARGET = $(SALMON)/bin/salmon.cpu
+TARGET = salmon.cpu
 FC = mpifrtpx
 CC = mpifccpx
 FFLAGS = -O3 -Kfast,openmp,simd=1 -Cpp -Kocl,nooptmsg
@@ -13,4 +11,13 @@ LIBSCALAPACK = -SCALAPACK -SSL2BLAMP
 MODULE_SWITCH = -M
 COMM_SET =
 
-include $(SALMON)/gnu_makefiles/make.body
+LIBXC_LIB =
+LIBXC_INC =
+# LIBXC_LIB = -L<I<libxc_install_dir>/lib -lxcf90
+# LIBXC_INC = -DSALMON_USE_LIBXC -I<libxc_install_dir>/include/ 
+
+ifneq (,$(wildcard make.body))
+include make.body
+else 
+include gnu_makefiles/make.body
+endif

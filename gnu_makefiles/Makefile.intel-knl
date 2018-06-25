@@ -1,8 +1,6 @@
 # intel-knl
 
-SALMON = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
-
-TARGET = $(SALMON)/bin/salmon.mic
+TARGET = salmon.mic
 FC = mpiifort
 CC = mpiicc
 FLAGS = -xMIC-AVX512 -qopenmp -qopt-ra-region-strategy=block -ansi-alias -fno-alias \
@@ -20,5 +18,13 @@ SIMD_SET = IMCI
 MODULE_SWITCH = -module
 COMM_SET =
 
+LIBXC_LIB =
+LIBXC_INC =
+# LIBXC_LIB = -L<I<libxc_install_dir>/lib -lxcf90
+# LIBXC_INC = -DSALMON_USE_LIBXC -I<libxc_install_dir>/include/ 
 
-include $(SALMON)/gnu_makefiles/make.body
+ifneq (,$(wildcard make.body))
+include make.body
+else 
+include gnu_makefiles/make.body
+endif

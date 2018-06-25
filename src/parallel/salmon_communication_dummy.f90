@@ -145,6 +145,10 @@ module salmon_communication
     ! 4-D array
     module procedure comm_summation_array4d_double
     module procedure comm_summation_array4d_dcomplex
+  
+    ! 5-D array
+    module procedure comm_summation_array5d_double
+    module procedure comm_summation_array5d_dcomplex
   end interface
 
   interface comm_bcast
@@ -166,6 +170,11 @@ module salmon_communication
     ! 3-D array
     module procedure comm_bcast_array3d_double
     module procedure comm_bcast_array3d_dcomplex
+
+    ! 4-D array
+    module procedure comm_bcast_array4d_double
+    ! module procedure comm_bcast_array3d_dcomplex
+    !! TODO: create broadcast routine for rank-4 tensor later ...
   end interface
 
   interface comm_allgatherv
@@ -717,6 +726,29 @@ contains
     outvalue = invalue
   end subroutine
 
+  subroutine comm_summation_array5d_double(invalue, outvalue, N, ngroup, dest)
+    implicit none
+    real(8), intent(in)  :: invalue(:,:,:,:,:)
+    real(8), intent(out) :: outvalue(:,:,:,:,:)
+    integer, intent(in)  :: N, ngroup
+    integer, optional, intent(in) :: dest
+    UNUSED_VARIABLE(N)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(dest)
+    outvalue = invalue
+  end subroutine
+
+  subroutine comm_summation_array5d_dcomplex(invalue, outvalue, N, ngroup, dest)
+    implicit none
+    complex(8), intent(in)  :: invalue(:,:,:,:,:)
+    complex(8), intent(out) :: outvalue(:,:,:,:,:)
+    integer, intent(in)     :: N, ngroup
+    integer, optional, intent(in) :: dest
+    UNUSED_VARIABLE(N)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(dest)
+    outvalue = invalue
+  end subroutine
 
   subroutine comm_bcast_integer(val, ngroup, root)
     implicit none
@@ -827,7 +859,18 @@ contains
     UNUSED_VARIABLE(root)
     ! do nothing
   end subroutine
-
+  
+  subroutine comm_bcast_array4d_double(val, ngroup, root)
+    implicit none
+    real(8), intent(inout)        :: val(:,:,:,:)
+    integer, intent(in)           :: ngroup
+    integer, intent(in), optional :: root
+    UNUSED_VARIABLE(val)
+    UNUSED_VARIABLE(ngroup)
+    UNUSED_VARIABLE(root)
+    ! do nothing
+  end subroutine
+  
   subroutine comm_bcast_array1d_character(val, ngroup, root)
     implicit none
     character(*), intent(inout)        :: val(:)

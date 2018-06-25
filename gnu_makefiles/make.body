@@ -1,11 +1,14 @@
-SRCDIR = $(SALMON)/src
-OBJDIR = $(SALMON)/build
+SALMONDIR = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../)
+BINDIR = $(SALMONDIR)/bin
+SRCDIR = $(SALMONDIR)/src
+OBJDIR = $(SALMONDIR)/build
+SALMON_TARGET = $(BINDIR)/$(TARGET)
 
 ifdef SIMD_SET
 	C_STENCIL_FILE= \
 		ARTED/stencil/C/$(SIMD_SET)/current.c \
 		ARTED/stencil/C/$(SIMD_SET)/hpsi.c \
-		ARTED/stencil/C/$(SIMD_SET)/total_energy.c 
+		ARTED/stencil/C/$(SIMD_SET)/total_energy.c
 	F_STENCIL_FILE=
 else
 	C_STENCIL_FILE=
@@ -21,48 +24,28 @@ else
 	F_COMM_FILE=parallel/salmon_communication.f90
 endif
 
-H_IN_VERSION = $(addprefix $(SRCDIR)/, version.h.in versionf.h.in)
-H_VERSION = $(addprefix $(OBJDIR)/, version.h versionf.h)
-
-F_SRC_PARALLEL= \
+F_SRCS = \
 	$(F_COMM_FILE) \
-	parallel/salmon_parallel.f90
-
-F_SRC_IO= \
+	parallel/salmon_parallel.f90 \
 	io/salmon_file.f90 \
 	io/salmon_global.f90 \
-	io/inputoutput.f90
-
-F_SRC_MATH= \
-	math/math_constants.f90 \
-	math/salmon_math.f90
-
-F_SRC_RT=
-
-F_SRC_ATOM=
-
-F_SRC_MAXWELL=
-
-F_SRC_GS=
-
-F_SRC_XC= \
-	xc/exc_cor.f90
-
-F_SRC_POISSON=
-
-F_SRC_MISC= \
 	misc/backup_routines.f90 \
 	misc/misc_routines.f90 \
 	misc/unusedvar.f90 \
-	misc/timer.f90
-
-F_SRC_COMMON= \
+	misc/timer.f90 \
+	io/inputoutput.f90 \
+	math/math_constants.f90 \
+	math/salmon_math.f90 \
+	xc/builtin_pbe.f90 \
+	xc/builtin_pz.f90 \
+	xc/builtin_pz_sp.f90 \
+	xc/builtin_pzm.f90 \
+	xc/builtin_tbmbj.f90 \
+	xc/salmon_xc.f90 \
 	common/broyden.f90 \
 	common/stencil.f90 \
 	common/update_overlap.f90 \
-	common/hpsi.f90
-
-F_SRC_ARTED= \
+	common/hpsi.f90 \
 	ARTED/common/Ylm_dYlm.f90 \
 	ARTED/common/preprocessor.f90 \
 	ARTED/modules/global_variables.f90 \
@@ -74,7 +57,6 @@ F_SRC_ARTED= \
 	ARTED/GS/Occupation_Redistribution.f90 \
 	ARTED/GS/io_gs_wfn_k.f90 \
 	ARTED/RT/Fourier_tr.f90 \
-	ARTED/RT/ana_RT_useGS.f90 \
 	ARTED/common/Exc_Cor.f90 \
 	ARTED/common/Hartree.f90 \
 	ARTED/common/density_plot.f90 \
@@ -99,8 +81,9 @@ F_SRC_ARTED= \
 	ARTED/RT/init_Ac.f90 \
 	ARTED/common/hpsi.f90 \
 	ARTED/common/total_energy.f90 \
-	ARTED/control/control_ms.f90 \
+	ARTED/control/ana_RT_useGS.f90 \
 	ARTED/control/md_gs.f90 \
+	ARTED/control/control_ms.f90 \
 	ARTED/GS/CG.f90 \
 	ARTED/GS/diag.f90 \
 	ARTED/GS/sp_energy.f90 \
@@ -108,20 +91,20 @@ F_SRC_ARTED= \
 	ARTED/control/control_sc.f90 \
 	ARTED/control/initialization.f90 \
 	ARTED/control/optimization.f90 \
-	ARTED/main.f90
-
-F_SRC_GCEED= \
+	ARTED/main.f90 \
 	GCEED/common/calc_iquotient.f90 \
 	GCEED/common/calc_ob_num.f90 \
 	GCEED/common/check_cep.f90 \
 	GCEED/common/ylm.f90 \
 	GCEED/gceed.f90 \
+	GCEED/misc/setk.f90 \
 	GCEED/misc/setlg.f90 \
 	GCEED/misc/setmg.f90 \
 	GCEED/misc/setng.f90 \
 	GCEED/modules/pack_unpack.f90 \
 	GCEED/modules/rmmdiis_eigen_lapack.f90 \
 	GCEED/modules/scf_data.f90 \
+	GCEED/modules/structure_opt.f90 \
 	GCEED/read_input_gceed.f90 \
 	GCEED/rt/check_ae_shape.f90 \
 	GCEED/scf/check_dos_pdos.f90 \
@@ -131,6 +114,7 @@ F_SRC_GCEED= \
 	GCEED/common/conv_p.f90 \
 	GCEED/common/conv_p0.f90 \
 	GCEED/common/hartree.f90 \
+	GCEED/common/init_k_rd.f90 \
 	GCEED/common/init_wf.f90 \
 	GCEED/common/laplacianh.f90 \
 	GCEED/common/nabla.f90 \
@@ -152,9 +136,11 @@ F_SRC_GCEED= \
 	GCEED/modules/read_pslfile.f90 \
 	GCEED/modules/sendrecv_groupob_ngp.f90 \
 	GCEED/rt/add_polynomial.f90 \
+	GCEED/rt/calcAext.f90 \
 	GCEED/rt/calcVbox.f90 \
 	GCEED/rt/calc_env_trigon.f90 \
 	GCEED/rt/gradient_ex.f90 \
+	GCEED/rt/initA.f90 \
 	GCEED/rt/taylor_coe.f90 \
 	GCEED/scf/add_in_broyden.f90 \
 	GCEED/scf/buffer_broyden_ns.f90 \
@@ -162,9 +148,9 @@ F_SRC_GCEED= \
 	GCEED/scf/copy_density.f90 \
 	GCEED/scf/deallocate_sendrecv.f90 \
 	GCEED/scf/eigen_subdiag_lapack.f90 \
+	GCEED/scf/eigen_subdiag_periodic_lapack.f90 \
 	GCEED/scf/prep_ini.f90 \
 	GCEED/scf/simple_mixing.f90 \
-	GCEED/scf/structure_opt.f90 \
 	GCEED/scf/subdgemm_lapack.f90 \
 	GCEED/scf/write_eigen.f90 \
 	GCEED/common/calc_allob.f90 \
@@ -175,7 +161,8 @@ F_SRC_GCEED= \
 	GCEED/common/calc_pmax.f90 \
 	GCEED/common/check_corrkob.f90 \
 	GCEED/common/check_numcpu.f90 \
-	GCEED/common/conv_core_exc_cor.f90 \
+	GCEED/common/exc_cor_lsda_ns.f90 \
+	GCEED/common/hartree_periodic.f90 \
 	GCEED/common/inner_product3.f90 \
 	GCEED/common/inner_product4.f90 \
 	GCEED/common/set_isstaend.f90 \
@@ -183,7 +170,6 @@ F_SRC_GCEED= \
 	GCEED/common/writeelf.f90 \
 	GCEED/common/writeestatic.f90 \
 	GCEED/common/writepsi.f90 \
-	GCEED/common/xc.f90 \
 	GCEED/modules/allocate_psl.f90 \
 	GCEED/modules/calc_density.f90 \
 	GCEED/modules/change_order.f90 \
@@ -201,27 +187,37 @@ F_SRC_GCEED= \
 	GCEED/rt/xc_fast.f90 \
 	GCEED/scf/convert_input_scf.f90 \
 	GCEED/scf/gram_schmidt.f90 \
+	GCEED/scf/gram_schmidt_periodic.f90 \
+	GCEED/scf/inner_product5.f90 \
 	GCEED/scf/set_numcpu_scf.f90 \
 	GCEED/common/OUT_IN_data.f90 \
 	GCEED/common/bisection.f90 \
 	GCEED/common/calcJxyz.f90 \
 	GCEED/common/calcJxyz_all.f90 \
+	GCEED/common/calcJxyz_all_periodic.f90 \
 	GCEED/common/calcVpsl.f90 \
+	GCEED/common/calcVpsl_periodic.f90 \
 	GCEED/common/calcuV.f90 \
 	GCEED/common/psl.f90 \
 	GCEED/common/storevpp.f90 \
 	GCEED/modules/persistent_comm.f90 \
+	GCEED/modules/sendrecv_groupob_tmp.f90 \
+	GCEED/modules/sendrecv_tmp.f90 \
 	GCEED/rt/read_rt.f90 \
 	GCEED/rt/taylor.f90 \
 	GCEED/rt/total_energy_groupob.f90 \
 	GCEED/scf/calc_dos.f90 \
 	GCEED/scf/calc_pdos.f90 \
 	GCEED/scf/rmmdiis_eigen.f90 \
+	GCEED/common/total_energy_periodic.f90 \
 	GCEED/modules/sendrecv.f90 \
 	GCEED/modules/sendrecv_groupob.f90 \
 	GCEED/modules/sendrecvh.f90 \
+	GCEED/rt/calc_current.f90 \
+	GCEED/scf/total_energy_periodic_scf.f90 \
 	GCEED/common/calc_gradient_fast.f90 \
 	GCEED/common/calc_gradient_fast_c.f90 \
+	GCEED/common/exc_cor_ns.f90 \
 	GCEED/common/hartree_boundary.f90 \
 	GCEED/common/hartree_cg.f90 \
 	GCEED/modules/gradient2.f90 \
@@ -234,39 +230,28 @@ F_SRC_GCEED= \
 	GCEED/modules/total_energy.f90 \
 	GCEED/scf/rmmdiis.f90 \
 	GCEED/scf/subspace_diag.f90 \
+	GCEED/scf/subspace_diag_periodic.f90 \
+	GCEED/scf/total_energy_periodic_scf_esp.f90 \
 	GCEED/scf/ybcg.f90 \
+	GCEED/scf/ybcg_periodic.f90 \
 	GCEED/rt/real_time_dft.f90 \
-	GCEED/scf/real_space_dft.f90
-
-F_SRCS= \
-	$(F_SRC_PARALLEL) \
-	$(F_SRC_IO) \
-	$(F_SRC_MATH) \
-	$(F_SRC_RT) \
-	$(F_SRC_ATOM) \
-	$(F_SRC_MAXWELL) \
-	$(F_SRC_GS) \
-	$(F_SRC_XC) \
-	$(F_SRC_POISSON) \
-	$(F_SRC_MISC) \
-	$(F_SRC_COMMON) \
-	$(F_SRC_ARTED) \
-	$(F_SRC_GCEED) \
+	GCEED/scf/real_space_dft.f90 \
 	main.f90
 
 C_SRCS= \
-	$(C_STENCIL_FILE) 
+	$(C_STENCIL_FILE)
+
+H_IN_VERSION = $(addprefix $(SRCDIR)/, version.h.in versionf.h.in)
+H_VERSION = $(addprefix $(OBJDIR)/, version.h versionf.h)
 
 F_SRC_FILES=$(addprefix $(SRCDIR)/, $(F_SRCS))
 F_OBJ_FILES=$(addprefix $(OBJDIR)/, $(F_SRCS:.f90=.o))
 C_SRC_FILES=$(addprefix $(SRCDIR)/, $(C_SRCS))
 C_OBJ_FILES=$(addprefix $(OBJDIR)/, $(C_SRCS:.c=.o))
 
-.PHONY: all clean
-
-$(TARGET): $(F_OBJ_FILES) $(C_OBJ_FILES)
+$(SALMON_TARGET): $(F_OBJ_FILES) $(C_OBJ_FILES)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(FC) $(FFLAGS) -o $@ $(F_OBJ_FILES) $(C_OBJ_FILES) -I $(OBJDIR) $(LIBLAPACK)
+	$(FC) $(FFLAGS) -o $@ $(F_OBJ_FILES) $(C_OBJ_FILES) -I $(OBJDIR) $(LIBLAPACK) $(LIBXC_LIB)
 
 $(F_OBJ_FILES): $(F_SRC_FILES)
 $(C_OBJ_FILES): $(C_SRC_FILES)
@@ -274,23 +259,26 @@ $(H_VERSION): $(H_IN_VERSION)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.f90 $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) 
+	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) $(LIBXC_INC)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR)  
+	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR)
 
 $(OBJDIR)/%.h: $(SRCDIR)/%.h.in
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
 	cat $< \
-	| sed  -e "/cmakedefine/d" \
-	| sed  -e "~s/@GIT_FOUND@/false/" \
-	| sed  -e "~s/@GIT_BRANCH@//" \
-	| sed  -e "~s/@GIT_COMMIT_HASH@//" \
+	| sed -e "/cmakedefine/d" \
+	| sed -e "s/@GIT_FOUND@/false/" \
+	| sed -e "s/@GIT_BRANCH@//" \
+	| sed -e "s/@GIT_COMMIT_HASH@//" \
 	> $@
-	
-all: $(TARGET)
-	
+
+.PHONY: all clean
+
+all: $(SALMON_TARGET)
+
 clean:
-	rm -f $(TARGET)
+	rm -f $(SALMON_TARGET)
+	rm -rf $(BINDIR)
 	rm -rf $(OBJDIR)
