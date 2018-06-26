@@ -751,6 +751,30 @@ Form of a quadrupole potential.
 >Unit of length can be chosen by <code>&units/unit_length</code>.
 ></dd>
 
+<dt>nump; <code>integer</code>; 0d</dt>
+<dd>
+Number of radiation sources for optical near fields.
+Maximum number is <code>2</code>.
+</dd>
+
+<dt>vecp(3,2); <code>Real(8)</code>; 0d</dt>
+<dd>
+Dipole vectors of the radiation sources for the optical near fields.
+Unit of length can be chosen by <code>&units/unit_length</code>.
+</dd>
+
+<dt>coop(3,2); <code>Real(8)</code>; 0d</dt>
+<dd>
+Central coordinates of the dipole vectors of the radiation sources.
+Unit of length can be chosen by <code>&units/unit_length</code>.
+</dd>
+
+<dt>radp_diele; <code>Real(8)</code>; 0d</dt>
+<dd>
+Radii of dielectric spheres for the radiation sources.
+Unit of length can be chosen by <code>&units/unit_length</code>.
+</dd>
+
 </dl>
 
 ## &multiscale

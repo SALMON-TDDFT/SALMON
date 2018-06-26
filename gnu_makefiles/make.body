@@ -139,6 +139,7 @@ F_SRCS = \
 	GCEED/rt/calcAext.f90 \
 	GCEED/rt/calcVbox.f90 \
 	GCEED/rt/calc_env_trigon.f90 \
+	GCEED/rt/set_vonf_sd.f90 \
 	GCEED/rt/gradient_ex.f90 \
 	GCEED/rt/initA.f90 \
 	GCEED/rt/taylor_coe.f90 \

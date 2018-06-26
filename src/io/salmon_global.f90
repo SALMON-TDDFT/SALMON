@@ -175,6 +175,10 @@ module salmon_global
   character(1)   :: alocal_laser
   real(8)        :: rlaserbound_sta(3)
   real(8)        :: rlaserbound_end(3)
+  integer        :: nump
+  real(8)        :: vecp(3,2)
+  real(8)        :: coop(3,2)
+  real(8)        :: radp_diele
 
 !! &multiscale
   character(16)  :: fdtddim

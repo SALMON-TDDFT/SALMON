@@ -382,12 +382,7 @@ real(8),allocatable :: dRion(:,:,:)
 real(8),allocatable :: Rion_eq(:,:)
 real(8),parameter :: umass=1822.9d0
 
-real(8),allocatable :: Eeff_dip(:,:,:,:)  
-real(8),allocatable :: Eeff_dip0(:,:,:,:)  
-
 integer :: wmaxMI
-
-real(8) :: rad_diele
 
 real(8) :: fcN(0:12)
 real(8) :: fbN(0:12)
@@ -424,6 +419,8 @@ integer :: iflag_pdos
 integer :: iflag_ELF
 
 integer :: iflag_indA
+
+real(8),allocatable :: vonf_sd(:,:,:),eonf_sd(:,:,:,:)
 
 !filename
 character(100) :: file_OUT
