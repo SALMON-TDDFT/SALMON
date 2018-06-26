@@ -61,7 +61,7 @@ integer :: ia,ib
 real(8) :: rab
 real(8),allocatable :: tfourier_integrand(:,:)
 
-call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
+call init_xc(xc_func, ispin, cval, xcname=xc, xname=xname, cname=cname)
 
 call check_cep
 call check_ae_shape

@@ -22,19 +22,31 @@ subroutine exc_cor_ns
   use allocate_mat_sub
   use sendrecvh_sub
   implicit none
-  integer :: ix,iy,iz
+  integer :: ix,iy,iz,is
   integer :: jspin
   real(8) :: tot_exc
   real(8),allocatable :: rhd(:,:,:), delr(:,:,:,:)
   integer :: iwk_dum
 
-  do iz=1,ng_num(3)
-  do iy=1,ng_num(2)
-  do ix=1,ng_num(1)
-    rho_tmp(ix,iy,iz)=rho(ng_sta(1)+ix-1,ng_sta(2)+iy-1,ng_sta(3)+iz-1)
-  end do
-  end do
-  end do
+  if(ilsda==0)then
+    do iz=1,ng_num(3)
+    do iy=1,ng_num(2)
+    do ix=1,ng_num(1)
+      rho_tmp(ix,iy,iz)=rho(ng_sta(1)+ix-1,ng_sta(2)+iy-1,ng_sta(3)+iz-1)
+    end do
+    end do
+    end do
+  else if(ilsda==1)then
+    do is=1,2
+    do iz=1,ng_num(3)
+    do iy=1,ng_num(2)
+    do ix=1,ng_num(1)
+      rho_s_tmp(ix,iy,iz,is)=rho_s(ng_sta(1)+ix-1,ng_sta(2)+iy-1,ng_sta(3)+iz-1,is)
+    end do
+    end do
+    end do
+    end do
+  end if
 
   if(xc=='pz'.or.xc=='PZ')then
     continue
@@ -88,18 +100,34 @@ subroutine exc_cor_ns
   end if
 
   if(xc=='pz'.or.xc=='PZ')then
-    call calc_xc(xc_func, rho=rho_tmp, eexc=eexc_tmp, vxc=vxc_tmp)
+    if(ilsda==0)then
+      call calc_xc(xc_func, rho=rho_tmp, eexc=eexc_tmp, vxc=vxc_tmp)
+    else if(ilsda==1)then
+      call calc_xc(xc_func, rho_s=rho_s_tmp, eexc=eexc_tmp, vxc_s=vxc_s_tmp)
+    end if
   else
     call calc_xc(xc_func, rho=rho_tmp, grho=delr, eexc=eexc_tmp, vxc=vxc_tmp)
   end if
 
-  do iz=1,ng_num(3)
-  do iy=1,ng_num(2)
-  do ix=1,ng_num(1)
-    vxc(ng_sta(1)+ix-1,ng_sta(2)+iy-1,ng_sta(3)+iz-1)=vxc_tmp(ix,iy,iz)
-  end do
-  end do
-  end do
+  if(ilsda==0)then
+    do iz=1,ng_num(3)
+    do iy=1,ng_num(2)
+    do ix=1,ng_num(1)
+      vxc(ng_sta(1)+ix-1,ng_sta(2)+iy-1,ng_sta(3)+iz-1)=vxc_tmp(ix,iy,iz)
+    end do
+    end do
+    end do
+  else if(ilsda==1)then 
+    do is=1,2
+    do iz=1,ng_num(3)
+    do iy=1,ng_num(2)
+    do ix=1,ng_num(1)
+      vxc_s(ng_sta(1)+ix-1,ng_sta(2)+iy-1,ng_sta(3)+iz-1,is)=vxc_s_tmp(ix,iy,iz,is)
+    end do
+    end do
+    end do
+    end do
+  end if
  
   do iz=1,ng_num(3)
   do iy=1,ng_num(2)

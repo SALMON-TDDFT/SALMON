@@ -37,10 +37,10 @@ real(8),allocatable :: rgrad_wk(:,:,:,:,:,:)
 complex(8),allocatable :: cgrad_wk(:,:,:,:,:,:)
 
 real(8), allocatable :: rho_tmp(:,:,:)
+real(8), allocatable :: rho_s_tmp(:,:,:,:)
 real(8), allocatable :: vxc_tmp(:,:,:)
+real(8), allocatable :: vxc_s_tmp(:,:,:,:)
 real(8), allocatable :: eexc_tmp(:,:,:)
-real(8), allocatable :: exc_m_tmp(:,:,:)
-real(8), allocatable :: eexc_m_tmp(:,:,:)
 real(8), allocatable :: exc_dummy(:,:,:)
 real(8), allocatable :: exc_dummy2(:,:,:,:)
 real(8), allocatable :: exc_dummy3(:,:,:,:)
@@ -169,12 +169,10 @@ if(iSCFRT==2)then
 end if
 
 allocate (rho_tmp(ng_num(1), ng_num(2), ng_num(3)))
+allocate (rho_s_tmp(ng_num(1), ng_num(2), ng_num(3), 2))
 allocate (vxc_tmp(ng_num(1), ng_num(2), ng_num(3)))
+allocate (vxc_s_tmp(ng_num(1), ng_num(2), ng_num(3), 2))
 allocate (eexc_tmp(ng_num(1), ng_num(2), ng_num(3)))
-if(ispin==1)then
-  allocate (exc_m_tmp(mg_sta(1):mg_end(1), mg_sta(2):mg_end(2), mg_sta(3):mg_end(3)))
-  allocate (eexc_m_tmp(mg_sta(1):mg_end(1), mg_sta(2):mg_end(2), mg_sta(3):mg_end(3)))
-end if
 allocate (exc_dummy(ng_num(1), ng_num(2), ng_num(3)))
 allocate (exc_dummy2(ng_num(1), ng_num(2), ng_num(3),2))
 allocate (exc_dummy3(ng_num(1), ng_num(2), ng_num(3),3))
