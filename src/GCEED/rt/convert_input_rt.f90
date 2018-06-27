@@ -24,6 +24,7 @@ integer :: Ntime
 real(8) :: dip_spacing
 
 ik_oddeven=2
+ilsda=ispin
 
 if(comm_is_root(nproc_id_global))then
    open(fh_namelist, file='.namelist.tmp', status='old')
@@ -70,7 +71,11 @@ nproc_Mxin_s = nproc_domain_s
 
 if(nproc_ob==0.and.nproc_mxin(1)==0.and.nproc_mxin(2)==0.and.nproc_mxin(3)==0.and.  &
                    nproc_mxin_s(1)==0.and.nproc_mxin_s(2)==0.and.nproc_mxin_s(3)==0) then
-  call set_numcpu_rt
+  if(ilsda==0)then
+    call set_numcpu_rt
+  else if(ilsda==1)then
+    call set_numcpu_rt_sp
+  end if
 else
   call check_numcpu
 end if

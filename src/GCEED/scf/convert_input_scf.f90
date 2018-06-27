@@ -29,6 +29,7 @@ real(8) :: dip_spacing
 
 ik_oddeven=2
 iterVh = 0         ! Iteration counter
+ilsda = ispin
 
 if(comm_is_root(nproc_id_global))then
    open(fh_namelist, file='.namelist.tmp', status='old')
@@ -56,8 +57,6 @@ iDiter(1:maxntmg)=1000
 Harray(1:3,1)=dl(1:3)
 rLsize(1:3,1)=al(1:3)
 iDiter(1) = nscf
-
-ilsda = ispin
 
 if(ispin == 0)then
   MST(1)=nstate
