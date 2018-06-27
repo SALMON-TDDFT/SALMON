@@ -161,7 +161,7 @@ If <code>'A_eV_fs'</code>, Angstrom-eV-fs unit system is used.
 <dl>
 
 ><dt>domain_parallel; <code>Character</code>; 3d</dt>
-><dd> If specified <code>domain_parallel='y'</code> and <code>&system/iperiodic=3</code>, program codes for domain parallel version run in peridic system calculations.
+><dd> If specified <code>domain_parallel='y'</code> and <code>&system/iperiodic=3</code>, program codes for domain parallel version run in periodic system calculations.
 ></dd>
 
 <dt>nproc_ob/nproc_domain(3)/nproc_domain_s(3); <code>Integer</code>; 0d</dt>
