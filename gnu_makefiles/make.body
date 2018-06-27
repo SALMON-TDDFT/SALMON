@@ -183,6 +183,7 @@ F_SRCS = \
 	GCEED/rt/dip.f90 \
 	GCEED/rt/projection.f90 \
 	GCEED/rt/set_numcpu_rt.f90 \
+	GCEED/rt/set_numcpu_rt_sp.f90 \
 	GCEED/rt/time_evolution_step.f90 \
 	GCEED/rt/xc_fast.f90 \
 	GCEED/scf/convert_input_scf.f90 \

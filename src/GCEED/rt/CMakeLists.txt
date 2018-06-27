@@ -16,6 +16,7 @@ set(SOURCES
     read_rt.f90
     real_time_dft.f90
     set_numcpu_rt.f90
+    set_numcpu_rt_sp.f90
     set_vonf_sd.f90
     taylor_coe.f90
     taylor${HPSI_TEST_SUFFIX}.f90
