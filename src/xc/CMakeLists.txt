@@ -1,5 +1,4 @@
 set(SOURCES
-    exc_cor.f90
     builtin_pz.f90
     builtin_pzm.f90
     builtin_pz_sp.f90

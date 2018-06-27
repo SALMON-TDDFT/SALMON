@@ -57,7 +57,7 @@ complex(8),allocatable :: zpsi_tmp(:,:,:,:,:)
 real(8) :: rNebox1,rNebox2
 integer :: itmg
 
-call init_xc(xc_func, 0, cval, xcname=xc, xname=xname, cname=cname)
+call init_xc(xc_func, ispin, cval, xcname=xc, xname=xname, cname=cname)
 
 iSCFRT=1
 ihpsieff=0
@@ -228,11 +228,7 @@ if(istopt==1)then
     end if
     allocate( esp(itotMST,num_kpoints_rd) )
 
-    if(ilsda==0)then
-      call exc_cor_ns
-    else if(ilsda==1)then
-      call exc_cor_lsda_ns
-    end if
+    call exc_cor_ns
 
     call allgatherv_vlocal
 
@@ -455,11 +451,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     elp3(126)=elp3(126)+elp3(116)-elp3(115)
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      if(ilsda==0)then
-        call exc_cor_ns
-      else if(ilsda==1)then
-        call exc_cor_lsda_ns
-      end if
+      call exc_cor_ns
     end if
    
     call allgatherv_vlocal
@@ -567,11 +559,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     end if
   
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-      if(ilsda==0)then
-        call exc_cor_ns
-      else if(ilsda==1)then
-        call exc_cor_lsda_ns
-      end if
+      call exc_cor_ns
     end if
    
     call allgatherv_vlocal

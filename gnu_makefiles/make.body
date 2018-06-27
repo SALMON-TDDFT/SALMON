@@ -162,7 +162,6 @@ F_SRCS = \
 	GCEED/common/calc_pmax.f90 \
 	GCEED/common/check_corrkob.f90 \
 	GCEED/common/check_numcpu.f90 \
-	GCEED/common/exc_cor_lsda_ns.f90 \
 	GCEED/common/hartree_periodic.f90 \
 	GCEED/common/inner_product3.f90 \
 	GCEED/common/inner_product4.f90 \

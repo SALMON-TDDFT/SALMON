@@ -138,11 +138,7 @@ end if
   elp3(536)=elp3(536)+elp3(516)-elp3(515)
 
   if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
-    if(ilsda==0)then
-      call exc_cor_ns
-    else if(ilsda==1)then
-      call exc_cor_lsda_ns
-    end if
+    call exc_cor_ns
   end if
 
   elp3(517)=get_wtime()
