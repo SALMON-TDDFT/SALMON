@@ -5,4 +5,8 @@
 #define GIT_BRANCH      "@GIT_BRANCH@"
 #define GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"
 
+#define SALMON_VER_MAJOR  1
+#define SALMON_VER_MINOR  0
+#define SALMON_VER_MICRO  1
+
 #endif
