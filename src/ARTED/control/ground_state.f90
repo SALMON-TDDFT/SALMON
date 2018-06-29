@@ -140,7 +140,7 @@ contains
        call Gram_Schmidt
        
        call psi_rho_GS
-       call broyden(rho,rho_in,rho_out,nl,iter,iter,nscf-1)
+       call broyden(rho,rho_in,rho_out,nl,iter,iter,nscf)
        call Hartree
 
 
