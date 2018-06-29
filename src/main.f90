@@ -31,21 +31,21 @@ program main
   end select
 
   call end_parallel
-
 contains
   subroutine print_software_version
     use salmon_xc, only: print_xc_info
     implicit none
     include 'versionf.h'
-    print '(A)',       '##############################################################################'
-    print '(A)',       '# SALMON: Scalable Ab-initio Light-Matter simulator for Optics and Nanoscience'
-    print '(A)',       '#'
-    print '(A,A,A,A)', '#                             Version 1.0.0                                   '
-    if (GIT_FOUND) then
+    print '(A)',         '##############################################################################'
+    print '(A)',         '# SALMON: Scalable Ab-initio Light-Matter simulator for Optics and Nanoscience'
+    print '(A)',         '#'
+    print '(A,I1,".",I1,".",I1)', &
+    &                    '#                             Version ', SALMON_VER_MAJOR, SALMON_VER_MINOR, SALMON_VER_MICRO
+    if (GIT_FOUND) then 
       print '(A)',       '#'
       print '(A,A,A,A)', '#   [Git revision] ', GIT_COMMIT_HASH, ' in ', GIT_BRANCH
     endif
-    print '(A)',       '##############################################################################'
+    print '(A)',         '##############################################################################'
     
     call print_xc_info()    
   end subroutine
