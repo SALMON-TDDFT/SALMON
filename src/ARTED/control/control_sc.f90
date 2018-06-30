@@ -113,6 +113,7 @@ subroutine tddft_sc
        call write_xyz(comment_line,"add","rvf")
   endif
 
+  Temperature_ion=0d0
   if(use_ehrenfest_md=='y') then
      dt_h       = dt*0.5d0
      Enh_gkTlns = 0d0

@@ -35,7 +35,6 @@ contains
     use restart,only: prep_restart_read
     use io_gs_wfn_k,only: modify_initial_guess_copy_1stk_to_all
     implicit none
-    integer :: itmp
 !$ integer :: omp_get_max_threads  
 
     call timer_initialize
