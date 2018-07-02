@@ -11,6 +11,11 @@ LIBSCALAPACK = -mkl=sequential
 MODULE_SWITCH = -module
 COMM_SET = dummy
 
+LIBXC_LIB =
+LIBXC_INC =
+# LIBXC_LIB = -Llibxc_installed_dir/lib -lxcf90
+# LIBXC_INC = -DSALMON_USE_LIBXC -Ilibxc_installed_dir/include
+
 ifneq (,$(wildcard make.body))
 include make.body
 else 

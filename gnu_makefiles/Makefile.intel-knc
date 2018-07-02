@@ -21,8 +21,8 @@ COMM_SET =
 
 LIBXC_LIB =
 LIBXC_INC =
-# LIBXC_LIB = -L<I<libxc_install_dir>/lib -lxcf90
-# LIBXC_INC = -DSALMON_USE_LIBXC -I<libxc_install_dir>/include/ 
+# LIBXC_LIB = -Llibxc_installed_dir/lib -lxcf90
+# LIBXC_INC = -DSALMON_USE_LIBXC -Ilibxc_installed_dir/include
 
 ifneq (,$(wildcard make.body))
 include make.body
