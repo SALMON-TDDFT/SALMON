@@ -56,10 +56,15 @@ contains
     real(8)      :: ftmp_l(3,NI)
     real(8)      :: FionR(3,NI), FionG(3,NI),nabt_wrk(4,3)
     complex(8)   :: uVpsi,duVpsi(3)
-    complex(8)   :: dzudr(3,NL,NB,NK_s:NK_e),dzudrzu(3),dzuekrdr(3)
+    complex(8)   :: dzudrzu(3),dzuekrdr(3)
+
+    complex(8), allocatable :: dzudr(:,:,:,:)
 
     integer :: tid
     real(8) :: ftmp_t(3,NI,0:NUMBER_THREADS-1)
+
+    allocate(dzudr(3,NL,zu_NB,NK_s:NK_e))
+
 
     !flag_use_grad_wf_on_force is given in Gloval_Variable
     !if .true.   use gradient of wave-function (better accuracy)
