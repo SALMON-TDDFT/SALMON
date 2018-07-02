@@ -23,7 +23,7 @@
 /
 
 &functional
-  xc = 'pz'
+  xc = 'PZ'
 /
 
 &rgrid
