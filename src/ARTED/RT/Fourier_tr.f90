@@ -121,17 +121,17 @@ Subroutine Fourier_tr
     end if
     if (comm_is_root(nproc_id_global)) then
       if (ae_shape1 == 'impulse' .and. trans_Longi == 'lo') then
-        write(fh_lr,'(F16.8,99(1X,ES22.14E3))') hw * t_unit_energy%conv &
+        write(fh_lr,'(F16.8,99(1X,E23.15E3))') hw * t_unit_energy%conv &
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else if (ae_shape1 == 'impulse' .and. Trans_Longi == 'tr') then
-        write(fh_lr,'(F16.8,99(1X,ES22.14E3))') hw * t_unit_energy%conv &
+        write(fh_lr,'(F16.8,99(1X,E23.15E3))') hw * t_unit_energy%conv &
              &,(real(zsigma_w(ixyz)),ixyz=1,3)&
              &,(aimag(zsigma_w(ixyz)),ixyz=1,3)&
              &,(real(zeps(ixyz)),ixyz=1,3)&
              &,(aimag(zeps(ixyz)),ixyz=1,3)
       else
-        write(fh_lr,'(F16.8,99(1X,ES22.14E3))') hw * t_unit_energy%conv &
+        write(fh_lr,'(F16.8,99(1X,E23.15E3))') hw * t_unit_energy%conv &
              &,(real(jav_w(ixyz)) * t_unit_current%conv, ixyz=1,3)&
              &,(aimag(jav_w(ixyz)) * t_unit_current%conv, ixyz=1,3)&
              &,(real(E_ext_w(ixyz)) * t_unit_elec%conv ,ixyz=1,3)&
