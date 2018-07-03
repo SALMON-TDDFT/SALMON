@@ -12,10 +12,6 @@
 
 &parallel
   domain_parallel='y'
-  nproc_k = 8
-  nproc_ob = 1
-  nproc_domain = 1,1,1
-  nproc_domain_s = 2,2,2
 /
 
 &system
@@ -43,7 +39,7 @@
 /
 
 &kgrid
-  num_kgrid = 4, 4, 4
+  num_kgrid = 2, 2, 2
 /
 
 &tgrid
