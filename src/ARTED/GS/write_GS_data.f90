@@ -192,7 +192,7 @@ Subroutine write_GS_data
           & 2, "DoS", trim(t_unit_energy_inv%name)
         do iw = 1, iout_dos_nenergy
           ww =  out_dos_start + (iw-1) * dw 
-          write(fh_dos,'(F16.8,99(1X,ES22.14E3))') &
+          write(fh_dos,'(F16.8,99(1X,E23.15E3))') &
             & ww * t_unit_energy%conv, &
             & dos(iw) * t_unit_energy_inv%conv
         end do
@@ -341,7 +341,7 @@ Subroutine write_GS_data
           & 4, "kz", "none", &
           & 5, "wk", "none"
         do ik = 1, NK
-          write(fh_k, '(I6,99(1X,ES22.14E3))') &
+          write(fh_k, '(I6,99(1X,E23.15E3))') &
             & ik, & 
             & kAc0(ik,1) / bLx, &
             & kAc0(ik,2) / bLy, &
@@ -376,7 +376,7 @@ Subroutine write_GS_data
           & 4, "occup", "none"
         do ik = 1, NK
           do ib = 1, NB
-            write(fh_eigen, '(I6,1X,I6,99(1X,ES22.14E3))') &
+            write(fh_eigen, '(I6,1X,I6,99(1X,E23.15E3))') &
               & ik, ib, esp(ib,ik)*t_unit_energy%conv, occ(ib,ik)/wk(ik)*NKxyz
           end do !ib
         end do !ik

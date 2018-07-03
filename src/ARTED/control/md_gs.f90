@@ -241,7 +241,7 @@ end subroutine calc_md_ground_state
               & 10, "Temperature_ion", "K"
       endif
 
-      write(fh_rt, "(F16.8,99(1X,ES22.14E3))") &
+      write(fh_rt, "(F16.8,99(1X,E23.15E3))") &
           & it * dt    * t_unit_time%conv, &
           & Tion_gs_t  * t_unit_energy%conv, &
           & Vion_gs_t  * t_unit_energy%conv, &
