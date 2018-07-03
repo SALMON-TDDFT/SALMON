@@ -822,7 +822,7 @@ contains
       do iiz_m = nz1_m, nz2_m
         do iiy_m = ny1_m, ny2_m
           do iix_m = nx1_m, nx2_m
-            write(fh_ac,'(I6,1X,I6,1X,I6,99(1X,ES22.14E3))',advance='no')  &
+            write(fh_ac,'(I6,1X,I6,1X,I6,99(1X,E23.15E3))',advance='no')  &
               & iix_m, iiy_m, iiz_m, &
               & data_out(1:ndata_out_column, iix_m, iiy_m, iiz_m, ipos)
            !if(use_ehrenfest_md=='y') then
@@ -979,12 +979,12 @@ contains
           endif
           write(fh_ac_m,*)
           do iiter = 0, Nt
-            write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
+            write(fh_ac_m, "(F16.8,6(1X,E23.15E3,1X))",advance='no') &
             & iiter * dt * t_unit_time%conv, &
             & data_local_Ac(1:3, iimacro, iiter) * t_unit_ac%conv, &
             & data_local_jm(1:3, iimacro, iiter) * t_unit_current%conv
             if(use_ehrenfest_md=='y') then
-              write(fh_ac_m, "(F16.8,6(1X,ES22.14E3,1X))",advance='no') &
+              write(fh_ac_m, "(F16.8,6(1X,E23.15E3,1X))",advance='no') &
               data_local_jm_ion(1:3, iimacro, iiter) * t_unit_current%conv, &
               data_local_Tmp_ion(iimacro, iiter)
             endif
@@ -1029,7 +1029,7 @@ contains
         & 6, "Ac_y(R)", trim(t_unit_ac%name), &
         & 7, "Ac_z(R)", trim(t_unit_ac%name)
       do iiter = 0, Nt
-        write(fh_ac_vac, "(F16.8,6(1X,ES22.14E3,1X))") &
+        write(fh_ac_vac, "(F16.8,6(1X,E23.15E3,1X))") &
           & iiter * dt * t_unit_time%conv, &
           & data_vac_Ac(1:3, 1, iiter) * t_unit_ac%conv, &
           & data_vac_Ac(1:3, 2, iiter) * t_unit_ac%conv

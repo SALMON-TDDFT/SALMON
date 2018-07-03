@@ -512,7 +512,7 @@ contains
       write(fh_rt,*)
 
       do iiter = 0, niter
-        write(fh_rt, "(F16.8,99(1X,ES22.14E3))",advance='no') &
+        write(fh_rt, "(F16.8,99(1X,E23.15E3))",advance='no') &
           & iiter * dt * t_unit_time%conv, &
           & Ac_ext(iiter, 1:3) * t_unit_ac%conv, &
           & E_ext(iiter, 1:3) * t_unit_elec%conv, &
@@ -522,12 +522,12 @@ contains
           & Eall_t(iiter) * t_unit_energy%conv, &
           & (Eall_t(iiter) - Eall0) * t_unit_energy%conv
         if(use_ehrenfest_md=='y') then
-        write(fh_rt, "(99(1X,ES22.14E3))",advance='no') &
+        write(fh_rt, "(99(1X,E23.15E3))",advance='no') &
           & Tion_t(iiter) * t_unit_energy%conv, &
           & Temperature_ion_t(iiter), &
           & Ework_integ_fdR(iiter) * t_unit_energy%conv
         if(ensemble=="NVT".and.thermostat=="nose-hoover")then
-        write(fh_rt, "(99(1X,ES22.14E3))",advance='no') &
+        write(fh_rt, "(99(1X,E23.15E3))",advance='no') &
           & Enh_t(iiter) * t_unit_energy%conv, &
           & Hnvt_t(iiter) * t_unit_energy%conv, &
           & (Tion_t(iiter)+Ework_integ_fdR(iiter)+Enh_t(iiter)) * t_unit_energy%conv
@@ -574,17 +574,17 @@ contains
 
       do iiter = 0, niter
         if( use_ehrenfest_md/='y' .and. mod(iiter,nstep_energy_calc)/=0)cycle
-        write(fh_rt_energy, "(F16.8,99(1X,ES22.14E3))",advance='no') &
+        write(fh_rt_energy, "(F16.8,99(1X,E23.15E3))",advance='no') &
           & iiter * dt * t_unit_time%conv, &
           & Eall_t(iiter) * t_unit_energy%conv, &
           & (Eall_t(iiter) - Eall0) * t_unit_energy%conv
         if(use_ehrenfest_md=='y') then
-        write(fh_rt_energy, "(99(1X,ES22.14E3))",advance='no') &
+        write(fh_rt_energy, "(99(1X,E23.15E3))",advance='no') &
           & Tion_t(iiter) * t_unit_energy%conv, &
           & Temperature_ion_t(iiter), &
           & Ework_integ_fdR(iiter) * t_unit_energy%conv
         if(ensemble=="NVT".and.thermostat=="nose-hoover")then
-        write(fh_rt_energy, "(99(1X,ES22.14E3))",advance='no') &
+        write(fh_rt_energy, "(99(1X,E23.15E3))",advance='no') &
           & Enh_t(iiter) * t_unit_energy%conv, &
           & Hnvt_t(iiter) * t_unit_energy%conv, &
           & (Tion_t(iiter)+Ework_integ_fdR(iiter)+Enh_t(iiter)) * t_unit_energy%conv
