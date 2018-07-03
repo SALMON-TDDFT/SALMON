@@ -36,7 +36,7 @@ result = {}
 linecount = 0
 for line in open("current.data"):
     linecount += 1
-    if linecount == 159: # corresponds to line 160, (0.6192 fs)
+    if linecount == 160: # corresponds to line 160, (0.6192 fs)
         for name, [resval, refval, error] in checklist.items(): 
             data = line.split()
             result[name] = float(data[3])
