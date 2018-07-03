@@ -20,7 +20,7 @@ checklist = {
     # Current
     "Current": [
         -100, # Temporary value for result
-        -2.9879534e-05,  # Reference value 
+        -3.5350450e-05,  # Reference value 
         1.e-8,  # Permissible error 
     ], 
 } 
@@ -33,12 +33,14 @@ for item in filelist:
 
 print("# Checking calculated result")
 result = {}
-for linecount, line in enumerate(open("current.data")):
-    if linecount == 246: # corresponds to a line of 0.9559fs
-        name = "Current"
-        data = line.split()
-        result[name] = float(data[3])
-        print(result[name])
+linecount = 0
+for line in open("current.data"):
+    linecount += 1
+    if linecount == 236: # corresponds to line 236 (0.9133 fs)
+        for name, [resval, refval, error] in checklist.items(): 
+            data = line.split()
+            result[name] = float(data[3])
+            print(result[name])
 
 for name, [resval, refval, error] in checklist.items():
     if name not in result: 
