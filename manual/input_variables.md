@@ -395,7 +395,7 @@ John P. Perdew and Yue Wang, Phys. Rev. B 45, 13244 (1992).
 
 <dt> alibxc, alibx, alibc; <code>Character</code>; 0d/3d</dt>
 By specifying <code>alibxc</code>, the functionals prepared in libxc package are available. 
-They can be set indivisually by <code>alibx</code> and <code>alibc</code>.
+They can be set indivisually by specifying <code>alibx</code> and <code>alibc</code>.
 To use libxc libraries, <code>--with-libxc</code> option must be added in excecuting configure. 
 
 <dt>cval(:); <code>Real(8)</code>; 3d</dt>
