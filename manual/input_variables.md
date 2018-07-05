@@ -369,10 +369,10 @@ This option is incompatible with
 ## &functional
 <dl>
 
-<dt>xc; <code>Character</code>; 3d</dt>
+<dt>xc; <code>Character</code>; 0d/3d</dt>
 <dd>
 Exchange-correlation functionals.
-At the moment, the following functionals are avelable.
+At the moment, the functional 'PZ' is available for 0d calculations, and the functionals 'PZ', 'PZM', and TBmBJ' are available for 3d calculations.
 <ul>
 <li>
 <code>'PZ'</code>: Perdew-Zunger LDA :Phys. Rev. B 23, 5048 (1981).
@@ -392,6 +392,11 @@ John P. Perdew and Yue Wang, Phys. Rev. B 45, 13244 (1992).
 </li>
 </ul>
 </dd>
+
+<dt> alibxc, alibx, alibc; <code>Character</code>; 0d/3d</dt>
+By specifying <code>alibxc</code>, the functionals prepared in libxc package are available. 
+They can be set indivisually by <code>alibx</code> and <code>alibc</code>.
+To use libxc libraries, <code>--with-libxc</code> option must be added in excecuting configure. 
 
 <dt>cval(:); <code>Real(8)</code>; 3d</dt>
 <dd>Mixing parameter in Tran-Blaha meta-GGA exchange potential. If <code>cval</code> is set to a minus value, the mixing-parameter computed
