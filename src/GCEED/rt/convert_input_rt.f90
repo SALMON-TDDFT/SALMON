@@ -165,9 +165,9 @@ if(iwdenoption==0)then
 end if
 
 select case(trans_longi)
-case('lo')
-  iflag_indA=0
 case('tr')
+  iflag_indA=0
+case('lo')
   iflag_indA=1
 end select
 
