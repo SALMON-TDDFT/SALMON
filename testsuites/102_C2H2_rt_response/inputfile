@@ -30,7 +30,7 @@
 /
 &tgrid
   dt=1.25d-3
-  nt=5000
+  nt=200
 /
 &emfield
   ae_shape1 = 'impulse'
