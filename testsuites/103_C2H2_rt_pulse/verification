@@ -20,8 +20,8 @@ checklist = {
     # Dipole moment
     "Dipole Moment": [
         -100, # Temporary value for result
-        1.7841551e-05,  # Reference value 
-        1.e-7,  # Permissible error 
+        1.7072501e-04,  # Reference value 
+        1.e-6,  # Permissible error 
     ], 
 } 
 
@@ -34,7 +34,7 @@ for item in filelist:
 print("# Checking calculated result")
 result = {}
 for linecount, line in enumerate(open("C2H2_p.data")):
-    if linecount == 248: # corresponds to line 248 (0.3087 fs)
+    if linecount == 586: # corresponds to line 586 (0.7312 fs)
         name = "Dipole Moment"
         data = line.split()
         result[name] = float(data[3])
