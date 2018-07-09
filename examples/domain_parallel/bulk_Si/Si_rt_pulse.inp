@@ -53,7 +53,6 @@
 /
 
 &emfield
-  trans_longi = 'lo'
   ae_shape1 = 'Acos2'
   rlaser_int_wcm2_1 = 1d14
   omega1 = 0.05696145187d0
