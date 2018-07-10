@@ -30,7 +30,7 @@
 /
 &tgrid
   dt=1.25d-3
-  nt=4800
+  nt=600
 /
 &emfield
   ae_shape1 = 'Ecos2'

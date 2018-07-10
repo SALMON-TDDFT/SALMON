@@ -13,15 +13,15 @@ print("#" * 60)
 print("# Verification start") 
 
 filelist = [ 
-    "C2H2_lr.data", 
+    "C2H2_p.data", 
 ] 
 
 checklist = { 
-    # Oscillator strength
-    "Oscillator Strength (z-direction, 9.28eV)": [
+    # Dipole moment
+    "Dipole moment (z-direction)": [
         -100, # Temporary value for result
-        1.2081861,  # Reference value 
-        0.001,  # Permissible error 
+        -2.0862356e-02,  # Reference value 
+        1e-5,  # Permissible error 
     ], 
 } 
 
@@ -34,12 +34,12 @@ for item in filelist:
 print("# Checking calculated result")
 result = {}
 linecount = 0
-for line in open("C2H2_lr.data"):
+for line in open("C2H2_p.data"):
     linecount += 1
-    if linecount == 930: # corresponds to a line of 9.28eV
+    if linecount == 194: # corresponds to line 194 (0.2412 fs)
         for name, [resval, refval, error] in checklist.items(): 
             data = line.split()
-            result[name] = float(data[9])
+            result[name] = float(data[3])
             print(result[name])
 
 for name, [resval, refval, error] in checklist.items():
