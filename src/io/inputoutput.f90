@@ -1835,15 +1835,20 @@ contains
 
   end subroutine check_bad_input
 
-  subroutine stop_by_bad_input2(inp1,inp2)
+  subroutine stop_by_bad_input2(inp1,inp2,inp3)
     use salmon_parallel
     use salmon_communication
     implicit none
     character(*) :: inp1
     character(*) :: inp2
+    character(*),optional :: inp3
     if (comm_is_root(nproc_id_global)) then
       write(*,*) ' Bad input combination: '
-      write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2)
+      if(present(inp3))then
+        write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2),' and ',trim(inp3)
+      else
+        write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2)
+      end if
     endif
     call end_parallel
     stop
