@@ -256,7 +256,7 @@ subroutine init_ac_ms
 
      case('none')
      case default
-        call Err_finalize("Invalid pulse_shape_1 parameter!")
+        call Err_finalize("Invalid pulse_shape_2 parameter!")
      end select
 
  ! case('2D', '2d', '3D', '3d')

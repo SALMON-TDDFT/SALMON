@@ -305,3 +305,16 @@ subroutine current_RT_ion_MS(ixy_m)
   jav_ion(:) = jav_ion(:) /aLxyz
 
 end subroutine
+subroutine current_RT_ion
+  use Global_Variables, only: jav_ion,NI,Zps,Kion,velocity,aLxyz
+  implicit none
+  integer :: ia
+
+  !matter current of ion: defined by positive charge-->minus sign
+  jav_ion(:)=0d0
+  do ia=1,NI
+     jav_ion(:) = jav_ion(:) - Zps(Kion(ia))*velocity(:,ia)
+  enddo
+  jav_ion(:) = jav_ion(:) /aLxyz
+
+end subroutine
