@@ -16,6 +16,7 @@
 MODULE scf_data
 use salmon_global
 use salmon_xc, only: xc_functional
+use salmon_pp, only: pp_info
 implicit none
 !-------------------- Parameters
 integer, parameter :: maxntmg=10
@@ -165,6 +166,13 @@ real(8) :: rLsize(3,maxntmg)    ! size of the box
 integer :: maxMps
 
 ! Pseudopotential
+type(pp_info) :: pp
+integer,parameter :: Nrmax=3000,Lmax=4
+integer,allocatable :: NRloc(:)
+real(8),allocatable :: Rloc(:)
+real(8),allocatable :: Zps(:)              ! Pseudo charge
+real(8),allocatable :: Rps(:)              ! Core radius
+real(8),allocatable :: Mass(:)             ! Atomic weight
 integer,allocatable :: Jxyz_all(:,:,:),Mps_all(:),Jxxyyzz_all(:,:,:)
 integer,allocatable :: Mps(:)
 integer,allocatable :: Jxyz_tmp1(:,:,:)
@@ -177,6 +185,8 @@ integer :: Mlps(maxMKI),Lref(maxMKI)
 real(8),allocatable :: Vpsl(:,:,:)                 ! Local pseudopotential
 real(8),allocatable :: Vpsl_atom(:,:,:,:)
 real(8),allocatable :: uV_all(:,:,:),uVu(:,:)          ! Non-local
+!Nonlinear core correction
+logical :: flag_nlcc = .false.
 
 real(8),allocatable :: rocc(:,:)                    ! Occupation number
 real(8),allocatable :: psi(:,:,:,:,:)              ! Single particle orbitals

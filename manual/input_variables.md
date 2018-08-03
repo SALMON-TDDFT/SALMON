@@ -343,23 +343,23 @@ This option is incompatible with
 </dd>
 
 
-><dt>psmask_option(:); <code>Character</code>; 3d</dt>
+><dt>psmask_option(:); <code>Character</code>; 0d/3d</dt>
 ><dd>Enable(<code>'y'</code>)/disable(<code>'n'</code>) 
 >Fourier filtering for pseudopotentials. 
 >Default is <code>'n'</code>.
 ></dd>
 
-><dt>alpha_mask(:); <code>Real(8)</code>; 3d</dt>
+><dt>alpha_mask(:); <code>Real(8)</code>; 0d/3d</dt>
 ><dd>Parameter for the Fourier filtering for pseudopotential.
 >Default is <code>'0.8'</code>.
 ></dd>
 
-><dt>gamma_mask(:); <code>Real(8)</code>; 3d</dt>
+><dt>gamma_mask(:); <code>Real(8)</code>; 0d/3d</dt>
 ><dd>Parameter for the Fourier filtering for pseudopotential.
 >Default is <code>'1.8'</code>.
 ></dd>
 
-><dt>eta_maskk(:); <code>Real(8)</code></dt>
+><dt>eta_mask(:); <code>Real(8)</code></dt>; 0d/3d</dt>
 ><dd>Parameter for the Fourier filtering for pseudopotential.
 >Default is <code>'15.0'</code>.
 ></dd>
