@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine input_pp(pp,nl,hx,hy,hz)
+subroutine input_pp(pp,hx,hy,hz)
   use salmon_pp,only : pp_info
   use salmon_global,only : pseudo_file
   use salmon_global,only : n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
@@ -26,15 +26,12 @@ subroutine input_pp(pp,nl,hx,hy,hz)
   real(8),parameter :: pi=3.141592653589793d0 ! copied from salmon_math
   type(pp_info) :: pp
   real(8),parameter :: Eps0=1d-10
-  integer,intent(in) :: nl
   real(8),intent(in) :: hx,hy,hz
   integer :: ik,l,i
   real(8) :: rrc(0:pp%lmax0)
   real(8) :: r1
   real(8),allocatable :: rhor_nlcc(:,:)   !zero in radial index for taking derivative
-  character(2) :: atom_symbol
   character(256) :: ps_file
-  integer :: ips_type,nlen_psf
   logical,allocatable :: flag_nlcc_element(:)
 
   allocate(rhor_nlcc(0:pp%nrmax0,0:2))
@@ -42,140 +39,22 @@ subroutine input_pp(pp,nl,hx,hy,hz)
 ! Nonlinear core correction
   allocate(flag_nlcc_element(nelem)); flag_nlcc_element(:) = .false. ; pp%flag_nlcc = .false.
 
+!      ps_file=trim(directory)//trim(pp%atom_symbol(ik))//trim(ps_postfix)
+
   if (comm_is_root(nproc_id_global)) then
 
     do ik=1,nelem
-       
+         
       ps_file = trim(pseudo_file(ik))
-      nlen_psf = len_trim(ps_file)
-      if(ps_file(nlen_psf+1-8:nlen_psf) == '_rps.dat')then
-        ips_type = n_Yabana_Bertsch_psformat
-        ps_format(ik) = 'KY'
-      else if(ps_file(nlen_psf+1-6:nlen_psf) == '.pspnc')then
-        ips_type = n_ABINIT_psformat
-        ps_format(ik) = 'ABINIT'
-      else if(ps_file(nlen_psf+1-4:nlen_psf) == '.fhi')then
-        ips_type = n_ABINITFHI_psformat
-        ps_format(ik) = 'ABINITFHI'
-      else if(ps_file(nlen_psf+1-4:nlen_psf) == '.cpi')then
-        ips_type = n_FHI_psformat
-        ps_format(ik) = 'FHI'
-      else
-        stop 'Unprepared ps_format is required input_pseudopotential_YS'
-      end if
-!! --- Making prefix ---
-!      select case (ipsfileform(ik))
-!      case(n_Yabana_Bertsch_psformat)   ; ps_postfix = '_rps.dat'
-!      case(n_ABINIT_psformat)           ; ps_postfix = '.pspnc'
-!      case(n_ABINITFHI_psformat)        ; ps_postfix = '.fhi'
-!      case(n_FHI_psformat)              ; ps_postfix = '.cpi'
-!!    case('ATOM')      ; ps_postfix = '.psf' !Not implemented yet
-!      case default ; stop 'Unprepared ps_format is required input_pseudopotential_YS'
-!      end select
 
-! --- input pseudopotential and wave function ---
-      select case (izatom(ik))
-      case (1) ; atom_symbol = 'H ' ; pp%rmass(ik)=1.d0
-      case (2) ; atom_symbol = 'He' ; pp%rmass(ik)=4.d0
-      case (3) ; atom_symbol = 'Li' ; pp%rmass(ik)=7.d0
-      case (4) ; atom_symbol = 'Be' ; pp%rmass(ik)=9.d0
-      case (5) ; atom_symbol = 'B ' ; pp%rmass(ik)=11.d0
-      case (6) ; atom_symbol = 'C ' ; pp%rmass(ik)=12.d0
-      case (7) ; atom_symbol = 'N ' ; pp%rmass(ik)=14.d0
-      case (8) ; atom_symbol = 'O ' ; pp%rmass(ik)=16.d0
-      case (9) ; atom_symbol = 'F ' ; pp%rmass(ik)=19.d0
-      case(10) ; atom_symbol = 'Ne' ; pp%rmass(ik)=20.d0
-      case(11) ; atom_symbol = 'Na' ; pp%rmass(ik)=23.d0
-      case(12) ; atom_symbol = 'Mg' ; pp%rmass(ik)=24.d0
-      case(13) ; atom_symbol = 'Al' ; pp%rmass(ik)=27.d0
-      case(14) ; atom_symbol = 'Si' ; pp%rmass(ik)=28.d0
-      case(15) ; atom_symbol = 'P ' ; pp%rmass(ik)=31.d0
-      case(16) ; atom_symbol = 'S ' ; pp%rmass(ik)=32.d0
-      case(17) ; atom_symbol = 'Cl' ; pp%rmass(ik)=35.d0
-      case(18) ; atom_symbol = 'Ar' ; pp%rmass(ik)=40.d0
-      case(19) ; atom_symbol = 'K ' ; pp%rmass(ik)=39.d0
-      case(20) ; atom_symbol = 'Ca' ; pp%rmass(ik)=40.d0
-      case(21) ; atom_symbol = 'Sc' ; pp%rmass(ik)=45.d0
-      case(22) ; atom_symbol = 'Ti' ; pp%rmass(ik)=48.d0
-      case(23) ; atom_symbol = 'V ' ; pp%rmass(ik)=51.d0
-      case(24) ; atom_symbol = 'Cr' ; pp%rmass(ik)=52.d0
-      case(25) ; atom_symbol = 'Mn' ; pp%rmass(ik)=55.d0
-      case(26) ; atom_symbol = 'Fe' ; pp%rmass(ik)=56.d0
-      case(27) ; atom_symbol = 'Co' ; pp%rmass(ik)=59.d0
-      case(28) ; atom_symbol = 'Ni' ; pp%rmass(ik)=59.d0
-      case(29) ; atom_symbol = 'Cu' ; pp%rmass(ik)=63.d0
-      case(30) ; atom_symbol = 'Zn' ; pp%rmass(ik)=65.d0
-      case(31) ; atom_symbol = 'Ga' ; pp%rmass(ik)=69.d0
-      case(32) ; atom_symbol = 'Ge' ; pp%rmass(ik)=73.d0
-      case(33) ; atom_symbol = 'As' ; pp%rmass(ik)=75.d0
-      case(34) ; atom_symbol = 'Se' ; pp%rmass(ik)=79.d0
-      case(35) ; atom_symbol = 'Br' ; pp%rmass(ik)=80.d0
-      case(36) ; atom_symbol = 'Kr' ; pp%rmass(ik)=84.d0
-      case(37) ; atom_symbol = 'Rb' ; pp%rmass(ik)=85.d0
-      case(38) ; atom_symbol = 'Sr' ; pp%rmass(ik)=88.d0
-      case(39) ; atom_symbol = 'Y ' ; pp%rmass(ik)=89.d0
-      case(40) ; atom_symbol = 'Zr' ; pp%rmass(ik)=91.d0
-      case(41) ; atom_symbol = 'Nb' ; pp%rmass(ik)=93.d0
-      case(42) ; atom_symbol = 'Mo' ; pp%rmass(ik)=96.d0
-      case(43) ; atom_symbol = 'Tc' ; pp%rmass(ik)=98.d0
-      case(44) ; atom_symbol = 'Ru' ; pp%rmass(ik)=101.d0
-      case(45) ; atom_symbol = 'Rh' ; pp%rmass(ik)=103.d0
-      case(46) ; atom_symbol = 'Pd' ; pp%rmass(ik)=106.d0
-      case(47) ; atom_symbol = 'Ag' ; pp%rmass(ik)=108.d0
-      case(48) ; atom_symbol = 'Cd' ; pp%rmass(ik)=112.d0
-      case(49) ; atom_symbol = 'In' ; pp%rmass(ik)=115.d0
-      case(50) ; atom_symbol = 'Sn' ; pp%rmass(ik)=119.d0
-      case(51) ; atom_symbol = 'Sb' ; pp%rmass(ik)=122.d0
-      case(52) ; atom_symbol = 'Te' ; pp%rmass(ik)=128.d0
-      case(53) ; atom_symbol = 'I ' ; pp%rmass(ik)=127.d0
-      case(54) ; atom_symbol = 'Xe' ; pp%rmass(ik)=131.d0
-      case(55) ; atom_symbol = 'Cs' ; pp%rmass(ik)=133.d0
-      case(56) ; atom_symbol = 'Ba' ; pp%rmass(ik)=137.d0
-      case(57) ; atom_symbol = 'La' ; pp%rmass(ik)=139.d0
-      case(58) ; atom_symbol = 'Ce' ; pp%rmass(ik)=140.d0
-      case(59) ; atom_symbol = 'Pr' ; pp%rmass(ik)=141.d0
-      case(60) ; atom_symbol = 'Nd' ; pp%rmass(ik)=144.d0
-      case(61) ; atom_symbol = 'Pm' ; pp%rmass(ik)=145.d0
-      case(62) ; atom_symbol = 'Sm' ; pp%rmass(ik)=150.d0
-      case(63) ; atom_symbol = 'Eu' ; pp%rmass(ik)=152.d0
-      case(64) ; atom_symbol = 'Gd' ; pp%rmass(ik)=157.d0
-      case(65) ; atom_symbol = 'Tb' ; pp%rmass(ik)=159.d0
-      case(66) ; atom_symbol = 'Dy' ; pp%rmass(ik)=164.d0
-      case(67) ; atom_symbol = 'Ho' ; pp%rmass(ik)=165.d0
-      case(68) ; atom_symbol = 'Er' ; pp%rmass(ik)=167.d0
-      case(69) ; atom_symbol = 'Tm' ; pp%rmass(ik)=169.d0
-      case(70) ; atom_symbol = 'Yb' ; pp%rmass(ik)=173.d0
-      case(71) ; atom_symbol = 'Lu' ; pp%rmass(ik)=175.d0
-      case(72) ; atom_symbol = 'Hf' ; pp%rmass(ik)=178.d0
-      case(73) ; atom_symbol = 'Ta' ; pp%rmass(ik)=181.d0
-      case(74) ; atom_symbol = 'W ' ; pp%rmass(ik)=184.d0
-      case(75) ; atom_symbol = 'Re' ; pp%rmass(ik)=186.d0
-      case(76) ; atom_symbol = 'Os' ; pp%rmass(ik)=190.d0
-      case(77) ; atom_symbol = 'Ir' ; pp%rmass(ik)=192.d0
-      case(78) ; atom_symbol = 'Pt' ; pp%rmass(ik)=195.d0
-      case(79) ; atom_symbol = 'Au' ; pp%rmass(ik)=197.d0
-      case(80) ; atom_symbol = 'Hg' ; pp%rmass(ik)=201.d0
-      case(81) ; atom_symbol = 'Tl' ; pp%rmass(ik)=204.d0
-      case(82) ; atom_symbol = 'Pb' ; pp%rmass(ik)=207.d0
-      case(83) ; atom_symbol = 'Bi' ; pp%rmass(ik)=209.d0
-      case default ; stop 'Unprepared atomic data is called input_pseudopotential_YS'
-      end select
-
-!      ps_file=trim(directory)//trim(atom_symbol)//trim(ps_postfix)
-
-      write(*,*) '===================pseudopotential data==================='
-      write(*,*) 'ik ,atom_symbol=',ik, atom_symbol
-      write(*,*) 'ps_format =',ps_format(ik)
-      write(*,*) 'ps_file =',trim(ps_file)
-
-      select case (ips_type)
-      case(n_Yabana_Bertsch_psformat)
+      select case (ps_format(ik))
+      case('KY')
         call read_ps_ky(pp,rrc,ik,ps_file)
-      case(n_ABINIT_psformat)
+      case('ABINIT')
         call read_ps_abinit(pp,rrc,ik,ps_file)
-      case(n_ABINITFHI_psformat)
+      case('ABINITFHI')
         call read_ps_abinitfhi(pp,rrc,rhor_nlcc,flag_nlcc_element,ik,ps_file)
-      case(n_FHI_psformat)
+      case('FHI')
         call read_ps_fhi(pp,rrc,ik,ps_file)
 !      case('ATOM')      ; call read_ps_ATOM
       case default ; stop 'Unprepared ps_format is required input_pseudopotential_YS'
@@ -212,6 +91,10 @@ subroutine input_pp(pp,nl,hx,hy,hz)
         pp%anorm(l,ik)=sqrt(pp%anorm(l,ik))
       enddo
 
+      write(*,*) '===================pseudopotential data==================='
+      write(*,*) 'ik ,atom_symbol=',ik, pp%atom_symbol(ik)
+      write(*,*) 'ps_format =',ps_format(ik)
+      write(*,*) 'ps_file =',trim(ps_file)
       write(*,*) 'Zps(ik), Mlps(ik) =',pp%zps(ik), pp%mlps(ik)
       write(*,*) 'Rps(ik), NRps(ik) =',pp%rps(ik), pp%nrps(ik)
       write(*,*) 'Lref(ik) =',pp%lref(ik)
@@ -223,7 +106,7 @@ subroutine input_pp(pp,nl,hx,hy,hz)
 
       if (PSmask_option == 'y') then
         call making_ps_with_masking(pp,hx,hy,hz,ik, &
-                                    rhor_nlcc,atom_symbol,flag_nlcc_element)
+                                    rhor_nlcc,flag_nlcc_element)
         write(*,*) 'Following quantities are modified by masking procedure'
         write(*,*) 'Rps(ik), NRps(ik) =',pp%rps(ik), pp%nrps(ik)
         write(*,*) 'anorm(ik,l) =',(pp%anorm(l,ik),l=0,pp%mlps(ik))
@@ -235,7 +118,7 @@ subroutine input_pp(pp,nl,hx,hy,hz)
         stop 'Wrong PSmask_option at input_pseudopotential_YS'
       end if
 
-      open(4,file=trim(directory)//"PS_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//"_"//trim(PSmask_option)//".dat")
+      open(4,file=trim(directory)//"PS_"//trim(pp%atom_symbol(ik))//"_"//trim(ps_format(ik))//"_"//trim(PSmask_option)//".dat")
       write(4,*) "# Mr=",pp%mr(ik)
       write(4,*) "# Rps(ik), NRps(ik)",pp%rps(ik), pp%nrps(ik)
       write(4,*) "# Mlps(ik), Lref(ik) =",pp%mlps(ik), pp%lref(ik)
@@ -264,11 +147,9 @@ subroutine input_pp(pp,nl,hx,hy,hz)
   call comm_bcast(pp%dudvtbl,nproc_group_global)
   call comm_bcast(pp%upp_f,nproc_group_global)
   call comm_bcast(pp%vpp_f,nproc_group_global)
-  call comm_bcast(pp%rmass,nproc_group_global)
   call comm_bcast(pp%rho_nlcc_tbl,nproc_group_global)
   call comm_bcast(pp%tau_nlcc_tbl,nproc_group_global)
   call comm_bcast(pp%flag_nlcc,nproc_group_global)
-  call comm_bcast(ps_format,nproc_group_global)
   if(comm_is_root(nproc_id_global)) write(*,*)"flag_nlcc = ",pp%flag_nlcc
 
   return
@@ -286,11 +167,11 @@ subroutine read_ps_ky(pp,rrc,ik,ps_file)
   character(256),intent(in) :: ps_file
 !local variable
   integer :: l,i,irPC
-  real(8) :: step,rPC,r,rhopp(0:pp%nrmax0),rZps
+  real(8) :: step,rPC,r,rhopp(0:pp%nrmax0),rzps
 
   open(4,file=ps_file,status='old')
-  read(4,*) pp%mr(ik),step,pp%mlps(ik),rZps
-  pp%zps(ik)=int(rZps+1d-10)
+  read(4,*) pp%mr(ik),step,pp%mlps(ik),rzps
+  pp%zps(ik)=int(rzps+1d-10)
   if(pp%mr(ik).gt.pp%nrmax0) stop 'Mr>Nrmax0 at Read_PS_KY'
   if(pp%mlps(ik).gt.pp%lmax0) stop 'Mlps(ik)>Lmax0 at Read_PS_KY'
   if(pp%mlps(ik).gt.pp%lmax) stop 'Mlps(ik)>Lmax at Read_PS_KY'
@@ -331,7 +212,7 @@ subroutine read_ps_abinit(pp,rrc,ik,ps_file)
   character(256),intent(in) :: ps_file
 !local variable
   integer :: i
-  real(8) :: rZps
+  real(8) :: rzps
   integer :: ll
   real(8) :: zatom, pspdat,pspcod,pspxc,lmaxabinit,lloc,mmax,r2well,l
   real(8) :: e99_0,e99_9,nproj,rcpsp,rms,ekb1,ekb2,epsatm,rchrg,fchrg,qchrg
@@ -340,8 +221,8 @@ subroutine read_ps_abinit(pp,rrc,ik,ps_file)
   open(4,file=ps_file,status='old')
   read(4,*) dummy_text
   read(4,*) zatom, pp%zion, pspdat
-  rZps = pp%zion
-  pp%zps(ik)=int(rZps+1d-10)
+  rzps = pp%zion
+  pp%zps(ik)=int(rzps+1d-10)
   read(4,*) pspcod,pspxc,lmaxabinit,lloc,mmax,r2well
   pp%mlps(ik)=lmaxabinit
   if(lloc .ne. pp%lref(ik)) write(*,*) "Warning! Lref(ik=",ik,") is different from intended one in ",ps_file
@@ -395,8 +276,8 @@ subroutine read_ps_abinitfhi(pp,rrc,rhor_nlcc,flag_nlcc_element,ik,ps_file)
 !local variable
   character(50) :: temptext
   integer :: i,j
-  real(8) :: step,rZps,dummy
-  integer :: Mr_l(0:pp%lmax0),l,ll
+  real(8) :: step,rzps,dummy
+  integer :: mr_l(0:pp%lmax0),l,ll
   real(8) :: step_l(0:pp%lmax),rrc_mat(0:pp%lmax,0:pp%lmax)
 
   rrc_mat(0:pp%lmax,0:pp%lmax)=-1.d0
@@ -408,8 +289,8 @@ subroutine read_ps_abinitfhi(pp,rrc,rhor_nlcc,flag_nlcc_element,ik,ps_file)
     write(*,*) temptext
   end do
   write(*,*) '===================Header of ABINITFHI pseudo potential==================='
-  read(4,*) rZps,pp%mlps(ik)
-  pp%zps(ik)=int(rZps+1d-10)
+  read(4,*) rzps,pp%mlps(ik)
+  pp%zps(ik)=int(rzps+1d-10)
   pp%mlps(ik) = pp%mlps(ik)-1
   if(pp%mlps(ik).gt.pp%lmax0) stop 'Mlps(ik)>Lmax0 at Read_PS_FHI'
   if(pp%mlps(ik).gt.pp%lmax) stop 'Mlps(ik)>Lmax at Read_PS_FHI'
@@ -417,9 +298,9 @@ subroutine read_ps_abinitfhi(pp,rrc,rhor_nlcc,flag_nlcc_element,ik,ps_file)
      read(4,*) dummy
   end do
   do l=0,pp%mlps(ik)
-    read(4,*) Mr_l(l),step_l(l)
-    if(Mr_l(l).gt.pp%nrmax0) stop 'Mr>Nrmax0 at Read_PS_FHI'
-    do i=1,Mr_l(l)
+    read(4,*) mr_l(l),step_l(l)
+    if(mr_l(l).gt.pp%nrmax0) stop 'Mr>Nrmax0 at Read_PS_FHI'
+    do i=1,mr_l(l)
       read(4,*) j,pp%rad(i+1,ik),pp%upp(i,l),pp%vpp(i,l) !Be carefull for upp(i,l)/vpp(i,l) reffering rad(i+1) as coordinate
     end do
     pp%rad(1,ik)=0.d0
@@ -427,7 +308,7 @@ subroutine read_ps_abinitfhi(pp,rrc,rhor_nlcc,flag_nlcc_element,ik,ps_file)
     pp%vpp(0,l)=pp%vpp(1,l)-(pp%vpp(2,l)-pp%vpp(1,l))/(pp%rad(3,ik)-pp%rad(2,ik))*(pp%rad(2,ik))
   end do
 !Nonlinear core-correction
-  do i=1,Mr_l(0)
+  do i=1,mr_l(0)
     read(4,*,end=940) pp%rad(i+1,ik),rhor_nlcc(i,0),rhor_nlcc(i,1),rhor_nlcc(i,2)
   end do
   rhor_nlcc(0,:)=rhor_nlcc(1,:)-(rhor_nlcc(2,:)-rhor_nlcc(1,:)) &
@@ -440,10 +321,10 @@ subroutine read_ps_abinitfhi(pp,rrc,rhor_nlcc,flag_nlcc_element,ik,ps_file)
 940 close(4)
   
 
-  if(minval(Mr_l(0:pp%mlps(ik))).ne.maxval(Mr_l(0:pp%mlps(ik)))) then
+  if(minval(mr_l(0:pp%mlps(ik))).ne.maxval(mr_l(0:pp%mlps(ik)))) then
     stop 'Mr are diffrent at Read_PS_FHI'
   else 
-    pp%mr(ik) = minval(Mr_l(0:pp%mlps(ik)))
+    pp%mr(ik) = minval(mr_l(0:pp%mlps(ik)))
   end if
   if((maxval(step_l(0:pp%mlps(ik)))-minval(step_l(0:pp%mlps(ik)))).ge.1.d-14) then
     stop 'step are different at Read_PS_FHI'
@@ -485,15 +366,15 @@ subroutine read_ps_fhi(pp,rrc,ik,ps_file)
   character(256),intent(in) :: ps_file
 !local variable
   integer :: i,j
-  real(8) :: step,rZps,dummy
-  integer :: Mr_l(0:pp%lmax0),l,ll
+  real(8) :: step,rzps,dummy
+  integer :: mr_l(0:pp%lmax0),l,ll
   real(8) :: step_l(0:pp%lmax),rrc_mat(0:pp%lmax,0:pp%lmax)
 
   rrc_mat(0:pp%lmax,0:pp%lmax)=-1.d0
 
   open(4,file=ps_file,status='old')
-  read(4,*) rZps,pp%mlps(ik)
-  pp%zps(ik)=int(rZps+1d-10)
+  read(4,*) rzps,pp%mlps(ik)
+  pp%zps(ik)=int(rzps+1d-10)
   pp%mlps(ik) = pp%mlps(ik)-1
   if(pp%mlps(ik).gt.pp%lmax0) stop 'Mlps(ik)>Lmax0 at Read_PS_FHI'
   if(pp%mlps(ik).gt.pp%lmax) stop 'Mlps(ik)>Lmax at Read_PS_FHI'
@@ -501,9 +382,9 @@ subroutine read_ps_fhi(pp,rrc,ik,ps_file)
      read(4,*) dummy
   end do
   do l=0,pp%mlps(ik)
-    read(4,*) Mr_l(l),step_l(l)
-    if(Mr_l(l).gt.pp%nrmax0) stop 'Mr>Nrmax0 at Read_PS_FHI'
-    do i=1,Mr_l(l)
+    read(4,*) mr_l(l),step_l(l)
+    if(mr_l(l).gt.pp%nrmax0) stop 'Mr>Nrmax0 at Read_PS_FHI'
+    do i=1,mr_l(l)
       read(4,*) j,pp%rad(i+1,ik),pp%upp(i,l),pp%vpp(i,l) !Be carefull for upp(i,l)/vpp(i,l) reffering rad(i+1) as coordinate
     end do
     pp%rad(1,ik)=0.d0
@@ -512,10 +393,10 @@ subroutine read_ps_fhi(pp,rrc,ik,ps_file)
   end do
   close(4)
 
-  if(minval(Mr_l(0:pp%mlps(ik))).ne.maxval(Mr_l(0:pp%mlps(ik)))) then
+  if(minval(mr_l(0:pp%mlps(ik))).ne.maxval(mr_l(0:pp%mlps(ik)))) then
     stop 'Mr are diffrent at Read_PS_FHI'
   else 
-    pp%mr(ik) = minval(Mr_l(0:pp%mlps(ik)))
+    pp%mr(ik) = minval(mr_l(0:pp%mlps(ik)))
   end if
   if((maxval(step_l(0:pp%mlps(ik)))-minval(step_l(0:pp%mlps(ik)))).ge.1.d-14) then
     stop 'step are different at Read_PS_FHI'
@@ -550,8 +431,7 @@ end subroutine read_ps_fhi
 !    end subroutine
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine making_ps_with_masking(pp,hx,hy,hz,ik, &
-                          rhor_nlcc, &
-                          atom_symbol,flag_nlcc_element)
+                          rhor_nlcc,flag_nlcc_element)
   use salmon_pp,only : pp_info
   use salmon_global, only: ps_format, nelem, alpha_mask, eta_mask
   implicit none
@@ -560,7 +440,6 @@ subroutine making_ps_with_masking(pp,hx,hy,hz,ik, &
   integer,intent(in) :: ik
   real(8),intent(in) :: hx,hy,hz
   real(8),intent(in) :: rhor_nlcc(0:pp%nrmax0,0:2)
-  character(2),intent(in) :: atom_symbol
   logical,intent(in) :: flag_nlcc_element(nelem)
   real(8) :: eta
   integer :: ncounter
@@ -602,7 +481,7 @@ subroutine making_ps_with_masking(pp,hx,hy,hz,ik, &
                       -pp%rad(pp%mr(ik)-1,ik))*(pp%rad(pp%mr(ik)+1,ik)-pp%rad(pp%mr(ik),ik))
   end do
 
-  open(4,file="PSbeforemask_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
+  open(4,file="PSbeforemask_"//trim(pp%atom_symbol(ik))//"_"//trim(ps_format(ik))//".dat")
   write(4,*) "# Mr =",pp%mr(ik)
   write(4,*) "# Rps(ik), NRps(ik)",pp%rps(ik), pp%nrps(ik)
   write(4,*) "# Mlps(ik), Lref(ik) =",pp%mlps(ik), pp%lref(ik)
@@ -612,9 +491,9 @@ subroutine making_ps_with_masking(pp,hx,hy,hz,ik, &
   end do
   close(4)
 
-  call ps_masking(pp,uvpp,duvpp,ik,atom_symbol,hx,hy,hz)
+  call ps_masking(pp,uvpp,duvpp,ik,hx,hy,hz)
 
-  open(4,file="PSaftermask_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
+  open(4,file="PSaftermask_"//trim(pp%atom_symbol(ik))//"_"//trim(ps_format(ik))//".dat")
   write(4,*) "# Mr =",pp%mr(ik)
   write(4,*) "# Rps(ik), NRps(ik)",pp%rps(ik), pp%nrps(ik)
   write(4,*) "# Mlps(ik), Lref(ik) =",pp%mlps(ik), pp%lref(ik)
@@ -727,7 +606,7 @@ subroutine making_ps_without_masking(pp,ik,flag_nlcc_element,rhor_nlcc)
   return
 end subroutine making_ps_without_masking
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine ps_masking(pp,uvpp,duvpp,ik,atom_symbol,hx,hy,hz)
+subroutine ps_masking(pp,uvpp,duvpp,ik,hx,hy,hz)
   use salmon_pp,only : pp_info
   use salmon_global,only :ps_format,nelem,alpha_mask,gamma_mask,eta_mask
   implicit none
@@ -737,13 +616,12 @@ subroutine ps_masking(pp,uvpp,duvpp,ik,atom_symbol,hx,hy,hz)
   integer,intent(in) :: ik
   real(8),intent(inout) :: uvpp(0:pp%nrmax0,0:pp%lmax0)
   real(8),intent(out) :: duvpp(0:pp%nrmax0,0:pp%lmax0)
-  character(2),intent(in) :: atom_symbol
   real(8),intent(in) :: hx,hy,hz
 !local variable
 !Normalized mask function
-  integer,parameter :: NKmax=1000
+  integer,parameter :: nkmax=1000
   integer :: i,j,l
-  real(8) :: Kmax,k1,k2,kr1,kr2,dr,dk
+  real(8) :: kmax,k1,k2,kr1,kr2,dr,dk
   real(8),allocatable :: radk(:),wk(:,:) !Fourier staffs
 !Mask function
   real(8),allocatable :: mask(:),dmask(:)
@@ -767,15 +645,15 @@ subroutine ps_masking(pp,uvpp,duvpp,ik,atom_symbol,hx,hy,hz)
     end do
   end do
 
-  allocate(radk(NKmax),wk(NKmax,0:pp%mlps(ik)))
+  allocate(radk(nkmax),wk(nkmax,0:pp%mlps(ik)))
   wk(:,:)=0.d0
-!  Kmax = alpha_mask*Pi*sqrt(1.d0/Hx**2+1.d0/Hy**2+1.d0/Hz**2)
-  Kmax = alpha_mask*pi/max(Hx,Hy,Hz)
-  do i = 1,NKmax
-    radk(i) = Kmax*(dble(i-1)/dble(NKmax-1))
+!  kmax = alpha_mask*Pi*sqrt(1.d0/Hx**2+1.d0/Hy**2+1.d0/Hz**2)
+  kmax = alpha_mask*pi/max(Hx,Hy,Hz)
+  do i = 1,nkmax
+    radk(i) = kmax*(dble(i-1)/dble(nkmax-1))
   end do
 
-  do i=1,NKmax
+  do i=1,nkmax
     do j=1,pp%mr(ik)-1
       kr1 = radk(i)*pp%rad(j,ik)
       kr2 = radk(i)*pp%rad(j+1,ik)
@@ -787,12 +665,12 @@ subroutine ps_masking(pp,uvpp,duvpp,ik,atom_symbol,hx,hy,hz)
     end do
   end do
 
-  open(4,file="PSFourier_"//trim(atom_symbol)//"_"//trim(ps_format(ik))//".dat")
-  write(4,*) "# Kmax, NKmax =",Kmax,NKmax
+  open(4,file="PSFourier_"//trim(pp%atom_symbol(ik))//"_"//trim(ps_format(ik))//".dat")
+  write(4,*) "# Kmax, NKmax =",kmax,nkmax
   write(4,*) "# Mlps(ik), Lref(ik) =",pp%mlps(ik), pp%lref(ik)
   write(4,*) "#  Pi/max(Hx,Hy,Hz) =", pi/max(Hx,Hy,Hz)
   write(4,*) "#  Pi*sqrt(1.d0/Hx**2+1.d0/Hy**2+1.d0/Hz**2) =", pi*sqrt(1.d0/Hx**2+1.d0/Hy**2+1.d0/Hz**2)
-  do i=1,NKmax
+  do i=1,nkmax
     if(radk(i) < (Pi/max(Hx,Hy,Hz))) then
       write(4,'(8e21.12)') radk(i),(wk(i,l),l=0,pp%mlps(ik)),1.d0
     else 
@@ -802,7 +680,7 @@ subroutine ps_masking(pp,uvpp,duvpp,ik,atom_symbol,hx,hy,hz)
   close(4)
 
   uvpp = 0.d0; duvpp=0.d0
-  do i=1,NKmax-1
+  do i=1,nkmax-1
     do j=1,pp%mr(ik)
       kr1 = radk(i)*pp%rad(j,ik)
       kr2 = radk(i+1)*pp%rad(j,ik)

@@ -60,7 +60,7 @@ module read_pslfile_sub
     allocate(vpp_f(0:Nrmax,0:Nlps,MKI))
     allocate(rad_f(0:Nrmax,MKI) )
     
-    call input_pp(pp,lg_num(1)*lg_num(2)*lg_num(3),harray(1,1),harray(2,1),harray(3,1))
+    call input_pp(pp,harray(1,1),harray(2,1),harray(3,1))
  
     Mass(1:MKI)=pp%rmass(1:MKI)
   
