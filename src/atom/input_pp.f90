@@ -609,6 +609,7 @@ end subroutine making_ps_without_masking
 subroutine ps_masking(pp,uvpp,duvpp,ik,hx,hy,hz)
   use salmon_pp,only : pp_info
   use salmon_global,only :ps_format,nelem,alpha_mask,gamma_mask,eta_mask
+  use salmon_math, only: xjl, dxjl
   implicit none
   type(pp_info),intent(inout) :: pp
   real(8),parameter :: pi=3.141592653589793d0 ! copied from salmon_math
@@ -825,101 +826,5 @@ subroutine ps_masking(pp,uvpp,duvpp,ik,hx,hy,hz)
   
     return
   end subroutine make_mask_function
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-  real(8) function xjl(x,l)
-    implicit none
-!argument
-    integer,intent(in) :: l
-    real(8),intent(in) :: x
-!local variable
-    real(8),parameter :: eps=1.0d-1
-  
-    if (l >= 5) then
-      write(*,*) 'xjl function not prepared for l>=5'
-      stop
-    endif
-  
-    if (x < eps) then
-      select case(l)
-      case(-1)
-         xjl = 1.d0 - x**2/2.d0 + x**4/24.d0
-      case(0)
-         xjl = x - x**3/6.d0 + x**5/120.d0 -x**7/5040.d0 + x**9/362880.d0
-      case(1)
-         xjl = (2.d0/6.d0)*x**2 - (2.d0/60.d0)*x**4 + (1.d0/840.d0)*x**6 - (2.d0/90720.d0)*x**8
-      case(2)
-         xjl = (4.d0/60.d0)*x**3 - (4.d0/840.d0)*x**5 + (2.d0/15120.d0)*x**7 - (2.d0/997920.d0)*x**9
-      case(3)
-         xjl = (8.d0/840.d0)*x**4 - (8.d0/15120.d0)*x**6 + (4.d0/332640.d0)*x**8
-      case(4)
-         xjl = (16.d0/15120.d0)*x**5 - (16.d0/332640.d0)*x**7 + (8.d0/8648640.d0)*x**9
-      end select
-    else
-      select case(l)
-      case(-1)
-         xjl = cos(x)
-      case(0)
-         xjl = sin(x)
-      case(1)
-         xjl = (1.d0/x)*sin(x) - cos(x)
-      case(2)
-         xjl = (3.d0/x**2 - 1.d0)*sin(x) - (3.d0/x)*cos(x)
-      case(3)
-         xjl = (15.d0/x**3 - 6.d0/x)*sin(x) - (15.d0/x**2 - 1.d0)*cos(x)
-      case(4)
-         xjl = (105.d0/x**4 - 45.d0/x**2 + 1.d0)*sin(x) - (105.d0/x**3 - 10.d0/x)*cos(x)
-      end select
-    end if
-  
-    return
-  end function xjl
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-  real(8) function dxjl(x,l)
-    implicit none
-!argument
-    integer,intent(in) :: l
-    real(8),intent(in) :: x
-!local variable
-    real(8),parameter :: eps=1.0d-1
-  
-    if (l >= 5) then
-      write(*,*) 'dxjl function not prepared for l>=5'
-      stop
-    endif
-  
-    if (x < eps) then
-      select case(l)
-      case(-1)
-         dxjl = x - x**3/6.d0 
-      case(0)
-         dxjl = 1.d0 - x**2/2.d0 + x**4/24.d0 - x**6/720.d0 + x**8/40320.d0
-      case(1)
-         dxjl = (2.d0/3.d0)*x**1 - (2.d0/15.d0)*x**3 + (1.d0/140.d0)*x**5 - (2.d0/11340.d0)*x**7
-      case(2)
-         dxjl = (4.d0/20.d0)*x**2 - (4.d0/168.d0)*x**4 + (2.d0/2160.d0)*x**6 - (2.d0/110880.d0)*x**7
-      case(3)
-         dxjl = (8.d0/210.d0)*x**3 - (8.d0/2520.d0)*x**5 + (4.d0/41580.d0)*x**7
-      case(4)
-         dxjl = (16.d0/3024.d0)*x**4 - (16.d0/47520.d0)*x**6 + (8.d0/960960.d0)*x**8
-      end select
-    else
-      select case(l)
-      case(-1)
-         dxjl = -sin(x)
-      case(0)
-         dxjl = cos(x)
-      case(1)
-         dxjl = -(1.d0/x**2 - 1.d0)*sin(x) + (1.d0/x)*cos(x)
-      case(2)
-         dxjl = -(6.d0/x**3 - 3.d0/x)*sin(x) + (6.d0/x**2 - 1.d0)*cos(x)
-      case(3)
-         dxjl = -(45.d0/x**4 - 21.d0/x**2 + 1.d0)*sin(x) + (45.d0/x**3 - 6.d0/x)*cos(x)
-      case(4)
-         dxjl = -(420.d0/x**5 - 195.d0/x**3 + 10.d0/x)*sin(x) + (420.d0/x**4 - 55.d0/x**2 + 1.d0)*cos(x)
-      end select
-    end if
-  
-    return
-  end function dxjl
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 end subroutine ps_masking
