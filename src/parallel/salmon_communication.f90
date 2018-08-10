@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2018 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ module salmon_communication
   public :: comm_summation
   public :: comm_bcast
   public :: comm_allgatherv
+  public :: comm_alltoall
   public :: comm_get_min
   public :: comm_get_max
 
@@ -173,7 +174,7 @@ module salmon_communication
     ! 3-D array
     module procedure comm_bcast_array3d_double
     module procedure comm_bcast_array3d_dcomplex
-  
+
     ! 4-D array
     module procedure comm_bcast_array4d_double
     ! module procedure comm_bcast_array3d_dcomplex
@@ -183,6 +184,11 @@ module salmon_communication
   interface comm_allgatherv
     ! 1-D array
     module procedure comm_allgatherv_array1d_double
+  end interface
+
+  interface comm_alltoall
+    ! 1-D array
+    module procedure comm_alltoall_array1d_complex
   end interface
 
   interface comm_get_min
@@ -912,7 +918,7 @@ contains
     end if
     MPI_ERROR_CHECK(call MPI_Bcast(val, size(val), MPI_DOUBLE_PRECISION, rank, ngroup, ierr))
   end subroutine
-  
+
   subroutine comm_bcast_array4d_double(val, ngroup, root)
     use mpi, only: MPI_DOUBLE_PRECISION
     implicit none
@@ -971,6 +977,21 @@ contains
     call MPI_Allgatherv(invalue,  size(invalue),   MPI_DOUBLE_PRECISION, &
                         outvalue, ncounts, displs, MPI_DOUBLE_PRECISION, &
                         ngroup, ierr)
+    call error_check(ierr)
+  end subroutine
+
+
+  subroutine comm_alltoall_array1d_complex(invalue, outvalue, ngroup, ncount)
+    use mpi, only: MPI_DOUBLE_COMPLEX
+    implicit none
+    complex(8), intent(in)  :: invalue(:)
+    complex(8), intent(out) :: outvalue(:)
+    integer, intent(in)  :: ngroup
+    integer, intent(in)  :: ncount
+    integer :: ierr
+    call MPI_Alltoall(invalue,  ncount,          MPI_DOUBLE_COMPLEX, &
+                      outvalue, ncount,          MPI_DOUBLE_COMPLEX, &
+                      ngroup, ierr)
     call error_check(ierr)
   end subroutine
 

@@ -9,6 +9,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/math)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/xc)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/poisson)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/maxwell)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/FFTE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/common)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/misc)
 

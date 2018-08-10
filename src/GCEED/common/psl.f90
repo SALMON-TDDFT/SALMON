@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2018 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -35,7 +35,12 @@ case(0)
   call calcuV
   call calcVpsl
 case(3)
-  call calcVpsl_periodic
+  select case(iflag_hartree)
+  case(2)
+    call calcVpsl_periodic
+  case(4)
+    call calcVpsl_periodic_FFTE
+  end select
   call calcJxyz_all_periodic
   call calcuV
 end select

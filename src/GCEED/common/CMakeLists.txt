@@ -18,6 +18,7 @@ set(SOURCES
     calcuV.f90
     calcVpsl.f90
     calcVpsl_periodic.f90
+    calcVpsl_periodic_FFTE.f90
     check_cep.f90
     check_corrkob.f90
     check_mg.f90
@@ -28,6 +29,7 @@ set(SOURCES
     exc_cor_ns.f90
     hartree_boundary.f90
     hartree_cg.f90
+    hartree_FFTE.f90
     hartree_periodic.f90
     hartree.f90
     init_wf.f90
@@ -38,6 +40,7 @@ set(SOURCES
     nabla.f90
     OUT_IN_data.f90
     psl.f90
+    prep_poisson_fft.f90
     read_copy_pot.f90
     sendrecv_copy.f90
     setbN.f90

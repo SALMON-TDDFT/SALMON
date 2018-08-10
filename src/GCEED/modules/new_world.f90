@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2018 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -27,12 +27,6 @@ integer,allocatable :: icorr_xyz_pole(:,:,:)
 integer,allocatable :: icoobox_bound(:,:,:)
 
 ! FFTE routine
-integer :: ICOMMY,ICOMMZ
-integer :: newprocs_ICOMMY,newprocs_ICOMMZ
-integer :: newrank_ICOMMY,newrank_ICOMMZ
-integer :: ICOMMY_copy,ICOMMZ_copy
-integer :: newprocs_ICOMMY_copy,newprocs_ICOMMZ_copy
-integer :: newrank_ICOMMY_copy,newrank_ICOMMZ_copy
 integer :: iquot
 integer :: i11,i12,i13,i14,i15
 integer :: icheck_ascorder
@@ -42,15 +36,24 @@ CONTAINS
 !=======================================================================
 subroutine make_new_world
 use salmon_parallel
-use salmon_communication, only: comm_create_group, comm_get_groupinfo
+use salmon_communication, only: comm_create_group, comm_get_groupinfo, &
+                                comm_summation
 use misc_routines, only: get_wtime
 implicit none
-integer :: ii
+integer :: ii,jj
 integer :: i1,i2,i3,i4,i5
 integer :: ix,iy,iz
 integer :: ixs,iys,izs
 integer :: ibox
 integer :: icolor,ikey
+
+integer :: iarray_ascorder(0:nproc_size_global-1)
+integer :: iarray_ascorder2(0:nproc_size_global-1)
+integer :: icheck_ascorder_tmp
+integer :: icheck_ascorder_tmp2
+integer,allocatable :: iwork(:),iwork2(:)
+
+integer :: LNPU2(3)
 
 !new_world for comm_kgrid
 if(isequential==1)then
@@ -157,7 +160,7 @@ else if(isequential==2)then
   end do
   end do
 end if
- 
+
 nproc_group_spin = comm_create_group(nproc_group_global, icolor, ikey)
 call comm_get_groupinfo(nproc_group_spin, nproc_id_spin, nproc_size_spin)
 
@@ -233,7 +236,7 @@ else if(isequential==2)then
   end do
   end do
 end if
- 
+
 nproc_group_rho = comm_create_group(nproc_group_global, icolor, ikey)
 call comm_get_groupinfo(nproc_group_rho, nproc_id_rho, nproc_size_rho)
 
@@ -299,7 +302,7 @@ else if(isequential==2)then
   end do
   end do
 end if
- 
+
 nproc_group_k = comm_create_group(nproc_group_global, icolor, ikey)
 call comm_get_groupinfo(nproc_group_k, nproc_id_k, nproc_size_k)
 
@@ -365,7 +368,7 @@ else if(isequential==2)then
   end do
   end do
 end if
- 
+
 nproc_group_grid = comm_create_group(nproc_group_global, icolor, ikey)
 call comm_get_groupinfo(nproc_group_grid, nproc_id_grid, nproc_size_grid)
 
@@ -403,7 +406,7 @@ else if(isequential==2)then
   end do
   end do
 end if
- 
+
 nproc_group_orbitalgrid = comm_create_group(nproc_group_global, icolor, ikey)
 call comm_get_groupinfo(nproc_group_orbitalgrid, nproc_id_orbitalgrid, nproc_size_orbitalgrid)
 
@@ -479,11 +482,11 @@ if(isequential==1)then
         imrs(3)=izs
         igroup=i4
       end if
-    end do 
-    end do 
-    end do 
-  end do 
-  end do 
+    end do
+    end do
+    end do
+  end do
+  end do
   end do
   end do
 else if(isequential==2)then
@@ -508,11 +511,11 @@ else if(isequential==2)then
         imrs(3)=izs
         igroup=i4
       end if
-    end do 
-    end do 
-    end do 
-  end do 
-  end do 
+    end do
+    end do
+    end do
+  end do
+  end do
   end do
   end do
 end if
@@ -616,6 +619,114 @@ end if
 nproc_group_korbital_vhxc = comm_create_group(nproc_group_global, icolor, ikey)
 call comm_get_groupinfo(nproc_group_korbital_vhxc, nproc_id_korbital_vhxc, nproc_size_korbital_vhxc)
 
+!call FACTOR(nproc,LNPU)
+!NPUZ=(2**(LNPU(1)/2))*(3**(LNPU(2)/2))*(5**(LNPU(3)/2))
+!NPUY=nproc/NPUZ
+
+!if(iflag_hartree==4)then
+
+  icheck_ascorder=1
+
+  iarray_ascorder=0
+  iarray_ascorder(nproc_id_bound(2))=nproc_id_global
+  allocate(iwork(0:nproc_size_bound(2)-1),iwork2(0:nproc_size_bound(2)-1))
+  iwork(0:nproc_size_bound(2)-1)=iarray_ascorder(0:nproc_size_bound(2)-1)
+  call comm_summation(iwork,iwork2,nproc_size_bound(2),nproc_group_bound(2))
+  iarray_ascorder2(0:nproc_size_bound(2)-1)=iwork2(0:nproc_size_bound(2)-1)
+  deallocate(iwork,iwork2)
+
+  icheck_ascorder_tmp=1
+  do jj=0,nproc_size_bound(2)-2
+    if(iarray_ascorder2(jj)>iarray_ascorder2(jj+1)) icheck_ascorder_tmp=0
+  end do
+
+  call comm_summation(icheck_ascorder_tmp,icheck_ascorder_tmp2,nproc_group_global)
+
+  if(icheck_ascorder_tmp2/=nproc_size_global) icheck_ascorder=0
+
+  iarray_ascorder=0
+  iarray_ascorder(nproc_id_bound(3))=nproc_id_global
+  allocate(iwork(0:nproc_size_bound(3)-1),iwork2(0:nproc_size_bound(3)-1))
+  iwork(0:nproc_size_bound(3)-1)=iarray_ascorder(0:nproc_size_bound(3)-1)
+  call comm_summation(iwork,iwork2,nproc_size_bound(3),nproc_group_bound(3))
+  iarray_ascorder2(0:nproc_size_bound(3)-1)=iwork2(0:nproc_size_bound(3)-1)
+  deallocate(iwork,iwork2)
+
+  icheck_ascorder_tmp=1
+  do jj=0,nproc_size_bound(3)-2
+    if(iarray_ascorder2(jj)>iarray_ascorder2(jj+1)) icheck_ascorder_tmp=0
+  end do
+
+  call comm_summation(icheck_ascorder_tmp,icheck_ascorder_tmp2,nproc_group_global)
+
+  if(icheck_ascorder_tmp2/=nproc_size_global) icheck_ascorder=0
+
+  if(nproc_id_global==0)then
+    if(icheck_ascorder==0)then
+      write(*,*) "Ranks are NOT in ascending order. Allreduce is done in FFTE routine."
+    else if(icheck_ascorder==1)then
+      write(*,*) "Ranks are in ascending order. Allreduce is skipped in FFTE routine."
+    end if
+  end if
+
+! communicators for FFTE routine
+  if(icheck_ascorder==1)then
+    NPUW=nproc_Mxin_s_dm(1)*nproc_Mxin(1)
+    NPUY=nproc_Mxin_s_dm(2)*nproc_Mxin(2)
+    NPUZ=nproc_Mxin_s_dm(3)*nproc_Mxin(3)
+
+    icolor=nproc_id_bound(3)+nproc_id_bound(1)*NPUZ
+    ikey=nproc_id_bound(2)
+    nproc_group_icommy = comm_create_group(nproc_group_global, icolor, ikey)
+    call comm_get_groupinfo(nproc_group_icommy, nproc_id_icommy, nproc_size_icommy)
+
+    icolor=nproc_id_bound(2)+nproc_id_bound(1)*NPUY
+    ikey=nproc_id_bound(3)
+    nproc_group_icommz = comm_create_group(nproc_group_global, icolor, ikey)
+    call comm_get_groupinfo(nproc_group_icommz, nproc_id_icommz, nproc_size_icommz)
+
+    icolor=nproc_id_bound(2)+nproc_id_bound(3)*NPUY
+    ikey=nproc_id_bound(1)
+    nproc_group_icommw = comm_create_group(nproc_group_global, icolor, ikey)
+    call comm_get_groupinfo(nproc_group_icommw, nproc_id_icommw, nproc_size_icommw)
+
+  else
+    call factor(nproc_size_global,LNPU2)
+    NPUZ=(2**(LNPU2(1)/2))*(3**(LNPU2(2)/2))*(5**(LNPU2(3)/2))
+    NPUY=nproc_size_global/NPUZ
+    NPUW=1
+
+    icolor=nproc_id_global/NPUY
+    ikey=0
+    nproc_group_icommy = comm_create_group(nproc_group_global, icolor, ikey)
+    call comm_get_groupinfo(nproc_group_icommy, nproc_id_icommy, nproc_size_icommy)
+
+    icolor=mod(nproc_id_global,NPUY)
+    ikey=0
+    nproc_group_icommz = comm_create_group(nproc_group_global, icolor, ikey)
+    call comm_get_groupinfo(nproc_group_icommz, nproc_id_icommz, nproc_size_icommz)
+
+  end if
+
+  iquot=nproc_id_global/(NPUY*NPUZ)
+
+  i11=mod(nproc_id_global,nproc_Mxin(2)*nproc_Mxin(3))
+  i12=i11/nproc_Mxin(2)
+  i13=i12*nproc_Mxin(3)
+  i14=nproc_id_global/(NPUY*nproc_Mxin(3))
+  icolor=i13+i14+iquot*NPUZ
+
+  i11=mod(nproc_id_global,nproc_Mxin(2))
+  i12=nproc_id_global/(nproc_Mxin(2)*nproc_Mxin(3))
+  ikey=i11*NPUY/nproc_Mxin(2)+mod(i12,NPUY/nproc_Mxin(2))
+
+  nproc_group_icommy_copy = comm_create_group(nproc_group_global, icolor, ikey)
+  call comm_get_groupinfo(nproc_group_icommy_copy, nproc_id_icommy_copy, nproc_size_icommy_copy)
+
+!end if
+
+
+
 end subroutine make_new_world
 
 !=====================================================================
@@ -711,7 +822,7 @@ else if(MEO==3)then
   do j3=0,num_pole_xyz(3)-1
   do j2=0,num_pole_xyz(2)-1
   do j1=0,num_pole_xyz(1)-1
-    ibox = j1 + num_pole_xyz(1)*j2 + num_pole_xyz(1)*num_pole_xyz(2)*j3 
+    ibox = j1 + num_pole_xyz(1)*j2 + num_pole_xyz(1)*num_pole_xyz(2)*j3
     ista_Mxin_pole(1,ibox)=j1*lg_num(1)/num_pole_xyz(1)+lg_sta(1)
     iend_Mxin_pole(1,ibox)=(j1+1)*lg_num(1)/num_pole_xyz(1)+lg_sta(1)-1
     ista_Mxin_pole(2,ibox)=j2*lg_num(2)/num_pole_xyz(2)+lg_sta(2)
@@ -771,9 +882,9 @@ else if(MEO==3)then
   end do
   end do
   end do
-  
+
   allocate(icorr_xyz_pole(3,maxval(icount_pole(:)),num_pole_myrank))
- 
+
   icount_pole=0
 
   do iz=ng_sta(3),ng_end(3)
@@ -1000,7 +1111,7 @@ do is=is_sta,is_end
   elp3(761)=get_wtime()
   call comm_allgatherv(matbox11,matbox12,ircnt,idisp,nproc_group_grid)
   elp3(762)=get_wtime()
-  elp3(781)=elp3(781)+elp3(762)-elp3(761) 
+  elp3(781)=elp3(781)+elp3(762)-elp3(761)
 
 
   if(isequential==1)then
@@ -1085,7 +1196,7 @@ if(nproc_ob/=1.or.nproc_Mxin_mul/=1)then
 
   allocate (matbox1(0:(inum_Mxin_s(1,nproc_id_global)*inum_Mxin_s(2,nproc_id_global)*inum_Mxin_s(3,nproc_id_global))-1))
   allocate (matbox2(0:(mg_num(1)*mg_num(2)*mg_num(3))-1))
-  
+
 !$OMP parallel do private(ibox3,ix,iy,iz)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
@@ -1098,7 +1209,7 @@ if(nproc_ob/=1.or.nproc_Mxin_mul/=1)then
   end do
 
   call comm_allgatherv(matbox1,matbox2,ircnt,idisp,nproc_group_h)
-   
+
   do i3=0,nproc_Mxin_s_dm(3)-1
   do i2=0,nproc_Mxin_s_dm(2)-1
   do i1=0,nproc_Mxin_s_dm(1)-1
@@ -1113,7 +1224,7 @@ if(nproc_ob/=1.or.nproc_Mxin_mul/=1)then
       do ix=ista_Mxin_s(1,ibox),iend_Mxin_s(1,ibox)
         ibox3=idisp(ibox2)+ix-ista_Mxin_s(1,ibox)+(iy-ista_Mxin_s(2,ibox))*inum_Mxin_s(1,ibox)   &
                       +(iz-ista_Mxin_s(3,ibox))*inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)
-        Vbox(ix,iy,iz) = matbox2(ibox3) 
+        Vbox(ix,iy,iz) = matbox2(ibox3)
       end do
       end do
       end do
@@ -1131,4 +1242,3 @@ end if
 end subroutine mpibcast_mesh_s_kxc
 
 END MODULE new_world_sub
-

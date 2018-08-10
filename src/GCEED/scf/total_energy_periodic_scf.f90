@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2018 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -66,6 +66,10 @@ complex(8) :: tpsi_tmp2(mg_sta(1)-Nd:mg_end(1)+Nd,mg_sta(2)-Nd:mg_end(2)+Nd,mg_s
 real(8) :: sum_temp1,sum_temp2
 real(8) :: sum_temp3(4)
 real(8) :: sum_temp4(4)
+
+integer :: iy_sta,iy_end,iz_sta,iz_end
+real(8) :: rbox13,rbox14,rbox15,rbox16
+
 !if(t>=11) call fapp_start("region8",8,0)
 
 iwk_size=2
@@ -134,7 +138,7 @@ do iik=k_sta,k_end
         +fdN1(1,3)* tzpsi_in(ix,iy,iz+1,iob,iik) + fdN2(1,3) * tzpsi_in(ix,iy,iz-1,iob,iik)      &
         +fdN1(2,3)* tzpsi_in(ix,iy,iz+2,iob,iik) + fdN2(2,3) * tzpsi_in(ix,iy,iz-2,iob,iik)      &
         +fdN1(3,3)* tzpsi_in(ix,iy,iz+3,iob,iik) + fdN2(3,3) * tzpsi_in(ix,iy,iz-3,iob,iik)      &
-        +fdN1(4,3)* tzpsi_in(ix,iy,iz+4,iob,iik) + fdN2(4,3) * tzpsi_in(ix,iy,iz-4,iob,iik) 
+        +fdN1(4,3)* tzpsi_in(ix,iy,iz+4,iob,iik) + fdN2(4,3) * tzpsi_in(ix,iy,iz-4,iob,iik)
     end do
     end do
     end do
@@ -143,7 +147,7 @@ do iik=k_sta,k_end
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      Ekin_tmp=Ekin_tmp + rocc(iob,iik)*wtk(iik)*conjg(tzpsi_in(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz)*Hvol 
+      Ekin_tmp=Ekin_tmp + rocc(iob,iik)*wtk(iik)*conjg(tzpsi_in(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz)*Hvol
     end do
     end do
     end do
@@ -221,17 +225,51 @@ if(nproc_id_global==nproc_size_global-1) NG_l_e_para=NG_e
 sysvol=Hvol*lg_num(1)*lg_num(2)*lg_num(3)
 
 !3:Eion_l, 4:Eh_l, 5:Eloc_l1, 6: Eloc_l2
-do n=NG_l_s_para,NG_l_e_para
-  if(n == nGzero ) cycle
-  G2=Gx(n)**2+Gy(n)**2+Gz(n)**2
-  Ebox1(3)=Ebox1(3)+sysvol*(4*Pi/G2)*(abs(rhoion_G(n))**2*exp(-G2/(4*aEwald))*0.5d0)
-  Ebox1(4)=Ebox1(4)+sysvol*(4*Pi/G2)*(abs(rhoe_G(n))**2*0.5d0)
-  Ebox1(5)=Ebox1(5)+sysvol*(4*Pi/G2)*(-rhoe_G(n)*conjg(rhoion_G(n)))
-  do ia=1,MI
-    Gd=Gx(n)*Rion(1,ia)+Gy(n)*Rion(2,ia)+Gz(n)*Rion(3,ia)
-    Ebox1(6)=Ebox1(6)+conjg(rhoe_G(n))*dVloc_G(n,Kion(ia))*exp(-zI*Gd)
+select case(iflag_hartree)
+case(2)
+  do n=NG_l_s_para,NG_l_e_para
+    if(n == nGzero ) cycle
+    G2=Gx(n)**2+Gy(n)**2+Gz(n)**2
+    Ebox1(3)=Ebox1(3)+sysvol*(4*Pi/G2)*(abs(rhoion_G(n))**2*exp(-G2/(4*aEwald))*0.5d0)
+    Ebox1(4)=Ebox1(4)+sysvol*(4*Pi/G2)*(abs(rhoe_G(n))**2*0.5d0)
+    Ebox1(5)=Ebox1(5)+sysvol*(4*Pi/G2)*(-rhoe_G(n)*conjg(rhoion_G(n)))
+    do ia=1,MI
+      Gd=Gx(n)*Rion(1,ia)+Gy(n)*Rion(2,ia)+Gz(n)*Rion(3,ia)
+      Ebox1(6)=Ebox1(6)+conjg(rhoe_G(n))*dVloc_G(n,Kion(ia))*exp(-zI*Gd)
+    end do
+  enddo
+case(4)
+  iz_sta=1
+  iz_end=lg_num(3)/NPUZ
+  iy_sta=1
+  iy_end=lg_num(2)/NPUY
+
+  do iz=iz_sta,iz_end
+    do iy=iy_sta,iy_end
+      rbox13=0.d0
+      rbox14=0.d0
+      rbox15=0.d0
+      rbox16=0.d0
+!$OMP parallel do reduction (+ : rbox13,rbox14,rbox15,rbox16) private(n,G2,iix,Gd)
+      do ix=1,lg_num(1)
+        n=(iz-1)*lg_num(2)/NPUY*lg_num(1)+(iy-1)*lg_num(1)+ix
+        if(n == nGzero ) cycle
+        G2=Gx(n)**2+Gy(n)**2+Gz(n)**2
+        rbox13=rbox13+sysvol*(4*Pi/G2)*(abs(rhoion_G(n))**2*exp(-G2/(4*aEwald))*0.5d0)
+        rbox14=rbox14+sysvol*(4*Pi/G2)*(abs(rhoe_G(n))**2*0.5d0)
+        rbox15=rbox15+sysvol*(4*Pi/G2)*(-rhoe_G(n)*conjg(rhoion_G(n)))
+        do ia=1,MI
+          Gd=Gx(n)*Rion(1,ia)+Gy(n)*Rion(2,ia)+Gz(n)*Rion(3,ia)
+          rbox16=rbox16+conjg(rhoe_G(n))*dVloc_G(n,Kion(ia))*exp(-zI*Gd)
+        end do
+      end do
+      Ebox1(3)=Ebox1(3)+rbox13/dble(NPUW)
+      Ebox1(4)=Ebox1(4)+rbox14/dble(NPUW)
+      Ebox1(5)=Ebox1(5)+rbox15/dble(NPUW)
+      Ebox1(6)=Ebox1(6)+rbox16/dble(NPUW)
+    end do
   end do
-enddo
+end select
 
 sum_temp3(1:4)=Ebox1(3:6)
 call comm_summation(sum_temp3,sum_temp4,4,nproc_group_global)
