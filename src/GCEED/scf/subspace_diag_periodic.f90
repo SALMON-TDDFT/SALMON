@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2018 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -80,151 +80,156 @@ call set_isstaend(is_sta,is_end)
 do ik=k_sta,k_end
 do is=is_sta,is_end
 
-  iter=iobend(is)-iobsta(is)+1
+  if(ifMST(is)>=1.and.MST(is)>=1)then
 
-  allocate(evec(iter,iter))
-  allocate(Amat(iter,iter))
-  allocate(Amat2(iter,iter))
-  allocate(Smat(iter,iter))
-
-!$OMP parallel do private(jj,ii)
-  do jj=1,iter
-    do ii=1,iter
-      Amat(ii,jj)=0.d0
-    end do
-  end do
-
-!do jj=1,itotMST
-  do jj=1,iobnum
-    call calc_allob(jj,j_allob)
-    if(j_allob>=iobsta(is).and.j_allob<=iobend(is))then
-!$OMP parallel do private(iz,iy,ix)
-      do iz=mg_sta(3),mg_end(3)
-      do iy=mg_sta(2),mg_end(2)
-      do ix=mg_sta(1),mg_end(1)
-        tpsi(ix,iy,iz)=zpsi(ix,iy,iz,jj,ik)
-      end do
-      end do
-      end do
-      call hpsi2(tpsi,htpsi,j_allob,ik,0,0)
-!$OMP parallel do private(iz,iy,ix)
-      do iz=mg_sta(3),mg_end(3)
-      do iy=mg_sta(2),mg_end(2)
-      do ix=mg_sta(1),mg_end(1)
-        htpsi_groupob(ix,iy,iz,jj)=htpsi(ix,iy,iz)
-      end do
-      end do
-      end do
-    end if
-  end do
-
-  do jj=iobsta(is),iobend(is)
-    call calc_myob(jj,j_myob)
-    call check_corrkob(jj,ik,icorr_j)
-    if(icorr_j==1)then
-!$OMP parallel do private(iz,iy,ix)
-      do iz=mg_sta(3),mg_end(3)
-      do iy=mg_sta(2),mg_end(2)
-      do ix=mg_sta(1),mg_end(1)
-        htpsi(ix,iy,iz)=htpsi_groupob(ix,iy,iz,j_myob)
-      end do
-      end do
-      end do
-    end if
-    call calc_iroot(jj,iroot)
-    call comm_bcast(htpsi,nproc_group_kgrid,iroot)
-    do ii=1,iobnum
-      call calc_allob(ii,i_allob)
-      if(i_allob>=iobsta(is).and.i_allob<=iobend(is))then
-        cbox=0.d0
-!$OMP parallel do private(iz,iy,ix) reduction (+ : cbox)
-        do iz=mg_sta(3),mg_end(3)
-        do iy=mg_sta(2),mg_end(2)
-        do ix=mg_sta(1),mg_end(1)
-           cbox=cbox+conjg(zpsi(ix,iy,iz,ii,ik))*htpsi(ix,iy,iz)
-        end do
-        end do
-        end do
-        Amat(i_allob-iobsta(is)+1,jj-iobsta(is)+1)=cbox*Hvol
-      end if
-    end do
-  end do
-
-  call comm_summation(Amat,Amat2,iter*iter,nproc_group_k)
-
-  call eigen_subdiag_periodic(Amat2,evec,iter,ier2)
-
-  do jj=1,iobnum
-    call calc_allob(jj,j_allob)
-    if(j_allob>=iobsta(is).and.j_allob<=iobend(is))then
-!$OMP parallel do private(iz,iy,ix)
-      do iz=mg_sta(3),mg_end(3)
-      do iy=mg_sta(2),mg_end(2)
-      do ix=mg_sta(1),mg_end(1)
-        ztpsi_groupob(ix,iy,iz,jj)=zpsi(ix,iy,iz,jj,ik)
-        zpsi(ix,iy,iz,jj,ik)=0.d0
-      end do
-      end do
-      end do
-    end if
-  end do
+    iter=iobend(is)-iobsta(is)+1
   
-  do jj=iobsta(is),iobend(is)
-    call calc_myob(jj,j_myob)
-    call check_corrkob(jj,ik,icorr_j)
-    if(icorr_j==1)then
-!$OMP parallel do private(iz,iy,ix)
-      do iz=mg_sta(3),mg_end(3)
-      do iy=mg_sta(2),mg_end(2)
-      do ix=mg_sta(1),mg_end(1)
-        htpsi(ix,iy,iz)=ztpsi_groupob(ix,iy,iz,j_myob) ! htpsi is making a role of original tpsi
+    allocate(evec(iter,iter))
+    allocate(Amat(iter,iter))
+    allocate(Amat2(iter,iter))
+    allocate(Smat(iter,iter))
+  
+!$OMP parallel do private(jj,ii)
+    do jj=1,iter
+      do ii=1,iter
+        Amat(ii,jj)=0.d0
       end do
-      end do
-      end do
-    end if
-    call calc_iroot(jj,iroot)
-    call comm_bcast(htpsi,nproc_group_kgrid,iroot)
-    do ii=1,iobnum
-      call calc_allob(ii,i_allob)
-      if(i_allob>=iobsta(is).and.i_allob<=iobend(is))then
+    end do
+  
+!do jj=1,itotMST
+    do jj=1,iobnum
+      call calc_allob(jj,j_allob)
+      if(j_allob>=iobsta(is).and.j_allob<=iobend(is))then
 !$OMP parallel do private(iz,iy,ix)
         do iz=mg_sta(3),mg_end(3)
         do iy=mg_sta(2),mg_end(2)
         do ix=mg_sta(1),mg_end(1)
-          zpsi(ix,iy,iz,ii,ik)=zpsi(ix,iy,iz,ii,ik)+evec(jj-iobsta(is)+1,i_allob-iobsta(is)+1)*htpsi(ix,iy,iz)
+          tpsi(ix,iy,iz)=zpsi(ix,iy,iz,jj,ik)
+        end do
+        end do
+        end do
+        call hpsi2(tpsi,htpsi,j_allob,ik,0,0)
+!$OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          htpsi_groupob(ix,iy,iz,jj)=htpsi(ix,iy,iz)
         end do
         end do
         end do
       end if
     end do
-  end do
-
-  do ii=1,iobnum
-    call calc_allob(ii,i_allob)
-    if(i_allob>=iobsta(is).and.i_allob<=iobend(is))then
-      rbox=0.d0
+  
+    do jj=iobsta(is),iobend(is)
+      call calc_myob(jj,j_myob)
+      call check_corrkob(jj,ik,icorr_j)
+      if(icorr_j==1)then
+!$OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          htpsi(ix,iy,iz)=htpsi_groupob(ix,iy,iz,j_myob)
+        end do
+        end do
+        end do
+      end if
+      call calc_iroot(jj,iroot)
+      call comm_bcast(htpsi,nproc_group_kgrid,iroot)
+      do ii=1,iobnum
+        call calc_allob(ii,i_allob)
+        if(i_allob>=iobsta(is).and.i_allob<=iobend(is))then
+          cbox=0.d0
+!$OMP parallel do private(iz,iy,ix) reduction (+ : cbox)
+          do iz=mg_sta(3),mg_end(3)
+          do iy=mg_sta(2),mg_end(2)
+          do ix=mg_sta(1),mg_end(1)
+             cbox=cbox+conjg(zpsi(ix,iy,iz,ii,ik))*htpsi(ix,iy,iz)
+          end do
+          end do
+          end do
+          Amat(i_allob-iobsta(is)+1,jj-iobsta(is)+1)=cbox*Hvol
+        end if
+      end do
+    end do
+  
+    call comm_summation(Amat,Amat2,iter*iter,nproc_group_k)
+  
+    call eigen_subdiag_periodic(Amat2,evec,iter,ier2)
+  
+    do jj=1,iobnum
+      call calc_allob(jj,j_allob)
+      if(j_allob>=iobsta(is).and.j_allob<=iobend(is))then
+!$OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          ztpsi_groupob(ix,iy,iz,jj)=zpsi(ix,iy,iz,jj,ik)
+          zpsi(ix,iy,iz,jj,ik)=0.d0
+        end do
+        end do
+        end do
+      end if
+    end do
+    
+    do jj=iobsta(is),iobend(is)
+      call calc_myob(jj,j_myob)
+      call check_corrkob(jj,ik,icorr_j)
+      if(icorr_j==1)then
+!$OMP parallel do private(iz,iy,ix)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          htpsi(ix,iy,iz)=ztpsi_groupob(ix,iy,iz,j_myob) ! htpsi is making a role of original tpsi
+        end do
+        end do
+        end do
+      end if
+      call calc_iroot(jj,iroot)
+      call comm_bcast(htpsi,nproc_group_kgrid,iroot)
+      do ii=1,iobnum
+        call calc_allob(ii,i_allob)
+        if(i_allob>=iobsta(is).and.i_allob<=iobend(is))then
+!$OMP parallel do private(iz,iy,ix)
+          do iz=mg_sta(3),mg_end(3)
+          do iy=mg_sta(2),mg_end(2)
+          do ix=mg_sta(1),mg_end(1)
+            zpsi(ix,iy,iz,ii,ik)=zpsi(ix,iy,iz,ii,ik)+evec(jj-iobsta(is)+1,i_allob-iobsta(is)+1)*htpsi(ix,iy,iz)
+          end do
+          end do
+          end do
+        end if
+      end do
+    end do
+  
+    do ii=1,iobnum
+      call calc_allob(ii,i_allob)
+      if(i_allob>=iobsta(is).and.i_allob<=iobend(is))then
+        rbox=0.d0
 !$OMP parallel do private(iz,iy,ix) reduction(+:rbox)
-      do iz=mg_sta(3),mg_end(3)
-      do iy=mg_sta(2),mg_end(2)
-      do ix=mg_sta(1),mg_end(1)
-        rbox=rbox+abs(zpsi(ix,iy,iz,ii,ik))**2
-      end do
-      end do
-      end do
-      call comm_summation(rbox,rbox1,nproc_group_korbital)
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          rbox=rbox+abs(zpsi(ix,iy,iz,ii,ik))**2
+        end do
+        end do
+        end do
+        call comm_summation(rbox,rbox1,nproc_group_korbital)
 !$OMP parallel do private(iz,iy,ix) 
-      do iz=mg_sta(3),mg_end(3)
-      do iy=mg_sta(2),mg_end(2)
-      do ix=mg_sta(1),mg_end(1)
-        zpsi(ix,iy,iz,ii,ik)=zpsi(ix,iy,iz,ii,ik)/sqrt(rbox1*Hvol)
-      end do
-      end do
-      end do
-    end if
-  end do
+        do iz=mg_sta(3),mg_end(3)
+        do iy=mg_sta(2),mg_end(2)
+        do ix=mg_sta(1),mg_end(1)
+          zpsi(ix,iy,iz,ii,ik)=zpsi(ix,iy,iz,ii,ik)/sqrt(rbox1*Hvol)
+        end do
+        end do
+        end do
+      end if
+    end do
+  
+    deallocate(Amat,Amat2,Smat)
+    deallocate(evec)
 
-  deallocate(Amat,Amat2,Smat)
-  deallocate(evec)
+  end if
+
 end do
 end do
 
