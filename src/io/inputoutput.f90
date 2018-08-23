@@ -1849,7 +1849,7 @@ contains
       continue
     case default
       if (comm_is_root(nproc_id_global)) then
-        write(*,*) "keyword 'fourier' must be 'ft', 'FT', 'ffte', or 'FFTE'"
+        write(*,*) "keyword 'fourier' must be 'FT' or 'FFTE'"
       end if
       call end_parallel
     end select
