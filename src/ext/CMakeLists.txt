@@ -1,6 +1,6 @@
 set(EXT_FFTE_LIB_DIR    FFTE)
 
-set(EXT_FFTE_LIB        ${EXT_LIB}_${EXT_FFTE_LIB_DIR})
+set(EXT_FFTE_LIB        ${SALMON_EXT_LIB}_${EXT_FFTE_LIB_DIR})
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${EXT_FFTE_LIB_DIR})
 
