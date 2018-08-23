@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ subroutine prep_poisson_fft
   lg_sta_2(1:3)=lg_sta(1:3)
   lg_end_2(1:3)=lg_end(1:3)
   lg_num_2(1:3)=lg_num(1:3)
-
+  
   ng_sta_2(1:3)=ng_sta(1:3)
   ng_end_2(1:3)=ng_end(1:3)
   ng_num_2(1:3)=ng_num(1:3)
@@ -46,7 +46,7 @@ subroutine prep_poisson_fft
   bLx=2.d0*Pi/(Hgs(1)*dble(lg_num_2(1)))
   bLy=2.d0*Pi/(Hgs(2)*dble(lg_num_2(2)))
   bLz=2.d0*Pi/(Hgs(3)*dble(lg_num_2(3)))
-
+  
   if(iflag_hartree==2)then
     kx_sta=ng_sta_2(1)
     kx_end=ng_end_2(1)
@@ -54,7 +54,7 @@ subroutine prep_poisson_fft
     ky_end=ng_end_2(2)
     kz_sta=ng_sta_2(3)
     kz_end=ng_end_2(3)
-
+  
     ky_shift=0
     kz_shift=0
   else if(iflag_hartree==4)then
@@ -64,7 +64,7 @@ subroutine prep_poisson_fft
     ky_end=lg_num_2(2)/NPUY
     kz_sta=1
     kz_end=lg_num_2(3)/NPUZ
-
+  
     ky_shift=nproc_id_icommy*lg_num_2(2)/NPUY
     kz_shift=nproc_id_icommz*lg_num_2(3)/NPUZ
   end if
@@ -91,6 +91,7 @@ subroutine prep_poisson_fft
   end do
   end do
 
-
+  
   return
 end subroutine prep_poisson_fft
+

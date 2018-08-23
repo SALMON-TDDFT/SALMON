@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ if(istopt==1)then
       if(MEO==2.or.MEO==3) call make_corr_pole
     end select
     call make_icoobox_bound
-
+        
     call allocate_mat
     call set_icoo1d
     call allocate_sendrecv
@@ -147,7 +147,7 @@ if(istopt==1)then
     if(icalcforce==1)then
       allocate( Vpsl_atom(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),MI) )
     end if
-
+    
     if(iperiodic==3)then
       call prep_poisson_fft
     end if
@@ -172,7 +172,7 @@ if(istopt==1)then
     if(iswitch_orbital_mesh==1.or.iflag_subspace_diag==1)then
       select case(iperiodic)
       case(0)
-        allocate( psi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:itotMST,1) )
+        allocate( psi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:itotMST,1) ) 
       case(3)
         allocate( zpsi_mesh(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:itotMST,num_kpoints_rd) )
       end select
@@ -187,20 +187,20 @@ if(istopt==1)then
       call Gram_Schmidt_periodic
     end select
 
-    allocate( rho(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
-    allocate( rho_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1) )
-    allocate( rho_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1) )
+    allocate( rho(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )  
+    allocate( rho_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1) )  
+    allocate( rho_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1) ) 
     rho_in=0.d0
     rho_out=0.d0
-
+                                
     if(ilsda == 1)then
-      allocate( rho_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )
-      allocate( rho_s_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1,2) )
-      allocate( rho_s_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1,2) )
+      allocate( rho_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )  
+      allocate( rho_s_in(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1,2) )  
+      allocate( rho_s_out(ng_sta(1):ng_end(1),ng_sta(2):ng_end(2),ng_sta(3):ng_end(3),1:num_rho_stock+1,2) )  
       rho_s_in=0.d0
       rho_s_out=0.d0
     end if
-    rho=0.d0
+    rho=0.d0 
 
     select case(iperiodic)
     case(0)
@@ -219,16 +219,16 @@ if(istopt==1)then
               mg_sta(3):mg_end(3),2))
     end if
 
-    allocate( Vh(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
+    allocate( Vh(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )  
     Vh=0.d0
 
     call Hartree_ns
 
-
+    
     if(ilsda == 0) then
-      allocate( Vxc(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )
+      allocate( Vxc(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)) )  
     else if(ilsda == 1) then
-      allocate( Vxc_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )
+      allocate( Vxc_s(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),2) )  
     end if
     allocate( esp(itotMST,num_kpoints_rd) )
 
@@ -255,7 +255,7 @@ if(istopt==1)then
       end do
       call Total_Energy_periodic_scf(zpsi_tmp)
     end select
-
+      
 !------------------------------ Continue the previous calculation
 
   case(1,3)
@@ -373,7 +373,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       if(sum1<threshold_norm_rho) cycle DFT_Iteration
     case('norm_pot','norm_pot_dng')
       if(sum1<threshold_norm_pot) cycle DFT_Iteration
-  end select
+  end select 
 
   elp3(112)=get_wtime()
   elp3(122)=elp3(122)+elp3(112)-elp3(111)
@@ -385,7 +385,7 @@ DFT_Iteration : do iter=1,iDiter(img)
   call copy_density
 
   if(iscf_order==1)then
-
+   
     if( amin_routine == 'cg' .or.       &
    (amin_routine == 'cg-diis' .and. Miter <= iDiterYBCG) ) then
       elp3(181)=get_wtime()
@@ -408,7 +408,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       elp3(182)=get_wtime()
       elp3(184)=elp3(184)+elp3(182)-elp3(181)
     end if
-
+  
     elp3(113)=get_wtime()
     elp3(123)=elp3(123)+elp3(113)-elp3(112)
 
@@ -418,7 +418,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     case(3)
       call Gram_Schmidt_periodic
     end select
-
+  
     if(iflag_subspace_diag==1)then
       if(Miter>iDiter_nosubspace_diag)then
         select case(iperiodic)
@@ -429,10 +429,10 @@ DFT_Iteration : do iter=1,iDiter(img)
         end select
       end if
     end if
-
+  
     elp3(114)=get_wtime()
     elp3(124)=elp3(124)+elp3(114)-elp3(113)
-
+    
 
     select case(iperiodic)
     case(0)
@@ -447,26 +447,26 @@ DFT_Iteration : do iter=1,iDiter(img)
       case ('broyden')
         call buffer_broyden_ns(iter)
     end select
-
+    
     elp3(115)=get_wtime()
     elp3(125)=elp3(125)+elp3(115)-elp3(114)
-
+  
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call Hartree_ns
     end if
-
+  
     elp3(116)=get_wtime()
     elp3(126)=elp3(126)+elp3(116)-elp3(115)
-
+  
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call exc_cor_ns
     end if
-
+   
     call allgatherv_vlocal
-
+    
     elp3(117)=get_wtime()
     elp3(127)=elp3(127)+elp3(117)-elp3(116)
-
+  
     select case(iperiodic)
     case(0)
       call Total_Energy(psi)
@@ -486,20 +486,20 @@ DFT_Iteration : do iter=1,iDiter(img)
       end do
       call Total_Energy_periodic_scf(zpsi_tmp)
     end select
-
+  
     elp3(118)=get_wtime()
     elp3(128)=elp3(128)+elp3(118)-elp3(117)
     elp3(131)=get_wtime()
-
+  
     elp3(132)=get_wtime()
     elp3(142)=elp3(142)+elp3(132)-elp3(131)
-
+    
     elp3(118)=get_wtime()
 
-    if(iperiodic==0)then
+    if(iperiodic==0)then  
       call change_order(psi)
     end if
-
+  
   else if(iscf_order==2)then
 
     select case(iperiodic)
@@ -561,17 +561,17 @@ DFT_Iteration : do iter=1,iDiter(img)
       case ('broyden')
         call buffer_broyden_ns(iter)
     end select
-
+    
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call Hartree_ns
     end if
-
+  
     if(imesh_s_all==1.or.(imesh_s_all==0.and.nproc_id_global<nproc_Mxin_mul*nproc_Mxin_mul_s_dm))then
       call exc_cor_ns
     end if
-
+   
     call allgatherv_vlocal
-
+    
     select case(iperiodic)
     case(0)
       call calc_density(psi)
@@ -604,7 +604,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     case('rho_dne')
       sum0=0.d0
 !$OMP parallel do reduction(+:sum0) private(iz,iy,ix)
-      do iz=ng_sta(3),ng_end(3)
+      do iz=ng_sta(3),ng_end(3) 
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
         sum0=sum0+abs(rho(ix,iy,iz)-rho_stock(ix,iy,iz,1))
@@ -620,7 +620,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     case('norm_rho','norm_rho_dng')
       sum0=0.d0
 !$OMP parallel do reduction(+:sum0) private(iz,iy,ix)
-      do iz=ng_sta(3),ng_end(3)
+      do iz=ng_sta(3),ng_end(3) 
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
         sum0=sum0+(rho(ix,iy,iz)-rho_stock(ix,iy,iz,1))**2
@@ -634,7 +634,7 @@ DFT_Iteration : do iter=1,iDiter(img)
     case('norm_pot','norm_pot_dng')
       sum0=0.d0
 !$OMP parallel do reduction(+:sum0) private(iz,iy,ix)
-      do iz=ng_sta(3),ng_end(3)
+      do iz=ng_sta(3),ng_end(3) 
       do iy=ng_sta(2),ng_end(2)
       do ix=ng_sta(1),ng_end(1)
         sum0=sum0+(Vlocal(ix,iy,iz,1)-Vlocal_stock(ix,iy,iz,1))**2
@@ -645,7 +645,7 @@ DFT_Iteration : do iter=1,iDiter(img)
       if(convergence=='norm_pot_dng')then
         sum1=sum1/dble(lg_num(1)*lg_num(2)*lg_num(3))
       end if
-  end select
+  end select 
 
   if(comm_is_root(nproc_id_global)) then
     write(*,*) '-----------------------------------------------'
@@ -666,7 +666,7 @@ DFT_Iteration : do iter=1,iDiter(img)
           p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
           write(*,'(1x,4(i5,f15.4,2x))') (iob,esp(iob,ik)*2d0*Ry,iob=p1,p2)
         end do
-        if(iperiodic==3) write(*,*)
+        if(iperiodic==3) write(*,*) 
       end if
     end do
     select case(convergence)
@@ -683,8 +683,8 @@ DFT_Iteration : do iter=1,iDiter(img)
         write(*,'("iter and ||Vlocal_i(ix)-Vlocal_i-1(ix)||**2/(# of grids) = ",i6,e15.8)') Miter,     &
                                                                          sum1*(2.d0*Ry)**2/a_B**6
     end select
-  end if
-  rNebox1=0.d0
+  end if 
+  rNebox1=0.d0 
 !$OMP parallel do reduction(+:rNebox1) private(iz,iy,ix)
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
@@ -957,6 +957,7 @@ if(comm_is_root(nproc_id_global))      &
 rLsize1(:)=rLsize(:,img)
 call setlg(lg_sta,lg_end,lg_num,ista_Mx_ori,iend_Mx_ori,inum_Mx_ori,    &
            Hgs,Nd,rLsize1,imesh_oddeven,iperiodic)
+call check_fourier
 
 allocate(ista_Mxin(3,0:nproc_size_global-1),iend_Mxin(3,0:nproc_size_global-1))
 allocate(inum_Mxin(3,0:nproc_size_global-1))
@@ -969,3 +970,4 @@ if(comm_is_root(nproc_id_global)) write(*,*) "Mx     =", iend_Mx_ori
 return
 
 END SUBROUTINE init_mesh
+

@@ -609,6 +609,8 @@ inum_Mx_ori(:)=iend_Mx_ori(:)-ista_Mx_ori(:)+1
 
 lg_num(:)=lg_end(:)-lg_sta(:)+1
 
+call check_fourier
+
 call set_gridcoo
 
 allocate(ista_Mxin(3,0:nproc_size_global-1),iend_Mxin(3,0:nproc_size_global-1))

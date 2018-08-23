@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ do iik=k_sta,k_end
         +fdN1(1,3)* tzpsi_in(ix,iy,iz+1,iob,iik) + fdN2(1,3) * tzpsi_in(ix,iy,iz-1,iob,iik)      &
         +fdN1(2,3)* tzpsi_in(ix,iy,iz+2,iob,iik) + fdN2(2,3) * tzpsi_in(ix,iy,iz-2,iob,iik)      &
         +fdN1(3,3)* tzpsi_in(ix,iy,iz+3,iob,iik) + fdN2(3,3) * tzpsi_in(ix,iy,iz-3,iob,iik)      &
-        +fdN1(4,3)* tzpsi_in(ix,iy,iz+4,iob,iik) + fdN2(4,3) * tzpsi_in(ix,iy,iz-4,iob,iik)
+        +fdN1(4,3)* tzpsi_in(ix,iy,iz+4,iob,iik) + fdN2(4,3) * tzpsi_in(ix,iy,iz-4,iob,iik) 
     end do
     end do
     end do
@@ -125,7 +125,7 @@ do iik=k_sta,k_end
     do iz=mg_sta(3),mg_end(3)
     do iy=mg_sta(2),mg_end(2)
     do ix=mg_sta(1),mg_end(1)
-      Ekin_tmp=Ekin_tmp + rocc(iob,iik)*wtk(iik)*conjg(tzpsi_in(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)*Hvol
+      Ekin_tmp=Ekin_tmp + rocc(iob,iik)*wtk(iik)*conjg(tzpsi_in(ix,iy,iz,iob,iik))*htpsi(ix,iy,iz,iob,iik)*Hvol 
     end do
     end do
     end do

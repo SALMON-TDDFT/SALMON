@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ subroutine calcVpsl_periodic_FFTE
   use allocate_psl_sub
   use allocate_mat_sub
   implicit none
-
+  
   integer :: ii,ix,iy,iz,ak
   integer :: iix,iiy,iiz
   integer :: iatom
   real(8) :: x,y,z
-
+  
   integer :: n
   real(8) :: bLx,bLy,bLz
   real(8) :: aLxyz
@@ -45,7 +45,7 @@ subroutine calcVpsl_periodic_FFTE
   integer :: iy_sta,iy_end,iz_sta,iz_end
   integer :: i,iix2,iiy2,iiz2
   integer :: icommy_dummy,icommz_dummy
-
+  
 
 !calculate reciprocal lattice vector
   bLx=2.d0*Pi/(Hgs(1)*dble(lg_num(1)))
@@ -56,18 +56,18 @@ subroutine calcVpsl_periodic_FFTE
   iz_end=lg_num(3)/NPUZ
   iy_sta=1
   iy_end=lg_num(2)/NPUY
-
+ 
   NG_s=1
   NG_e=lg_num(1)*lg_num(2)*lg_num(3)
-
+  
   numtmp=(NG_e-NG_s+1)/nproc_size_global
-
+  
   NG_l_s_para = nproc_id_global*numtmp+1
   NG_l_e_para = (nproc_id_global+1)*numtmp
   if(nproc_id_global==nproc_size_global-1) NG_l_e_para=NG_e
-
+  
   nGzero=-1
-
+  
   do ak=1,MKI
     do ii=1,Mr(ak)
       vloctbl(ii,ak)=vpp(ii,Lref(ak),ak)
@@ -117,7 +117,7 @@ subroutine calcVpsl_periodic_FFTE
     enddo
     enddo
   enddo
-
+ 
   aLxyz=Hvol*dble(lg_num(1)*lg_num(2)*lg_num(3))
   rhoion_G=0.d0
   do iatom=1,MI
@@ -148,7 +148,7 @@ subroutine calcVpsl_periodic_FFTE
     enddo
   enddo
 
-  CALL PZFFT3DV_MOD(A_FFTE,B_FFTE,lg_num(1),lg_num(2),lg_num(3),NPUY,NPUZ,0)
+  CALL PZFFT3DV_MOD(A_FFTE,B_FFTE,lg_num(1),lg_num(2),lg_num(3),NPUY,NPUZ,0) 
 
   do iz=1,lg_num(3)/NPUZ
   do iy=1,lg_num(2)/NPUY
@@ -198,7 +198,7 @@ subroutine calcVpsl_periodic_FFTE
     do iz = mg_sta(3),mg_end(3)
     do iy = mg_sta(2),mg_end(2)
     do ix = mg_sta(1),mg_end(1)
-      Vpsl(ix,iy,iz)=matbox_l2(ix,iy,iz)
+      Vpsl(ix,iy,iz)=matbox_l2(ix,iy,iz) 
     end do
     end do
     end do
@@ -220,9 +220,9 @@ subroutine calcVpsl_periodic_FFTE
         matbox_l(1:lg_end(1),iiy,iiz)=A_FFTE(1:lg_end(1),iy,iz)
       end do
     end do
-
+  
     call comm_summation(matbox_l,matbox_l2,lg_num(1)*lg_num(2)*lg_num(3),nproc_group_global)
-
+   
 !$OMP parallel do
     do iz = mg_sta(3),mg_end(3)
     do iy = mg_sta(2),mg_end(2)

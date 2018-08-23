@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ subroutine Hartree_FFTE(trho,tVh)
   lg_sta_2(1:3)=lg_sta(1:3)
   lg_end_2(1:3)=lg_end(1:3)
   lg_num_2(1:3)=lg_num(1:3)
-
+  
   ng_sta_2(1:3)=ng_sta(1:3)
   ng_end_2(1:3)=ng_end(1:3)
   ng_num_2(1:3)=ng_num(1:3)
@@ -66,7 +66,7 @@ subroutine Hartree_FFTE(trho,tVh)
   iz_end=lg_num_2(3)/NPUZ
   iy_sta=1
   iy_end=lg_num_2(2)/NPUY
-
+  
 !  rhoe_G_tmp=0.d0
 
   if(icheck_ascorder==1)then
@@ -124,8 +124,8 @@ subroutine Hartree_FFTE(trho,tVh)
     end do
   end if
 
-  CALL PZFFT3DV_MOD(A_FFTE,B_FFTE,lg_num_2(1),lg_num_2(2),lg_num_2(3),NPUY,NPUZ,0)
-  CALL PZFFT3DV_MOD(A_FFTE,B_FFTE,lg_num_2(1),lg_num_2(2),lg_num_2(3),NPUY,NPUZ,-1)
+  CALL PZFFT3DV_MOD(A_FFTE,B_FFTE,lg_num_2(1),lg_num_2(2),lg_num_2(3),NPUY,NPUZ,0) 
+  CALL PZFFT3DV_MOD(A_FFTE,B_FFTE,lg_num_2(1),lg_num_2(2),lg_num_2(3),NPUY,NPUZ,-1) 
 
 !$OMP parallel do private(n)
   do iz=iz_sta,iz_end
@@ -192,7 +192,7 @@ subroutine Hartree_FFTE(trho,tVh)
     end do
     end do
     end do
-  end if
+  end if 
 
   return
 end subroutine Hartree_FFTE

@@ -21,6 +21,7 @@ set(SOURCES
     calcVpsl_periodic_FFTE.f90
     check_cep.f90
     check_corrkob.f90
+    check_fourier.f90
     check_mg.f90
     check_ng.f90
     check_numcpu.f90

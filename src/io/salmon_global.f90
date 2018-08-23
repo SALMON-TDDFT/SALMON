@@ -270,6 +270,9 @@ module salmon_global
   real(8)        :: friction
   character(1)   :: stop_system_momt
 
+!! &misc
+  character(4)   :: fourier
+
 !! &group_fundamental
   integer        :: iditerybcg
   integer        :: iditer_nosubspace_diag
@@ -320,7 +323,6 @@ module salmon_global
   integer        :: iwdenoption
   integer        :: iwdenstep
   integer        :: iflag_estatic
-  integer        :: iflag_hartree
 
 !! &atomic_coor
 !! &atomic_red_coor

@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -42,18 +42,18 @@ real(8),parameter :: cN0_Nd2=-5.d0/2.d0
 real(8),parameter :: cN1_Nd2=4.d0/3.d0, cN2_Nd2=-1.d0/12.d0
 real(8),parameter :: bN1_Nd2=2.d0/3.d0, bN2_Nd2=-1.d0/12.d0
 
-real(8),parameter :: cN0_Nd3=-49.d0/18.d0
+real(8),parameter :: cN0_Nd3=-49.d0/18.d0 
 real(8),parameter :: cN1_Nd3=3.d0/2.d0, cN2_Nd3=-3.d0/20.d0
 real(8),parameter :: cN3_Nd3=1.d0/90.d0
-real(8),parameter :: bN1_Nd3=3.d0/4.d0, bN2_Nd3=-3.d0/20.d0
+real(8),parameter :: bN1_Nd3=3.d0/4.d0, bN2_Nd3=-3.d0/20.d0 
 real(8),parameter :: bN3_Nd3=1.d0/60.d0
 
-real(8),parameter :: cN0_Nd5=-5269.d0/1800.d0
+real(8),parameter :: cN0_Nd5=-5269.d0/1800.d0 
 real(8),parameter :: cN1_Nd5=5.d0/3.d0, cN2_Nd5=-5.d0/21.d0
 real(8),parameter :: cN3_Nd5=5.d0/126.d0, cN4_Nd5=-5.d0/1008.d0
 real(8),parameter :: cN5_Nd5=1.d0/3150.d0
 
-real(8),parameter :: cN0_Nd6=-5369.d0/1800.d0
+real(8),parameter :: cN0_Nd6=-5369.d0/1800.d0 
 real(8),parameter :: cN1_Nd6=12.d0/7.d0, cN2_Nd6=-15.d0/56.d0
 real(8),parameter :: cN3_Nd6=10.d0/189.d0, cN4_Nd6=-1.d0/112.d0
 real(8),parameter :: cN5_Nd6=2.d0/1925.d0, cN6_Nd6=-1.d0/16632.d0
@@ -64,7 +64,7 @@ real(8),parameter :: cN3_Nd7=7.d0/108.d0, cN4_Nd7=-7.d0/528.d0
 real(8),parameter :: cN5_Nd7=7.d0/3300.d0, cN6_Nd7=-7.d0/30888.d0
 real(8),parameter :: cN7_Nd7=1.d0/84084.d0
 
-real(8),parameter :: cN0_Nd8=-1077749.d0/352800.d0
+real(8),parameter :: cN0_Nd8=-1077749.d0/352800.d0 
 real(8),parameter :: cN1_Nd8=16.d0/9.d0, cN2_Nd8=-14.d0/45.d0
 real(8),parameter :: cN3_Nd8=112.d0/1485.d0, cN4_Nd8=-7.d0/396.d0
 real(8),parameter :: cN5_Nd8=112.d0/32175.d0, cN6_Nd8=-2.d0/3861.d0
@@ -152,9 +152,9 @@ integer :: itotfMST
 integer :: MST0(2),itotMST0
 integer :: Mx(3),Mxin(3),Mxin_old(3)
 
-character(8),allocatable :: AtomName(:)
-integer,allocatable :: iAtomicNumber(:)
-integer,allocatable :: istopt_a(:)
+character(8),allocatable :: AtomName(:)   
+integer,allocatable :: iAtomicNumber(:)   
+integer,allocatable :: istopt_a(:)    
 
 real(8) :: Hgs(3)        ! Grid spacing
 real(8) :: Hold(3)     ! Grid spacing
@@ -198,7 +198,7 @@ real(8),allocatable :: rho_diff(:,:,:)  ! Single particle density
 real(8),allocatable :: rho_s(:,:,:,:)   ! Single particle density for each spin
 real(8),allocatable :: Vh(:,:,:)        ! Hartree potential
 real(8),allocatable :: Vxc(:,:,:)       ! Exchange-Correlation potential
-real(8),allocatable :: Vxc_s(:,:,:,:)   ! Exchange-Correlation potential for each spin
+real(8),allocatable :: Vxc_s(:,:,:,:)   ! Exchange-Correlation potential for each spin 
 integer :: ihpsieff
 real(8),allocatable :: elf(:,:,:)
 complex(8),allocatable :: zpsi(:,:,:,:,:)
@@ -314,12 +314,12 @@ integer :: itt
 integer :: ikind_eext   !0:No external field, 1: dipoleApprox
 
 character(3)  :: dir
-character(2)  :: dir2
+character(2)  :: dir2 
 
 real(8) :: Fst,Fst2(2)
 real(8) :: romega, romega2(2)
-real(8) :: pulse_T, pulse_T2(2)
-real(8) :: rlaser_I, rlaser_I2(2)
+real(8) :: pulse_T, pulse_T2(2) 
+real(8) :: rlaser_I, rlaser_I2(2) 
 real(8) :: tau, tau2(2), delay, rcycle
 
 character(2)  :: denplane  ! plane for writing density (xy, yz, xz)
@@ -351,7 +351,7 @@ complex(8), allocatable :: zpsi_n(:,:,:,:,:)
 
 complex(8), allocatable :: Ex_static(:,:,:),Ey_static(:,:,:),Ez_static(:,:,:)
 
-real(8),allocatable :: curr(:,:)
+real(8),allocatable :: curr(:,:) 
 real(8),allocatable :: sumcurr(:,:)
 real(8),allocatable :: rE_ind(:,:)
 
@@ -419,6 +419,8 @@ integer :: iflag_pdos
 integer :: iflag_ELF
 
 integer :: iflag_indA
+
+integer :: iflag_hartree
 
 real(8),allocatable :: vonf_sd(:,:,:),eonf_sd(:,:,:,:)
 
@@ -574,3 +576,4 @@ iwk3num(1:3)=iwk3end(1:3)-iwk3sta(1:3)+1
 end subroutine make_iwksta_iwkend
 
 END MODULE scf_data
+

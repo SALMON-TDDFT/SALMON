@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -174,7 +174,7 @@ module salmon_communication
     ! 3-D array
     module procedure comm_bcast_array3d_double
     module procedure comm_bcast_array3d_dcomplex
-
+  
     ! 4-D array
     module procedure comm_bcast_array4d_double
     ! module procedure comm_bcast_array3d_dcomplex
@@ -918,7 +918,7 @@ contains
     end if
     MPI_ERROR_CHECK(call MPI_Bcast(val, size(val), MPI_DOUBLE_PRECISION, rank, ngroup, ierr))
   end subroutine
-
+  
   subroutine comm_bcast_array4d_double(val, ngroup, root)
     use mpi, only: MPI_DOUBLE_PRECISION
     implicit none
@@ -994,8 +994,8 @@ contains
                       ngroup, ierr)
     call error_check(ierr)
   end subroutine
-
-
+ 
+ 
   subroutine comm_get_min_array1d_double(invalue, outvalue, N, ngroup)
     use mpi, only: MPI_DOUBLE_PRECISION, MPI_MIN
     implicit none

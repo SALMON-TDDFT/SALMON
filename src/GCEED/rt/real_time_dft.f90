@@ -1,5 +1,5 @@
 !
-!  Copyright 2018 SALMON developers
+!  Copyright 2017 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ implicit none
 
 integer       :: Ntime
 
-real(8)       :: debye2au   ! [D]  -> [a.u.]
+real(8)       :: debye2au   ! [D]  -> [a.u.] 
 integer       :: iii
 
 real(8), allocatable :: alpha2(:,:,:,:)
@@ -46,12 +46,12 @@ use misc_routines, only: get_wtime
 use global_variables_rt
 implicit none
 
-real(8),allocatable :: alpha_R(:,:),alpha_I(:,:)
-real(8),allocatable :: alphaq_R(:,:,:),alphaq_I(:,:,:)
-real(8),allocatable :: alpha2_R(:,:,:),alpha2_I(:,:,:)
-real(8),allocatable :: alpha2q_R(:,:,:,:),alpha2q_I(:,:,:,:)
-real(8),allocatable :: Dp_box(:,:),alpha_R_box(:,:),alpha_I_box(:,:)
-real(8),allocatable :: Qp_box(:,:,:),alpha_Rq_box(:,:,:),alpha_Iq_box(:,:,:)
+real(8),allocatable :: alpha_R(:,:),alpha_I(:,:) 
+real(8),allocatable :: alphaq_R(:,:,:),alphaq_I(:,:,:) 
+real(8),allocatable :: alpha2_R(:,:,:),alpha2_I(:,:,:) 
+real(8),allocatable :: alpha2q_R(:,:,:,:),alpha2q_I(:,:,:,:) 
+real(8),allocatable :: Dp_box(:,:),alpha_R_box(:,:),alpha_I_box(:,:) 
+real(8),allocatable :: Qp_box(:,:,:),alpha_Rq_box(:,:,:),alpha_Iq_box(:,:,:) 
 real(8),allocatable :: Sf(:),Sf2(:,:),Sq2(:,:,:)
 integer :: jj,nn
 integer :: iene,nntime,ix,iy,iz
@@ -74,7 +74,7 @@ iSCFRT=2
 OC=0
 img=1
 
-iwdenstep=30
+iwdenstep=30 
 denplane='xy'
 idensum=0
 posplane=0.d0
@@ -98,7 +98,7 @@ if(comm_is_root(nproc_id_global))then
   write(*,*) "ikind_eext is           ", ikind_eext
   write(*,*) "Step for writing dens=", iwdenstep
   write(*,*) "Plane showing density=", denplane
-  write(*,*) "idensum              =", idensum
+  write(*,*) "idensum              =", idensum 
   if(idensum==0) write(*,*) "Position of the plane=", posplane
   select case (ikind_eext)
     case(1,6,7,8,15)
@@ -123,7 +123,7 @@ if(comm_is_root(nproc_id_global))then
                           delay*au_time_fs, "[fs]"
       write(*,'(a21,f16.8)') "rcycle                =",rcycle
   end select
-
+  
   if(iflag_dip2 == 1) then
     write(*,'(a21)',advance="no") "dipole boundary      ="
     do jj=1,num_dip2-2
@@ -131,10 +131,10 @@ if(comm_is_root(nproc_id_global))then
     end do
     write(*,'(1e16.8,a8)',advance="yes") dip2boundary(num_dip2-1)*au_length_aa, "[A]"
   end if
-
+  
   if(iflag_fourier_omega == 1) then
     write(*,'(a61)') "===== List of frequencies for fourier transform (in eV) ====="
-    do jj=1,num_fourier_omega
+    do jj=1,num_fourier_omega  
       write(*,'(f16.8)') fourier_omega(jj)*au_energy_ev
     end do
     write(*,'(a61)') "============================================================="
@@ -148,10 +148,10 @@ select case (ikind_eext)
   case(0,10)
     Fst=Fst !/5.14223d1
 end select
-dE=dE !/2d0/Ry
+dE=dE !/2d0/Ry 
 dt=dt !*fs2eVinv*2.d0*Ry!a.u. ! 1[fs] = 1.51925 [1/eV]  !2.d0*Ry*1.51925d0
 
-if(idensum==0) posplane=posplane/a_B
+if(idensum==0) posplane=posplane/a_B 
 
 select case (ikind_eext)
   case(1)
@@ -168,7 +168,7 @@ select case (ikind_eext)
 end select
 
 if(iflag_fourier_omega==1)then
-   fourier_omega(1:num_fourier_omega)=fourier_omega(1:num_fourier_omega) !/2.d0/Ry
+   fourier_omega(1:num_fourier_omega)=fourier_omega(1:num_fourier_omega) !/2.d0/Ry 
 end if
 
 elp3(402)=get_wtime()
@@ -255,9 +255,9 @@ end do
 
 allocate( Vh0(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 
-allocate( Ex_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
-allocate( Ey_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
-allocate( Ez_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
+allocate( Ex_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))) 
+allocate( Ey_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))) 
+allocate( Ez_static(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))) 
 
 !$OMP parallel do private(iz,iy,ix)
 do iz=mg_sta(3),mg_end(3)
@@ -276,8 +276,8 @@ if(IC_rt==0) then
   call initA(Ntime)
 
   if(iflag_dip2==1) then
-    allocate( rIe2(0:Ntime,1:num_dip2) )
-    allocate( Dp2(3,0:Ntime,1:num_dip2) )
+    allocate( rIe2(0:Ntime,1:num_dip2) ) 
+    allocate( Dp2(3,0:Ntime,1:num_dip2) ) 
     allocate( Qp2(3,3,0:Ntime,1:num_dip2) )
   end if
   itotNtime=Ntime
@@ -288,13 +288,13 @@ end if
 
 elp3(405)=get_wtime()
 
-allocate( alpha_R(3,0:Nenergy), &
+allocate( alpha_R(3,0:Nenergy), & 
                     alpha_I(3,0:Nenergy), Sf(3) )
-allocate( alphaq_R(3,3,0:Nenergy), &
+allocate( alphaq_R(3,3,0:Nenergy), & 
                     alphaq_I(3,3,0:Nenergy) )
 
 if(iflag_dip2==1)then
-  allocate( alpha2_R(3,0:Nenergy,1:num_dip2), &
+  allocate( alpha2_R(3,0:Nenergy,1:num_dip2), & 
                     alpha2_I(3,0:Nenergy,1:num_dip2), Sf2(3,1:num_dip2) )
   allocate( alpha_R_box(3,0:Nenergy), alpha_I_box(3,0:Nenergy) )
   allocate( Dp_box(3,0:Ntime) )
@@ -312,12 +312,12 @@ iterVh = 0        ! Iteration counter
 
 
 if(comm_is_root(nproc_id_global))then
-  write(*, *)
+  write(*, *) 
   write(*, *) "dip2boundary", dip2boundary(1), dip2boundary(2)
   write(*, *) "dip2center", dip2center(1), dip2center(2)
   write(*, *) "dip2boundary[A]", dip2boundary(1)*a_B, dip2boundary(2)*a_B
   write(*, *) "dip2center[A]", dip2center(1)*a_B, dip2center(2)*a_B
-  write(*, *)
+  write(*, *) 
 end if
 
 call Time_Evolution
@@ -350,25 +350,25 @@ end if
 select case(iperiodic)
 case(0)
 
-  call Fourier3D(Dp,alpha_R,alpha_I)
+  call Fourier3D(Dp,alpha_R,alpha_I) 
   if(quadrupole=='y')then
     do iii=1,3
-      call Fourier3D(Qp(iii,:,:),alphaq_R(iii,:,:),alphaq_I(iii,:,:))
+      call Fourier3D(Qp(iii,:,:),alphaq_R(iii,:,:),alphaq_I(iii,:,:)) 
     end do
   end if
   if(comm_is_root(nproc_id_global))then
     open(1,file=file_RT)
-    write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A],                        Energy[eV]"
+    write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A],                        Energy[eV]" 
      do nntime=1,itotNtime
         write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
         write(1,'(3e16.8)',advance="no") (Dp(iii,nntime)*a_B, iii=1,3)
         write(1,'(e16.8)',advance="yes") tene(nntime)*2.d0*Ry
      end do
     close(1)
-
+  
     if(quadrupole=='y')then
       open(1,file=file_RT_q)
-      write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]"
+      write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
       do nntime=1,itotNtime
          write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
          write(1,'(6e16.8)',advance="yes") (Qp(iii,iii,nntime)*a_B**2, iii=1,3), &
@@ -376,20 +376,20 @@ case(0)
       end do
       close(1)
     end if
-
+  
     if(iflag_intelectron==1)then
       open(1,file=file_RT_e)
-      write(1,'(a)') "# time[fs],    integrated electron density"
+      write(1,'(a)') "# time[fs],    integrated electron density" 
        do nntime=1,itotNtime
           write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
           write(1,'(e16.8)',advance="yes") rIe(nntime)
        end do
       close(1)
     end if
-
+  
     if(iflag_dip2==1)then
       open(1,file=file_RT_dip2)
-      write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A]"
+      write(1,'(a)') "# time[fs],    dipoleMoment(x,y,z)[A]" 
         do nntime=1,itotNtime
           write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
           do jj=1,num_dip2-1
@@ -398,25 +398,25 @@ case(0)
           write(1,'(3e16.8)',advance="yes") (Dp2(iii,nntime,num_dip2)*a_B, iii=1,3)
         end do
       close(1)
-
+  
       if(quadrupole=='y')then
         open(1,file=file_RT_dip2_q)
-        write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]"
+        write(1,'(a)') "# time[fs],    quadrupoleMoment(xx,yy,zz,xy,yz,zx)[A**2]" 
           do nntime=1,itotNtime
             write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
             do jj=1,num_dip2-1
               write(1,'(6e16.8)',advance="no") (Qp2(iii,iii,nntime,jj)*a_B**2, iii=1,3), &
-                  & Qp2(1,2,nntime,jj)*a_B**2,Qp2(2,3,nntime,jj)*a_B**2,Qp2(3,1,nntime,jj)*a_B**2
+                  & Qp2(1,2,nntime,jj)*a_B**2,Qp2(2,3,nntime,jj)*a_B**2,Qp2(3,1,nntime,jj)*a_B**2  
             end do
             write(1,'(6e16.8)',advance="yes") (Qp2(iii,iii,nntime,num_dip2)*a_B**2, iii=1,3), &
                 & Qp2(1,2,nntime,num_dip2)*a_B**2,Qp2(2,3,nntime,num_dip2)*a_B**2,Qp2(3,1,nntime,num_dip2)*a_B**2
           end do
         close(1)
       end if
-
+  
       if(iflag_intelectron==1)then
         open(1,file=file_RT_dip2_e)
-        write(1,'(a)') "# time[fs],    integrated electron density"
+        write(1,'(a)') "# time[fs],    integrated electron density" 
           do nntime=1,itotNtime
             write(1,'(e13.5)',advance="no") nntime*dt/2.d0/Ry/fs2eVinv
             do jj=1,num_dip2-1
@@ -427,11 +427,11 @@ case(0)
         close(1)
       end if
     end if
-
+  
   ! Alpha
     if(ae_shape1=='impulse')then
       open(1,file=file_alpha_lr)
-      write(1,'(a)') "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], df/dE(x,y,z)[1/eV]"
+      write(1,'(a)') "# energy[eV], Re[alpha](x,y,z)[A**3], Im[alpha](x,y,z)[A**3], df/dE(x,y,z)[1/eV]" 
       do iene=0,Nenergy
         Sf(:)=2*iene*dE/(Pi)*alpha_I(:,iene)
         write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
@@ -449,12 +449,12 @@ case(0)
         write(1,'(3e16.8)',advance="yes") ((alpha_R(iii,iene)**2+alpha_I(iii,iene)**2)   &
                                                *(a_B)**2*(2.d0*Ry*fs2eVinv)**2, iii=1,3)
       end do
-    end if
+    end if 
     close(1)
-
+  
     if(quadrupole=='y')then
       open(1,file=file_alpha_q)
-      write(1,'(a)') "# energy[eV], Re[d(w)](xx,yy,zz,xy,yz,zx)[A*fs],  Im[d(w)](xx,yy,zz,xy,yz,zx)[A*fs]"
+      write(1,'(a)') "# energy[eV], Re[d(w)](xx,yy,zz,xy,yz,zx)[A*fs],  Im[d(w)](xx,yy,zz,xy,yz,zx)[A*fs]" 
        do iene=0,Nenergy
          write(1,'(e13.5)',advance="no") iene*dE*2d0*Ry
          write(1,'(6e16.8)',advance="no") (alphaq_R(iii,iii,iene)*(a_B)*(2.d0*Ry*fs2eVinv), iii=1,3), &
@@ -468,7 +468,7 @@ case(0)
        end do
       close(1)
     end if
-
+  
     if(iflag_dip2==1)then
       open(1,file=file_alpha_dip2)
       if(ae_shape1=='impulse')then
@@ -517,14 +517,14 @@ case(0)
         end do
       end if
       close(1)
-
+  
       if(quadrupole=='y')then
         open(1,file=file_alpha_dip2_q)
         write(1,'(a)') "# energy[eV], Im[d1(w)](x,y,z)[A*fs],  Im[d2(w)](x,y,z)[A*fs],  ..."
         do jj=1,num_dip2
           Qp_box(:,:,:)=Qp2(:,:,:,jj)
           do iii=1,3
-            call Fourier3D(Qp_box(iii,:,:),alpha_Rq_box(iii,:,:),alpha_Iq_box(iii,:,:))
+            call Fourier3D(Qp_box(iii,:,:),alpha_Rq_box(iii,:,:),alpha_Iq_box(iii,:,:)) 
           end do
           alpha2q_R(:,:,:,jj)=alpha_Rq_box(:,:,:)
           alpha2q_I(:,:,:,jj)=alpha_Iq_box(:,:,:)
@@ -546,11 +546,11 @@ case(0)
       end if
     end if
   end if
-
+  
   if(iflag_fourier_omega==1)then
-
+  
     call comm_summation(zalpha2,zalpha3,lg_num(1)*lg_num(2)*lg_num(3)*num_fourier_omega,nproc_group_h)
-
+  
     if(comm_is_root(nproc_id_global))then
       alpha2=real(zalpha3,8)*dt/a_B**3/fs2eVinv/2.d0/Ry
       do jj=1,num_fourier_omega
@@ -572,7 +572,7 @@ case(0)
       end do
     end if
   end if
-
+  
 case(3)
   allocate( tfourier_integrand(1:3,0:Ntime) )
   if(iflag_indA==1)then
@@ -583,7 +583,7 @@ case(3)
   call Fourier3D(tfourier_integrand,alpha_R,alpha_I)
   if(comm_is_root(nproc_id_global))then
     open(1,file=file_alpha_lr)
-    write(1,*) "# energy[eV], Re[epsilon](x,y,z), Im[epsilon](x,y,z)"
+    write(1,*) "# energy[eV], Re[epsilon](x,y,z), Im[epsilon](x,y,z)" 
     do nn=1,Nenergy
       write(1,'(e13.5)',advance="no") nn*dE*2d0*Ry
 !      write(1,'(3e16.8)',advance="no")      &
@@ -594,7 +594,7 @@ case(3)
       write(1,'(3e16.8)',advance="yes") (alpha_I(iii,nn), iii=1,3)
     end do
     close(1)
-  end if
+  end if 
   deallocate( tfourier_integrand )
 
 end select
@@ -667,7 +667,7 @@ if(comm_is_root(nproc_id_global))then
   write(*,'(a)') "=========== analysis ================================="
   write(*,'(a,f16.8)') "isend, irecv, wait [s]                 = ", elp5(743)-sum(elp5(731:742))
   write(*,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
-  write(*,'(a,f16.8)') "Allreduce [s]                          = ", &
+  write(*,'(a,f16.8)') "Allreduce [s]                          = ", & 
     elp5(744)+elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
   write(*,'(a,f16.8)') "Allreduce (related to num of nodes )   = ", elp5(744)
   write(*,'(a,f16.8)') "Allreduce (not related to num of nodes)= ", &
@@ -762,7 +762,7 @@ if(timer_process=='y')then
   write(79,'(a)') "=========== analysis ================================="
   write(79,'(a,f16.8)') "isend, irecv, wait [s]                 = ", elp5(743)-sum(elp5(731:742))
   write(79,'(a,f16.8)') "Allgatherv [s]                         = ", elp5(781)
-  write(79,'(a,f16.8)') "Allreduce [s]                          = ", &
+  write(79,'(a,f16.8)') "Allreduce [s]                          = ", & 
     elp5(744)+elp5(760)+sum(elp5(251:256))+sum(elp5(782:783))+elp5(784)
   write(79,'(a,f16.8)') "Allreduce (related to num of nodes )   = ", elp5(744)
   write(79,'(a,f16.8)') "Allreduce (not related to num of nodes)= ", &
@@ -789,7 +789,7 @@ end if
 call deallocate_mat
 
 call finalize_xc(xc_func)
-
+  
 END subroutine Real_Time_DFT
 
 !=======================================================================
@@ -848,15 +848,15 @@ idiffDensity=1
 ielf=2
 fileLaser= "laser.out"
 
-allocate (R1(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), &
-                              lg_sta(3):lg_end(3)))
+allocate (R1(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
+                              lg_sta(3):lg_end(3))) 
 if(ikind_eext.ne.0)then
-  allocate( Vbox(lg_sta(1)-Nd:lg_end(1)+Nd,lg_sta(2)-Nd:lg_end(2)+Nd, &
+  allocate( Vbox(lg_sta(1)-Nd:lg_end(1)+Nd,lg_sta(2)-Nd:lg_end(2)+Nd, & 
                                            lg_sta(3)-Nd:lg_end(3)+Nd))
 endif
 
-allocate( elf(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), &
-                              lg_sta(3):lg_end(3)))
+allocate( elf(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2), & 
+                              lg_sta(3):lg_end(3))) 
 
 allocate(rhobox(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3)))
 if(ilsda==1)then
@@ -871,7 +871,7 @@ if(ilsda==0)then
   end do
   end do
   end do
-
+  
   do iik=k_sta,k_end
   do iob=1,iobnum
     call calc_allob(iob,iob_allob)
@@ -896,7 +896,7 @@ else if(ilsda==1)then
   end do
   end do
   end do
-
+  
   do iik=k_sta,k_end
   do iob=1,iobnum
     call calc_allob(iob,iob_allob)
@@ -963,7 +963,7 @@ select case (ikind_eext)
     else
       rlaser_center(1:3)=0.d0
     end if
-end select
+end select 
 
 select case(imesh_oddeven(1))
   case(1)
@@ -1011,9 +1011,9 @@ if(quadrupole=='y')then
                      epdir_re2(1)*gridcoo(ix,1)+   &
                      epdir_re2(2)*gridcoo(iy,2)+   &
                      epdir_re2(3)*gridcoo(iz,3))
-    end do
-    end do
-    end do
+    end do 
+    end do 
+    end do 
   else if(quadrupole_pot=='product')then
     !$OMP parallel do collapse(2) private(iz,iy,ix)
     do iz=lg_sta(3),lg_end(3)
@@ -1025,9 +1025,9 @@ if(quadrupole=='y')then
                    *(epdir_re2(1)*gridcoo(ix,1)+   &
                      epdir_re2(2)*gridcoo(iy,2)+   &
                      epdir_re2(3)*gridcoo(iz,3))
-    end do
-    end do
-    end do
+    end do 
+    end do 
+    end do 
   end if
 else
   !$OMP parallel do collapse(2) private(iz,iy,ix)
@@ -1037,8 +1037,8 @@ else
      R1(ix,iy,iz)=(epdir_re1(1)*gridcoo(ix,1)+   &
                    epdir_re1(2)*gridcoo(iy,2)+   &
                    epdir_re1(3)*gridcoo(iz,3))
-  end do
-  end do
+  end do 
+  end do 
   end do
 end if
 
@@ -1084,7 +1084,7 @@ if(IC_rt==0)then
     end do
     end do
   end do
-
+  
   do iz=ng_sta(3),ng_end(3)
   do iy=ng_sta(2),ng_end(2)
   do ix=ng_sta(1),ng_end(1)
@@ -1182,7 +1182,7 @@ if(IC_rt==0)then
           rbox_array_dip2q(i1,i1,jj)=rbox1q
         end do
       end do
-
+        
       do jj=1,num_dip2
         rbox1q12=0.d0
         rbox1q23=0.d0
@@ -1242,8 +1242,8 @@ if(iperiodic==0)then
           = exp(zi*Fst*R1(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
              mg_sta(3):mg_end(3)))   &
              *  zpsi_in(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),  &
-                     mg_sta(3):mg_end(3),iob,iik)
-      end select
+                     mg_sta(3):mg_end(3),iob,iik) 
+      end select 
     end do
     end do
   end if
@@ -1255,8 +1255,8 @@ Dp(:,0)=0.d0
 Qp(:,:,0)=0.d0
 if(iflag_dip2==1)then
   rIe2(0,:)=rbox_array2_dip2(4,:)*Hvol
-  Dp2(:,0,:)=0.d0
-  Qp2(:,:,0,:)=0.d0
+  Dp2(:,0,:)=0.d0 
+  Qp2(:,:,0,:)=0.d0 
 end if
 
 
@@ -1300,8 +1300,8 @@ end do
 end do
 
 if(iflag_comm_rho==2)then
-  allocate(rhobox1_all(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
-  allocate(rhobox2_all(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3)))
+  allocate(rhobox1_all(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))) 
+  allocate(rhobox2_all(lg_sta(1):lg_end(1),lg_sta(2):lg_end(2),lg_sta(3):lg_end(3))) 
 !$OMP parallel do private(iz,iy,ix)
   do iz=lg_sta(3),lg_end(3)
   do iy=lg_sta(2),lg_end(2)
@@ -1352,7 +1352,7 @@ if(comm_is_root(nproc_id_global))then
   if(iflag_md==1)then
     write(15,'(2a16,a24)') "        Time[fs]",      &
                    "    Distance [A]",     &
-                   " Total energy [eV]   "
+                   " Total energy [eV]   "  
     write(15,*) "-------------------------------------"      &
      ,"------------------"
     do ii=1,wmaxMI
@@ -1376,7 +1376,7 @@ if(comm_is_root(nproc_id_global))then
   end if
   if(iwrite_projection==1)then
     open(41,file=file_Projection)
-    write(41,'("#",a13,a56)') "time[fs]", "    projection    projection    projection    projection"
+    write(41,'("#",a13,a56)') "time[fs]", "    projection    projection    projection    projection" 
     write(41,'("#",13x,a9,i5,a9,i5,a9,i5,a9,i5)') " orbital",iwrite_projection_ob(1),&
                                               " orbital",iwrite_projection_ob(2),&
                                               " orbital",iwrite_projection_ob(3),&
@@ -1401,9 +1401,9 @@ if(itotNtime-Miter_rt<=10000)then
   elp3(412)=get_wtime()
   elp3(413)=get_wtime()
   TE : do itt=Miter_rt+1-1,itotNtime
-
+    
     if(iwrite_projection==1.and.itt==Miter_rt+1-1) then
-      if(mod(itt,2)==1)then
+      if(mod(itt,2)==1)then 
         call projection(zpsi_out)
       else
         call projection(zpsi_in)
@@ -1423,7 +1423,7 @@ else
   elp3(412)=get_wtime()
   TE1 : do itt=Miter_rt+1-1,Miter_rt+10
     if(iwrite_projection==1.and.itt==Miter_rt+1-1) then
-      if(mod(itt,2)==1)then
+      if(mod(itt,2)==1)then 
         call projection(zpsi_out)
       else
         call projection(zpsi_in)
@@ -1486,7 +1486,7 @@ TT = dt*itotNtime ! [a.u.]
 do iene=0,Nenergy
   hw=iene*dE ; zalpha=(0.d0,0.d0)  ! [a.u.]
   do nntime=1,itotNtime
-     t2=nntime*dt ; zalpha(:)=zalpha(:)+exp(zi*hw*t2)*Dp_t(:,nntime) & !hw*t is unitless
+     t2=nntime*dt ; zalpha(:)=zalpha(:)+exp(zi*hw*t2)*Dp_t(:,nntime) & !hw*t is unitless      
                        *(1-3*(t2/TT)**2+2*(t2/TT)**3)
   end do
   select case(iperiodic)
@@ -1494,7 +1494,7 @@ do iene=0,Nenergy
     if(ikind_eext==0.or.ikind_eext==10)then
       zalpha=zalpha/Fst*dt
     else
-      zalpha=zalpha*dt
+      zalpha=zalpha*dt 
     end if
   case(3)
     if(ikind_eext==0.or.ikind_eext==10)then
@@ -1514,3 +1514,4 @@ end do
 
 deallocate(zalpha)
 END SUBROUTINE Fourier3D
+
