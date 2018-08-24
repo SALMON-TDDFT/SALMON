@@ -6,5 +6,5 @@ set(SOURCES
     pzfft3dv_mod.f
    )
 
-add_library(${EXT_FFTE_LIB} ${SOURCES})
-add_dependencies(${SALMON_IO_LIB} ${SALMON_PARALLEL_LIB})
+add_library(${EXT_FFTE_LIB} STATIC ${SOURCES})
+add_dependencies(${EXT_FFTE_LIB} ${SALMON_IO_LIB} ${SALMON_PARALLEL_LIB})
