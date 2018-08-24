@@ -22,7 +22,6 @@ set(CMAKE_C_FLAGS_RELEASE       "-O3")
 set(USE_MPI             ON)
 set(EXPLICIT_VEC        ON)
 set(REDUCE_FOR_MANYCORE ON)
-set(SW_PREFETCH         ON)
 
 
 ########
