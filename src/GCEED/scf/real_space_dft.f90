@@ -147,6 +147,10 @@ if(istopt==1)then
     if(icalcforce==1)then
       allocate( Vpsl_atom(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),MI) )
     end if
+    
+    if(iperiodic==3)then
+      call prep_poisson_fft
+    end if
 
     if(iflag_ps.eq.0)then
       Vpsl=0d0
@@ -267,6 +271,10 @@ if(istopt==1)then
                  1:iobnum,k_sta:k_end))
       allocate(k_rd(3,num_kpoints_rd),ksquare(num_kpoints_rd))
       call init_k_rd(k_rd,ksquare,1)
+    end if
+
+    if(iperiodic==3)then
+      call prep_poisson_fft
     end if
 
     if(iflag_ps/=0) then
@@ -949,6 +957,7 @@ if(comm_is_root(nproc_id_global))      &
 rLsize1(:)=rLsize(:,img)
 call setlg(lg_sta,lg_end,lg_num,ista_Mx_ori,iend_Mx_ori,inum_Mx_ori,    &
            Hgs,Nd,rLsize1,imesh_oddeven,iperiodic)
+call check_fourier
 
 allocate(ista_Mxin(3,0:nproc_size_global-1),iend_Mxin(3,0:nproc_size_global-1))
 allocate(inum_Mxin(3,0:nproc_size_global-1))

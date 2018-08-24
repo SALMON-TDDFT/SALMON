@@ -25,7 +25,12 @@ if(iSCFRT==1)then
   case(0)
     call Hartree_cg(rho,Vh)
   case(3)
-    call Hartree_periodic(rho,Vh)
+    select case(iflag_hartree)
+    case(2)
+      call Hartree_periodic(rho,Vh)
+    case(4)
+      call Hartree_FFTE(rho,Vh)
+    end select
   end select
 else if(iSCFRT==2)then
   select case(iperiodic)
@@ -37,9 +42,19 @@ else if(iSCFRT==2)then
     end if
   case(3)
     if(mod(itt,2)==1)then
-      call Hartree_periodic(rho,Vh_stock2)
+      select case(iflag_hartree)
+      case(2)
+        call Hartree_periodic(rho,Vh_stock2)
+      case(4)
+        call Hartree_FFTE(rho,Vh_stock2)
+      end select
     else
-      call Hartree_periodic(rho,Vh_stock1)
+      select case(iflag_hartree)
+      case(2)
+        call Hartree_periodic(rho,Vh_stock1)
+      case(4)
+        call Hartree_FFTE(rho,Vh_stock1)
+      end select
     end if
   end select
 end if

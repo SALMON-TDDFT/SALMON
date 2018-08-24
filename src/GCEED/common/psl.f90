@@ -35,7 +35,12 @@ case(0)
   call calcuV
   call calcVpsl
 case(3)
-  call calcVpsl_periodic
+  select case(iflag_hartree)
+  case(2)
+    call calcVpsl_periodic
+  case(4)
+    call calcVpsl_periodic_FFTE
+  end select
   call calcJxyz_all_periodic
   call calcuV
 end select

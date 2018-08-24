@@ -15,7 +15,7 @@
 !
 MODULE allocate_mat_sub
 
-use inputoutput, only: iperiodic, iflag_hartree
+use inputoutput, only: iperiodic
 use scf_data
 implicit none
 

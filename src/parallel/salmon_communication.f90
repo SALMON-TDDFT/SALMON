@@ -45,6 +45,7 @@ module salmon_communication
   public :: comm_summation
   public :: comm_bcast
   public :: comm_allgatherv
+  public :: comm_alltoall
   public :: comm_get_min
   public :: comm_get_max
 
@@ -183,6 +184,11 @@ module salmon_communication
   interface comm_allgatherv
     ! 1-D array
     module procedure comm_allgatherv_array1d_double
+  end interface
+
+  interface comm_alltoall
+    ! 1-D array
+    module procedure comm_alltoall_array1d_complex
   end interface
 
   interface comm_get_min
@@ -975,6 +981,21 @@ contains
   end subroutine
 
 
+  subroutine comm_alltoall_array1d_complex(invalue, outvalue, ngroup, ncount)
+    use mpi, only: MPI_DOUBLE_COMPLEX
+    implicit none
+    complex(8), intent(in)  :: invalue(:)
+    complex(8), intent(out) :: outvalue(:)
+    integer, intent(in)  :: ngroup
+    integer, intent(in)  :: ncount
+    integer :: ierr
+    call MPI_Alltoall(invalue,  ncount,          MPI_DOUBLE_COMPLEX, &
+                      outvalue, ncount,          MPI_DOUBLE_COMPLEX, &
+                      ngroup, ierr)
+    call error_check(ierr)
+  end subroutine
+ 
+ 
   subroutine comm_get_min_array1d_double(invalue, outvalue, N, ngroup)
     use mpi, only: MPI_DOUBLE_PRECISION, MPI_MIN
     implicit none

@@ -50,6 +50,7 @@ module inputoutput
   integer :: inml_ewald
   integer :: inml_opt
   integer :: inml_md
+  integer :: inml_misc
   integer :: inml_group_fundamental
   integer :: inml_group_parallel
   integer :: inml_group_hartree
@@ -436,6 +437,9 @@ contains
       & friction, &
       & stop_system_momt
 
+    namelist/misc/ &
+      & fourier
+
     namelist/group_fundamental/ &
       & iditerybcg, &
       & iditer_nosubspace_diag, &
@@ -486,8 +490,7 @@ contains
       & itotntime2, &
       & iwdenoption, &
       & iwdenstep, &
-      & iflag_estatic, &
-      & iflag_hartree
+      & iflag_estatic
 
 
 !! == default for &unit ==
@@ -738,6 +741,8 @@ contains
     thermostat_tau        =  41.34d0  !=1fs: just test value
     friction              =  0d0
     stop_system_momt      = 'n'
+!! == default for &misc
+    fourier               = 'ft'
 !! == default for &group_fundamental
     iditerybcg             = 20
     iditer_nosubspace_diag = 10
@@ -786,7 +791,6 @@ contains
     iwdenoption                = 0
     iwdenstep                  = 0
     iflag_estatic              = 0
-    iflag_hartree              = 2
 
 
     if (comm_is_root(nproc_id_global)) then
@@ -845,6 +849,9 @@ contains
       rewind(fh_namelist)
 
       read(fh_namelist, nml=md, iostat=inml_md)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=misc, iostat=inml_misc)
       rewind(fh_namelist)
 
       read(fh_namelist, nml=group_fundamental, iostat=inml_group_fundamental)
@@ -1120,6 +1127,8 @@ contains
     thermostat_tau = thermostat_tau * utime_to_au
     call comm_bcast(friction               ,nproc_group_global)
     call comm_bcast(stop_system_momt       ,nproc_group_global)
+!! == bcast for &misc
+    call comm_bcast(fourier                ,nproc_group_global)
 !! == bcast for &group_fundamental
     call comm_bcast(iditerybcg            ,nproc_group_global)
     call comm_bcast(iditer_nosubspace_diag,nproc_group_global)
@@ -1171,7 +1180,6 @@ contains
     call comm_bcast(iwdenoption         ,nproc_group_global)
     call comm_bcast(iwdenstep           ,nproc_group_global)
     call comm_bcast(iflag_estatic       ,nproc_group_global)
-    call comm_bcast(iflag_hartree       ,nproc_group_global)
 
   end subroutine read_input_common
 
@@ -1697,6 +1705,10 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'thermostat_tau', thermostat_tau
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'friction', friction
       write(fh_variables_log, '("#",4X,A,"=",A)') 'stop_system_momt', stop_system_momt
+      
+      if(inml_misc >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'misc', inml_misc
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'fourier', fourier
 
       if(inml_group_fundamental >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_fundamental', inml_group_fundamental
@@ -1761,7 +1773,6 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I2)') 'iwdenoption', iwdenoption
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwdenstep', iwdenstep
       write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_estatic', iflag_estatic
-      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_hartree', iflag_hartree
 
 
       select case(iflag_atom_coor)
@@ -1832,6 +1843,16 @@ contains
          if(index(ae_shape1,'Acos')==0) call stop_by_bad_input2('t1_delay','ae_shape1')
       endif
     endif
+      
+    select case(fourier)
+    case('ft','FT','ffte','FFTE')
+      continue
+    case default
+      if (comm_is_root(nproc_id_global)) then
+        write(*,*) "keyword 'fourier' must be 'FT' or 'FFTE'"
+      end if
+      call end_parallel
+    end select
 
   end subroutine check_bad_input
 

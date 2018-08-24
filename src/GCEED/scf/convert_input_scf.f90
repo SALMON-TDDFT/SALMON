@@ -323,6 +323,13 @@ end if
 nproc_Mxin_mul=nproc_Mxin(1)*nproc_Mxin(2)*nproc_Mxin(3)
 nproc_Mxin_mul_s_dm=nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)*nproc_Mxin_s_dm(3)
 
+select case(fourier)
+case('ft','FT')
+  iflag_hartree=2
+case('ffte','FFTE')
+  iflag_hartree=4
+end select
+
 call make_new_world
 
 if(comm_is_root(nproc_id_global))close(fh_namelist)
