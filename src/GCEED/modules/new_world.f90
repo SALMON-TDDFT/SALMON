@@ -661,11 +661,13 @@ call comm_get_groupinfo(nproc_group_korbital_vhxc, nproc_id_korbital_vhxc, nproc
  
   if(icheck_ascorder_tmp2/=nproc_size_global) icheck_ascorder=0
 
-  if(nproc_id_global==0)then
-    if(icheck_ascorder==0)then
-      write(*,*) "Ranks are NOT in ascending order. Allreduce is done in FFTE routine."
-    else if(icheck_ascorder==1)then
-      write(*,*) "Ranks are in ascending order. Allreduce is skipped in FFTE routine."
+  if(iperiodic==3.and.iflag_hartree==4)then
+    if(nproc_id_global==0)then
+      if(icheck_ascorder==0)then
+        write(*,*) "Ranks are NOT in ascending order. Allreduce is done in FFTE routine."
+      else if(icheck_ascorder==1)then
+        write(*,*) "Ranks are in ascending order. Allreduce is skipped in FFTE routine."
+      end if
     end if
   end if
 
