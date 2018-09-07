@@ -55,13 +55,13 @@ do iob=1,iobmax
     fk=2.d0*out_dos_smearing/pi
     do iw=1,iout_dos_nenergy 
       ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,iik)  
-      dos_l_tmp(iw)=dos_l_tmp(iw)+fk/(ww**2+out_dos_smearing**2) 
+      dos_l_tmp(iw)=dos_l_tmp(iw)+wtk(iik)*fk/(ww**2+out_dos_smearing**2) 
     end do 
   case('gaussian')
     fk=2.d0/(sqrt(2.d0*pi)*out_dos_smearing)
     do iw=1,iout_dos_nenergy 
       ww=out_dos_start+dble(iw-1)*dw+eshift-esp(iob_allob,iik)  
-      dos_l_tmp(iw)=dos_l_tmp(iw)+fk*exp(-(0.5d0/out_dos_smearing**2)*ww**2) 
+      dos_l_tmp(iw)=dos_l_tmp(iw)+wtk(iik)*fk*exp(-(0.5d0/out_dos_smearing**2)*ww**2) 
     end do
   end select
 end do
@@ -80,7 +80,7 @@ if(comm_is_root(nproc_id_global))then
   write(101,'("#-----------------------")') 
   do iw=1,iout_dos_nenergy 
     ww=out_dos_start+dble(iw-1)*dw+eshift
-    write(101,'(f10.5,f14.8)') ww*uenergy_from_au, dos_l(iw)/uenergy_from_au
+    write(101,'(F16.8,99(1X,E23.15E3))') ww*uenergy_from_au, dos_l(iw)/uenergy_from_au
   end do
   close(101)
 end if
