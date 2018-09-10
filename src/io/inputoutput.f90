@@ -1815,7 +1815,7 @@ contains
     !! Add wrong input keyword or wrong/unavailable input combinations here
     !! (now only a few)
 
-    if(iperiodic==0) then
+    if(iperiodic==0.or.(iperiodic==3.and.domain_parallel=='y')) then
       select case(convergence)
       case('rho_dne')
         continue
@@ -1834,10 +1834,13 @@ contains
           call end_parallel
         end if
       case default
-        call stop_by_bad_input2('iperiodic','convergence')
+        if (comm_is_root(nproc_id_global)) then
+          write(*,*) 'check a keyword of convergence.'
+        endif
+        call end_parallel
       end select
 
-    else if(iperiodic==3) then
+    else if(iperiodic==3.and.domain_parallel=='n') then
       if(convergence.ne.'rho_dne') call stop_by_bad_input2('iperiodic','convergence')
       if(abs(t1_delay).ge.1d-10)then
          if(index(ae_shape1,'Acos')==0) call stop_by_bad_input2('t1_delay','ae_shape1')
