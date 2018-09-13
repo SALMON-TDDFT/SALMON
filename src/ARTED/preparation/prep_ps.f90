@@ -49,32 +49,7 @@ Subroutine prep_ps_periodic(property)
 
     allocate(lma_tbl((Lmax+1)**2,NI))
 
-!$omp parallel
-!$omp do private(ik,n,G2sq,s,r,dr,i,vloc_av) collapse(2)
-    do ik=1,NE
-       do n=NG_s,NG_e
-          G2sq=sqrt(Gx(n)**2+Gy(n)**2+Gz(n)**2)
-          s=0.d0
-          if (n == nGzero) then
-             do i=2,NRloc(ik)
-                 r=0.5d0*(rad(i,ik)+rad(i-1,ik))
-                dr=rad(i,ik)-rad(i-1,ik)
-                vloc_av = 0.5d0*(vloctbl(i,ik)+vloctbl(i-1,ik))
-                s=s+4d0*Pi*(r**2*vloc_av+r*Zps(ik))*dr
-             enddo
-          else
-             do i=2,NRloc(ik)
-                 r=0.5d0*(rad(i,ik)+rad(i-1,ik))
-                dr=rad(i,ik)-rad(i-1,ik)
-                vloc_av = 0.5d0*(vloctbl(i,ik)+vloctbl(i-1,ik))
-                s=s+4d0*Pi*sin(G2sq*r)/G2sq*(r*vloc_av+Zps(ik))*dr !Vloc - coulomb
-             enddo
-          endif
-          dVloc_G(n,ik)=s
-       enddo
-    enddo
-!$omp end do
-!$omp end parallel
+    call calc_vloc(pp,dVloc_G,Gx,Gy,Gz,NG,NG_s,NG_e,ngzero)
 
     !(this save is used only for opt and md options)
     save_dVloc_G(:,:)=dVloc_G(:,:)
@@ -99,61 +74,9 @@ Subroutine prep_ps_periodic(property)
     endif
   endif
 
-
-  !(Local pseudopotential: Vlocal in G-space(=Vion_G))
-  Vion_G_ia=0.d0
- !Vion_G   =0.d0
-  rhoion_G =0.d0
-!$omp parallel private(a,ik)
-  do a=1,NI
-    ik=Kion(a)
-!$omp do private(n,G2,Gd,tmp_exp)
-    do n=NG_s,NG_e
-      Gd=Gx(n)*Rion(1,a)+Gy(n)*Rion(2,a)+Gz(n)*Rion(3,a)
-      tmp_exp = exp(-zI*Gd)/aLxyz
-     !Vion_G(n)     = Vion_G(n)      + dVloc_G(n,ik)*tmp_exp
-      Vion_G_ia(n,a)= Vion_G_ia(n,a) + dVloc_G(n,ik)*tmp_exp
-      rhoion_G(n)   = rhoion_G(n) + Zps(ik)*tmp_exp
-      if(n == nGzero) cycle
-      !(add coulomb as dVloc_G is given by Vloc - coulomb)
-      G2=Gx(n)**2+Gy(n)**2+Gz(n)**2
-     !Vion_G(n)     = Vion_G(n)      -4d0*Pi/G2*Zps(ik)*tmp_exp
-      Vion_G_ia(n,a)= Vion_G_ia(n,a) -4d0*Pi/G2*Zps(ik)*tmp_exp
-    enddo
-!$omp end do
-  enddo
-!$omp end parallel
-
-
-  !(Local pseudopotential: Vlocal(=Vpsl) in real-space)
-  Vpsl_ia_l=0.d0
- !Vpsl_l   =0.d0
-!$omp parallel private(n)
-  do n=NG_s,NG_e
-!$omp do private(i,Gr,a,tmp_exp)
-     do i=1,NL
-        Gr = Gx(n)*Lx(i)*Hx+Gy(n)*Ly(i)*Hy+Gz(n)*Lz(i)*Hz
-        tmp_exp = exp(zI*Gr)
-       !Vpsl_l(i) = Vpsl_l(i) + Vion_G(n)*tmp_exp
-        do a=1,NI
-           Vpsl_ia_l(i,a)= Vpsl_ia_l(i,a)+ Vion_G_ia(n,a)*tmp_exp
-        enddo
-     enddo
-!$omp end do
-  enddo
-!$omp end parallel
-
- !call comm_summation(Vpsl_l,Vpsl,NL,nproc_group_tdks)
-  call comm_summation(Vpsl_ia_l,Vpsl_ia,NL*NI,nproc_group_tdks)
-
-!$omp parallel
-!$omp do private(i)
-  do i=1,NL
-     Vpsl(i) = sum(Vpsl_ia(i,:))
-  enddo
-!$omp end do
-!$omp end parallel
-
+  call calc_vpsl(pp,rhoion_G,Vpsl_ia,Vpsl,  &
+                 dVloc_G,nGzero,Gx,Gy,Gz,NG,NG_s,NG_e,NL,aLxyz,Lx,Ly,Lz,Hx,Hy,Hz)
+ 
   !(Non-Local pseudopotential)
   if(property /= 'update_wo_realloc') then
 

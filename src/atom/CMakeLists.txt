@@ -1,6 +1,7 @@
 set(SOURCES
     input_pp.f90
     salmon_pp.f90
+    prep_pp.f90
    )
 
 add_library(${SALMON_ATOM_LIB} STATIC ${SOURCES})
