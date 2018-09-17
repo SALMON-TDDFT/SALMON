@@ -44,6 +44,7 @@ contains
     use timer
     use salmon_math
     use projector
+    use opt_variables, only: NUMBER_THREADS_POW2
     implicit none
     logical,intent(in)       :: Rion_update
     integer,intent(in)       :: zu_NB
@@ -61,9 +62,10 @@ contains
     complex(8), allocatable :: dzudr(:,:,:,:)
 
     integer :: tid
-    real(8) :: ftmp_t(3,NI,0:NUMBER_THREADS-1)
+    real(8) :: ftmp_t(3,NI,0:NUMBER_THREADS_POW2-1)
 
     allocate(dzudr(3,NL,zu_NB,NK_s:NK_e))
+    ftmp_t(:,:,:) = 0.d0
 
 
     !flag_use_grad_wf_on_force is given in Gloval_Variable
