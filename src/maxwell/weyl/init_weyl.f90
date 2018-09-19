@@ -17,8 +17,8 @@
 subroutine init_weyl(grid,field,tmp)
   use salmon_maxwell, only:fdtd_grid,fdtd_field,fdtd_tmp
   implicit none
-  type(fdtd_grid), intent(in)  :: grid
-  type(fdtd_field), intent(in) :: field
-  type(fdtd_tmp), intent(in)   :: tmp
+  type(fdtd_grid),  :: grid
+  type(fdtd_field), :: field
+  type(fdtd_tmp),   :: tmp
   
 end subroutine init_weyl
