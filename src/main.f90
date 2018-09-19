@@ -14,20 +14,27 @@ program main
 
   call read_input
 
-  select case(iperiodic)
-  case(0)
-    call gceed
-  case(3)
-    select case(domain_parallel)
-    case('y')
+  select case(theory)
+  case('TDDFT')
+    select case(iperiodic)
+    case(0)
       call gceed
-    case('n')
-      call arted
+    case(3)
+      select case(domain_parallel)
+      case('y')
+        call gceed
+      case('n')
+        call arted
+      case default
+        stop 'invalid domain_parallel'
+      end select
     case default
-      stop 'invalid domain_parallel'
+      stop 'invalid iperiodic'
     end select
+  case('Maxwell')
+    call classic_em
   case default
-    stop 'invalid iperiodic'
+    stop 'invalid theory'
   end select
 
   call end_parallel

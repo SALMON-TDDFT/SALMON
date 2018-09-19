@@ -208,6 +208,7 @@ contains
     real(8) :: norm
 
     namelist/calculation/ &
+      & theory, &
       & calc_mode, &
       & use_ehrenfest_md, &
       & use_adiabatic_md, &
@@ -529,6 +530,7 @@ contains
     call initialize_inputoutput_units
 
 !! == default for &calculation 
+    theory           = 'TDDFT'
     calc_mode        = 'none'
     use_ehrenfest_md = 'n'
     use_adiabatic_md = 'n'
@@ -874,6 +876,7 @@ contains
 
 ! Broad cast
 !! == bcast for &calculation
+    call comm_bcast(theory          ,nproc_group_global)
     call comm_bcast(calc_mode       ,nproc_group_global)
     call comm_bcast(use_ehrenfest_md,nproc_group_global)
     call comm_bcast(use_adiabatic_md,nproc_group_global)
@@ -1429,6 +1432,7 @@ contains
 
       if(inml_calculation >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'calculation', inml_calculation
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'theory', theory
       write(fh_variables_log, '("#",4X,A,"=",A)') 'calc_mode', calc_mode
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_ehrenfest_md', use_ehrenfest_md
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_adiabatic_md', use_adiabatic_md

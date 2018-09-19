@@ -59,6 +59,14 @@ Default is <code>'n'</code>.
 >Default is <code>'n'</code>.
 ></dd>
 
+><dt>theory; <code>Character</code>; 0d/3d</dt>
+><dd>
+>Choice of Calculation theories.
+><code>'TDDFT'</code>, <code>'Maxwell+TDDFT'</code>,
+>and <code>'Maxwell'</code>, can be chosen.
+>Default is <code>'TDDFT'</code>.
+></dd>
+
 </dl>
 
 ## &control
