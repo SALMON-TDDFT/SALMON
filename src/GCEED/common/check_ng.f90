@@ -18,7 +18,7 @@ subroutine check_ng
   use scf_data
   implicit none
 
-  if(ng_num(1)<Ndh.or.ng_num(2)<Ndh.or.ng_num(3)<Ndh)then
+  if(iperiodic==0.and.(ng_num(1)<Ndh.or.ng_num(2)<Ndh.or.ng_num(3)<Ndh))then
     stop "A system is small. Please use less number of processors."
   end if
 

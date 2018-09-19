@@ -20,6 +20,7 @@
 - [&ewald](#ewald)
 >- [&opt](#opt)
 >- [&md](#md)
+- [&misc](#misc)
 
 ## &calculation
 <dl>
@@ -1207,6 +1208,18 @@ Default is <code>0.5</code>.
 ></dd>
 >
 ></dl>
+
+## &misc
+<dl>
+<dt>fourier; <code>Character</code>
+<dd>
+Method of Fourier transformation.  <code>'FT'</code> or <code>'FFTE'</code> can be chosen.
+This variable is effective only when <code>domain_parallel='y'</code> and <code>&system/iperiodic=3</code>.
+</dd>
+
+
+</dl>
+
 
 >***
 

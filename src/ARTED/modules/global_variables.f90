@@ -78,7 +78,7 @@ Module Global_Variables
 ! physical quantities
   real(8) :: Eall,Eall0,Eall_GS0,jav(3),jav_ion(3),Tion
   real(8) :: Ekin,Eloc,Enl,Eh,Exc,Eion,Eelemag                      
-  real(8),allocatable :: javt(:,:)
+  real(8),allocatable :: javt(:,:), javt_ion(:,:)
   real(8),allocatable :: Vpsl(:),Vpsl_ia(:,:),Vh(:),Vexc(:),Eexc(:),Vloc(:),Vloc_GS(:),Vloc_t(:)!yabana
   real(8),allocatable :: Eall_t(:),Tion_t(:),Temperature_ion_t(:),Ework_integ_fdR(:)
   real(8),allocatable :: Enh_t(:),Hnvt_t(:)

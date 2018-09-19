@@ -171,6 +171,13 @@ case('lo')
   iflag_indA=1
 end select
 
+select case(fourier)
+case('ft','FT')
+  iflag_hartree=2
+case('ffte','FFTE')
+  iflag_hartree=4
+end select
+
 if(comm_is_root(nproc_id_global))close(fh_namelist)
 
 end subroutine convert_input_rt

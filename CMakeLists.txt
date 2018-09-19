@@ -194,6 +194,7 @@ set(SALMON_XC_LIB        "xc_rtl")
 set(SALMON_POISSON_LIB   "poisson_rtl")
 set(SALMON_MAXWELL_LIB   "maxwell_rtl")
 set(SALMON_COMMON_LIB    "common_rtl")
+set(SALMON_EXT_LIB       "ext_rtl")
 set(SALMON_MISC_LIB      "misc_rtl")
 
 set(SALMON_SRC_DIR ${CMAKE_SOURCE_DIR}/src)

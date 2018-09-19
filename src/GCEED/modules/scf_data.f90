@@ -417,7 +417,7 @@ integer :: ik_oddeven
 
 ! variables for FFTE routine
 integer,dimension(3) :: LNPU
-integer :: NPUZ,NPUY
+integer :: NPUZ,NPUY,NPUW
 
 real(8) :: absorption(0:100000)
 real(8) :: absorption_d(0:100000)
@@ -429,6 +429,8 @@ integer :: iflag_pdos
 integer :: iflag_ELF
 
 integer :: iflag_indA
+
+integer :: iflag_hartree
 
 real(8),allocatable :: vonf_sd(:,:,:),eonf_sd(:,:,:,:)
 

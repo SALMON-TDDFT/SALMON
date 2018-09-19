@@ -71,6 +71,22 @@ module salmon_parallel
   integer, public :: nproc_id_bound(3)
   integer, public :: nproc_size_bound(3)
 
+  ! FFTE
+  integer, public :: nproc_group_icommy
+  integer, public :: nproc_id_icommy
+  integer, public :: nproc_size_icommy
+
+  integer, public :: nproc_group_icommz
+  integer, public :: nproc_id_icommz
+  integer, public :: nproc_size_icommz
+
+  integer, public :: nproc_group_icommw
+  integer, public :: nproc_id_icommw
+  integer, public :: nproc_size_icommw
+
+  integer, public :: nproc_group_icommy_copy
+  integer, public :: nproc_id_icommy_copy
+  integer, public :: nproc_size_icommy_copy
 
   ! call once
   public :: setup_parallel

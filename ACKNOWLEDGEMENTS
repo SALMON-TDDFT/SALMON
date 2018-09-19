@@ -1,0 +1,7 @@
+Acknowledgements
+
+- We support the GPU acceleration with OpenACC platform in parts of simulation.
+  Thanks to Mr. Akira Naruse (NVIDIA Corporation)
+
+- We use the FFTE (http://www.ffte.jp/) package with partially modification.
+  Thanks to Prof. Daisuke Takahashi (University of Tsukuba)

@@ -16,6 +16,8 @@
 module opt_variables
   implicit none
 
+  integer :: NUMBER_THREADS_POW2
+
   real(8) :: lapt(12)
 
   integer                :: PNLx,PNLy,PNLz,PNL
@@ -90,8 +92,9 @@ contains
         call err_finalize('functional: TPSS/VS98 versions not implemented.')
     end select
 
+    NUMBER_THREADS_POW2 = ceiling_pow2(NUMBER_THREADS)
 #ifdef ARTED_REDUCE_FOR_MANYCORE
-    tid_range = ceiling_pow2(NUMBER_THREADS) - 1
+    tid_range = NUMBER_THREADS_POW2 - 1
 #else
     tid_range = 0
 #endif

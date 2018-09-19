@@ -459,9 +459,12 @@ contains
     allocate(javt(0:Nt+1,3))
     allocate(Eall_t(0:Nt+1),Tion_t(0:Nt+1),Temperature_ion_t(0:Nt+1),Ework_integ_fdR(-1:Nt+1))
     Eall_t = 0d0; Tion_t = 0d0; Temperature_ion_t = 0d0; Ework_integ_fdR = 0d0
-    if(use_ehrenfest_md=='y'.and.ensemble=="NVT".and.thermostat=="nose-hoover")then
-       allocate(Enh_t(0:Nt+1),Hnvt_t(0:Nt+1))
-       Enh_t=0d0;  Hnvt_t=0d0
+    if(use_ehrenfest_md=='y') then
+       allocate(javt_ion(0:Nt+1,3))
+       if(ensemble=="NVT".and.thermostat=="nose-hoover")then
+          allocate(Enh_t(0:Nt+1),Hnvt_t(0:Nt+1))
+          Enh_t=0d0;  Hnvt_t=0d0
+       endif
     endif
     allocate(Ac_ext(-1:Nt+1,3),Ac_ind(-1:Nt+1,3),Ac_tot(-1:Nt+1,3))
     allocate(E_ext(0:Nt,3),E_ind(0:Nt,3),E_tot(0:Nt,3))

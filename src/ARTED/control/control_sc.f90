@@ -74,6 +74,11 @@ subroutine tddft_sc
   call current0(zu_t)
   javt(0,:)=jav(:)
 
+  if(use_ehrenfest_md=='y') then
+     call current_RT_ion
+     javt_ion(0,:)=jav_ion(:)  
+  endif
+
   Vloc_old(:,1) = Vloc(:); Vloc_old(:,2) = Vloc(:)
 
   rho_gs(:)=rho(:)
@@ -205,6 +210,8 @@ subroutine tddft_sc
 
     javt(iter+1,:)=jav(:)
     if (use_ehrenfest_md == 'y') then
+      call current_RT_ion
+      javt_ion(iter+1,:)=jav_ion(:)
 !$acc update self(zu_t)
       aforce(:,:) = force(:,:)
       call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
@@ -489,8 +496,12 @@ contains
       write(fh_rt, '("#",1X,A,":",1X,A)') "E_ext", "External electric field"
       write(fh_rt, '("#",1X,A,":",1X,A)') "Ac_tot", "Total vector potential field"
       write(fh_rt, '("#",1X,A,":",1X,A)') "E_tot", "Total electric field"
-      write(fh_rt, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
-
+      if(use_ehrenfest_md=='y') then
+        write(fh_rt, '("#",1X,A,":",1X,A)') "Jm", "Matter current density(electrons)"
+        write(fh_rt, '("#",1X,A,":",1X,A)') "Jmi","Matter current density(ions)"
+      else
+        write(fh_rt, '("#",1X,A,":",1X,A)') "Jm", "Matter current density"
+      endif
       write(fh_rt, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
         & 1, "Time", trim(t_unit_time%name), &
         & 2, "Ac_ext_x", trim(t_unit_ac%name), &
@@ -508,6 +519,12 @@ contains
         & 14, "Jm_x", trim(t_unit_current%name), &
         & 15, "Jm_y", trim(t_unit_current%name), &
         & 16, "Jm_z", trim(t_unit_current%name)
+      if(use_ehrenfest_md=='y') then
+      write(fh_rt, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
+        & 17, "Jmi_x", trim(t_unit_current%name), &
+        & 18, "Jmi_y", trim(t_unit_current%name), &
+        & 19, "Jmi_z", trim(t_unit_current%name)
+      endif
 
       write(fh_rt,*)
 
@@ -518,20 +535,10 @@ contains
           & E_ext(iiter, 1:3) * t_unit_elec%conv, &
           & Ac_tot(iiter, 1:3) * t_unit_ac%conv, &
           & E_tot(iiter, 1:3) * t_unit_elec%conv, &
-          & javt(iiter, 1:3) * t_unit_current%conv, &
-          & Eall_t(iiter) * t_unit_energy%conv, &
-          & (Eall_t(iiter) - Eall0) * t_unit_energy%conv
+          & javt(iiter, 1:3) * t_unit_current%conv
         if(use_ehrenfest_md=='y') then
         write(fh_rt, "(99(1X,E23.15E3))",advance='no') &
-          & Tion_t(iiter) * t_unit_energy%conv, &
-          & Temperature_ion_t(iiter), &
-          & Ework_integ_fdR(iiter) * t_unit_energy%conv
-        if(ensemble=="NVT".and.thermostat=="nose-hoover")then
-        write(fh_rt, "(99(1X,E23.15E3))",advance='no') &
-          & Enh_t(iiter) * t_unit_energy%conv, &
-          & Hnvt_t(iiter) * t_unit_energy%conv, &
-          & (Tion_t(iiter)+Ework_integ_fdR(iiter)+Enh_t(iiter)) * t_unit_energy%conv
-        endif
+          & javt_ion(iiter, 1:3) * t_unit_current%conv
         endif
         write(fh_rt,*)
       end do

@@ -187,6 +187,10 @@ if(comm_is_root(nproc_id_global))then
   end if
 end if
 
+if(iperiodic==3)then
+  call prep_poisson_fft
+end if
+
 call read_pslfile
 call allocate_psl
 call init_ps

@@ -50,6 +50,7 @@ module inputoutput
   integer :: inml_ewald
   integer :: inml_opt
   integer :: inml_md
+  integer :: inml_misc
   integer :: inml_group_fundamental
   integer :: inml_group_parallel
   integer :: inml_group_hartree
@@ -436,6 +437,9 @@ contains
       & friction, &
       & stop_system_momt
 
+    namelist/misc/ &
+      & fourier
+
     namelist/group_fundamental/ &
       & iditerybcg, &
       & iditer_nosubspace_diag, &
@@ -486,8 +490,7 @@ contains
       & itotntime2, &
       & iwdenoption, &
       & iwdenstep, &
-      & iflag_estatic, &
-      & iflag_hartree
+      & iflag_estatic
 
 
 !! == default for &unit ==
@@ -738,6 +741,8 @@ contains
     thermostat_tau        =  41.34d0  !=1fs: just test value
     friction              =  0d0
     stop_system_momt      = 'n'
+!! == default for &misc
+    fourier               = 'ft'
 !! == default for &group_fundamental
     iditerybcg             = 20
     iditer_nosubspace_diag = 10
@@ -786,7 +791,6 @@ contains
     iwdenoption                = 0
     iwdenstep                  = 0
     iflag_estatic              = 0
-    iflag_hartree              = 2
 
 
     if (comm_is_root(nproc_id_global)) then
@@ -845,6 +849,9 @@ contains
       rewind(fh_namelist)
 
       read(fh_namelist, nml=md, iostat=inml_md)
+      rewind(fh_namelist)
+
+      read(fh_namelist, nml=misc, iostat=inml_misc)
       rewind(fh_namelist)
 
       read(fh_namelist, nml=group_fundamental, iostat=inml_group_fundamental)
@@ -1120,6 +1127,8 @@ contains
     thermostat_tau = thermostat_tau * utime_to_au
     call comm_bcast(friction               ,nproc_group_global)
     call comm_bcast(stop_system_momt       ,nproc_group_global)
+!! == bcast for &misc
+    call comm_bcast(fourier                ,nproc_group_global)
 !! == bcast for &group_fundamental
     call comm_bcast(iditerybcg            ,nproc_group_global)
     call comm_bcast(iditer_nosubspace_diag,nproc_group_global)
@@ -1171,13 +1180,13 @@ contains
     call comm_bcast(iwdenoption         ,nproc_group_global)
     call comm_bcast(iwdenstep           ,nproc_group_global)
     call comm_bcast(iflag_estatic       ,nproc_group_global)
-    call comm_bcast(iflag_hartree       ,nproc_group_global)
 
   end subroutine read_input_common
 
   subroutine read_atomic_coordinates
     use salmon_parallel
     use salmon_communication
+    use salmon_file, only: get_filehandle
     character(256) :: filename_tmp,char_atom
     integer :: icount,i
     logical :: if_error, if_cartesian
@@ -1225,7 +1234,7 @@ contains
     call comm_bcast(if_cartesian,nproc_group_global)
     call comm_bcast(iflag_atom_coor,nproc_group_global)
 
-    if(icount/=1)then
+    if(0 < natom .and. icount/=1)then
        if (comm_is_root(nproc_id_global))then
          write(*,"(A)")'Error in input: The following inputs are incompatible.'
          write(*,"(A)")'file_atom_coor, file_atom_red_coor, &atomic_coor, and &atomic_red_coor.'
@@ -1248,38 +1257,44 @@ contains
     rion_red = 0d0
     kion = 0
     flag_geo_opt_atom = 'n'
+    
+    if (0 < natom) then
+      
+      if (comm_is_root(nproc_id_global))then
+        fh_atomic_coor = get_filehandle()
+        open(fh_atomic_coor, file=filename_tmp, status='old')
+        select case(iflag_atom_coor)
+        case(ntype_atom_coor_cartesian)
+           do i=1, natom
+              if(use_geometry_opt == 'y')then
+                 read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i), flag_geo_opt_atom(i)
+              else
+                 read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i)
+              end if
+              atom_name(i) = char_atom
+           end do
+           rion = rion*ulength_to_au
+        case(ntype_atom_coor_reduced)
+           do i=1, natom
+              if(use_geometry_opt == 'y')then
+                 read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i), flag_geo_opt_atom(i)
+              else
+                 read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i)
+              end if
+              atom_name(i) = char_atom
+           end do
+        end select
+        close(fh_atomic_coor)
+        
+      end if
 
-    if (comm_is_root(nproc_id_global))then
-      open(fh_atomic_coor, file=filename_tmp, status='old')
-      select case(iflag_atom_coor)
-      case(ntype_atom_coor_cartesian)
-         do i=1, natom
-            if(use_geometry_opt == 'y')then
-               read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i), flag_geo_opt_atom(i)
-            else
-               read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i)
-            end if
-            atom_name(i) = char_atom
-         end do
-         rion = rion*ulength_to_au
-      case(ntype_atom_coor_reduced)
-         do i=1, natom
-            if(use_geometry_opt == 'y')then
-               read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i), flag_geo_opt_atom(i)
-            else
-               read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i)
-            end if
-            atom_name(i) = char_atom
-         end do
-      end select
-      close(fh_atomic_coor)
-    end if
+      call comm_bcast(rion,nproc_group_global)
+      call comm_bcast(rion_red,nproc_group_global)
+      call comm_bcast(kion,nproc_group_global)
+      call comm_bcast(flag_geo_opt_atom,nproc_group_global)
+      call comm_bcast(atom_name,nproc_group_global)
+    end if ! if 0 < natom
 
-    call comm_bcast(rion,nproc_group_global)
-    call comm_bcast(rion_red,nproc_group_global)
-    call comm_bcast(kion,nproc_group_global)
-    call comm_bcast(flag_geo_opt_atom,nproc_group_global)
-    call comm_bcast(atom_name,nproc_group_global)
 
   end subroutine read_atomic_coordinates
 
@@ -1697,6 +1712,10 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'thermostat_tau', thermostat_tau
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'friction', friction
       write(fh_variables_log, '("#",4X,A,"=",A)') 'stop_system_momt', stop_system_momt
+      
+      if(inml_misc >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'misc', inml_misc
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'fourier', fourier
 
       if(inml_group_fundamental >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'group_fundamental', inml_group_fundamental
@@ -1761,7 +1780,6 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I2)') 'iwdenoption', iwdenoption
       write(fh_variables_log, '("#",4X,A,"=",I6)') 'iwdenstep', iwdenstep
       write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_estatic', iflag_estatic
-      write(fh_variables_log, '("#",4X,A,"=",I2)') 'iflag_hartree', iflag_hartree
 
 
       select case(iflag_atom_coor)
@@ -1804,7 +1822,7 @@ contains
     !! Add wrong input keyword or wrong/unavailable input combinations here
     !! (now only a few)
 
-    if(iperiodic==0) then
+    if(iperiodic==0.or.(iperiodic==3.and.domain_parallel=='y')) then
       select case(convergence)
       case('rho_dne')
         continue
@@ -1823,27 +1841,45 @@ contains
           call end_parallel
         end if
       case default
-        call stop_by_bad_input2('iperiodic','convergence')
+        if (comm_is_root(nproc_id_global)) then
+          write(*,*) 'check a keyword of convergence.'
+        endif
+        call end_parallel
       end select
 
-    else if(iperiodic==3) then
+    else if(iperiodic==3.and.domain_parallel=='n') then
       if(convergence.ne.'rho_dne') call stop_by_bad_input2('iperiodic','convergence')
       if(abs(t1_delay).ge.1d-10)then
          if(index(ae_shape1,'Acos')==0) call stop_by_bad_input2('t1_delay','ae_shape1')
       endif
     endif
+      
+    select case(fourier)
+    case('ft','FT','ffte','FFTE')
+      continue
+    case default
+      if (comm_is_root(nproc_id_global)) then
+        write(*,*) "keyword 'fourier' must be 'FT' or 'FFTE'"
+      end if
+      call end_parallel
+    end select
 
   end subroutine check_bad_input
 
-  subroutine stop_by_bad_input2(inp1,inp2)
+  subroutine stop_by_bad_input2(inp1,inp2,inp3)
     use salmon_parallel
     use salmon_communication
     implicit none
     character(*) :: inp1
     character(*) :: inp2
+    character(*),optional :: inp3
     if (comm_is_root(nproc_id_global)) then
       write(*,*) ' Bad input combination: '
-      write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2)
+      if(present(inp3))then
+        write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2),' and ',trim(inp3)
+      else
+        write(*,*) ' check keywords of ',trim(inp1),' and ',trim(inp2)
+      end if
     endif
     call end_parallel
     stop

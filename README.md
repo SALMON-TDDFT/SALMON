@@ -3,16 +3,16 @@
 SALMON is an open-source software based on first-principles time-dependent density functional theory
 to describe optical responses and electron dynamics in matters induced by light electromagnetic fields.
 
-SALMON has been developed in such a way that it runs optimally in the following supercomputer platforms:
+SALMON has been tested and optimized to run in the following supercomputer platforms:
 
 - K-computer
 - Fujitsu FX100 supercomputer system
+- Linux PC Cluster with Intel Xeon Phi (Knights Landing architecture)
 - Linux PC Cluster with x86-64 CPU
-- Linux PC Cluster with Intel Xeon Phi processor
 
 For more information, please visit our website.
 
-http://salmon-tddft.jp/wiki/
+http://salmon-tddft.jp/
 
 ## License
 

@@ -112,6 +112,8 @@ contains
 
 
     subroutine setup_xcfunc(name)
+      use salmon_global, only: iperiodic, domain_parallel
+      use inputoutput, only: stop_by_bad_input2
       implicit none
       character(*), intent(in) :: name
 
@@ -126,7 +128,10 @@ contains
 
       select case(lower(name))
       case('none')
-        ! xc%xctype(1) = salmon_xctype_none ! default
+
+        print '(A, A)', "Error! Exchange functional is not specified!"
+        stop
+
         return
       
       case ('pz')
@@ -134,15 +139,33 @@ contains
         return
 
       case ('pzm')
+        if(iperiodic==0) then
+          call stop_by_bad_input2('iperiodic=0','xc=pzm')
+        else if(domain_parallel=='y')then
+          call stop_by_bad_input2('iperiodic=3','domain_parallel=y','xc=pzm')
+        end if
+
         xc%xctype(1) = salmon_xctype_pzm
         return
 
       case ('pbe')
+        if(iperiodic==0) then
+          call stop_by_bad_input2('iperiodic=0','xc=pbe')
+        else if(domain_parallel=='y')then
+          call stop_by_bad_input2('iperiodic=3','domain_parallel=y','xc=pbe')
+        end if
+
         xc%xctype(1) = salmon_xctype_pbe
         xc%use_gradient = .true.
         return
 
       case ('tbmbj')
+        if(iperiodic==0) then
+          call stop_by_bad_input2('iperiodic=0','xc=tbmbj')
+        else if(domain_parallel=='y')then
+          call stop_by_bad_input2('iperiodic=3','domain_parallel=y','xc=tbmbj')
+        end if
+
         xc%xctype(1) = salmon_xctype_tbmbj
         xc%use_gradient = .true.
         xc%use_laplacian = .true.
@@ -151,6 +174,12 @@ contains
         return
 
       case ('bj_pw')
+        if(iperiodic==0) then
+          call stop_by_bad_input2('iperiodic=0','xc=bj_pw')
+        else if(domain_parallel=='y')then
+          call stop_by_bad_input2('iperiodic=3','domain_parallel=y','xc=bj_pw')
+        end if
+
         xc%xctype(1) = salmon_xctype_tbmbj; xc%cval = 1d0
         xc%use_gradient = .true.
         xc%use_laplacian = .true.
@@ -159,6 +188,12 @@ contains
         return
 
       case ('tpss')
+        if(iperiodic==0) then
+          call stop_by_bad_input2('iperiodic=0','xc=tpss')
+        else if(domain_parallel=='y')then
+          call stop_by_bad_input2('iperiodic=3','domain_parallel=y','xc=tpss')
+        end if
+
         xc%xctype(1) = salmon_xctype_tpss
         xc%use_gradient = .true.
         xc%use_laplacian = .true.
@@ -167,6 +202,12 @@ contains
         return
 
       case ('vs98')
+        if(iperiodic==0) then
+          call stop_by_bad_input2('iperiodic=0','xc=vs98')
+        else if(domain_parallel=='y')then
+          call stop_by_bad_input2('iperiodic=3','domain_parallel=y','xc=vs98')
+        end if
+
         xc%xctype(1) = salmon_xctype_vs98
         xc%use_gradient = .true.
         xc%use_laplacian = .true.
