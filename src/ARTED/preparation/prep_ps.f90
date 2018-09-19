@@ -85,33 +85,7 @@ Subroutine prep_ps_periodic(property)
     write(*,*) '============nonlocal grid data=============='
   endif
 
-!$omp parallel
-!$omp do private(a,ik,j,i,ix,iy,iz,x,y,z,r,tmpx,tmpy,tmpz)
-  do a=1,NI
-     ik=Kion(a)
-     j=0
-     do ix=-2,2
-     do iy=-2,2
-     do iz=-2,2
-        tmpx = Rion(1,a)+ix*aLx
-        tmpy = Rion(2,a)+iy*aLy
-        tmpz = Rion(3,a)+iz*aLz
-        do i=1,NL
-           x=Lx(i)*Hx-tmpx
-           y=Ly(i)*Hy-tmpy
-           z=Lz(i)*Hz-tmpz
-           r=sqrt(x*x+y*y+z*z)
-           if (r<Rps(ik)) j=j+1
-        enddo
-     enddo
-     enddo
-     enddo
-    Mps(a)=j
-  end do
-!$omp end do
-!$omp end parallel
-
-  Nps=maxval(Mps(:))
+  call calc_mps(pp,mps,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
 
   if (comm_is_root(nproc_id_global) .and. property == 'initial') then
      do a=1,NI
@@ -143,38 +117,7 @@ Subroutine prep_ps_periodic(property)
 #endif
   endif
 
-!$omp parallel
-!$omp do private(a,ik,j,ix,iy,iz,tmpx,tmpy,tmpz,i,x,y,z,r)
-  do a=1,NI
-     ik=Kion(a)
-     j=0
-     do ix=-2,2
-     do iy=-2,2
-     do iz=-2,2
-        tmpx = Rion(1,a)+ix*aLx
-        tmpy = Rion(2,a)+iy*aLy
-        tmpz = Rion(3,a)+iz*aLz
-        do i=1,NL
-           x=Lx(i)*Hx-tmpx
-           y=Ly(i)*Hy-tmpy
-           z=Lz(i)*Hz-tmpz
-           r=sqrt(x*x+y*y+z*z)
-           if (r<Rps(ik)) then
-              j=j+1
-              if (j<=Nps) then
-                 Jxyz(j,a)=i
-                 Jxx( j,a)=ix
-                 Jyy( j,a)=iy
-                 Jzz( j,a)=iz
-              endif
-           endif
-        enddo
-     enddo
-     enddo
-     enddo
-  end do
-!$omp end do
-!$omp end parallel
+  call calc_jxyz(pp,Jxyz,Jxx,Jyy,Jzz,Nps,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
 
   if(property == 'update_all') then
      zJxyz(1:Nps,1:NI) = Jxyz(1:Nps,1:NI) - 1
@@ -256,107 +199,13 @@ Subroutine prep_ps_periodic(property)
      allocate( save_udVtbl_d(Nrmax,0:Lmax,NI) )
   endif
 
-  narray=-99
-  do a=1,NI
-    ik=Kion(a)
+  end if
 
-    if(a.ne.1)narray=ubound(xn,1)
-    if(narray.ne.NRps(ik)-1) then
-       if(a.ne.1) deallocate(xn,yn,an,bn,cn,dn)
-       allocate(xn(0:NRps(ik)-1),yn(0:NRps(ik)-1),an(0:NRps(ik)-2) &
-               ,bn(0:NRps(ik)-2),cn(0:NRps(ik)-2),dn(0:NRps(ik)-2))
-    endif
+  call calc_uv(pp,save_udVtbl_a,save_udVtbl_b,save_udVtbl_c,save_udVtbl_d,uV,duV, &
+               Jxyz,Jxx,Jyy,Jzz,Mps,Nps,nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
+               lma_tbl,flag_use_grad_wf_on_force)
 
-    xn(0:NRps(ik)-1) = radnl(1:NRps(ik),ik)
-    do l=0,Mlps(ik)
-       yn(0:NRps(ik)-1) = udVtbl(1:NRps(ik),l,ik)
-       call spline(NRps(ik),xn,yn,an,bn,cn,dn)
-       save_udVtbl_a(1:NRps(ik)-1,l,a) = an(0:NRps(ik)-2)
-       save_udVtbl_b(1:NRps(ik)-1,l,a) = bn(0:NRps(ik)-2)
-       save_udVtbl_c(1:NRps(ik)-1,l,a) = cn(0:NRps(ik)-2)
-       save_udVtbl_d(1:NRps(ik)-1,l,a) = dn(0:NRps(ik)-2)
-    end do
-
-  enddo
-  endif
-
-
-  narray=-99
-  do a=1,NI
-    ik=Kion(a)
-
-    if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
-    if(a.ne.1)narray=ubound(xn,1)
-    if(narray.ne.NRps(ik)-1) then
-       if(a.ne.1) deallocate(xn,yn,an,bn,cn,dn)
-       allocate(xn(0:NRps(ik)-1),yn(0:NRps(ik)-1),an(0:NRps(ik)-2) &
-               ,bn(0:NRps(ik)-2),cn(0:NRps(ik)-2),dn(0:NRps(ik)-2))
-    endif
-    xn(0:NRps(ik)-1) = radnl(1:NRps(ik),ik)
-    do l=0,Mlps(ik)
-       !yn(0:NRps(ik)-1) = udVtbl(1:NRps(ik),l,ik)
-       !call spline(NRps(ik),xn,yn,an,bn,cn,dn)
-       !udVtbl_a(1:NRps(ik)-1,l) = an(0:NRps(ik)-2)
-       !udVtbl_b(1:NRps(ik)-1,l) = bn(0:NRps(ik)-2)
-       !udVtbl_c(1:NRps(ik)-1,l) = cn(0:NRps(ik)-2)
-       !udVtbl_d(1:NRps(ik)-1,l) = dn(0:NRps(ik)-2)
-       yn(0:NRps(ik)-1) = dudVtbl(1:NRps(ik),l,ik)
-       call spline(NRps(ik),xn,yn,an,bn,cn,dn)
-       dudVtbl_a(1:NRps(ik)-1,l) = an(0:NRps(ik)-2)
-       dudVtbl_b(1:NRps(ik)-1,l) = bn(0:NRps(ik)-2)
-       dudVtbl_c(1:NRps(ik)-1,l) = cn(0:NRps(ik)-2)
-       dudVtbl_d(1:NRps(ik)-1,l) = dn(0:NRps(ik)-2)        
-    end do
-    endif
-
-!$omp parallel
-!$omp do private(j,x,y,z,r,ir,intr,xx,l,lm,m,uVr,duVr,ilma)
-    do j=1,Mps(a)
-      x=Lx(Jxyz(j,a))*Hx-(Rion(1,a)+Jxx(j,a)*aLx)
-      y=Ly(Jxyz(j,a))*Hy-(Rion(2,a)+Jyy(j,a)*aLy)
-      z=Lz(Jxyz(j,a))*Hz-(Rion(3,a)+Jzz(j,a)*aLz)
-      r=sqrt(x*x+y*y+z*z)+1d-50
-      do ir=1,NRps(ik)
-        if(radnl(ir,ik).gt.r) exit
-      enddo
-      intr=ir-1
-     !if (intr.lt.0.or.intr.ge.NRps(ik))stop 'bad intr at prep_ps'
-      xx = r - radnl(intr,ik) 
-      do l=0,Mlps(ik)
-         uVr(l) = save_udVtbl_a(intr,l,a)*xx**3 + save_udVtbl_b(intr,l,a)*xx**2 &
-                + save_udVtbl_c(intr,l,a)*xx    + save_udVtbl_d(intr,l,a)
-        !uVr(l) = udVtbl_a(intr,l)*xx**3 + udVtbl_b(intr,l)*xx**2 &
-        !        +udVtbl_c(intr,l)*xx    + udVtbl_d(intr,l)
-         if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
-         duVr(l)=dudVtbl_a(intr,l)*xx**3 +dudVtbl_b(intr,l)*xx**2 &
-                +dudVtbl_c(intr,l)*xx    +dudVtbl_d(intr,l)         
-         endif
-      enddo
-
-      lm=0
-      do l=0,Mlps(ik)
-        if(inorm(l,ik)==0) cycle
-        do m=-l,l
-          lm=lm+1
-          ilma=lma_tbl(lm,a)
-          uV(j,ilma)=uVr(l)*Ylm(x,y,z,l,m)
-          if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
-          if(r>1d-6)then
-             duV(j,ilma,1) = duVr(l)*(x/r)*Ylm(x,y,z,l,m)+uVr(l)*dYlm(x,y,z,l,m,1)
-             duV(j,ilma,2) = duVr(l)*(y/r)*Ylm(x,y,z,l,m)+uVr(l)*dYlm(x,y,z,l,m,2)
-             duV(j,ilma,3) = duVr(l)*(z/r)*Ylm(x,y,z,l,m)+uVr(l)*dYlm(x,y,z,l,m,3)
-          else
-             duV(j,ilma,1) = uVr(l)*dYlm(x,y,z,l,m,1)
-             duV(j,ilma,2) = uVr(l)*dYlm(x,y,z,l,m,2)
-             duV(j,ilma,3) = uVr(l)*dYlm(x,y,z,l,m,3)
-          end if
-          endif
-        enddo
-      enddo
-
-    enddo
-!$omp end do
-!$omp end parallel
+  do a=1,natom
 
     if(property /= 'update_wo_realloc') then
     lm=0
@@ -427,94 +276,3 @@ Subroutine prep_ps_periodic(property)
 
   return
 End Subroutine prep_ps_periodic
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine spline(Np,xn,yn,an,bn,cn,dn)
-  integer,intent(in) :: Np
-  real(8),intent(in) :: xn(0:Np-1),yn(0:Np-1)
-  real(8),intent(out) :: an(0:Np-2),bn(0:Np-2),cn(0:Np-2),dn(0:Np-2)
-  integer :: i,Npm2,info
-  real(8) :: dxn(0:Np-1),dyn(0:Np-1),u(1:Np-2),v(1:Np-2),Amat(1:Np-2,1:Np-2)
-  real(8) :: Amat_t(1:Np-2,1:Np-2)
-! for lapack
-  integer :: LWORK
-  integer, allocatable :: IPIV(:) ! dimension N
-  real(8), allocatable :: WORK(:) ! dimension LWORK
-! for check inverse matrix problem
-!  integer :: j,k
-!  real(8) :: Amat_chk(1:Np-2,1:Np-2)
-!  real(8) :: ss
-
-  Npm2 = Np-2
-  LWORK = Npm2*Npm2*6
-  allocate(IPIV(Npm2),WORK(LWORK))
-
-
-  do i = 0,Np-2
-    dxn(i) = xn(i+1) - xn(i)
-    dyn(i) = yn(i+1) - yn(i)
-  end do
-
-  do i = 1,Npm2
-    v(i) = 6d0*(dyn(i)/dxn(i) - dyn(i-1)/dxn(i-1))
-  end do
-
-  Amat = 0d0
-  Amat(1,1) = 2d0*(dxn(1) + dxn(0))
-  Amat(1,2) = dxn(1)
-  do i = 2,Npm2-1
-    Amat(i,i+1) = dxn(i)
-    Amat(i,i  ) = 2d0*(dxn(i)+dxn(i-1))
-    Amat(i,i-1) = dxn(i-1)
-  end do
-  Amat(Npm2,Npm2  ) = 2d0*(dxn(Npm2)+dxn(Npm2-1))
-  Amat(Npm2,Npm2-1) = dxn(Npm2-1)
-
-! inverse matrix problem
-  Amat_t = Amat
-
-
-  call DGETRF(Npm2, Npm2, Amat_t, Npm2, IPIV, info)  ! factorize
-  call DGETRI(Npm2, Amat_t, Npm2, IPIV, WORK, LWORK, info)  ! inverse
-
-!  check inverse matrix problem
-!  do i = 1,Npm2
-!    do j = 1,Npm2
-!      ss = 0d0
-!      do k = 1,Npm2
-!        ss = ss + Amat(i,k)*Amat_t(k,j)
-!      end do
-!      Amat_chk(i,j) = ss
-!    end do
-!  end do
-!
-!  do i = 1,Npm2
-!    write(*,'(999e16.6e3)')(Amat_chk(i,j),j=1,Npm2)
-!  end do
-!
-!  stop
-
-
-  do i = 1,Npm2
-    u(i) = sum(Amat_t(i,:)*v(:))
-  end do
-
-! for b
-  bn(0) = 0d0
-  bn(1:Np-2) = 0.5d0*u(1:Np-2)
-! for a
-  do i = 0,Npm2-1
-    an(i) = (u(i+1) -2d0*bn(i))/(6d0*dxn(i))
-  end do
-  an(Npm2) = (0d0 -2d0*bn(Npm2))/(6d0*dxn(Npm2))
-! for d
-  dn(0:Npm2) = yn(0:Npm2)
-! for c
-  i=0
-  cn(i) = dyn(i)/dxn(i) - dxn(i)*(u(i+1)+2d0*0.d0)/6d0
-  do i = 1,Npm2-1
-     cn(i) = dyn(i)/dxn(i) - dxn(i)*(u(i+1)+2d0*u(i))/6d0
-  end do
-  cn(Npm2) = dyn(Npm2)/dxn(Npm2) - dxn(Npm2)*(0d0+2d0*u(Npm2))/6d0
-
-  return
-end subroutine spline
