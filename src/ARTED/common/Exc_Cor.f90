@@ -53,7 +53,6 @@ subroutine exec_salmon_xc_lda()
   real(8) :: rho_tmp(NL, 1, 1)
   real(8) :: eexc_tmp(NL, 1, 1)
   real(8) :: vexc_tmp(NL, 1, 1)
-  real(8) :: rho_nlcc(NL, 1, 1)
   real(8) :: rho_nlcc_tmp(NL, 1, 1)
   
   rho_tmp = reshape(rho, (/NL, 1, 1/))
