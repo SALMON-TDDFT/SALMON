@@ -1186,6 +1186,7 @@ contains
   subroutine read_atomic_coordinates
     use salmon_parallel
     use salmon_communication
+    use salmon_file, only: get_filehandle
     character(256) :: filename_tmp,char_atom
     integer :: icount,i
     logical :: if_error, if_cartesian
@@ -1256,38 +1257,44 @@ contains
     rion_red = 0d0
     kion = 0
     flag_geo_opt_atom = 'n'
+    
+    if (0 < natom) then
+      
+      if (comm_is_root(nproc_id_global))then
+        fh_atomic_coor = get_filehandle()
+        open(fh_atomic_coor, file=filename_tmp, status='old')
+        select case(iflag_atom_coor)
+        case(ntype_atom_coor_cartesian)
+           do i=1, natom
+              if(use_geometry_opt == 'y')then
+                 read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i), flag_geo_opt_atom(i)
+              else
+                 read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i)
+              end if
+              atom_name(i) = char_atom
+           end do
+           rion = rion*ulength_to_au
+        case(ntype_atom_coor_reduced)
+           do i=1, natom
+              if(use_geometry_opt == 'y')then
+                 read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i), flag_geo_opt_atom(i)
+              else
+                 read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i)
+              end if
+              atom_name(i) = char_atom
+           end do
+        end select
+        close(fh_atomic_coor)
+        
+      end if
 
-    if (comm_is_root(nproc_id_global))then
-      open(fh_atomic_coor, file=filename_tmp, status='old')
-      select case(iflag_atom_coor)
-      case(ntype_atom_coor_cartesian)
-         do i=1, natom
-            if(use_geometry_opt == 'y')then
-               read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i), flag_geo_opt_atom(i)
-            else
-               read(fh_atomic_coor, *) char_atom, rion(:,i), kion(i)
-            end if
-            atom_name(i) = char_atom
-         end do
-         rion = rion*ulength_to_au
-      case(ntype_atom_coor_reduced)
-         do i=1, natom
-            if(use_geometry_opt == 'y')then
-               read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i), flag_geo_opt_atom(i)
-            else
-               read(fh_atomic_coor, *) char_atom, rion_red(:,i), kion(i)
-            end if
-            atom_name(i) = char_atom
-         end do
-      end select
-      close(fh_atomic_coor)
-    end if
+      call comm_bcast(rion,nproc_group_global)
+      call comm_bcast(rion_red,nproc_group_global)
+      call comm_bcast(kion,nproc_group_global)
+      call comm_bcast(flag_geo_opt_atom,nproc_group_global)
+      call comm_bcast(atom_name,nproc_group_global)
+    end if ! if 0 < natom
 
-    call comm_bcast(rion,nproc_group_global)
-    call comm_bcast(rion_red,nproc_group_global)
-    call comm_bcast(kion,nproc_group_global)
-    call comm_bcast(flag_geo_opt_atom,nproc_group_global)
-    call comm_bcast(atom_name,nproc_group_global)
 
   end subroutine read_atomic_coordinates
 
