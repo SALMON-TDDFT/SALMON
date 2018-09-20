@@ -37,6 +37,7 @@ module salmon_global
 
 !Input variables
 !! &calculation
+  character(16)  :: theory
   character(16)  :: calc_mode
   character(1)   :: use_ehrenfest_md
   character(1)   :: use_adiabatic_md
