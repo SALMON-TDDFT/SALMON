@@ -16,7 +16,7 @@
 !-----------------------------------------------------------------------------------------
 subroutine classic_em
   use salmon_maxwell, only:fdtd_grid,fdtd_field,fdtd_tmp,init_maxwell,calc_maxwell,finalize_maxwell
-  implicit nonez
+  implicit none
   type(fdtd_grid)  :: grid
   type(fdtd_field) :: field
   type(fdtd_tmp)   :: tmp
