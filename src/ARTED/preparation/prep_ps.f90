@@ -203,7 +203,7 @@ Subroutine prep_ps_periodic(property)
 
   call calc_uv(pp,save_udVtbl_a,save_udVtbl_b,save_udVtbl_c,save_udVtbl_d,uV,duV, &
                Jxyz,Jxx,Jyy,Jzz,Mps,Nps,nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
-               lma_tbl,flag_use_grad_wf_on_force)
+               lma_tbl,flag_use_grad_wf_on_force,property)
 
   do a=1,natom
 
