@@ -80,8 +80,8 @@ else ()
     set(CMAKE_Fortran_COMPILER ${MPI_Fortran_COMPILER})
     set(CMAKE_C_COMPILER ${MPI_C_COMPILER})
     
-    add_definitions(-DSALMON_USE_MPI)
   endif ()
+
 
   set(CMAKE_Fortran_FLAGS_DEBUG   "-O2 -g")
   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
@@ -113,6 +113,9 @@ set(EXTERNAL_LIBS          "")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR})
+
+### MPI Setting
+add_definitions_if(USE_MPI  -DSALMON_USE_MPI)
 
 ### NVIDIA Tools Extension Library
 if (USE_NVTX)
