@@ -14,8 +14,7 @@
 !  limitations under the License.
 !
 subroutine calcVpsl_periodic
-  use salmon_parallel, only: nproc_group_global, nproc_size_global, nproc_id_global, nproc_group_grid
-  use salmon_parallel, only: nproc_id_icommy, nproc_id_icommz
+  use salmon_parallel, only: nproc_group_global, nproc_size_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_summation, comm_is_root
   use scf_data
   use new_world_sub
@@ -25,9 +24,6 @@ subroutine calcVpsl_periodic
   
   integer :: ii,ix,iy,iz,ak
   integer :: iix,iiy,iiz
-  integer :: iatom
-  real(8) :: x,y,z
-  
   integer :: n
   real(8) :: bLx,bLy,bLz
   real(8) :: aLxyz
@@ -35,13 +31,15 @@ subroutine calcVpsl_periodic
   integer :: NG_l_s_para,NG_l_e_para
   integer :: numtmp
   complex(8),parameter :: zI=(0.d0,1.d0)
-  real(8) :: G2sq,G2
-  real(8) :: Gd
-  real(8) :: Gr
-  real(8) :: s
-  real(8) :: r
-  integer :: imax
-  real(8) :: Vpsl_tmp(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
+  integer :: lx(lg_num(1)*lg_num(2)*lg_num(3))
+  integer :: ly(lg_num(1)*lg_num(2)*lg_num(3))
+  integer :: lz(lg_num(1)*lg_num(2)*lg_num(3))
+  complex(8),allocatable :: dvloc_g_tmp2(:,:)
+  complex(8),allocatable :: rhoion_g_tmp2(:)
+  real(8),allocatable :: vpsl_ia(:,:)
+  real(8),allocatable :: vpsl_tmp2(:)
+  integer :: i
+  real(8) :: hx,hy,hz
 
 !calculate reciprocal lattice vector
   bLx=2.d0*Pi/(Hgs(1)*dble(lg_num(1)))
@@ -57,7 +55,9 @@ subroutine calcVpsl_periodic
   NG_l_s_para = nproc_id_global*numtmp+1
   NG_l_e_para = (nproc_id_global+1)*numtmp
   if(nproc_id_global==nproc_size_global-1) NG_l_e_para=NG_e
-  
+
+  allocate(dvloc_g_tmp2(ng_l_s_para:ng_l_e_para,MKI))
+ 
   nGzero=-1
   
   do ak=1,MKI
@@ -82,67 +82,56 @@ subroutine calcVpsl_periodic
   enddo
   enddo
 
-! local potential
-  dVloc_G_tmp(:,:)=0.d0
+  call calc_vloc(pp,dvloc_g_tmp2,gx,gy,gz,ng_e,ng_l_s_para,ng_l_e_para,nGzero)
+
+  dvloc_g_tmp=0.d0
   do ak=1,MKI
-    imax=min(Mr(ak),Nr-1)
-    do n=NG_l_s_para, NG_l_e_para
-      G2sq=sqrt(Gx(n)**2+Gy(n)**2+Gz(n)**2)
-      s=0.d0
-      if (n == nGzero) then
-        do ii=2,imax
-          r=rad_psl(ii,ak)
-          s=s+4*Pi*r**2*(vloctbl(ii,ak)+Zps(ak)/r)*(rad_psl(ii+1,ak)-rad_psl(ii,ak))
-        enddo
-      else
-        do ii=2,imax
-          r=rad_psl(ii,ak)
-          s=s+4*Pi*r**2*sin(G2sq*r)/(G2sq*r)*(vloctbl(ii,ak)+Zps(ak)/r)*(rad_psl(ii+1,ak)-rad_psl(ii,ak))
-        enddo
-      endif
-      dVloc_G_tmp(n,ak)=s
-    enddo
-  enddo
+    do n=ng_l_s_para,ng_l_e_para
+      dvloc_g_tmp(n,ak)=dvloc_g_tmp2(n,ak)
+    end do
+  end do
+
   call comm_summation(dVloc_G_tmp,dVloc_G,(NG_e-NG_s+1)*MKI,nproc_group_global)
- 
+
+  
+  hx=Hgs(1) 
+  hy=Hgs(2) 
+  hz=Hgs(3)
   aLxyz=Hvol*dble(lg_num(1)*lg_num(2)*lg_num(3))
+
+  do iz=1,lg_num(3)
+  do iy=1,lg_num(2)
+  do ix=1,lg_num(1)
+    i=(iz-1)*lg_num(1)*lg_num(2)+(iy-1)*lg_num(1)+ix
+    lx(i)=ix-1
+    ly(i)=iy-1
+    lz(i)=iz-1
+  end do
+  end do
+  end do
+ 
+  allocate(rhoion_g_tmp2(ng_l_s_para:ng_l_e_para))
+  allocate(vpsl_ia(lg_num(1)*lg_num(2)*lg_num(3),MI))
+  allocate(vpsl_tmp2(ng_s:ng_e))
+ 
+  call calc_vpsl(pp,rhoion_g_tmp2,vpsl_ia,vpsl_tmp2,dvloc_g_tmp2,  &
+                     ngzero,gx,gy,gz,ng_e,ng_l_s_para,ng_l_e_para,ng_e,alxyz,lx,ly,lz,hx,hy,hz)
+
+  deallocate(dvloc_g_tmp2)
+
   rhoion_G_tmp=0.d0
-  do iatom=1,MI
-    do n=NG_l_s_para,NG_l_e_para
-      rhoion_G_tmp(n)=rhoion_G_tmp(n)+Zps(Kion(iatom))/aLxyz*exp(-zI*(Gx(n)*Rion(1,iatom)+Gy(n)*Rion(2,iatom)+Gz(n)*Rion(3,iatom)))
-    enddo
-  enddo
+  rhoion_G_tmp(ng_l_s_para:ng_l_e_para)=rhoion_g_tmp2(ng_l_s_para:ng_l_e_para)
+
   call comm_summation(rhoion_G_tmp,rhoion_G,NG_e-NG_s+1,nproc_group_global)
 
-  Vion_G_tmp=0.d0
-  do iatom=1,MI
-    ak=Kion(iatom)
-    do n=NG_l_s_para,NG_l_e_para
-      G2=Gx(n)**2+Gy(n)**2+Gz(n)**2
-      Gd=Gx(n)*Rion(1,iatom)+Gy(n)*Rion(2,iatom)+Gz(n)*Rion(3,iatom)
-      Vion_G_tmp(n)=Vion_G_tmp(n)+dVloc_G(n,ak)*exp(-zI*Gd)/aLxyz
-      if(n == nGzero) cycle
-      Vion_G_tmp(n)=Vion_G_tmp(n)-4*Pi/G2*Zps(ak)*exp(-zI*Gd)/aLxyz
-    enddo
+  do iz=mg_sta(3),mg_end(3)
+  do iy=mg_sta(2),mg_end(2)
+  do ix=mg_sta(1),mg_end(1)
+    i=(iz-1)*lg_num(1)*lg_num(2)+(iy-1)*lg_num(1)+ix
+    Vpsl(ix,iy,iz)=vpsl_tmp2(i)
   enddo
-  call comm_summation(Vion_G_tmp,Vion_G,NG_e-NG_s+1,nproc_group_global)
-
-  Vpsl_tmp=0.d0
-  do n=NG_s,NG_e
-  !$OMP parallel do private(iz,iy,ix,x,y,z,Gr)
-    do iz=ng_sta(3),ng_end(3)
-    do iy=ng_sta(2),ng_end(2)
-    do ix=ng_sta(1),ng_end(1)
-      x=gridcoo(ix,1)
-      y=gridcoo(iy,2)
-      z=gridcoo(iz,3)
-      Gr=Gx(n)*x+Gy(n)*y+Gz(n)*z
-      Vpsl_tmp(ix,iy,iz)=Vpsl_tmp(ix,iy,iz)+Vion_G(n)*exp(zI*Gr)
-    enddo
-    enddo
-    enddo
   enddo
-  call comm_summation(Vpsl_tmp,Vpsl,mg_num(1)*mg_num(2)*mg_num(3),nproc_group_grid)
+  enddo
 
   return
 

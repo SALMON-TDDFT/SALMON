@@ -101,9 +101,9 @@ do iik=k_sta,k_end
   do iatom=1,MI
     ik=Kion(iatom)
     do jj=1,Mps(iatom)
-      r(1)=(dble(Jxyz(1,jj,iatom)-1)+dble(Jxxyyzz(1,jj,iatom)*lg_num(1)))*Hgs(1)
-      r(2)=(dble(Jxyz(2,jj,iatom)-1)+dble(Jxxyyzz(2,jj,iatom)*lg_num(2)))*Hgs(2)
-      r(3)=(dble(Jxyz(3,jj,iatom)-1)+dble(Jxxyyzz(3,jj,iatom)*lg_num(3)))*Hgs(3)
+      r(1)=(dble(Jxyz(1,jj,iatom)-1)-dble(Jxxyyzz(1,jj,iatom)*lg_num(1)))*Hgs(1)
+      r(2)=(dble(Jxyz(2,jj,iatom)-1)-dble(Jxxyyzz(2,jj,iatom)*lg_num(2)))*Hgs(2)
+      r(3)=(dble(Jxyz(3,jj,iatom)-1)-dble(Jxxyyzz(3,jj,iatom)*lg_num(3)))*Hgs(3)
       ekr(jj,iatom,iik)=exp(zi*(k_rd(1,iik)*r(1)   &
                           +k_rd(2,iik)*r(2)   &
                           +k_rd(3,iik)*r(3)))
@@ -120,9 +120,9 @@ do iik=k_sta,k_end
         else
           uVpsi0=0.d0; uVpsix=0.d0; uVpsiy=0.d0; uVpsiz=0.d0
           do jj=1,Mps(iatom)
-            r(1)=(dble(Jxyz(1,jj,iatom)-1)+dble(Jxxyyzz(1,jj,iatom)*lg_num(1)))*Hgs(1)
-            r(2)=(dble(Jxyz(2,jj,iatom)-1)+dble(Jxxyyzz(2,jj,iatom)*lg_num(2)))*Hgs(2)
-            r(3)=(dble(Jxyz(3,jj,iatom)-1)+dble(Jxxyyzz(3,jj,iatom)*lg_num(3)))*Hgs(3)
+            r(1)=(dble(Jxyz(1,jj,iatom)-1)-dble(Jxxyyzz(1,jj,iatom)*lg_num(1)))*Hgs(1)
+            r(2)=(dble(Jxyz(2,jj,iatom)-1)-dble(Jxxyyzz(2,jj,iatom)*lg_num(2)))*Hgs(2)
+            r(3)=(dble(Jxyz(3,jj,iatom)-1)-dble(Jxxyyzz(3,jj,iatom)*lg_num(3)))*Hgs(3)
             uVpsi0=uVpsi0+uV(jj,lm,iatom)*ekr(jj,iatom,iik)      &
                      *tpsi(Jxyz(1,jj,iatom),Jxyz(2,jj,iatom),Jxyz(3,jj,iatom),iob,iik)
             uVpsix=uVpsix+uV(jj,lm,iatom)*ekr(jj,iatom,iik)*r(1) &

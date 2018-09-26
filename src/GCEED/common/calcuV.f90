@@ -36,9 +36,9 @@ do iatom=1,MI
   ikoa=Kion(iatom)
   do LL=0,Mlps(ikoa)
   do jj=1,Mps_all(iatom)
-    xx=gridcoo(Jxyz_all(1,jj,iatom),1)+Jxxyyzz_all(1,jj,iatom)*lg_num(1)*Hgs(1)-Rion(1,iatom)
-    yy=gridcoo(Jxyz_all(2,jj,iatom),2)+Jxxyyzz_all(2,jj,iatom)*lg_num(2)*Hgs(2)-Rion(2,iatom)
-    zz=gridcoo(Jxyz_all(3,jj,iatom),3)+Jxxyyzz_all(3,jj,iatom)*lg_num(3)*Hgs(3)-Rion(3,iatom)
+    xx=gridcoo(Jxyz_all(1,jj,iatom),1)-Jxxyyzz_all(1,jj,iatom)*lg_num(1)*Hgs(1)-Rion(1,iatom)
+    yy=gridcoo(Jxyz_all(2,jj,iatom),2)-Jxxyyzz_all(2,jj,iatom)*lg_num(2)*Hgs(2)-Rion(2,iatom)
+    zz=gridcoo(Jxyz_all(3,jj,iatom),3)-Jxxyyzz_all(3,jj,iatom)*lg_num(3)*Hgs(3)-Rion(3,iatom)
     rr=sqrt(xx**2+yy**2+zz**2)+1d-50
     call bisection(rr,intr,ikoa)
     if(intr>Nr) write(*,*) "intr is larger than Nr"

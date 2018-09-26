@@ -240,9 +240,9 @@ if(iflag_ps==1) then
   do iatom=1,MI
     ik=Kion(iatom)
     do jj=1,Mps(iatom)
-      x=gridcoo(Jxyz(1,jj,iatom),1)+dble(Jxxyyzz(1,jj,iatom)*lg_num(1))*Hgs(1)
-      y=gridcoo(Jxyz(2,jj,iatom),2)+dble(Jxxyyzz(2,jj,iatom)*lg_num(2))*Hgs(2)
-      z=gridcoo(Jxyz(3,jj,iatom),3)+dble(Jxxyyzz(3,jj,iatom)*lg_num(3))*Hgs(3)
+      x=gridcoo(Jxyz(1,jj,iatom),1)-dble(Jxxyyzz(1,jj,iatom)*lg_num(1))*Hgs(1)
+      y=gridcoo(Jxyz(2,jj,iatom),2)-dble(Jxxyyzz(2,jj,iatom)*lg_num(2))*Hgs(2)
+      z=gridcoo(Jxyz(3,jj,iatom),3)-dble(Jxxyyzz(3,jj,iatom)*lg_num(3))*Hgs(3)
       ekr(jj,iatom)=exp(zi*(k_rd(1,iiik)*x+k_rd(2,iiik)*y+k_rd(3,iiik)*z))
     end do
   end do

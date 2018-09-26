@@ -146,17 +146,16 @@ end subroutine calc_vpsl
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 
-subroutine calc_mps(pp,mps,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+subroutine calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
   use salmon_global,only : natom,kion,rion
-  use salmon_pp,only : pp_info
+  use salmon_pp,only : pp_info,pp_grid
   implicit none
   type(pp_info) :: pp
+  type(pp_grid) :: ppg
   real(8),intent(in) :: alx,aly,alz
   integer,intent(in) :: nl
   integer,intent(in) :: lx(nl),ly(nl),lz(nl)
   real(8),intent(in) :: hx,hy,hz
-  integer,intent(out) :: mps(natom)
-  integer,intent(out) :: nps
   integer :: a,i,ik,ix,iy,iz,j
   real(8) :: tmpx,tmpy,tmpz
   real(8) :: x,y,z,r
@@ -182,30 +181,34 @@ subroutine calc_mps(pp,mps,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
     enddo
     enddo
     enddo
-    mps(a)=j
+    ppg%mps(a)=j
   end do
 !$omp end do
 !$omp end parallel
 
-  nps=maxval(mps(:))
+  ppg%nps=maxval(ppg%mps(:))
  
 end subroutine calc_mps
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine calc_jxyz(pp,jxyz,jxx,jyy,jzz,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
   use salmon_global,only : natom,kion,rion
-  use salmon_pp,only : pp_info
+  use salmon_pp,only : pp_info,pp_grid
   implicit none
   type(pp_info) :: pp
-  integer,intent(in) :: nps
+  type(pp_grid) :: ppg
   real(8),intent(in) :: alx,aly,alz
   integer,intent(in) :: nl
   integer,intent(in) :: lx(nl),ly(nl),lz(nl)
   real(8),intent(in) :: hx,hy,hz
-  integer,intent(out) :: jxyz(nps,natom),jxx(nps,natom),jyy(nps,natom),jzz(nps,natom)
   integer :: a,i,ik,ix,iy,iz,j
   real(8) :: tmpx,tmpy,tmpz
   real(8) :: r,x,y,z
+
+  allocate(ppg%jxyz(ppg%nps,natom))
+  allocate(ppg%jxx( ppg%nps,natom))
+  allocate(ppg%jyy( ppg%nps,natom))
+  allocate(ppg%jzz( ppg%nps,natom))
 
 !$omp parallel
 !$omp do private(a,ik,j,ix,iy,iz,tmpx,tmpy,tmpz,i,x,y,z,r)
@@ -225,11 +228,11 @@ subroutine calc_jxyz(pp,jxyz,jxx,jyy,jzz,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
         r=sqrt(x*x+y*y+z*z)
         if (r<pp%rps(ik)) then
           j=j+1
-          if (j<=Nps) then
-            jxyz(j,a)=i
-            jxx( j,a)=ix
-            jyy( j,a)=iy
-            jzz( j,a)=iz
+          if (j<=ppg%nps) then
+            ppg%jxyz(j,a)=i
+            ppg%jxx( j,a)=ix
+            ppg%jyy( j,a)=iy
+            ppg%jzz( j,a)=iz
           endif
         endif
       enddo
@@ -242,16 +245,14 @@ subroutine calc_jxyz(pp,jxyz,jxx,jyy,jzz,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
 
 end subroutine calc_jxyz
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine calc_uv(pp,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d,uv,duv, &
-                   jxyz,jxx,jyy,jzz,mps,nps,nlma,lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
+subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d,uv,duv, &
+                   nlma,lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
                    lma_tbl,flag_use_grad_wf_on_force,property)
   use salmon_global,only : natom,kion,rion
-  use salmon_pp,only : pp_info
+  use salmon_pp,only : pp_info,pp_grid
   implicit none
   type(pp_info) :: pp
-  integer,intent(in) :: nps
-  integer,intent(in) :: jxyz(nps,natom),jxx(nps,natom),jyy(nps,natom),jzz(nps,natom)
-  integer,intent(in) :: mps(natom)
+  type(pp_grid) :: ppg
   integer,intent(in) :: nlma
   integer,intent(in) :: nl
   integer,intent(in) :: lx(nl),ly(nl),lz(nl)
@@ -264,7 +265,7 @@ subroutine calc_uv(pp,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d,uv
   real(8),intent(out) :: save_udvtbl_b(pp%nrmax,0:pp%lmax,natom)
   real(8),intent(out) :: save_udvtbl_c(pp%nrmax,0:pp%lmax,natom)
   real(8),intent(out) :: save_udvtbl_d(pp%nrmax,0:pp%lmax,natom)
-  real(8),intent(out) :: uv(nps,nlma),duv(nps,nlma,3)
+  real(8),intent(out) :: uv(ppg%nps,nlma),duv(ppg%nps,nlma,3)
   integer :: a,ik,j,l,lm,m
   integer :: ilma,intr,ir
   integer :: narray
@@ -331,10 +332,10 @@ subroutine calc_uv(pp,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d,uv
 
 !$omp parallel
 !$omp do private(j,x,y,z,r,ir,intr,xx,l,lm,m,uvr,duvr,ilma)
-    do j=1,mps(a)
-      x=lx(jxyz(j,a))*hx-(rion(1,a)+jxx(j,a)*alx)
-      y=ly(jxyz(j,a))*hy-(rion(2,a)+jyy(j,a)*aly)
-      z=lz(jxyz(j,a))*hz-(rion(3,a)+jzz(j,a)*alz)
+    do j=1,ppg%mps(a)
+      x=lx(ppg%jxyz(j,a))*hx-(rion(1,a)+ppg%jxx(j,a)*alx)
+      y=ly(ppg%jxyz(j,a))*hy-(rion(2,a)+ppg%jyy(j,a)*aly)
+      z=lz(ppg%jxyz(j,a))*hz-(rion(3,a)+ppg%jzz(j,a)*alz)
       r=sqrt(x*x+y*y+z*z)+1d-50
       do ir=1,pp%nrps(ik)
         if(pp%radnl(ir,ik).gt.r) exit

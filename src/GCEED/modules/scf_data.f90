@@ -16,7 +16,7 @@
 MODULE scf_data
 use salmon_global
 use salmon_xc, only: xc_functional
-use salmon_pp, only: pp_info
+use salmon_pp, only: pp_info,pp_grid
 implicit none
 !-------------------- Parameters
 integer, parameter :: maxntmg=10
@@ -167,6 +167,7 @@ integer :: maxMps
 
 ! Pseudopotential
 type(pp_info) :: pp
+type(pp_grid) :: ppg
 integer,parameter :: Nrmax=3000,Lmax=4
 integer,allocatable :: NRloc(:)
 real(8),allocatable :: Rloc(:)

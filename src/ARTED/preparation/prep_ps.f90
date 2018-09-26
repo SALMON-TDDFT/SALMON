@@ -19,7 +19,7 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine prep_ps_periodic(property)
   use Global_Variables
-  use salmon_parallel, only: nproc_id_global, nproc_group_tdks
+  use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_summation, comm_is_root
   use salmon_math
   use opt_variables, only: zJxyz,zKxyz,init_for_padding, nprojector,idx_proj,idx_lma,pseudo_start_idx, init_projector
@@ -29,19 +29,10 @@ Subroutine prep_ps_periodic(property)
   implicit none
   character(17) :: property
   logical :: flag_alloc1, flag_alloc2
-  integer :: ik,n,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
-  integer :: PNLx,PNLy,PNLz,ilma,narray
-  real(8) :: G2sq,s,G2,Gd,Gr,x,y,z,r,dr,tmpx,tmpy,tmpz
-  real(8) :: Ylm,dYlm,uVr(0:Lmax),duVr(0:Lmax),Vpsl_ia_l(NL,NI) !,Vpsl_l(NL)
-  complex(8) :: Vion_G_ia(NG_s:NG_e,NI),tmp_exp !, Vion_G(NG_s:NG_e)
-  !spline interpolation
-  real(8) :: xx
-  real(8) :: dudVtbl_a(Nrmax,0:Lmax), dudVtbl_b(Nrmax,0:Lmax)
-  real(8) :: dudVtbl_c(Nrmax,0:Lmax), dudVtbl_d(Nrmax,0:Lmax)
-!  real(8) :: udVtbl_a(Nrmax,0:Lmax), udVtbl_b(Nrmax,0:Lmax)
-!  real(8) :: udVtbl_c(Nrmax,0:Lmax), udVtbl_d(Nrmax,0:Lmax)
-  real(8),allocatable :: xn(:),yn(:),an(:),bn(:),cn(:),dn(:)  
-  real(8) :: vloc_av, ratio1,ratio2,rc
+  integer :: ik,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
+  integer :: PNLx,PNLy,PNLz,narray
+  real(8) :: x,y,z,r
+  real(8) :: ratio1,ratio2,rc
 
 
   !(Local pseudopotential in G-space (radial part))
@@ -85,7 +76,10 @@ Subroutine prep_ps_periodic(property)
     write(*,*) '============nonlocal grid data=============='
   endif
 
-  call calc_mps(pp,mps,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+
+  nps=ppg%nps
+  Mps(1:NI)=ppg%mps(1:NI)
 
   if (comm_is_root(nproc_id_global) .and. property == 'initial') then
      do a=1,NI
@@ -117,7 +111,7 @@ Subroutine prep_ps_periodic(property)
 #endif
   endif
 
-  call calc_jxyz(pp,Jxyz,Jxx,Jyy,Jzz,Nps,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
+  call calc_jxyz(pp,ppg,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
 
   if(property == 'update_all') then
      zJxyz(1:Nps,1:NI) = Jxyz(1:Nps,1:NI) - 1
@@ -201,9 +195,9 @@ Subroutine prep_ps_periodic(property)
 
   end if
 
-  call calc_uv(pp,save_udVtbl_a,save_udVtbl_b,save_udVtbl_c,save_udVtbl_d,uV,duV, &
-               Jxyz,Jxx,Jyy,Jzz,Mps,Nps,nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
-               lma_tbl,flag_use_grad_wf_on_force)
+  call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d,uv,duv, &
+                   nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
+                   lma_tbl,flag_use_grad_wf_on_force,property)
 
   do a=1,natom
 
