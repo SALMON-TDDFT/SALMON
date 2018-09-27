@@ -3,7 +3,6 @@ set(SOURCES
     ion_force.f90
     Exc_Cor.f90
     Hartree.f90
-    Ylm_dYlm.f90
     psi_rho.f90
     hpsi${HPSI_TEST_SUFFIX}.f90
     preprocessor.f90

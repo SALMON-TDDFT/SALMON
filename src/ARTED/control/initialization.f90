@@ -30,6 +30,7 @@ contains
     use salmon_parallel
     use salmon_communication
     use salmon_xc, only: init_xc
+    use salmon_pp, only: init_pp
     use misc_routines
     use inputfile,only: transfer_input
     use restart,only: prep_restart_read
@@ -86,7 +87,12 @@ contains
 ! initialize for optimization.
     call opt_vars_initialize_p1
 
-    call input_pseudopotential_YS !shinohara
+! Nonlinear core correction
+    allocate(rho_nlcc_tbl(Nrmax,NE),tau_nlcc_tbl(Nrmax,NE))
+    allocate(rho_nlcc(NL),tau_nlcc(NL))
+    call init_pp(pp,Nrmax,Lmax,flag_nlcc)
+    call input_pp(pp,Hx,Hy,Hz)
+    call pp_postprocess
 
     call prep_ps_periodic('initial          ')
 

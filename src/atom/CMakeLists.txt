@@ -1,7 +1,11 @@
 set(SOURCES
+    input_pp.f90
+    salmon_pp.f90
+    prep_pp.f90
+    Ylm_dYlm.f90
    )
 
 add_library(${SALMON_ATOM_LIB} STATIC ${SOURCES})
-add_dependencies(${SALMON_ATOM_LIB} ${SALMON_IO_LIB})
+add_dependencies(${SALMON_ATOM_LIB} ${SALMON_PARALLEL_LIB} ${SALMON_IO_LIB} ${SALMON_MATH_LIB})
 list(APPEND SALMON_LINK_LIBRARIES ${SALMON_ATOM_LIB})
 set(SALMON_LINK_LIBRARIES ${SALMON_LINK_LIBRARIES} PARENT_SCOPE)
