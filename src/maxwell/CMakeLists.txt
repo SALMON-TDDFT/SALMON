@@ -1,27 +1,19 @@
-set(MAXWELL_WEYL_LIB_DIR     weyl)
-set(MAXWELL_COULOMB_LIB_DIR  coulomb)
-set(MAXWELL_EH_LIB_DIR       eh)
-
-set(MAXWELL_WEYL_LIB     ${SALMON_MAXWELL_LIB}_${MAXWELL_WEYL_LIB_DIR})
-set(MAXWELL_COULOMB_LIB  ${SALMON_MAXWELL_LIB}_${MAXWELL_COULOMB_LIB_DIR})
-set(MAXWELL_EH_LIB       ${SALMON_MAXWELL_LIB}_${MAXWELL_EH_LIB_DIR})
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${MAXWELL_WEYL_LIB_DIR})
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${MAXWELL_COULOMB_LIB_DIR})
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/${MAXWELL_EH_LIB_DIR})
-
 set(SOURCES
     salmon_maxwell.f90
     classic_em.f90
+    weyl_init.f90
+    weyl_finalize.f90
+    weyl_calc.f90
+    coulomb_init.f90
+    coulomb_finalize.f90
+    coulomb_calc.f90
+    eh_init.f90
+    eh_finalize.f90
+    eh_calc.f90
     )
 
 add_library(${SALMON_MAXWELL_LIB} STATIC ${SOURCES})
-add_dependencies(${SALMON_MAXWELL_LIB} ${SALMON_PARALLEL_LIB} ${SALMON_IO_LIB})
-
-list(APPEND SALMON_LINK_LIBRARIES 
-    ${SALMON_MAXWELL_LIB} 
-    ${MAXWELL_WEYL_LIB}
-    ${MAXWELL_COULOMB_LIB}
-    ${MAXWELL_EH_LIB}
-    )
+add_dependencies(${SALMON_MAXWELL_LIB} ${SALMON_PARALLEL_LIB} ${SALMON_IO_LIB}
+                 ${GCEED_MODULE_LIB} ${GCEED_COMMON_LIB} ${GCEED_MISC_LIB})
+list(APPEND SALMON_LINK_LIBRARIES ${SALMON_MAXWELL_LIB})
 set(SALMON_LINK_LIBRARIES ${SALMON_LINK_LIBRARIES} PARENT_SCOPE)

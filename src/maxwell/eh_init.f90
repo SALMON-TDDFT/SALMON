@@ -14,11 +14,11 @@
 !  limitations under the License.
 !
 !-----------------------------------------------------------------------------------------
-subroutine init_coulomb(grid,field,tmp)
+subroutine eh_init(grid,field,tmp)
   use salmon_maxwell, only:fdtd_grid,fdtd_field,fdtd_tmp
   implicit none
   type(fdtd_grid)  :: grid
   type(fdtd_field) :: field
   type(fdtd_tmp)   :: tmp
-  
-end subroutine init_coulomb
+
+end subroutine eh_init

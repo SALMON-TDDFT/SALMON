@@ -14,11 +14,11 @@
 !  limitations under the License.
 !
 !-----------------------------------------------------------------------------------------
-subroutine finalize_eh(grid,field,tmp)
+subroutine weyl_finalize(grid,field,tmp)
   use salmon_maxwell, only:fdtd_grid,fdtd_field,fdtd_tmp
   implicit none
   type(fdtd_grid)  :: grid
   type(fdtd_field) :: field
   type(fdtd_tmp)   :: tmp
-
-end subroutine finalize_eh
+  
+end subroutine weyl_finalize

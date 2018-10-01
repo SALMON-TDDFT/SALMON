@@ -83,11 +83,11 @@ module salmon_maxwell
     
     select case(grid%gauge)
     case('weyl')
-      call init_weyl(grid,field,tmp)
+      call weyl_init(grid,field,tmp)
     case('coulomb')
-      call init_coulomb(grid,field,tmp)
+      call coulomb_init(grid,field,tmp)
     case('eh')
-      call init_eh(grid,field,tmp)
+      call eh_init(grid,field,tmp)
     end select
   end subroutine init_maxwell
   
@@ -99,11 +99,11 @@ module salmon_maxwell
     
     select case(grid%gauge)
     case('weyl')
-      call finalize_weyl(grid,field,tmp)
+      call weyl_finalize(grid,field,tmp)
     case('coulomb')
-      call finalize_coulomb(grid,field,tmp)
+      call coulomb_finalize(grid,field,tmp)
     case('eh')
-      call finalize_eh(grid,field,tmp)
+      call eh_finalize(grid,field,tmp)
     end select
   end subroutine finalize_maxwell
   
@@ -115,11 +115,11 @@ module salmon_maxwell
     
     select case(grid%gauge)
     case('weyl')
-      call calc_weyl(grid,field,tmp)
+      call weyl_calc(grid,field,tmp)
     case('coulomb')
-      call calc_coulomb(grid,field,tmp)
+      call coulomb_calc(grid,field,tmp)
     case('eh')
-      call calc_eh(grid,field,tmp)
+      call eh_calc(grid,field,tmp)
     end select
   end subroutine calc_maxwell
   
