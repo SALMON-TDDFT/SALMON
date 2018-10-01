@@ -19,9 +19,9 @@ else
 endif
 
 ifdef COMM_SET
-	F90_COMM_FILE=parallel/salmon_communication_$(COMM_SET).f90
+	MPI_FLAG=
 else
-	F90_COMM_FILE=parallel/salmon_communication.f90
+	MPI_FLAG=-DSALMON_USE_MPI
 endif
 
 F90_SRCS = \
@@ -29,7 +29,7 @@ F90_SRCS = \
 	misc/misc_routines.f90 \
 	misc/backup_routines.f90 \
 	misc/timer.f90 \
-	$(F90_COMM_FILE) \
+	parallel/salmon_communication.f90 \
 	parallel/salmon_parallel.f90 \
 	ext/FFTE/alltoall_1d.f90 \
 	io/salmon_file.f90 \
@@ -285,15 +285,15 @@ $(H_VERSION): $(H_IN_VERSION)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.f90 $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) $(LIBXC_INC)
+	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) $(LIBXC_INC) $(MPI_FLAG)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR)
+	$(CC) $(CFLAGS) -o $@ -c $< -I $(OBJDIR) $(MPI_FLAG)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.f $(H_VERSION)
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
-	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) $(LIBXC_INC)
+	$(FC) $(FFLAGS) $(MODULE_SWITCH) $(OBJDIR) -o $@ -c $< -I $(OBJDIR) $(LIBXC_INC) $(MPI_FLAG)
 
 $(OBJDIR)/%.h: $(SRCDIR)/%.h.in
 	@if [ ! -d $(dir $@) ]; then mkdir -p $(dir $@); fi
