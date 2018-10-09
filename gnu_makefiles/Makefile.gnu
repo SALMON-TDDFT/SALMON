@@ -3,7 +3,7 @@
 TARGET = salmon.cpu
 FC = mpif90
 CC = mpicc
-FFLAGS = -O3 -fopenmp -Wall -cpp -ffree-line-length-none
+FFLAGS = -O3 -fopenmp -Wall -cpp
 CFLAGS = -O3 -fopenmp -Wall
 LIBLAPACK = -llapack -lblas
 #LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 -lm
