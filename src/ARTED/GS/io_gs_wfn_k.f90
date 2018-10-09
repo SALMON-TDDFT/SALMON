@@ -535,7 +535,8 @@ contains
           Rion_eq_m(:,:,imacro)  = Rion_m(:,:,imacro)
           velocity_m(:,:,imacro) = velocity(:,:)
 
-          call comm_summation(energy_joule_ms_tmp,energy_joule_ms,(nx2_m-nx1_m+1)*(ny2_m-ny1_m+1)*(nz2_m-nz1_m+1),nproc_group_global)
+          call comm_summation(energy_joule_ms_tmp,energy_joule_ms,&
+                             &(nx2_m-nx1_m+1)*(ny2_m-ny1_m+1)*(nz2_m-nz1_m+1),nproc_group_global)
           call comm_bcast(add_Ac_ms,     nproc_group_global)
           call comm_bcast(add_Ac_new_ms, nproc_group_global)
           call comm_bcast(Jm_new_ms,     nproc_group_global)
