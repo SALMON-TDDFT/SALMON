@@ -305,16 +305,15 @@ contains
 
 !OpenMP manual reduction routine
   subroutine mreduce_omp(vout,vtmp,vsize,tid)
-    use global_variables, only: NUMBER_THREADS
-    use misc_routines, only: ceiling_pow2
+    use opt_variables, only: NUMBER_THREADS_POW2
     implicit none
     integer,intent(in)  :: vsize,tid
     real(8),intent(out) :: vout(vsize)
-    real(8)             :: vtmp(vsize,0:NUMBER_THREADS-1)
+    real(8)             :: vtmp(vsize,0:NUMBER_THREADS_POW2-1)
 
     integer :: i
 
-    i = ceiling_pow2(NUMBER_THREADS)/2
+    i = NUMBER_THREADS_POW2/2
     do while(i > 0)
       if(tid < i) then
         vtmp(:,tid) = vtmp(:,tid) + vtmp(:,tid + i)
