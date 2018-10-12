@@ -561,19 +561,20 @@ contains
       endif
 
       write(fh_rt_energy, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
-        & 1, "Eall", trim(t_unit_energy%name), &
-        & 2, "Eall-Eall0", trim(t_unit_energy%name)
+        & 1, "Time", trim(t_unit_time%name), &
+        & 2, "Eall", trim(t_unit_energy%name), &
+        & 3, "Eall-Eall0", trim(t_unit_energy%name)
 
       if(use_ehrenfest_md=='y') then
       write(fh_rt_energy, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
-        & 3, "Tion", trim(t_unit_energy%name), &
-        & 4, "Temperature_ion", "K", &
-        & 5, "E_work", trim(t_unit_energy%name)
+        & 4, "Tion", trim(t_unit_energy%name), &
+        & 5, "Temperature_ion", "K", &
+        & 6, "E_work", trim(t_unit_energy%name)
       if(ensemble=="NVT".and.thermostat=="nose-hoover")then
       write(fh_rt_energy, '("#",99(1X,I0,":",A,"[",A,"]"))',advance='no') &
-        & 6, "Enh",  trim(t_unit_energy%name), &
-        & 7, "Hnvt", trim(t_unit_energy%name), &
-        & 8, "Hnvt'",trim(t_unit_energy%name)
+        & 7, "Enh",  trim(t_unit_energy%name), &
+        & 8, "Hnvt", trim(t_unit_energy%name), &
+        & 9, "Hnvt'",trim(t_unit_energy%name)
       endif
       endif
 
