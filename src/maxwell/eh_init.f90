@@ -1045,6 +1045,7 @@ subroutine eh_input_shape(ifn,ng_sta,ng_end,lg_sta,lg_end,imat,format)
                                   ng_sta(3):ng_end(3))
   character(2),intent(in) :: format
   integer,allocatable     :: itmp1d(:)
+  real(8),allocatable     :: rtmp1d(:)
   integer                 :: inum(3),inum_check(3)
   integer                 :: ii,ix,iy,iz,iflag_x,iflag_y
   
@@ -1055,11 +1056,11 @@ subroutine eh_input_shape(ifn,ng_sta,ng_end,lg_sta,lg_end,imat,format)
     !check grid information
     inum(:)=lg_end(:)-lg_sta(:)+1
     read(ifn,*); read (ifn,*); read (ifn,*); !skip
-    allocate(itmp1d(4))
-    read (ifn,*) itmp1d; inum_check(1)=itmp1d(1);
-    read (ifn,*) itmp1d; inum_check(2)=itmp1d(1);
-    read (ifn,*) itmp1d; inum_check(3)=itmp1d(1);
-    deallocate(itmp1d)
+    allocate(rtmp1d(4))
+    read (ifn,*) rtmp1d; inum_check(1)=int(rtmp1d(1)+1d-3);
+    read (ifn,*) rtmp1d; inum_check(2)=int(rtmp1d(1)+1d-3);
+    read (ifn,*) rtmp1d; inum_check(3)=int(rtmp1d(1)+1d-3);
+    deallocate(rtmp1d)
     do ii=1,3
       if(inum(ii)/=inum_check(ii)) then
         if(comm_is_root(nproc_id_global)) write(*,*) "al_em or dl_em does not mutch shape file."
