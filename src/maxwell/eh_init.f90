@@ -313,9 +313,8 @@ subroutine eh_init(grid,tmp)
     
     !search observation point
     do ii=1,iobs_num_em
-      call eh_find_point(obs_loc_em(ii,:),&
-                         tmp%iobs_po_id(ii,:),tmp%iobs_po_pe(ii),tmp%iobs_li_pe(ii,:),tmp%iobs_pl_pe(ii,:),&
-                         grid%ng_sta,grid%ng_end,&
+      call eh_find_point(obs_loc_em(ii,:),tmp%iobs_po_id(ii,:),&
+                         tmp%iobs_po_pe(ii),tmp%iobs_li_pe(ii,:),tmp%iobs_pl_pe(ii,:),grid%ng_sta,grid%ng_end,&
                          minval(grid%lg_sta)-tmp%Nd,maxval(grid%lg_end)+tmp%Nd,tmp%coo)
     end do
     
@@ -463,9 +462,8 @@ subroutine eh_init(grid,tmp)
     !search incident current source point and check others
     if(tmp%inc_dist1/='none') then
       ii=1
-      call eh_find_point(source_loc1(:),&
-                         tmp%inc_po_id(ii,:),tmp%inc_po_pe(ii),tmp%inc_li_pe(ii,:),tmp%inc_pl_pe(ii,:),&
-                         grid%ng_sta,grid%ng_end,&
+      call eh_find_point(source_loc1(:),tmp%inc_po_id(ii,:),&
+                         tmp%inc_po_pe(ii),tmp%inc_li_pe(ii,:),tmp%inc_pl_pe(ii,:),grid%ng_sta,grid%ng_end,&
                          minval(grid%lg_sta(:))-tmp%Nd,maxval(grid%lg_end(:))+tmp%Nd,tmp%coo(:,:))
       select case(ae_shape1)
       case("Ecos2","Acos2")
@@ -482,9 +480,8 @@ subroutine eh_init(grid,tmp)
     end if
     if(tmp%inc_dist2/='none') then
       ii=2
-      call eh_find_point(source_loc2(:),&
-                         tmp%inc_po_id(ii,:),tmp%inc_po_pe(ii),tmp%inc_li_pe(ii,:),tmp%inc_pl_pe(ii,:),&
-                         grid%ng_sta,grid%ng_end,&
+      call eh_find_point(source_loc2(:),tmp%inc_po_id(ii,:),&
+                         tmp%inc_po_pe(ii),tmp%inc_li_pe(ii,:),tmp%inc_pl_pe(ii,:),grid%ng_sta,grid%ng_end,&
                          minval(grid%lg_sta(:))-tmp%Nd,maxval(grid%lg_end(:))+tmp%Nd,tmp%coo(:,:))
       select case(ae_shape2)
       case("Ecos2","Acos2")
