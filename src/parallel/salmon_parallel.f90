@@ -59,10 +59,6 @@ module salmon_parallel
   integer, public :: nproc_id_h
   integer, public :: nproc_size_h
 
-  integer, public :: nproc_group_kgrid_except0
-  integer, public :: nproc_id_kgrid_except0
-  integer, public :: nproc_size_kgrid_except0
-
   integer, public :: nproc_group_korbital_vhxc
   integer, public :: nproc_id_korbital_vhxc
   integer, public :: nproc_size_korbital_vhxc
