@@ -1118,9 +1118,9 @@ contains
     al_em = al_em * ulength_to_au
     call comm_bcast(dl_em        ,nproc_group_global)
     dl_em = dl_em * ulength_to_au
-    call comm_bcast(nt_em        ,nproc_group_global)
     call comm_bcast(dt_em        ,nproc_group_global)
     dt_em = dt_em * utime_to_au
+    call comm_bcast(nt_em        ,nproc_group_global)
     call comm_bcast(wave_input,nproc_group_global)
     call comm_bcast(ek_dir1      ,nproc_group_global)
     call comm_bcast(source_loc1  ,nproc_group_global)
@@ -1734,8 +1734,8 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl_em(1)', dl_em(1)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl_em(2)', dl_em(2)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl_em(3)', dl_em(3)
-      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'nt_em', nt_em
-      write(fh_variables_log, '("#",4X,A,"=",I6)')     'dt_em', dt_em
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dt_em', dt_em
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'nt_em', nt_em
       write(fh_variables_log, '("#",4X,A,"=",A)')      'wave_input', wave_input
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir1(1)', ek_dir1(1)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir1(2)', ek_dir1(2)
