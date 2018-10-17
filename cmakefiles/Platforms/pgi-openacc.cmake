@@ -7,7 +7,7 @@ set(OPENMP_FLAGS                "-mp")
 set(LAPACK_FLAGS                "-llapack -lblas")
 set(ScaLAPACK_FLAGS             "-lscalapack -llapack -lblas")
 set(ADDITIONAL_MACRO            "")
-set(ADDITIONAL_OPTIMIZE_FLAGS   "")
+set(ADDITIONAL_OPTIMIZE_FLAGS   "-Mnoipa")
 
 set(Fortran_FLAGS_General       "-Mpreprocess -acc -ta=tesla,cc35,cc60,ptxinfo,maxregcount:128 -Mcuda -Minfo=acc")
 set(C_FLAGS_General             "")
