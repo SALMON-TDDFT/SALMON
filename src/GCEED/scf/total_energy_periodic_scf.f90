@@ -171,19 +171,20 @@ aewald_num=aewald_end-aewald_sta+1
 !    Eion_tmp1=Eion_tmp1-Pi*sum(Zps(Kion(:)))**2/(2*aEwald*aLxyz) - sqrt(aEwald/Pi)*sum(Zps(Kion(:))**2)
 if(aewald_num>=1)then
 ! 2:Eion
+  do ia=1,MI
   do ii=aewald_sta,aewald_end
-    iia=(ii-1)/((NEwald*2+1)**3)+1
     iix=mod((ii-1)/((NEwald*2+1)**2),NEwald*2+1)-NEwald
     iiy=mod((ii-1)/(NEwald*2+1),NEwald*2+1)-NEwald
     iiz=mod(ii-1,NEwald*2+1)-NEwald
     do ib=1,MI
-      if (iix**2+iiy**2+iiz**2 == 0 .and. iia == ib) cycle
-      rab(1)=Rion(1,iia)-dble(iix)*Hgs(1)*lg_num(1)-Rion(1,ib)
-      rab(2)=Rion(2,iia)-dble(iiy)*Hgs(2)*lg_num(2)-Rion(2,ib)
-      rab(3)=Rion(3,iia)-dble(iiz)*Hgs(3)*lg_num(3)-Rion(3,ib)
+      if (iix**2+iiy**2+iiz**2 == 0 .and. ia == ib) cycle
+      rab(1)=Rion(1,ia)-dble(iix)*Hgs(1)*lg_num(1)-Rion(1,ib)
+      rab(2)=Rion(2,ia)-dble(iiy)*Hgs(2)*lg_num(2)-Rion(2,ib)
+      rab(3)=Rion(3,ia)-dble(iiz)*Hgs(3)*lg_num(3)-Rion(3,ib)
       rab2=sum(rab(:)**2)
-      Ebox1(2)=Ebox1(2) + 0.5d0*Zps(Kion(iia))*Zps(Kion(ib))*erfc(sqrt(aEwald*rab2))/sqrt(rab2)
+      Ebox1(2)=Ebox1(2) + 0.5d0*Zps(Kion(ia))*Zps(Kion(ib))*erfc(sqrt(aEwald*rab2))/sqrt(rab2)
     enddo
+  enddo
   enddo
 end if
 
