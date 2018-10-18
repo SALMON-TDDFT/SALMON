@@ -333,7 +333,7 @@ subroutine eh_init(grid,tmp)
       write(*,*) "**************************"
       do ii=1,iobs_num_em
         write(save_name,*) ii
-        save_name=trim(adjustl(directory))//'obs'//trim(adjustl(save_name))//'_at_point.data'
+        save_name=trim(adjustl(directory))//'/obs'//trim(adjustl(save_name))//'_at_point.data'
         open(tmp%ifn,file=save_name)
         select case(unit_system)
         case('au','a.u.')

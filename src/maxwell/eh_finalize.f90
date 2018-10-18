@@ -28,7 +28,7 @@ subroutine eh_finalize(grid,tmp)
   if(iobs_num_em>0) then
     if(comm_is_root(nproc_id_global)) then
       !make information file
-      open(tmp%ifn,file=trim(directory)//"obs0_info.data")
+      open(tmp%ifn,file=trim(directory)//"/obs0_info.data")
       write(tmp%ifn,'(A,A14)')                      'unit_system   =',trim(unit_system)
       write(tmp%ifn,'(A,I14)')                      'iperiodic     =',iperiodic
       write(tmp%ifn,'(A,ES14.5)')                   'dt_em         =',grid%dt*utime_from_au
