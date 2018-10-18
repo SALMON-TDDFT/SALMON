@@ -27,7 +27,6 @@ subroutine calcJxyz_all_periodic
   complex(8),parameter :: zI=(0.d0,1.d0)
   
   integer :: i,j
-  integer,allocatable :: jxyz_1d(:,:),jxx_1d(:,:),jyy_1d(:,:),jzz_1d(:,:)
   integer :: lx(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: ly(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: lz(lg_num(1)*lg_num(2)*lg_num(3))
@@ -68,9 +67,9 @@ subroutine calcJxyz_all_periodic
   Jxxyyzz_all=0
   do iatom=1,MI
     do j=1,Mps_all(iatom)
-      Jxyz_all(1,j,iatom)=Lx(ppg%jxyz(j,iatom))+1
-      Jxyz_all(2,j,iatom)=Ly(ppg%jxyz(j,iatom))+1
-      Jxyz_all(3,j,iatom)=Lz(ppg%jxyz(j,iatom))+1
+      Jxyz_all(1,j,iatom)=ppg%jxyz(1,j,iatom)+1
+      Jxyz_all(2,j,iatom)=ppg%jxyz(2,j,iatom)+1
+      Jxyz_all(3,j,iatom)=ppg%jxyz(3,j,iatom)+1
       Jxxyyzz_all(1,j,iatom)=ppg%jxx(j,iatom)
       Jxxyyzz_all(2,j,iatom)=ppg%jyy(j,iatom)
       Jxxyyzz_all(3,j,iatom)=ppg%jzz(j,iatom)

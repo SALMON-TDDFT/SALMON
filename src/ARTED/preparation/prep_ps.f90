@@ -113,6 +113,11 @@ Subroutine prep_ps_periodic(property)
 
   call calc_jxyz(pp,ppg,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
 
+  Jxyz(1:Nps,1:NI)=ppg%jxyz(3,1:Nps,1:NI)+1+NLz*ppg%jxyz(2,1:Nps,1:NI)+NLy*NLz*ppg%jxyz(1,1:Nps,1:NI)
+  Jxx(:,:) =ppg%jxx(:,:)
+  Jyy(:,:) =ppg%jyy(:,:)
+  Jzz(:,:) =ppg%jzz(:,:)
+
   if(property == 'update_all') then
      zJxyz(1:Nps,1:NI) = Jxyz(1:Nps,1:NI) - 1
 

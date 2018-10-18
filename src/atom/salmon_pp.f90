@@ -54,7 +54,7 @@ module salmon_pp
   type pp_grid
     integer :: nps
     integer,allocatable :: mps(:)
-    integer,allocatable :: jxyz(:,:)
+    integer,allocatable :: jxyz(:,:,:)
     integer,allocatable :: jxx(:,:)
     integer,allocatable :: jyy(:,:)
     integer,allocatable :: jzz(:,:)
