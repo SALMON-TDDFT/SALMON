@@ -15,7 +15,7 @@
 !
 !-----------------------------------------------------------------------------------------
 subroutine eh_finalize(grid,tmp)
-  use inputoutput,          only: utime_from_au,ulength_from_au,unit_system,&
+  use inputoutput,          only: utime_from_au,ulength_from_au,unit_system,iperiodic,&
                                   directory,iobs_num_em,iobs_samp_em
   use salmon_parallel,      only: nproc_id_global
   use salmon_communication, only: comm_is_root
@@ -29,7 +29,8 @@ subroutine eh_finalize(grid,tmp)
     if(comm_is_root(nproc_id_global)) then
       !make information file
       open(tmp%ifn,file=trim(directory)//"obs0_info.data")
-      write(tmp%ifn,'(A,A14)')                      'unit_system  =',trim(unit_system)
+      write(tmp%ifn,'(A,A14)')                      'unit_system   =',trim(unit_system)
+      write(tmp%ifn,'(A,I14)')                      'iperiodic     =',iperiodic
       write(tmp%ifn,'(A,ES14.5)')                   'dt_em         =',grid%dt*utime_from_au
       write(tmp%ifn,'(A,I14)')                      'nt_em         =',(tmp%iter_end-tmp%iter_sta+1)
       write(tmp%ifn,'(A,ES14.5,A,ES14.5,A,ES14.5)') 'al_em         =',&
@@ -40,14 +41,14 @@ subroutine eh_finalize(grid,tmp)
             grid%hgs(1)*ulength_from_au,', ',&
             grid%hgs(2)*ulength_from_au,', ',&
             grid%hgs(3)*ulength_from_au
-      write(tmp%ifn,'(A,I14,A,I14,A,I14)')          'lg_sta       =',&
+      write(tmp%ifn,'(A,I14,A,I14,A,I14)')          'lg_sta        =',&
             grid%lg_sta(1),', ',grid%lg_sta(2),', ',grid%lg_sta(3)
-      write(tmp%ifn,'(A,I14,A,I14,A,I14)')          'lg_end       =',&
+      write(tmp%ifn,'(A,I14,A,I14,A,I14)')          'lg_end        =',&
             grid%lg_end(1),', ',grid%lg_end(2),', ',grid%lg_end(3)
-      write(tmp%ifn,'(A,I14)')                      'iobs_num_em  =',iobs_num_em
-      write(tmp%ifn,'(A,I14)')                      'iobs_samp_em =',iobs_samp_em
-      write(tmp%ifn,'(A,ES14.5)')                   'e_max        =',tmp%e_max
-      write(tmp%ifn,'(A,ES14.5)')                   'h_max        =',tmp%h_max
+      write(tmp%ifn,'(A,I14)')                      'iobs_num_em   =',iobs_num_em
+      write(tmp%ifn,'(A,I14)')                      'iobs_samp_em  =',iobs_samp_em
+      write(tmp%ifn,'(A,ES14.5)')                   'e_max         =',tmp%e_max
+      write(tmp%ifn,'(A,ES14.5)')                   'h_max         =',tmp%h_max
       close(tmp%ifn)
     end if
   end if
