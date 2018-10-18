@@ -522,8 +522,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array3d_double")
+    req = 0
 #endif
   end function
 
@@ -545,8 +545,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array3d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -568,8 +568,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array5d_double")
+    req = 0
 #endif
   end function
 
@@ -591,8 +591,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array5d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -614,8 +614,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array3d_double")
+    req = 0
 #endif
   end function
 
@@ -637,8 +637,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array3d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -660,8 +660,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array5d_double")
+    req = 0
 #endif
   end function
 
@@ -683,8 +683,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array5d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -736,7 +736,7 @@ contains
     UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
@@ -757,7 +757,7 @@ contains
     UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
@@ -778,7 +778,7 @@ contains
     UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
@@ -799,7 +799,7 @@ contains
     UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
@@ -820,7 +820,7 @@ contains
     UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
@@ -841,7 +841,7 @@ contains
     UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
@@ -862,7 +862,7 @@ contains
     UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
@@ -883,7 +883,7 @@ contains
     UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    req = 0
 #endif
   end function
 
