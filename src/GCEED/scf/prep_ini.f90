@@ -19,7 +19,7 @@ use salmon_communication, only: comm_is_root, comm_bcast
 use scf_data
 implicit none
 integer :: imol,jj
-real(8),parameter :: epsilon=1.d-10
+real(8),parameter :: rtmp=1.d-10
 
 if(comm_is_root(nproc_id_global))then
   open(60,file=file_ini)
@@ -53,13 +53,13 @@ rLsize_ini(:)=rLsize_ini(:)/a_B
 
 coo_mol_ini(:,:)=rlatcon*coo_mol_ini(:,:)
 
-lg_end_ini(:)=int((rLsize_ini(:)+epsilon)/2.d0/Hgs(:))
+lg_end_ini(:)=int((rLsize_ini(:)+rtmp)/2.d0/Hgs(:))
 do jj=1,3
   select case(imesh_oddeven(jj))
     case(1)
-      lg_sta_ini(jj)=-(int((rLsize_ini(jj)+epsilon)/2.d0/Hgs(jj)))
+      lg_sta_ini(jj)=-(int((rLsize_ini(jj)+rtmp)/2.d0/Hgs(jj)))
     case(2)
-      lg_sta_ini(jj)=-(int((rLsize_ini(jj)+epsilon)/2.d0/Hgs(jj)))+1
+      lg_sta_ini(jj)=-(int((rLsize_ini(jj)+rtmp)/2.d0/Hgs(jj)))+1
   end select
 end do
 lg_num_ini(:)=lg_end_ini(:)-lg_sta_ini(:)+1

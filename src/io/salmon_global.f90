@@ -205,6 +205,28 @@ module salmon_global
   character(1)   :: set_ini_coor_vel
   integer        :: nmacro_write_group
   !! TODO: remove num_macropoint later
+
+!! &maxwell
+  real(8)        :: al_em(3)
+  real(8)        :: dl_em(3)
+  real(8)        :: dt_em
+  integer        :: nt_em
+  character(16)  :: wave_input
+  real(8)        :: ek_dir1(3)
+  real(8)        :: source_loc1(3)
+  real(8)        :: ek_dir2(3)
+  real(8)        :: source_loc2(3)
+  integer        :: iobs_num_em
+  integer        :: iobs_samp_em
+  real(8)        :: obs_loc_em(200,3)
+  character(256) :: shape_file
+  integer        :: imedia_num
+  character(16)  :: type_media(0:200)
+  real(8)        :: epsilon(0:200)
+  real(8)        :: rmu(0:200)
+  real(8)        :: sigma(0:200)
+  real(8)        :: omega_p_d(0:200)
+  real(8)        :: gamma_d(0:200)
   
 !! &analysis
   character(2)   :: projection_option
