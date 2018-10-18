@@ -128,7 +128,8 @@ subroutine exc_cor_ns
     end do
     end do
   end if
- 
+
+  tot_exc=0.d0
   do iz=1,ng_num(3)
   do iy=1,ng_num(2)
   do ix=1,ng_num(1)
