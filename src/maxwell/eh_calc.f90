@@ -125,7 +125,7 @@ subroutine eh_calc(grid,tmp)
         !point
         if(tmp%iobs_po_pe(ii)==1) then
           write(save_name,*) ii
-          save_name=trim(adjustl(directory))//'obs'//trim(adjustl(save_name))//'_at_point.data'
+          save_name=trim(adjustl(directory))//'/obs'//trim(adjustl(save_name))//'_at_point.data'
           open(tmp%ifn,file=save_name,status='old',position='append')
           write(tmp%ifn, '(E13.5)',advance="no") dble(iter)*grid%dt*utime_from_au
           write(tmp%ifn,'(E16.6e3)',advance="no") &
@@ -634,7 +634,7 @@ subroutine eh_save_plane(id,ipl,conv,ng_sta,ng_end,lg_sta,lg_end,Nd,ifn,iobs,ite
     if(comm_is_root(nproc_id_global)) then
       write(iobs_name,*) iobs
       write(iter_name,*) iter
-      save_name=trim(adjustl(directory))//'obs'//trim(adjustl(iobs_name))//'_'//var//&
+      save_name=trim(adjustl(directory))//'/obs'//trim(adjustl(iobs_name))//'_'//var//&
                 '_'//plane_name//'_'//trim(adjustl(iter_name))//'.data'
       open(ifn,file=save_name)
       do i2=lg_sta(i2s),lg_end(i2s)
