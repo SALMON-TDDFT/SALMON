@@ -18,6 +18,7 @@ module sendrecv_groupob_tmp_sub
 use scf_data
 use new_world_sub
 use init_sendrecv_sub
+use sendrecv_self_sub
 
 interface sendrecv_groupob_tmp
 
@@ -30,7 +31,7 @@ contains
 !==================================================================================================
 
 subroutine R_sendrecv_groupob_tmp(tpsi)
-use salmon_parallel, only: nproc_group_korbital
+use salmon_parallel, only: nproc_group_korbital, is_distributed_parallel
 use salmon_communication, only: comm_proc_null, comm_isend, comm_irecv, comm_wait_all
 implicit none
 real(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
@@ -39,6 +40,15 @@ integer :: ix,iy,iz,iob,iik
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: ireq(12)
 integer :: icomm
+
+if (.not. is_distributed_parallel()) then
+  do iik=k_sta,k_end
+  do iob=1,iobnum
+    call sendrecv_self(tpsi(:,:,:,iob,iik),1)
+  end do
+  end do
+  return
+end if
 
 iup=iup_array(1)
 idw=idw_array(1)
@@ -265,7 +275,7 @@ end subroutine R_sendrecv_groupob_tmp
 !==================================================================================================
 
 subroutine C_sendrecv_groupob_tmp(tpsi)
-use salmon_parallel, only: nproc_group_korbital
+use salmon_parallel, only: nproc_group_korbital, is_distributed_parallel
 use salmon_communication, only: comm_proc_null, comm_isend, comm_irecv, comm_wait_all
 implicit none
 complex(8) :: tpsi(mg_sta(1)-Nd:mg_end(1)+Nd+1,mg_sta(2)-Nd:mg_end(2)+Nd, &
@@ -274,6 +284,15 @@ integer :: ix,iy,iz,iob,iik
 integer :: iup,idw,jup,jdw,kup,kdw
 integer :: icomm
 integer :: ireq(12)
+
+if (.not. is_distributed_parallel()) then
+  do iik=k_sta,k_end
+  do iob=1,iobnum
+    call sendrecv_self(tpsi(:,:,:,iob,iik),1)
+  end do
+  end do
+  return
+end if
 
 iup=iup_array(1)
 idw=idw_array(1)

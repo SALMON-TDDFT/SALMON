@@ -329,8 +329,8 @@ subroutine calc_uv(pp,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d,uv
     end do
     endif
 
-!$omp parallel
-!$omp do private(j,x,y,z,r,ir,intr,xx,l,lm,m,uvr,duvr,ilma)
+!$omp parallel private(j,x,y,z,r,ir,intr,xx,l,lm,m,uvr,duvr,ilma)
+!$omp do
     do j=1,mps(a)
       x=lx(jxyz(j,a))*hx-(rion(1,a)+jxx(j,a)*alx)
       y=ly(jxyz(j,a))*hy-(rion(2,a)+jyy(j,a)*aly)

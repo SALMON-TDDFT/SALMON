@@ -27,7 +27,8 @@ module salmon_communication
 #else
   integer, public, parameter  :: ROOT_PROCID    = 0
   integer, public, parameter  :: COMM_PROC_NULL = int(z'0000BEEF')
-  integer, private, parameter :: COMM_WORLD_ID  = int(z'000ABEEF')
+  integer, private, parameter :: COMM_WORLD_ID  = COMM_PROC_NULL
+  integer, private, parameter :: DEAD_BEAF      = int(z'0000DEAD')
 #endif
 
   ! call once
@@ -284,7 +285,9 @@ contains
     implicit none
     integer, intent(in) :: ngid, nprocs, key
     integer :: ngid_dst
-    ngid_dst = ngid + key * nprocs
+    UNUSED_VARIABLE(key)
+    UNUSED_VARIABLE(nprocs)
+    ngid_dst = ngid
 #endif
   end function
 
@@ -317,7 +320,11 @@ contains
     implicit none
     integer, intent(in), optional :: ngid
     UNUSED_VARIABLE(ngid)
-    ! do nothing
+    if (present(ngid)) then
+      ABORT_MESSAGE(ngid,"comm_sync_all")
+    else
+      ! do nothing
+    end if
 #endif
   end subroutine
 
@@ -522,8 +529,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array3d_double")
+    req = 0
 #endif
   end function
 
@@ -545,8 +552,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array3d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -568,8 +575,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array5d_double")
+    req = 0
 #endif
   end function
 
@@ -591,8 +598,8 @@ contains
     UNUSED_VARIABLE(invalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(ndest,"comm_isend_array5d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -614,8 +621,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array3d_double")
+    req = 0
 #endif
   end function
 
@@ -637,8 +644,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array3d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -660,8 +667,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array5d_double")
+    req = 0
 #endif
   end function
 
@@ -683,8 +690,8 @@ contains
     UNUSED_VARIABLE(outvalue)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
     ABORT_MESSAGE(nsrc,"comm_irecv_array5d_dcomplex")
+    req = 0
 #endif
   end function
 
@@ -699,8 +706,7 @@ contains
 #else
     implicit none
     integer, intent(in) :: req
-    UNUSED_VARIABLE(req)
-    ! do nothing
+    ABORT_MESSAGE(req,"comm_wait")
 #endif
   end subroutine
 
@@ -733,10 +739,10 @@ contains
     integer, intent(in) :: ndest, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(invalue)
-    UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(ndest,"comm_send_init_array3d_double")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -754,10 +760,10 @@ contains
     integer, intent(in)    :: ndest, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(invalue)
-    UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(ndest,"comm_send_init_array3d_dcomplex")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -775,10 +781,10 @@ contains
     integer, intent(in) :: ndest, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(invalue)
-    UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(ndest,"comm_send_init_array5d_double")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -796,10 +802,10 @@ contains
     integer, intent(in)    :: ndest, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(invalue)
-    UNUSED_VARIABLE(ndest)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(ndest,"comm_send_init_array5d_dcomplex")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -817,10 +823,10 @@ contains
     integer, intent(in)  :: nsrc, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(outvalue)
-    UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(nsrc,"comm_recv_init_array3d_double")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -838,10 +844,10 @@ contains
     integer, intent(in)     :: nsrc, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(outvalue)
-    UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(nsrc,"comm_recv_init_array3d_dcomplex")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -859,10 +865,10 @@ contains
     integer, intent(in)  :: nsrc, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(outvalue)
-    UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(nsrc,"comm_recv_init_array5d_double")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -880,10 +886,10 @@ contains
     integer, intent(in)     :: nsrc, ntag, ngroup
     integer :: req
     UNUSED_VARIABLE(outvalue)
-    UNUSED_VARIABLE(nsrc)
     UNUSED_VARIABLE(ntag)
     UNUSED_VARIABLE(ngroup)
-    UNUSED_VARIABLE(req)
+    ABORT_MESSAGE(nsrc,"comm_recv_init_array5d_dcomplex")
+    req = DEAD_BEAF
 #endif
   end function
 
@@ -897,6 +903,7 @@ contains
     implicit none
     integer, intent(in) :: reqs(:)
     UNUSED_VARIABLE(reqs)
+    ! do nothing
 #endif
   end subroutine
 
@@ -921,8 +928,8 @@ contains
     integer, intent(out) :: outvalue
     integer, intent(in)  :: ngroup
     integer, optional, intent(in) :: dest
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_integer")
     outvalue = invalue
 #endif
   end subroutine
@@ -947,8 +954,8 @@ contains
     real(8), intent(out) :: outvalue
     integer, intent(in)  :: ngroup
     integer, optional, intent(in) :: dest
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -973,8 +980,8 @@ contains
     complex(8), intent(out) :: outvalue
     integer, intent(in)     :: ngroup
     integer, optional, intent(in) :: dest
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_dcomplex")
     outvalue = invalue
 #endif
   end subroutine
@@ -1000,8 +1007,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array1d_integer")
     outvalue = invalue
 #endif
   end subroutine
@@ -1027,8 +1034,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array1d_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -1054,8 +1061,8 @@ contains
     integer, intent(in)     :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array1d_dcomplex")
     outvalue = invalue
 #endif
   end subroutine
@@ -1081,8 +1088,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array2d_integer")
     outvalue = invalue
 #endif
   end subroutine
@@ -1108,8 +1115,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array2d_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -1135,8 +1142,8 @@ contains
     integer, intent(in)     :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array2d_dcomplex")
     outvalue = invalue
 #endif
   end subroutine
@@ -1162,8 +1169,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array3d_integer")
     outvalue = invalue
 #endif
   end subroutine
@@ -1189,8 +1196,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array3d_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -1216,8 +1223,8 @@ contains
     integer, intent(in)     :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array3d_dcomplex")
     outvalue = invalue
 #endif
   end subroutine
@@ -1243,8 +1250,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array4d_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -1270,8 +1277,8 @@ contains
     integer, intent(in)     :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array4d_dcomplex")
     outvalue = invalue
 #endif
   end subroutine
@@ -1297,8 +1304,8 @@ contains
     integer, intent(in)  :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array5d_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -1324,8 +1331,8 @@ contains
     integer, intent(in)     :: N, ngroup
     integer, optional, intent(in) :: dest
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(dest)
+    ABORT_MESSAGE(ngroup,"comm_summation_array5d_dcomplex")
     outvalue = invalue
 #endif
   end subroutine
@@ -1351,9 +1358,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_integer")
 #endif
   end subroutine
 
@@ -1377,9 +1383,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_double")
 #endif
   end subroutine
 
@@ -1403,9 +1408,8 @@ contains
     integer,      intent(in)           :: ngroup
     integer,      intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_character")
 #endif
   end subroutine
 
@@ -1429,9 +1433,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_logical")
 #endif
   end subroutine
 
@@ -1455,9 +1458,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array1d_integer")
 #endif
   end subroutine
 
@@ -1481,9 +1483,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array1d_double")
 #endif
   end subroutine
 
@@ -1507,9 +1508,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array2d_integer")
 #endif
   end subroutine
 
@@ -1533,9 +1533,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array2d_double")
 #endif
   end subroutine
 
@@ -1559,9 +1558,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array3d_double")
 #endif
   end subroutine
   
@@ -1585,9 +1583,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array4d_double")
 #endif
   end subroutine
 
@@ -1611,9 +1608,8 @@ contains
     integer, intent(in)           :: ngroup
     integer, intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array3d_dcomplex")
 #endif
   end subroutine
 
@@ -1637,9 +1633,8 @@ contains
     integer,      intent(in)           :: ngroup
     integer,      intent(in), optional :: root
     UNUSED_VARIABLE(val)
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(root)
-    ! do nothing
+    ABORT_MESSAGE(ngroup,"comm_bcast_array1d_character")
 #endif
   end subroutine
 
@@ -1665,7 +1660,7 @@ contains
     integer, intent(in)  :: ncounts(:)
     integer, intent(in)  :: displs(:)
     integer, intent(in)  :: ngroup
-    UNUSED_VARIABLE(ngroup)
+    ABORT_MESSAGE(ngroup,"comm_allgatherv_array1d_double")
     outvalue(displs(1)+1:displs(1)+ncounts(1)) = invalue(1:ncounts(1)-1)
 #endif
   end subroutine
@@ -1690,8 +1685,8 @@ contains
     complex(8), intent(out) :: outvalue(:)
     integer, intent(in)  :: ngroup
     integer, intent(in)  :: ncount
-    UNUSED_VARIABLE(ngroup)
     UNUSED_VARIABLE(ncount)
+    ABORT_MESSAGE(ngroup,"comm_alltoall_array1d_complex")
     outvalue = invalue
 #endif
   end subroutine
@@ -1712,7 +1707,7 @@ contains
     real(8), intent(out) :: outvalue(:)
     integer, intent(in)  :: N, ngroup
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
+    ABORT_MESSAGE(ngroup,"comm_get_min_array1d_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -1732,7 +1727,7 @@ contains
     real(8), intent(out) :: outvalue(:)
     integer, intent(in)  :: N, ngroup
     UNUSED_VARIABLE(N)
-    UNUSED_VARIABLE(ngroup)
+    ABORT_MESSAGE(ngroup,"comm_get_max_array1d_double")
     outvalue = invalue
 #endif
   end subroutine
@@ -1750,7 +1745,7 @@ contains
     type(comm_maxloc_type), intent(in)  :: invalue
     type(comm_maxloc_type), intent(out) :: outvalue
     integer, intent(in)                 :: ngroup
-    UNUSED_VARIABLE(ngroup)
+    ABORT_MESSAGE(ngroup,"comm_get_maxloc")
     outvalue = invalue
 #endif
   end subroutine
@@ -1769,7 +1764,7 @@ contains
     logical, intent(in)  :: invalue
     logical, intent(out) :: outvalue
     integer, intent(in)  :: ngroup
-    UNUSED_VARIABLE(ngroup)
+    ABORT_MESSAGE(ngroup,"comm_logical_and_scalar")
     outvalue = invalue
 #endif
   end subroutine
@@ -1817,6 +1812,9 @@ contains
     implicit none
     character(*), intent(in) :: msg
     print '(A,A)', msg, ': this subroutine must not called (it takes MPI)'
+#ifdef __INTEL_COMPILER
+    call tracebackqq
+#endif
     stop
   end subroutine
   
