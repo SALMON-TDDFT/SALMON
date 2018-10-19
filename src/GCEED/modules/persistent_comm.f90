@@ -38,18 +38,27 @@ contains
   subroutine init_comm_korbital
     use init_sendrecv_sub,    only: iup_array,idw_array,jup_array,jdw_array,kup_array,kdw_array
     use salmon_parallel,      only: icomm => nproc_group_korbital
-    use salmon_communication, only: comm_send_init, comm_recv_init
+    use salmon_communication, only: comm_send_init, comm_recv_init, comm_proc_null
     use pack_unpack,          only: create_array_shape
     use scf_data
     implicit none
     integer :: iup,idw,jup,jdw,kup,kdw
 
+#ifdef SALMON_USE_MPI
     iup=iup_array(1)
     idw=idw_array(1)
     jup=jup_array(1)
     jdw=jdw_array(1)
     kup=kup_array(1)
     kdw=kdw_array(1)
+#else
+    iup=comm_proc_null
+    idw=comm_proc_null
+    jup=comm_proc_null
+    jdw=comm_proc_null
+    kup=comm_proc_null
+    kdw=comm_proc_null
+#endif
 
     allocate(nreqs_rorbital(12))
     nreqs_rorbital( 1) = comm_send_init(srmatbox1_x_3d,iup,3,icomm)
@@ -88,18 +97,27 @@ contains
   subroutine init_comm_groupob
     use init_sendrecv_sub,    only: iup_array,idw_array,jup_array,jdw_array,kup_array,kdw_array
     use salmon_parallel,      only: icomm => nproc_group_korbital
-    use salmon_communication, only: comm_send_init, comm_recv_init
+    use salmon_communication, only: comm_send_init, comm_recv_init, comm_proc_null
     use pack_unpack,          only: create_array_shape
     use scf_data
     implicit none
     integer :: iup,idw,jup,jdw,kup,kdw
 
+#ifdef SALMON_USE_MPI
     iup=iup_array(1)
     idw=idw_array(1)
     jup=jup_array(1)
     jdw=jdw_array(1)
     kup=kup_array(1)
     kdw=kdw_array(1)
+#else
+    iup=comm_proc_null
+    idw=comm_proc_null
+    jup=comm_proc_null
+    jdw=comm_proc_null
+    kup=comm_proc_null
+    kdw=comm_proc_null
+#endif
 
     if(iSCFRT==1.and.icalcforce==1)then
       allocate(nreqs_rgroupob(12))
@@ -203,19 +221,28 @@ contains
   subroutine init_reqs_h(ireqs,itype)
     use init_sendrecv_sub
     use salmon_parallel,      only: nproc_group_global, nproc_group_h
-    use salmon_communication, only: comm_send_init, comm_recv_init
+    use salmon_communication, only: comm_send_init, comm_recv_init, comm_proc_null
     implicit none
     integer, intent(out) :: ireqs(12)
     integer, intent(in)  :: itype
     integer :: icomm
     integer :: iup,idw,jup,jdw,kup,kdw
 
+#ifdef SALMON_USE_MPI
     iup=iup_array(itype)
     idw=idw_array(itype)
     jup=jup_array(itype)
     jdw=jdw_array(itype)
     kup=kup_array(itype)
     kdw=kdw_array(itype)
+#else
+    iup=comm_proc_null
+    idw=comm_proc_null
+    jup=comm_proc_null
+    jdw=comm_proc_null
+    kup=comm_proc_null
+    kdw=comm_proc_null
+#endif
 
     if (itype == 1) then
       icomm = nproc_group_global
