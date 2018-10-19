@@ -285,7 +285,9 @@ contains
     implicit none
     integer, intent(in) :: ngid, nprocs, key
     integer :: ngid_dst
-    ngid_dst = ngid + key * nprocs
+    UNUSED_VARIABLE(key)
+    UNUSED_VARIABLE(nprocs)
+    ngid_dst = ngid
 #endif
   end function
 
