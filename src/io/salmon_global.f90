@@ -89,6 +89,7 @@ module salmon_global
   integer        :: nelec
   integer        :: nelec_spin(2)
   real(8)        :: temperature
+  real(8)        :: temperature_k
   integer        :: nelem
   integer        :: natom
   character(256) :: file_atom_coor
@@ -149,6 +150,7 @@ module salmon_global
   real(8)        :: threshold_norm_pot
   character(1)   :: omp_loop
   character(1)   :: skip_gsortho
+  integer        :: iditer_notemperature
 
 !! &emfield
   character(2)   :: trans_longi

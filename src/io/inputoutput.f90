@@ -258,6 +258,7 @@ contains
       & nelec, &
       & nelec_spin, &
       & temperature, &
+      & temperature_k, &
       & nelem, &
       & natom, &
       & file_atom_coor, &
@@ -320,7 +321,8 @@ contains
       & threshold_norm_rho, &
       & threshold_norm_pot, &
       & omp_loop, &
-      & skip_gsortho
+      & skip_gsortho, &
+      & iditer_notemperature
 
     namelist/emfield/ &
       & trans_longi, &
@@ -596,6 +598,7 @@ contains
     nelec              = 0
     nelec_spin (:)     = 0
     temperature        = -1d0
+    temperature_k      = -1d0
     nelem              = 0
     natom              = 0
     file_atom_coor          = 'none'
@@ -650,6 +653,7 @@ contains
     threshold_norm_pot = -1d0/ulength_from_au**6*uenergy_from_au**2  ! a.u., -1 a.u. = -33.72d4 AA**(-6)*eV**2
     omp_loop      = 'k'
     skip_gsortho  = 'n'
+    iditer_notemperature = 10
 
 !! == default for &emfield
     trans_longi    = 'tr'
@@ -973,6 +977,7 @@ contains
     call comm_bcast(nelec              ,nproc_group_global)
     call comm_bcast(nelec_spin         ,nproc_group_global)
     call comm_bcast(temperature        ,nproc_group_global)
+    call comm_bcast(temperature_k      ,nproc_group_global)
     call comm_bcast(nelem              ,nproc_group_global)
     call comm_bcast(natom              ,nproc_group_global)
     call comm_bcast(file_atom_coor     ,nproc_group_global)
@@ -1038,6 +1043,7 @@ contains
     threshold_norm_pot = threshold_norm_pot * (uenergy_to_au)**2 / (ulength_to_au)**6
     call comm_bcast(omp_loop                ,nproc_group_global)
     call comm_bcast(skip_gsortho            ,nproc_group_global)
+    call comm_bcast(iditer_notemperature    ,nproc_group_global)
 !! == bcast for &emfield
     call comm_bcast(trans_longi,nproc_group_global)
     call comm_bcast(ae_shape1  ,nproc_group_global)
@@ -1577,6 +1583,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'nelec', nelec
       write(fh_variables_log, '("#",4X,A,"=",I4,2x,I4)') 'nelec_spin(1:2)', nelec_spin
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature', temperature
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature_k', temperature_k
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'nelem', nelem
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'natom', natom
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_atom_coor', trim(file_atom_coor)
@@ -1650,6 +1657,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_norm_pot', threshold_norm_pot
       write(fh_variables_log, '("#",4X,A,"=",A)') 'omp_loop', omp_loop
       write(fh_variables_log, '("#",4X,A,"=",A)') 'skip_gsortho', skip_gsortho
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'iditer_notemperature', iditer_notemperature
 
       if(inml_emfield >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'emfield', inml_emfield

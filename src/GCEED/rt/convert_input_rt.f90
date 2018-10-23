@@ -178,6 +178,11 @@ case('ffte','FFTE')
   iflag_hartree=4
 end select
 
+if(temperature>=0.d0)then
+  write(*,*) "At the moment, temperature must be given in a variable temperature_k"
+  stop 
+end if
+
 if(comm_is_root(nproc_id_global))close(fh_namelist)
 
 end subroutine convert_input_rt

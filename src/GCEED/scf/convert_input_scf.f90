@@ -60,22 +60,37 @@ iDiter(1) = nscf
 
 if(ispin == 0)then
   MST(1)=nstate
-  ifMST(1)=nelec/2
+  if(temperature_k>=0.d0)then
+    ifMST(1)=nstate
+    rNetot=dble(nelec)
+  else
+    ifMST(1)=nelec/2
+  end if
   MST(2)=0
   ifMST(2)=0
 else if(ispin == 1)then
-   if(nstate /= 0 .and. sum(nstate_spin) ==0)then
-      MST(1:2)=nstate
+  if(nstate /= 0 .and. sum(nstate_spin) ==0)then
+    MST(1:2)=nstate
+    if(temperature_k>=0.d0)then
+      ifMST(1:2)=nstate
+      rNetot=dble(nelec)
+    else
       ifMST(1)=nelec - nelec/2
       ifMST(2)=nelec/2
-   else if(nstate == 0 .and. sum(nstate_spin) /=0)then
-      MST(1:2)=nstate_spin(1:2)
+    end if
+  else if(nstate == 0 .and. sum(nstate_spin) /=0)then
+    MST(1:2)=nstate_spin(1:2)
+    if(temperature_k>=0.d0)then
+      ifMST(1:2)=nstate_spin(1:2)
+      rNetot=dble(nelec_spin(1))+dble(nelec_spin(2))
+    else
       ifMST(1:2)=nelec_spin(1:2)
-   else
-      write(*,*)"'nstate' or 'nstate_spin' should be spacified in input. "
-   end if
+    end if
+  else
+    write(*,*)"'nstate' or 'nstate_spin' should be spacified in input. "
+  end if
 else 
-   write(*,*)"'ispin' should be 0 or 1. "
+  write(*,*)"'ispin' should be 0 or 1. "
 end if
 
 select case(use_geometry_opt)
@@ -329,6 +344,11 @@ case('ft','FT')
 case('ffte','FFTE')
   iflag_hartree=4
 end select
+
+if(temperature>=0.d0)then
+  write(*,*) "At the moment, temperature must be given in a variable temperature_k"
+  stop 
+end if
 
 call make_new_world
 

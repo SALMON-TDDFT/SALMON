@@ -1,5 +1,5 @@
 !
-!  Copyright 2017 SALMON developers
+!  Copyright 2018 SALMON developers
 !
 !  Licensed under the Apache License, Version 2.0 (the "License");
 !  you may not use this file except in compliance with the License.
@@ -460,6 +460,7 @@ complex(8),allocatable :: cmatbox_read3(:,:,:)
 integer :: icheck_read
 integer :: ifilenum_data
 integer :: icomm
+integer :: ifMST0(2)
 integer :: imesh_oddeven0
 integer :: itmg
 
@@ -524,10 +525,20 @@ if(comm_is_root(nproc_id_global))then
   read(96) lg_end(:3)
   if(ilsda == 0) then
     read(96) MST0(1)
-    read(96) ifMST(1)
+!    read(96) ifMST(1)
+    if(iSCFRT==2)then
+      read(96) ifMST(1)
+    else
+      read(96) ifMST0(1)
+    endif
   else if(ilsda == 1)then
     read(96) (MST0(is),is=1,2)
-    read(96) (ifMST(is),is=1,2)
+!    read(96) (ifMST(is),is=1,2)
+    if(iSCFRT==2)then
+      read(96) (ifMST(is),is=1,2)
+    else
+      read(96) (ifMST0(is),is=1,2)
+    endif
   end if
   if(version_num_box(1)<=31)then
     if(iflag_ps.eq.1)then
