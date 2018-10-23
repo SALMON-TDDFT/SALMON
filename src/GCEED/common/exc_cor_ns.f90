@@ -23,7 +23,6 @@ subroutine exc_cor_ns
   use sendrecvh_sub
   implicit none
   integer :: ix,iy,iz,is
-  integer :: jspin
   real(8) :: tot_exc
   real(8),allocatable :: rhd(:,:,:), delr(:,:,:,:)
   integer :: iwk_dum

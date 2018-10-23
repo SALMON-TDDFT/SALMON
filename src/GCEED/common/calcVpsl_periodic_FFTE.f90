@@ -26,7 +26,6 @@ subroutine calcVpsl_periodic_FFTE
   integer :: ii,ix,iy,iz,ak
   integer :: iix,iiy,iiz
   integer :: iatom
-  real(8) :: x,y,z
   
   integer :: n
   real(8) :: bLx,bLy,bLz
@@ -37,14 +36,11 @@ subroutine calcVpsl_periodic_FFTE
   complex(8),parameter :: zI=(0.d0,1.d0)
   real(8) :: G2sq,G2
   real(8) :: Gd
-  real(8) :: Gr
   real(8) :: s
   real(8) :: r
   integer :: imax
-  real(8) :: Vpsl_tmp(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
   integer :: iy_sta,iy_end,iz_sta,iz_end
   integer :: i,iix2,iiy2,iiz2
-  integer :: icommy_dummy,icommz_dummy
   
 
 !calculate reciprocal lattice vector

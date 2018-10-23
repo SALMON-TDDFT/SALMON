@@ -35,7 +35,7 @@ integer :: ia_sta,ia_end
 real(8) :: x,y,z
 integer :: ik,iik
 integer :: ix,iy,iz
-integer :: iix,iiy,iiz,iia
+integer :: iix,iiy,iiz
 integer :: aewald_sta,aewald_end,aewald_num
 integer :: totnum_aewald
 real(8) :: rab(3),rab2
