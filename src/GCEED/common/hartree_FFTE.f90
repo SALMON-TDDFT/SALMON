@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 !SUBROUTINE Hartree_periodic
-!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------130
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120--------
 subroutine Hartree_FFTE(trho,tVh)
   use salmon_parallel, only: nproc_group_global
   use salmon_parallel, only: nproc_id_icommy, nproc_group_icommy
@@ -35,18 +35,12 @@ subroutine Hartree_FFTE(trho,tVh)
   real(8) :: trho(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
   real(8) :: tVh(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3))
   real(8) :: inv_lgnum3
-  real(8),allocatable :: trho4(:,:,:),trho5(:,:,:)
   complex(8),parameter :: zI=(0.d0,1.d0)
   integer :: n
   real(8) :: bLx,bLy,bLz
   complex(8) :: A_FFTE_tmp(1:lg_num(1),1:lg_num(2)/NPUY,1:lg_num(3)/NPUZ)
   integer :: ng_sta_2(3),ng_end_2(3),ng_num_2(3)
   integer :: lg_sta_2(3),lg_end_2(3),lg_num_2(3)
-  real(8) :: r
-  integer :: iatom,ak
-  real(8) :: fact
-  real(8) :: fact_in_exp
-  integer :: icommy_dummy, icommz_dummy
 
   lg_sta_2(1:3)=lg_sta(1:3)
   lg_end_2(1:3)=lg_end(1:3)

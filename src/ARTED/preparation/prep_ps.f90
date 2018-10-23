@@ -29,19 +29,10 @@ Subroutine prep_ps_periodic(property)
   implicit none
   character(17) :: property
   logical :: flag_alloc1, flag_alloc2
-  integer :: ik,n,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
-  integer :: PNLx,PNLy,PNLz,ilma,narray
-  real(8) :: G2sq,s,G2,Gd,Gr,x,y,z,r,dr,tmpx,tmpy,tmpz
-  real(8) :: Ylm,dYlm,uVr(0:Lmax),duVr(0:Lmax),Vpsl_ia_l(NL,NI) !,Vpsl_l(NL)
-  complex(8) :: Vion_G_ia(NG_s:NG_e,NI),tmp_exp !, Vion_G(NG_s:NG_e)
-  !spline interpolation
-  real(8) :: xx
-  real(8) :: dudVtbl_a(Nrmax,0:Lmax), dudVtbl_b(Nrmax,0:Lmax)
-  real(8) :: dudVtbl_c(Nrmax,0:Lmax), dudVtbl_d(Nrmax,0:Lmax)
-!  real(8) :: udVtbl_a(Nrmax,0:Lmax), udVtbl_b(Nrmax,0:Lmax)
-!  real(8) :: udVtbl_c(Nrmax,0:Lmax), udVtbl_d(Nrmax,0:Lmax)
-  real(8),allocatable :: xn(:),yn(:),an(:),bn(:),cn(:),dn(:)  
-  real(8) :: vloc_av, ratio1,ratio2,rc
+  integer :: ik,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
+  integer :: PNLx,PNLy,PNLz,narray
+  real(8) :: x,y,z,r
+  real(8) :: ratio1,ratio2,rc
 
 
   !(Local pseudopotential in G-space (radial part))
