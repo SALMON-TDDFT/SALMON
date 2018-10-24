@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 subroutine eigen_subdiag(Rmat,evec,iter,ier2)
+use salmon_parallel, only: nproc_size_global
 use scf_data
 implicit none
 
@@ -60,6 +61,7 @@ END subroutine eigen_subdiag
 !     pasted directly into matlab.
 !
 !     .. Parameters ..
+use salmon_parallel, only: nproc_size_global
 use scf_data
 integer :: iter
 real(8) :: Rmat(iter,iter)
@@ -114,7 +116,7 @@ real(8) :: evec(iter,iter)
       else
         NPROW = nproc_Mxin(3)
       end if
-      NPCOL = nproc/NPROW
+      NPCOL = nproc_size_global/NPROW
       LDA = iter
       
       NP = max(N,NPROW)
