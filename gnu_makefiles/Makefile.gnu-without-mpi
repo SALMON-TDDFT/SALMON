@@ -8,7 +8,7 @@ CFLAGS = -O3 -fopenmp -Wall
 LIBLAPACK = -llapack -lblas
 #LIBLAPACK = -lmkl_intel_thread -lmkl_intel_lp64 -lmkl_core -lpthread -ldl -liomp5 -lm
 MODULE_SWITCH = -J
-COMM_SET = dummy
+MPI_FLAG =
 
 LIBXC_LIB =
 LIBXC_INC =
