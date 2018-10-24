@@ -12,7 +12,7 @@ ifdef SIMD_SET
 	F90_STENCIL_FILE=
 else
 	C_STENCIL_FILE=
-	F90_STENCIL_FILE = \
+	F90_STENCIL_FILE= \
 		ARTED/stencil/F90/current.f90 \
 		ARTED/stencil/F90/hpsi.f90 \
 		ARTED/stencil/F90/total_energy.f90
@@ -21,7 +21,7 @@ endif
 ifdef COMM_SET
 	MPI_FLAG=
 else
-	MPI_FLAG=-DSALMON_USE_MPI
+	
 endif
 
 F90_SRCS = \
@@ -47,17 +47,10 @@ F90_SRCS = \
 	xc/builtin_pz_sp.f90 \
 	xc/builtin_pzm.f90 \
 	xc/salmon_xc.f90 \
-	maxwell/salmon_maxwell.f90 \
-	maxwell/classic_em.f90 \
-	maxwell/coulomb/calc_coulomb.f90 \
-	maxwell/coulomb/finalize_coulomb.f90 \
-	maxwell/coulomb/init_coulomb.f90 \
-	maxwell/weyl/init_weyl.f90 \
-	maxwell/weyl/calc_weyl.f90 \
-	maxwell/weyl/finalize_weyl.f90 \
-	maxwell/eh/calc_eh.f90 \
-	maxwell/eh/finalize_eh.f90 \
-	maxwell/eh/init_eh.f90 \
+	atom/salmon_pp.f90 \
+	atom/input_pp.f90 \
+	atom/prep_pp.f90 \
+	atom/Ylm_dYlm.f90 \
 	ARTED/modules/nvtx.f90 \
 	ARTED/modules/global_variables.f90 \
 	ARTED/modules/opt_variables.f90 \
@@ -66,7 +59,6 @@ F90_SRCS = \
 	ARTED/common/Ac_alocal_laser.f90 \
 	ARTED/common/psi_rho.f90 \
 	ARTED/common/hpsi.f90 \
-	ARTED/common/Ylm_dYlm.f90 \
 	ARTED/common/preprocessor.f90 \
 	ARTED/common/density_plot.f90 \
 	ARTED/common/projector.f90 \
@@ -74,11 +66,11 @@ F90_SRCS = \
 	ARTED/common/Hartree.f90 \
 	ARTED/common/total_energy.f90 \
 	ARTED/common/restart.f90 \
-	ARTED/preparation/input_ps.f90 \
 	ARTED/preparation/fd_coef.f90 \
 	ARTED/preparation/prep_ps.f90 \
 	ARTED/preparation/init_wf.f90 \
 	ARTED/preparation/init.f90 \
+	ARTED/preparation/pp_postprocess.f90 \
 	$(F90_STENCIL_FILE) \
 	ARTED/GS/Occupation_Redistribution.f90 \
 	ARTED/GS/sp_energy.f90 \
@@ -115,11 +107,12 @@ F90_SRCS = \
 	GCEED/modules/new_world.f90 \
 	GCEED/modules/readbox_rt.f90 \
 	GCEED/modules/init_sendrecv.f90 \
-	GCEED/modules/sendrecv_groupob_tmp.f90 \
 	GCEED/modules/inner_product.f90 \
-	GCEED/modules/sendrecv_tmp.f90 \
 	GCEED/modules/change_order.f90 \
 	GCEED/modules/writebox_rt.f90 \
+	GCEED/modules/sendrecv_self.f90 \
+	GCEED/modules/sendrecv_groupob_tmp.f90 \
+	GCEED/modules/sendrecv_tmp.f90 \
 	GCEED/modules/pack_unpack.f90 \
 	GCEED/modules/persistent_comm.f90 \
 	GCEED/modules/sendrecv_groupob.f90 \
@@ -253,6 +246,17 @@ F90_SRCS = \
 	GCEED/rt/add_polynomial.f90 \
 	GCEED/gceed.f90 \
 	GCEED/read_input_gceed.f90 \
+	maxwell/salmon_maxwell.f90 \
+	maxwell/weyl_calc.f90 \
+	maxwell/weyl_init.f90 \
+	maxwell/eh_init.f90 \
+	maxwell/coulomb_init.f90 \
+	maxwell/eh_finalize.f90 \
+	maxwell/weyl_finalize.f90 \
+	maxwell/coulomb_finalize.f90 \
+	maxwell/classic_em.f90 \
+	maxwell/eh_calc.f90 \
+	maxwell/coulomb_calc.f90 \
 	main.f90
 
 C_SRCS = \
