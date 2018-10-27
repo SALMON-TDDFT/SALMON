@@ -428,6 +428,11 @@ real(8) :: absorption_id(0:100000)
 integer :: iflag_dos
 integer :: iflag_pdos
 
+real(8) , allocatable :: rxk_ob(:,:,:,:),rhxk_ob(:,:,:,:),rgk_ob(:,:,:,:),rpk_ob(:,:,:,:)
+
+complex(8) , allocatable :: zxk_ob(:,:,:,:),zhxk_ob(:,:,:,:),zgk_ob(:,:,:,:),zpk_ob(:,:,:,:)
+complex(8) , allocatable :: zpko_ob(:,:,:,:),zhtpsi_ob(:,:,:,:)
+
 integer :: iflag_ELF
 
 integer :: iflag_indA
