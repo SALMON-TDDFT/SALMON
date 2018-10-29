@@ -380,14 +380,14 @@ DFT_Iteration : do iter=1,iDiter(img)
 
   Miter=Miter+1
 
-  if(temperature_k>=0.d0) then
+  if(temperature_k>=0.d0.and.Miter>iditer_notemperature) then
     if(iperiodic.eq.3) then
       call ne2mu_p
     else
       call ne2mu
     endif
   else
-    call calc_occupation(iter)
+    call calc_occupation
   endif
 
   call copy_density
