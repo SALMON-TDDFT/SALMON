@@ -13,51 +13,31 @@
 !  See the License for the specific language governing permissions and
 !  limitations under the License.
 !
-subroutine calc_occupation(iter)
-use salmon_parallel, only: nproc_id_global
-use salmon_communication, only: comm_is_root
-use scf_data
-implicit none
-real(8),parameter :: bltz=8.6173214d-5
-real(8) :: factor
-integer :: ii,iob,p1,p2,p5,ik
-integer :: iter
-integer :: is
-integer :: is_sta,is_end
-integer :: iobsta(2),iobend(2)
-real(8) :: temperature_au
+subroutine calc_occupation
+  use salmon_parallel, only: nproc_id_global
+  use salmon_communication, only: comm_is_root
+  use scf_data
+  implicit none
+  real(8),parameter :: bltz=8.6173214d-5
+  real(8) :: factor
+  integer :: ii,iob,p1,p2,p5,ik
+  integer :: is
+  integer :: is_sta,is_end
+  integer :: iobsta(2),iobend(2)
+  real(8) :: temperature_au
 
-temperature_au=temperature_k*bltz/2.d0/Ry
+  if(ilsda==0)then
+    is_sta=1
+    is_end=1
+  else
+    is_sta=1
+    is_end=2
+    iobsta(1)=1
+    iobend(1)=MST(1)
+    iobsta(2)=MST(1)+1
+    iobend(2)=itotMST
+  end if
 
-
-if(ilsda==0)then
-  is_sta=1
-  is_end=1
-else
-  is_sta=1
-  is_end=2
-  iobsta(1)=1
-  iobend(1)=MST(1)
-  iobsta(2)=MST(1)+1
-  iobend(2)=itotMST
-end if
-
-if(temperature_k>=0.d0.and.iter>iDiter_notemperature)then
-  do is=is_sta,is_end
-    do ii=iobsta(is),iobend(is)
-      factor=(esp(ii,1)-(esp(ifMST(is)+iobsta(is),1)+esp(ifMST(is)+iobsta(is)-1,1))/2.d0)/temperature_au
-      if(factor<1.d1)then
-        if(ilsda==0)then
-          rocc(ii,:num_kpoints_rd)=2.d0/(1.d0+exp(factor))
-        else
-          rocc(ii,:num_kpoints_rd)=1.d0/(1.d0+exp(factor))
-        end if
-      else
-        rocc(ii,:num_kpoints_rd)=0.d0
-      end if
-    end do
-  end do
-else
   rocc(1:itotMST,:num_kpoints_rd)=0.d0
   if(ilsda==0)then
     rocc(1:ifMST(1),:num_kpoints_rd)=2.d0
@@ -65,19 +45,6 @@ else
     rocc(1:ifMST(1),:num_kpoints_rd)=1.d0
     rocc(MST(1)+1:MST(1)+ifMST(2),:num_kpoints_rd)=1.d0
   end if
-end if
-  
-if(temperature_k>=0.d0.and.iter>iDiter_notemperature)then
-  if(comm_is_root(nproc_id_global))then
-    do ik=1,num_kpoints_rd
-      do p5=1,(itotMST+3)/4
-        p1=4*(p5-1)+1
-        p2=4*p5 ; if ( p2 > itotMST ) p2=itotMST
-        write(*,'(1x,4(i5,f15.4,2x))') (iob,rocc(iob,ik),iob=p1,p2)
-      end do
-    end do
-  end if
-end if
 
 end subroutine calc_occupation
 SUBROUTINE ne2mu !(nein,muout)
