@@ -849,7 +849,7 @@ if(comm_is_root(nproc_id_global)) then
   select case (ilsda)
   case(0)
     write(1,*) "Number of states = ", nstate
-    write(1,*) "Number of electrons = ", ifMST(1)
+    write(1,*) "Number of electrons = ", ifMST(1)*2
   case(1)
     write(1,*) "Number of states = ", (nstate_spin(is),is=1,2)
     write(1,*) "Number of electrons = ", (nelec_spin(is),is=1,2)
