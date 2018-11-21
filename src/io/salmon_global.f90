@@ -214,6 +214,7 @@ module salmon_global
   real(8)        :: dl_em(3)
   real(8)        :: dt_em
   integer        :: nt_em
+  integer        :: iboundary(3,2)
   character(16)  :: wave_input
   real(8)        :: ek_dir1(3)
   real(8)        :: source_loc1(3)

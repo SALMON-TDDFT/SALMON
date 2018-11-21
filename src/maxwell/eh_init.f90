@@ -15,7 +15,8 @@
 !
 !-----------------------------------------------------------------------------------------
 subroutine eh_init(grid,tmp)
-  use inputoutput,          only: nt_em,al_em,dl_em,dt_em,utime_from_au,ulength_from_au,uenergy_from_au,unit_system,&
+  use inputoutput,          only: nt_em,al_em,dl_em,dt_em,iboundary,&
+                                  utime_from_au,ulength_from_au,uenergy_from_au,unit_system,&
                                   uenergy_to_au,ulength_to_au,ucharge_to_au,iperiodic,directory,&
                                   imedia_num,shape_file,epsilon,rmu,sigma,type_media,omega_p_d,gamma_d,&
                                   iobs_num_em,obs_loc_em,wave_input,&
@@ -47,10 +48,18 @@ subroutine eh_init(grid,tmp)
   tmp%pml_m      = 4.0d0
   tmp%pml_r      = 1.0d-7
   if(iperiodic==0) then
-    grid%i_bc(:,:)=1 !pml
+    tmp%iwk_size_eh = 12
+    grid%i_bc(:,:)=1 !PML
+    do ix=1,3
+    do iy=1,2
+      if(iboundary(ix,iy)==1) then
+        grid%i_bc(ix,iy)=0 !PEC
+      end if
+    end do
+    end do
   elseif(iperiodic==3) then
-    grid%i_bc(:,:)=0
-    stop 'invalid iperiodic. For theory = Maxwell, iperiodic is only allowed by 0.'
+    grid%i_bc(:,:)  = iboundary(:,:) !Periodic or PML
+    tmp%iwk_size_eh = 2
   end if
   select case(unit_system)
   case('au','a.u.')
@@ -108,10 +117,14 @@ subroutine eh_init(grid,tmp)
   tmp%c2_jx(:,:,:)=0.0d0; tmp%c2_jy(:,:,:)=0.0d0; tmp%c2_jz(:,:,:)=0.0d0;
   
   !input fdtd shape
-  allocate(grid%imedia(grid%ng_sta(1):grid%ng_end(1),&
-                          grid%ng_sta(2):grid%ng_end(2),&
-                          grid%ng_sta(3):grid%ng_end(3)))
+  allocate(grid%imedia(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                       grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                       grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd))
   grid%imedia(:,:,:)=0
+  allocate(tmp%rmedia(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                      grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                      grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd))
+  tmp%rmedia(:,:,:)=0.0d0
   if(imedia_num>0) then
     !check file format and input shape file
     if(comm_is_root(nproc_id_global)) write(*,*)
@@ -120,7 +133,10 @@ subroutine eh_init(grid,tmp)
       if(comm_is_root(nproc_id_global)) then
         write(*,*) "shape file is inputed by .cube format."
       end if
-      call eh_input_shape(tmp%ifn,grid%ng_sta,grid%ng_end,grid%lg_sta,grid%lg_end,grid%imedia,'cu')
+      call eh_input_shape(tmp%ifn,grid%ng_sta,grid%ng_end,grid%lg_sta,grid%lg_end,tmp%Nd,grid%imedia,'cu')
+      tmp%rmedia(:,:,:)=dble(grid%imedia(:,:,:))
+      call eh_sendrecv(grid,tmp,'r')
+      grid%imedia(:,:,:)=int(tmp%rmedia(:,:,:)+1d-3)
     elseif(index(shape_file,".mp", back=.true.)/=0) then
       if(comm_is_root(nproc_id_global)) then
         write(*,*) "shape file is inputed by .mp format."
@@ -434,8 +450,8 @@ subroutine eh_init(grid,tmp)
     end if
   case('point','x-line','y-line','z-line')
     !these selection are for debug
-    tmp%inc_dist1=wave_input;
-    if(comm_is_root(nproc_id_global)) write(*,*) trim(wave_input), "source is used."
+    tmp%inc_dist1=wave_input; tmp%inc_dist2='none';
+    if(comm_is_root(nproc_id_global)) write(*,*) trim(wave_input), " source is used."
   case default
     stop 'invalid wave_input. For theory = Maxwell, wave_input is only allowed by source.'
   end select
@@ -813,16 +829,22 @@ contains
       do ix=grid%ng_sta(1),grid%ng_end(1)
         if(grid%imedia(ix,iy,iz)==ii) then
           !ex
-          tmp%c1_ex_y(ix-1:ix,iy,iz)=c1_e; tmp%c2_ex_y(ix-1:ix,iy,iz)= c2_e_y;
-          tmp%c1_ex_z(ix-1:ix,iy,iz)=c1_e; tmp%c2_ex_z(ix-1:ix,iy,iz)=-c2_e_z;
+          if(grid%imedia(ix+1,iy,iz)==ii) then
+            tmp%c1_ex_y(ix,iy,iz)=c1_e; tmp%c2_ex_y(ix,iy,iz)= c2_e_y;
+            tmp%c1_ex_z(ix,iy,iz)=c1_e; tmp%c2_ex_z(ix,iy,iz)=-c2_e_z;
+          end if
           
           !ey
-          tmp%c1_ey_z(ix,iy-1:iy,iz)=c1_e; tmp%c2_ey_z(ix,iy-1:iy,iz)= c2_e_z;
-          tmp%c1_ey_x(ix,iy-1:iy,iz)=c1_e; tmp%c2_ey_x(ix,iy-1:iy,iz)=-c2_e_x;
+          if(grid%imedia(ix,iy+1,iz)==ii) then
+            tmp%c1_ey_z(ix,iy,iz)=c1_e; tmp%c2_ey_z(ix,iy,iz)= c2_e_z;
+            tmp%c1_ey_x(ix,iy,iz)=c1_e; tmp%c2_ey_x(ix,iy,iz)=-c2_e_x;
+          end if
           
           !ez
-          tmp%c1_ez_x(ix,iy,iz-1:iz)=c1_e; tmp%c2_ez_x(ix,iy,iz-1:iz)= c2_e_x;
-          tmp%c1_ez_y(ix,iy,iz-1:iz)=c1_e; tmp%c2_ez_y(ix,iy,iz-1:iz)=-c2_e_y;
+          if(grid%imedia(ix,iy,iz+1)==ii) then
+            tmp%c1_ez_x(ix,iy,iz)=c1_e; tmp%c2_ez_x(ix,iy,iz)= c2_e_x;
+            tmp%c1_ez_y(ix,iy,iz)=c1_e; tmp%c2_ez_y(ix,iy,iz)=-c2_e_y;
+          end if
           
           !hx
           tmp%c1_hx_y(ix,iy-1:iy,iz-1:iz)=c1_h; tmp%c2_hx_y(ix,iy-1:iy,iz-1:iz)=-c2_h_y;
@@ -1030,16 +1052,16 @@ end subroutine eh_init
 
 !=========================================================================================
 != input fdtd shape data =================================================================
-subroutine eh_input_shape(ifn,ng_sta,ng_end,lg_sta,lg_end,imat,format)
+subroutine eh_input_shape(ifn,ng_sta,ng_end,lg_sta,lg_end,Nd,imat,format)
   use salmon_parallel,      only: nproc_id_global
   use salmon_communication, only: comm_is_root
   use inputoutput,          only: shape_file
   implicit none
-  integer,intent(in)      :: ifn
+  integer,intent(in)      :: ifn,Nd
   integer,intent(in)      :: ng_sta(3),ng_end(3),lg_sta(3),lg_end(3)
-  integer,intent(out)     :: imat(ng_sta(1):ng_end(1),&
-                                  ng_sta(2):ng_end(2),&
-                                  ng_sta(3):ng_end(3))
+  integer,intent(out)     :: imat(ng_sta(1)-Nd:ng_end(1)+Nd,&
+                                  ng_sta(2)-Nd:ng_end(2)+Nd,&
+                                  ng_sta(3)-Nd:ng_end(3)+Nd)
   character(2),intent(in) :: format
   integer,allocatable     :: itmp1d(:)
   real(8),allocatable     :: rtmp1d(:)
@@ -1241,7 +1263,7 @@ subroutine eh_prep_GCEED(grid,tmp)
   call init_itype
   call init_sendrecv_matrix
   call init_persistent_requests
-  iwk_size=12
+  iwk_size=tmp%iwk_size_eh
   call make_iwksta_iwkend
   iwk_size=2
   

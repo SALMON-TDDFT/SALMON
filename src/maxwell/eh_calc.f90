@@ -666,7 +666,7 @@ subroutine eh_sendrecv(grid,tmp,var)
   integer                 :: ix,iy,iz
   real(8),allocatable     :: f1(:,:,:),f2(:,:,:),f3(:,:,:)
   
-  iwk_size=12
+  iwk_size=tmp%iwk_size_eh
   if(var=='e') then
     call sendrecvh(tmp%ex_y)
     call sendrecvh(tmp%ex_z)
@@ -681,6 +681,8 @@ subroutine eh_sendrecv(grid,tmp,var)
     call sendrecvh(tmp%hy_x)
     call sendrecvh(tmp%hz_x)
     call sendrecvh(tmp%hz_y)
+  elseif(var=='r') then
+    call sendrecvh(tmp%rmedia)
   elseif(var=='s') then
     !allocate temporary variable
     allocate(f1(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&

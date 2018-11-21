@@ -90,8 +90,10 @@ module salmon_maxwell
     real(8),allocatable :: c2_jx(:,:,:),c2_jy(:,:,:),c2_jz(:,:,:)       !coeff. for general curr. dens.
     integer             :: inum_d                                       !Drude: number of media
     integer,allocatable :: idx_d(:,:,:,:),idy_d(:,:,:,:),idz_d(:,:,:,:) !Drude: id for each component
-    real(8),allocatable :: rjx_d(:,:,:,:),rjy_d(:,:,:,:),rjz_d(:,:,:,:)  !Drude: poparization current density
+    real(8),allocatable :: rjx_d(:,:,:,:),rjy_d(:,:,:,:),rjz_d(:,:,:,:) !Drude: poparization current density
     real(8),allocatable :: c1_j_d(:),c2_j_d(:)                          !Drude: coefficient for j
+    integer             :: iwk_size_eh                                  !tmporary variable for sendrecvh
+    real(8),allocatable :: rmedia(:,:,:)                                !Material information for tmp.
   end type fdtd_tmp
   
   contains
