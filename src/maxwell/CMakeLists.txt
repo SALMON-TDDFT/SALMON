@@ -7,9 +7,9 @@ set(SOURCES
     coulomb_init.f90
     coulomb_finalize.f90
     coulomb_calc.f90
+    eh_calc.f90
     eh_init.f90
     eh_finalize.f90
-    eh_calc.f90
     )
 
 add_library(${SALMON_MAXWELL_LIB} STATIC ${SOURCES})

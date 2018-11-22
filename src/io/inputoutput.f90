@@ -382,6 +382,7 @@ contains
       & dl_em, &
       & dt_em, &
       & nt_em, &
+      & iboundary, &
       & wave_input, &
       & ek_dir1, &
       & source_loc1, &
@@ -717,6 +718,7 @@ contains
     dl_em(:)        = 0d0
     dt_em           = 0d0
     nt_em           = 0
+    iboundary(:,:)  = 0
     wave_input      = 'none'
     ek_dir1(:)      = 0d0
     source_loc1(:)  = 0d0
@@ -1130,6 +1132,7 @@ contains
     call comm_bcast(dt_em        ,nproc_group_global)
     dt_em = dt_em * utime_to_au
     call comm_bcast(nt_em        ,nproc_group_global)
+    call comm_bcast(iboundary    ,nproc_group_global)
     call comm_bcast(wave_input,nproc_group_global)
     call comm_bcast(ek_dir1      ,nproc_group_global)
     call comm_bcast(source_loc1  ,nproc_group_global)
@@ -1748,6 +1751,12 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl_em(3)', dl_em(3)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dt_em', dt_em
       write(fh_variables_log, '("#",4X,A,"=",I6)')     'nt_em', nt_em
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(1,1)', iboundary(1,1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(1,2)', iboundary(1,2)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(2,1)', iboundary(2,1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(2,2)', iboundary(2,2)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(3,1)', iboundary(3,1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(3,2)', iboundary(3,2)
       write(fh_variables_log, '("#",4X,A,"=",A)')      'wave_input', wave_input
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir1(1)', ek_dir1(1)
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir1(2)', ek_dir1(2)
