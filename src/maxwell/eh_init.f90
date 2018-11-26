@@ -1063,10 +1063,9 @@ subroutine eh_input_shape(ifn,ng_sta,ng_end,lg_sta,lg_end,Nd,imat,format)
                                   ng_sta(2)-Nd:ng_end(2)+Nd,&
                                   ng_sta(3)-Nd:ng_end(3)+Nd)
   character(2),intent(in) :: format
-  integer,allocatable     :: itmp1d(:)
   real(8),allocatable     :: rtmp1d(:)
   integer                 :: inum(3),inum_check(3)
-  integer                 :: ii,ix,iy,iz,iflag_x,iflag_y
+  integer                 :: ii,ij,ix,iy,iz,iflag_x,iflag_y,iflag_z
   
   !open file
   open(ifn,file=trim(shape_file), status='old')
@@ -1088,21 +1087,54 @@ subroutine eh_input_shape(ifn,ng_sta,ng_end,lg_sta,lg_end,Nd,imat,format)
     end do
     read (ifn,*); !skip
     
-    !input shape
-    allocate(itmp1d(lg_sta(3):lg_end(3)))
-    do ix=lg_sta(1),lg_end(1)
-    do iy=lg_sta(2),lg_end(2)
-      read (ifn,*) itmp1d
-      iflag_x=0; iflag_y=0;
-      if(ix>=ng_sta(1) .and. ix<=ng_end(1)) iflag_x=1
-      if(iy>=ng_sta(2) .and. iy<=ng_end(2)) iflag_y=1
-      if(iflag_x==1 .and. iflag_y==1) then
-        do iz=ng_sta(3),ng_end(3)
-          imat(ix,iy,iz)=itmp1d(iz)
-        end do
-      end if
+    !input shape(general case)
+    allocate(rtmp1d(6))
+    ix=lg_sta(1); iy=lg_sta(2); iz=lg_sta(3);
+    do ii=1,int(inum(1)*inum(2)*inum(3)/6)
+      read (ifn,*) rtmp1d
+      do ij=1,6
+        !check flag and write imat
+        iflag_x=0; iflag_y=0; iflag_z=0;
+        if(ix>=ng_sta(1) .and. ix<=ng_end(1)) iflag_x=1
+        if(iy>=ng_sta(2) .and. iy<=ng_end(2)) iflag_y=1
+        if(iz>=ng_sta(3) .and. iz<=ng_end(3)) iflag_z=1
+        if(iflag_x==1 .and. iflag_y==1 .and. iflag_z==1) then
+          imat(ix,iy,iz)=int(rtmp1d(ij)+1d-3)
+        end if        
+        
+        !update iz, iy, ix 
+        iz=iz+1                                            !iz
+        if(iz>lg_end(3))                      iz=lg_sta(3) !iz
+        if(iz==lg_sta(3))                     iy=iy+1      !iy
+        if(iy>lg_end(2))                      iy=lg_sta(2) !iy
+        if(iz==lg_sta(3) .and. iy==lg_sta(2)) ix=ix+1      !ix
+      end do
     end do
-    end do
+    deallocate(rtmp1d)
+    
+    !input shape(special case)
+    if(mod(inum(1)*inum(2)*inum(3),6)>0) then
+      allocate(rtmp1d(mod(inum(1)*inum(2)*inum(3),6)))
+      read (ifn,*) rtmp1d
+      do ij=1,mod(inum(1)*inum(2)*inum(3),6)
+        !check flag and write imat
+        iflag_x=0; iflag_y=0; iflag_z=0;
+        if(ix>=ng_sta(1) .and. ix<=ng_end(1)) iflag_x=1
+        if(iy>=ng_sta(2) .and. iy<=ng_end(2)) iflag_y=1
+        if(iz>=ng_sta(3) .and. iz<=ng_end(3)) iflag_z=1
+        if(iflag_x==1 .and. iflag_y==1 .and. iflag_z==1) then
+          imat(ix,iy,iz)=int(rtmp1d(ij)+1d-3)
+        end if        
+        
+        !update iz, iy, ix 
+        iz=iz+1                                            !iz
+        if(iz>lg_end(3))                      iz=lg_sta(3) !iz
+        if(iz==lg_sta(3))                     iy=iy+1      !iy
+        if(iy>lg_end(2))                      iy=lg_sta(2) !iy
+        if(iz==lg_sta(3) .and. iy==lg_sta(2)) ix=ix+1      !ix
+      end do      
+      deallocate(rtmp1d)
+    end if
   elseif(trim(format)=='mp') then
   end if
   
