@@ -41,6 +41,11 @@ subroutine eh_calc(grid,tmp)
       call eh_update_drude
     end if
     
+    !calculate linear response
+    if(ae_shape1=='impulse'.or.ae_shape2=='impulse') then
+      call eh_calc_lr
+    end if
+    
     !update e
     call eh_fd(tmp%iex_y_sta,tmp%iex_y_end,      grid%ng_sta,grid%ng_end,tmp%Nd,&
                tmp%c1_ex_y,tmp%c2_ex_y,tmp%ex_y,tmp%hz_x,tmp%hz_y,      'e','y') !ex_y
@@ -194,6 +199,111 @@ contains
     end do
     
   end subroutine eh_update_drude
+  
+  !=========================================================================================
+  != calculate linear response =============================================================
+  subroutine eh_calc_lr
+    use inputoutput,          only: iperiodic
+    use salmon_parallel,      only: nproc_group_global
+    use salmon_communication, only: comm_summation
+    implicit none
+    real(8) :: sum_lr_x,sum_lr_y,sum_lr_z
+    real(8) :: sum_lr(3),sum_lr2(3)
+    
+    !update time and prepare window function
+    tmp%time_lr(tmp%iter_lr)=dble(tmp%iter_lr)*grid%dt
+    
+    !initialize current density
+!$omp parallel
+!$omp do private(ix,iy,iz)
+    do iz=grid%ng_sta(3),grid%ng_end(3)
+    do iy=grid%ng_sta(2),grid%ng_end(2)
+    do ix=grid%ng_sta(1),grid%ng_end(1)
+      tmp%rjx_lr(ix,iy,iz)=0.0d0; tmp%rjy_lr(ix,iy,iz)=0.0d0; tmp%rjz_lr(ix,iy,iz)=0.0d0;
+    end do
+    end do
+    end do
+!$omp end do
+!$omp end parallel
+    
+    !add all current density
+    if(tmp%inum_d>0) then
+      do ii=1,tmp%inum_d
+!$omp parallel
+!$omp do private(ix,iy,iz)
+        do iz=grid%ng_sta(3),grid%ng_end(3)
+        do iy=grid%ng_sta(2),grid%ng_end(2)
+        do ix=grid%ng_sta(1),grid%ng_end(1)
+          tmp%rjx_lr(ix,iy,iz)=tmp%rjx_lr(ix,iy,iz)+tmp%rjx_d(ix,iy,iz,ii)
+          tmp%rjy_lr(ix,iy,iz)=tmp%rjy_lr(ix,iy,iz)+tmp%rjy_d(ix,iy,iz,ii)
+          tmp%rjz_lr(ix,iy,iz)=tmp%rjz_lr(ix,iy,iz)+tmp%rjz_d(ix,iy,iz,ii)
+        end do
+        end do
+        end do
+!$omp end do
+!$omp end parallel
+      end do
+    end if
+    
+    !calculate dip or curr
+    if(iperiodic==0) then
+!$omp parallel
+!$omp do private(ix,iy,iz)
+      do iz=grid%ng_sta(3),grid%ng_end(3)
+      do iy=grid%ng_sta(2),grid%ng_end(2)
+      do ix=grid%ng_sta(1),grid%ng_end(1)
+        tmp%px_lr(ix,iy,iz)=tmp%px_lr(ix,iy,iz)+tmp%rjx_lr(ix,iy,iz)*grid%dt
+        tmp%py_lr(ix,iy,iz)=tmp%py_lr(ix,iy,iz)+tmp%rjy_lr(ix,iy,iz)*grid%dt
+        tmp%pz_lr(ix,iy,iz)=tmp%pz_lr(ix,iy,iz)+tmp%rjz_lr(ix,iy,iz)*grid%dt
+      end do
+      end do
+      end do
+!$omp end do
+!$omp end parallel
+      sum_lr_x=0.0d0;  sum_lr_y=0.0d0;  sum_lr_z=0.0d0;
+      sum_lr(:)=0.0d0; sum_lr2(:)=0.0d0;
+!$omp parallel
+!$omp do private(ix,iy,iz) reduction( + : sum_lr_x,sum_lr_y,sum_lr_z )
+      do iz=grid%ng_sta(3),grid%ng_end(3)
+      do iy=grid%ng_sta(2),grid%ng_end(2)
+      do ix=grid%ng_sta(1),grid%ng_end(1)
+        sum_lr_x=sum_lr_x+tmp%px_lr(ix,iy,iz)
+        sum_lr_y=sum_lr_y+tmp%py_lr(ix,iy,iz)
+        sum_lr_z=sum_lr_z+tmp%pz_lr(ix,iy,iz)
+      end do
+      end do
+      end do
+!$omp end do
+!$omp end parallel
+      sum_lr(1)=sum_lr_x; sum_lr(2)=sum_lr_y; sum_lr(3)=sum_lr_z;
+      call comm_summation(sum_lr,sum_lr2,3,nproc_group_global)
+      tmp%dip_lr(tmp%iter_lr,:)=sum_lr2(:)*grid%hgs(1)*grid%hgs(2)*grid%hgs(3)
+    elseif(iperiodic==3) then
+      sum_lr_x=0.0d0;  sum_lr_y=0.0d0;  sum_lr_z=0.0d0;
+      sum_lr(:)=0.0d0; sum_lr2(:)=0.0d0;
+!$omp parallel
+!$omp do private(ix,iy,iz) reduction( + : sum_lr_x,sum_lr_y,sum_lr_z )
+      do iz=grid%ng_sta(3),grid%ng_end(3)
+      do iy=grid%ng_sta(2),grid%ng_end(2)
+      do ix=grid%ng_sta(1),grid%ng_end(1)
+        sum_lr_x=sum_lr_x+tmp%rjx_lr(ix,iy,iz)
+        sum_lr_y=sum_lr_y+tmp%rjy_lr(ix,iy,iz)
+        sum_lr_z=sum_lr_z+tmp%rjz_lr(ix,iy,iz)
+      end do
+      end do
+      end do
+!$omp end do
+!$omp end parallel
+      sum_lr(1)=sum_lr_x; sum_lr(2)=sum_lr_y; sum_lr(3)=sum_lr_z;
+      call comm_summation(sum_lr,sum_lr2,3,nproc_group_global)
+      tmp%curr_lr(tmp%iter_lr,:)=sum_lr2(:)*grid%hgs(1)*grid%hgs(2)*grid%hgs(3) &
+                                 /(grid%rlsize(1)*grid%rlsize(2)*grid%rlsize(3))
+    end if
+    
+    !update time iteration
+    tmp%iter_lr=tmp%iter_lr+1
+    
+  end subroutine eh_calc_lr
   
   !=========================================================================================
   != add incident current source ===========================================================

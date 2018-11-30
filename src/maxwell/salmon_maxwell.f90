@@ -94,6 +94,14 @@ module salmon_maxwell
     real(8),allocatable :: c1_j_d(:),c2_j_d(:)                          !Drude: coefficient for j
     integer             :: iwk_size_eh                                  !tmporary variable for sendrecvh
     real(8),allocatable :: rmedia(:,:,:)                                !Material information for tmp.
+    real(8),allocatable :: time_lr(:)                                   !LR: time
+    integer             :: iter_lr                                      !LR: time iteration for save
+    real(8),allocatable :: fr_lr(:,:)                                   !LR: Re[f]
+    real(8),allocatable :: fi_lr(:,:)                                   !LR: Im[f]
+    real(8),allocatable :: rjx_lr(:,:,:),rjy_lr(:,:,:),rjz_lr(:,:,:)    !LR: poparization current density
+    real(8),allocatable :: px_lr(:,:,:), py_lr(:,:,:), pz_lr(:,:,:)     !LR: poparization vector
+    real(8),allocatable :: curr_lr(:,:)                                 !LR: current
+    real(8),allocatable :: dip_lr(:,:)                                  !LR: dipolemoment
   end type fdtd_tmp
   
   contains
