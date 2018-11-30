@@ -398,7 +398,8 @@ contains
       & rmu, &
       & sigma, &
       & omega_p_d, &
-      & gamma_d
+      & gamma_d, &
+      & wf_em
 
     namelist/analysis/ &
       & projection_option, &
@@ -735,6 +736,7 @@ contains
     sigma(:)        = 0d0
     omega_p_d(:)    = 0d0
     gamma_d(:)      = 0d0
+    wf_em           = 'y'
 
 !! == default for &analysis
     projection_option   = 'no'
@@ -1152,8 +1154,9 @@ contains
     call comm_bcast(sigma        ,nproc_group_global)
     call comm_bcast(omega_p_d    ,nproc_group_global)
     omega_p_d = omega_p_d * uenergy_to_au
-    call comm_bcast(gamma_d       ,nproc_group_global)
+    call comm_bcast(gamma_d      ,nproc_group_global)
     gamma_d = gamma_d * uenergy_to_au
+    call comm_bcast(wf_em        ,nproc_group_global)
     
 !! == bcast for &analysis
     call comm_bcast(projection_option,nproc_group_global)
@@ -1789,6 +1792,7 @@ contains
         write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'omega_p_d(',i,')', omega_p_d(i)
         write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'gamma_d(',i,')', gamma_d(i)
       end do
+      write(fh_variables_log, '("#",4X,A,"=",A)')      'wf_em', wf_em
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis

@@ -15,14 +15,91 @@
 !
 !-----------------------------------------------------------------------------------------
 subroutine eh_finalize(grid,tmp)
-  use inputoutput,          only: utime_from_au,ulength_from_au,unit_system,iperiodic,&
+  use inputoutput,          only: utime_from_au,ulength_from_au,uenergy_from_au,unit_system,iperiodic,&
+                                  ae_shape1,ae_shape2,e_impulse,sysname,nt_em,nenergy,de, &
                                   directory,iobs_num_em,iobs_samp_em
   use salmon_parallel,      only: nproc_id_global
   use salmon_communication, only: comm_is_root
   use salmon_maxwell, only:fdtd_grid,fdtd_tmp
   implicit none
-  type(fdtd_grid)  :: grid
-  type(fdtd_tmp)   :: tmp
+  type(fdtd_grid)     :: grid
+  type(fdtd_tmp)      :: tmp
+  integer             :: ii
+  real(8),parameter   :: pi=3.141592653589793d0
+  character(128)      :: save_name
+  
+  !output linear response(matter dipole pm and current jm are outputted: pm = -dip and jm = -curr)
+  if(ae_shape1=='impulse'.or.ae_shape2=='impulse') then
+    if(iperiodic==0) then
+      !output time-dependent dipole data
+      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_p.data'
+      open(tmp%ifn,file=save_name)
+      select case(unit_system)
+      case('au','a.u.')
+        write(tmp%ifn,'(A)') "# time[a.u.], dipoleMoment(x,y,z)[a.u.]" 
+      case('A_eV_fs')
+        write(tmp%ifn,'(A)') "# time[fs], dipoleMoment(x,y,z)[Ang.]" 
+      end select
+      do ii=1,nt_em
+        write(tmp%ifn, '(E13.5)',advance="no")     tmp%time_lr(ii)*utime_from_au
+        write(tmp%ifn, '(3E16.6e3)',advance="yes") -tmp%dip_lr(ii,:)*ulength_from_au
+      end do
+      close(tmp%ifn)
+      
+      !output lr data
+      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_lr.data'
+      open(tmp%ifn,file=save_name)
+      select case(unit_system)
+      case('au','a.u.')
+        write(tmp%ifn,'(A)') "# energy[a.u.], Re[alpha](x,y,z)[a.u.], Im[alpha](x,y,z)[a.u.], df/dE(x,y,z)[a.u.]"
+      case('A_eV_fs')
+        write(tmp%ifn,'(A)') "# energy[eV], Re[alpha](x,y,z)[Ang.**3], Im[alpha](x,y,z)[Ang.**3], df/dE(x,y,z)[1/eV]"
+      end select
+      call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%dip_lr(:,1),tmp%fr_lr(:,1),tmp%fi_lr(:,1))
+      call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%dip_lr(:,2),tmp%fr_lr(:,2),tmp%fi_lr(:,2))
+      call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%dip_lr(:,3),tmp%fr_lr(:,3),tmp%fi_lr(:,3))
+      do ii=0,nenergy
+        write(tmp%ifn, '(E13.5)',advance="no")     dble(ii)*de*uenergy_from_au
+        write(tmp%ifn, '(3E16.6e3)',advance="no")  tmp%fr_lr(ii,:)/(-e_impulse)*(ulength_from_au**3.0d0)
+        write(tmp%ifn, '(3E16.6e3)',advance="no")  tmp%fi_lr(ii,:)/(-e_impulse)*(ulength_from_au**3.0d0)
+        write(tmp%ifn, '(3E16.6e3)',advance="yes") 2.0d0*dble(ii)*de/pi*tmp%fi_lr(ii,:)/(-e_impulse)/uenergy_from_au
+      end do
+      close(tmp%ifn)
+    elseif(iperiodic==3) then
+      !output time-dependent dipole data
+      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_current.data'
+      open(tmp%ifn,file=save_name)
+      select case(unit_system)
+      case('au','a.u.')
+        write(tmp%ifn,'(A)') "# time[a.u.],  current(x,y,z)[a.u.]" 
+      case('A_eV_fs')
+        write(tmp%ifn,'(A)') "# time[fs],    current(x,y,z)[A]" 
+      end select
+      do ii=1,nt_em
+        write(tmp%ifn, '(E13.5)',advance="no")     tmp%time_lr(ii)*utime_from_au
+        write(tmp%ifn, '(3E16.6e3)',advance="yes") -tmp%curr_lr(ii,:)*tmp%uAperm_from_au/ulength_from_au
+      end do
+      close(tmp%ifn)
+      
+      !output lr data
+      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_lr.data'
+      open(tmp%ifn,file=save_name)
+      select case(unit_system)
+      case('au','a.u.')
+        write(tmp%ifn,'(A)') "# energy[a.u.], Re[epsilon](x,y,z), Im[epsilon](x,y,z)"
+      case('A_eV_fs')
+        write(tmp%ifn,'(A)') "# energy[eV], Re[epsilon](x,y,z), Im[epsilon](x,y,z)"
+      end select
+      call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%curr_lr(:,1),tmp%fr_lr(:,1),tmp%fi_lr(:,1))
+      call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%curr_lr(:,2),tmp%fr_lr(:,2),tmp%fi_lr(:,2))
+      call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%curr_lr(:,3),tmp%fr_lr(:,3),tmp%fi_lr(:,3))
+      do ii=1,nenergy
+        write(tmp%ifn, '(E13.5)',advance="no")     dble(ii)*de*uenergy_from_au
+        write(tmp%ifn, '(3E16.6e3)',advance="no")  1.0d0-4.0d0*pi*tmp%fi_lr(ii,:)/(-e_impulse)/(dble(ii)*de)
+        write(tmp%ifn, '(3E16.6e3)',advance="yes") 4.0d0*pi*tmp%fr_lr(ii,:)/(-e_impulse)/(dble(ii)*de)
+      end do
+    end if
+  end if
   
   !observation
   if(iobs_num_em>0) then
@@ -70,3 +147,42 @@ subroutine eh_finalize(grid,tmp)
   end if
   
 end subroutine eh_finalize
+
+!=========================================================================================
+!= Fourier transformation in eh ==========================================================
+subroutine eh_fourier(nt,ne,dt,de,ti,ft,fr,fi)
+  use inputoutput, only: wf_em
+  implicit none
+  integer,intent(in)   :: nt,ne
+  real(8),intent(in)   :: dt,de
+  real(8),intent(in)   :: ti(nt),ft(nt)
+  real(8),intent(out)  :: fr(0:ne),fi(0:ne)
+  integer              :: ie,it
+  real(8)              :: ft_wf(nt)
+  real(8)              :: hw
+  complex(8),parameter :: zi=(0.d0,1.d0)
+  complex(8)           :: zf
+  
+  !apply window function
+  if(wf_em=='y') then
+    do it=1,nt
+      ft_wf(it)=ft(it)*( 1.0d0 -3.0d0*(ti(it)/maxval(ti(:)))**2.0d0 +2.0d0*(ti(it)/maxval(ti(:)))**3.0d0 )
+    end do
+  else
+    ft_wf(:)=ft(:)
+  end if
+  
+  !Fourier transformation
+  do ie=0,ne
+    hw=dble(ie)*de; zf=(0.0d0,0.0d0);
+!$omp parallel
+!$omp do private(it) reduction( + : zf )
+    do it=1,nt
+      zf=zf+exp(zi*hw*ti(it))*ft_wf(it)
+    end do
+!$omp end do
+!$omp end parallel
+    zf=zf*dt; fr(ie)=real(zf,8); fi(ie)=aimag(zf)
+  end do
+  
+end subroutine eh_fourier
