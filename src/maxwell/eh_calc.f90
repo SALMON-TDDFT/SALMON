@@ -207,6 +207,7 @@ contains
     use salmon_parallel,      only: nproc_group_global
     use salmon_communication, only: comm_summation
     implicit none
+    real(8) :: sum_lr_x,sum_lr_y,sum_lr_z
     real(8) :: sum_lr(3),sum_lr2(3)
     
     !update time and prepare window function
@@ -259,36 +260,41 @@ contains
       end do
 !$omp end do
 !$omp end parallel
+      sum_lr_x=0.0d0;  sum_lr_y=0.0d0;  sum_lr_z=0.0d0;
       sum_lr(:)=0.0d0; sum_lr2(:)=0.0d0;
 !$omp parallel
-!$omp do private(ix,iy,iz) reduction( + : sum_lr )
+!$omp do private(ix,iy,iz) reduction( + : sum_lr_x,sum_lr_y,sum_lr_z )
       do iz=grid%ng_sta(3),grid%ng_end(3)
       do iy=grid%ng_sta(2),grid%ng_end(2)
       do ix=grid%ng_sta(1),grid%ng_end(1)
-        sum_lr(1)=sum_lr(1)+tmp%px_lr(ix,iy,iz)
-        sum_lr(2)=sum_lr(2)+tmp%py_lr(ix,iy,iz)
-        sum_lr(3)=sum_lr(3)+tmp%pz_lr(ix,iy,iz)
+        sum_lr_x=sum_lr_x+tmp%px_lr(ix,iy,iz)
+        sum_lr_y=sum_lr_y+tmp%py_lr(ix,iy,iz)
+        sum_lr_z=sum_lr_z+tmp%pz_lr(ix,iy,iz)
       end do
       end do
       end do
 !$omp end do
 !$omp end parallel
+      sum_lr(1)=sum_lr_x; sum_lr(2)=sum_lr_y; sum_lr(3)=sum_lr_z;
       call comm_summation(sum_lr,sum_lr2,3,nproc_group_global)
       tmp%dip_lr(tmp%iter_lr,:)=sum_lr2(:)*grid%hgs(1)*grid%hgs(2)*grid%hgs(3)
     elseif(iperiodic==3) then
+      sum_lr_x=0.0d0;  sum_lr_y=0.0d0;  sum_lr_z=0.0d0;
+      sum_lr(:)=0.0d0; sum_lr2(:)=0.0d0;
 !$omp parallel
-!$omp do private(ix,iy,iz) reduction( + : sum_lr )
+!$omp do private(ix,iy,iz) reduction( + : sum_lr_x,sum_lr_y,sum_lr_z )
       do iz=grid%ng_sta(3),grid%ng_end(3)
       do iy=grid%ng_sta(2),grid%ng_end(2)
       do ix=grid%ng_sta(1),grid%ng_end(1)
-        sum_lr(1)=sum_lr(1)+tmp%rjx_lr(ix,iy,iz)
-        sum_lr(2)=sum_lr(2)+tmp%rjy_lr(ix,iy,iz)
-        sum_lr(3)=sum_lr(3)+tmp%rjz_lr(ix,iy,iz)
+        sum_lr_x=sum_lr_x+tmp%rjx_lr(ix,iy,iz)
+        sum_lr_y=sum_lr_y+tmp%rjy_lr(ix,iy,iz)
+        sum_lr_z=sum_lr_z+tmp%rjz_lr(ix,iy,iz)
       end do
       end do
       end do
 !$omp end do
 !$omp end parallel
+      sum_lr(1)=sum_lr_x; sum_lr(2)=sum_lr_y; sum_lr(3)=sum_lr_z;
       call comm_summation(sum_lr,sum_lr2,3,nproc_group_global)
       tmp%curr_lr(tmp%iter_lr,:)=sum_lr2(:)*grid%hgs(1)*grid%hgs(2)*grid%hgs(3) &
                                  /(grid%rlsize(1)*grid%rlsize(2)*grid%rlsize(3))

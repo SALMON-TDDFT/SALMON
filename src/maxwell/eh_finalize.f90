@@ -73,7 +73,7 @@ subroutine eh_finalize(grid,tmp)
       case('au','a.u.')
         write(tmp%ifn,'(A)') "# time[a.u.],  current(x,y,z)[a.u.]" 
       case('A_eV_fs')
-        write(tmp%ifn,'(A)') "# time[fs],    current(x,y,z)[A]" 
+        write(tmp%ifn,'(A)') "# time[fs],    current(x,y,z)[A/Ang.^2]" 
       end select
       do ii=1,nt_em
         write(tmp%ifn, '(E13.5)',advance="no")     tmp%time_lr(ii)*utime_from_au
