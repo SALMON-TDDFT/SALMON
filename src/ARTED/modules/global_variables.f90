@@ -324,6 +324,13 @@ Module Global_Variables
   ! Exchange Correlation
   type(xc_functional) :: xc_func
 
+  !AY trial force field + FDTD
+  logical :: flag_ms_ff_LessPrint  !AY only now
+  integer :: Nm_FDTD, iter_save
+  real(8) :: Omg_dt,v_mxmt
+  real(8) :: eps_diag, dchidq(3,3)
+  real(8),allocatable :: c_pmode(:)
+
   interface 
     subroutine total_Energy_omp(Rion_update,GS_RT,ixy_m)
       integer,intent(in) :: GS_RT

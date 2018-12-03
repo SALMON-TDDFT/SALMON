@@ -122,9 +122,13 @@ contains
     use salmon_file
     use misc_routines
     use timer
+    use inputoutput, only: au_length_aa
     implicit none
     integer :: ia,i,j,imacro
-    
+    integer :: ntmp, i1,i2,ii
+    real(8) :: rtmp
+    character(1024) :: ifile_ff_ms
+  
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Nprocs=',nproc_size_global
        write(*,*) 'nproc_id_global=0:  ',nproc_id_global
@@ -304,6 +308,41 @@ contains
   
    !! Assign the number of macropoints into "nmacro"
    if (use_ms_maxwell == 'y') then     
+
+      !!AY force field + FDTD:
+      !!   read special input file for coherent phonon system
+      if(theory == 'Raman') then
+         allocate( c_pmode(NI) )
+         if (comm_is_root(nproc_id_global)) then
+            write(*,*) "read ff_ms_cp.inp file for coherent phonon calculation"
+            ifile_ff_ms = "./ff_ms_cp.inp"
+            open(800,file=trim(ifile_ff_ms),status="old")
+            read(800,*) flag_ms_ff_LessPrint  ! flag of Less-Printing
+            read(800,*) Nm_FDTD  ! measurement point
+            read(800,*) Omg_dt   != Omg*dt = (2pi/T)*dt
+            read(800,*) v_mxmt   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
+            read(800,*) eps_diag
+            dchidq(:,:) = 0d0
+            read(800,*) ntmp
+            do ii=1,ntmp
+               read(800,*) i1,i2,rtmp
+               dchidq(i1,i2) = rtmp     !d(chi)/dq [1/A]
+            enddo
+            dchidq(:,:) = dchidq(:,:) * au_length_aa !--> [1/Bohr]
+            dchidq(:,:) = dchidq(:,:)/(4d0*pi)       !--> CGS unit
+            ! coefficient of linear combination for phonon mode
+            read(800,*) (c_pmode(ia),ia=1,NI) 
+            close(800)
+         endif
+         call comm_bcast(flag_ms_ff_LessPrint, nproc_group_global)
+         call comm_bcast(Nm_FDTD, nproc_group_global)
+         call comm_bcast(Omg_dt,  nproc_group_global)
+         call comm_bcast(v_mxmt,  nproc_group_global)
+         call comm_bcast(eps_diag,nproc_group_global)
+         call comm_bcast(dchidq,  nproc_group_global)
+         call comm_bcast(c_pmode, nproc_group_global)
+      endif
+
      !! Initialize Transpose Matrix
       !call set_trans_mat(0d0, 0d0, 0d0)
      !! Number of the macropoint and bg_media in Multiscale grid     
@@ -560,7 +599,7 @@ contains
        call set_initial_velocity
        if(set_ini_velocity=='r') call read_initial_velocity
 
-       if (use_ms_maxwell == 'y') then
+       if (use_ms_maxwell == 'y' .and. theory == 'TDDFT') then
           if(nmacro_s .ne. nmacro_e .or. nproc_size_global.ne.nmacro)then
              write(*,*) "Error: "
              write(*,*) "  number of parallelization nodes must be equal to number of macro grids"
@@ -827,6 +866,11 @@ contains
     !! Detecting Positioning of Vac_Ac file
     ! TODO: Generalize the detector positioning for multidimensional case
     ix_detect_r = min(NX_m+1, nx2_m)
+    if(theory=="Raman") then
+       if(Nm_FDTD.ge.0) then; ix_detect_r = Nm_FDTD
+       else ;                 ix_detect_r = min(NX_m+1, nx2_m)
+       endif
+    endif
     ix_detect_l = 0
     iy_detect = ny1_m
     iz_detect = nz1_m
