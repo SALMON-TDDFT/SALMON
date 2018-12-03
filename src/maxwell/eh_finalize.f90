@@ -32,72 +32,80 @@ subroutine eh_finalize(grid,tmp)
   if(ae_shape1=='impulse'.or.ae_shape2=='impulse') then
     if(iperiodic==0) then
       !output time-dependent dipole data
-      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_p.data'
-      open(tmp%ifn,file=save_name)
-      select case(unit_system)
-      case('au','a.u.')
-        write(tmp%ifn,'(A)') "# time[a.u.], dipoleMoment(x,y,z)[a.u.]" 
-      case('A_eV_fs')
-        write(tmp%ifn,'(A)') "# time[fs], dipoleMoment(x,y,z)[Ang.]" 
-      end select
-      do ii=1,nt_em
-        write(tmp%ifn, '(E13.5)',advance="no")     tmp%time_lr(ii)*utime_from_au
-        write(tmp%ifn, '(3E16.6e3)',advance="yes") -tmp%dip_lr(ii,:)*ulength_from_au
-      end do
-      close(tmp%ifn)
+      if(comm_is_root(nproc_id_global)) then
+        save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_p.data'
+        open(tmp%ifn,file=save_name)
+        select case(unit_system)
+        case('au','a.u.')
+          write(tmp%ifn,'(A)') "# time[a.u.], dipoleMoment(x,y,z)[a.u.]" 
+        case('A_eV_fs')
+          write(tmp%ifn,'(A)') "# time[fs], dipoleMoment(x,y,z)[Ang.]" 
+        end select
+        do ii=1,nt_em
+          write(tmp%ifn, '(E13.5)',advance="no")     tmp%time_lr(ii)*utime_from_au
+          write(tmp%ifn, '(3E16.6e3)',advance="yes") -tmp%dip_lr(ii,:)*ulength_from_au
+        end do
+        close(tmp%ifn)
+      end if
       
       !output lr data
-      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_lr.data'
-      open(tmp%ifn,file=save_name)
-      select case(unit_system)
-      case('au','a.u.')
-        write(tmp%ifn,'(A)') "# energy[a.u.], Re[alpha](x,y,z)[a.u.], Im[alpha](x,y,z)[a.u.], df/dE(x,y,z)[a.u.]"
-      case('A_eV_fs')
-        write(tmp%ifn,'(A)') "# energy[eV], Re[alpha](x,y,z)[Ang.**3], Im[alpha](x,y,z)[Ang.**3], df/dE(x,y,z)[1/eV]"
-      end select
       call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%dip_lr(:,1),tmp%fr_lr(:,1),tmp%fi_lr(:,1))
       call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%dip_lr(:,2),tmp%fr_lr(:,2),tmp%fi_lr(:,2))
       call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%dip_lr(:,3),tmp%fr_lr(:,3),tmp%fi_lr(:,3))
-      do ii=0,nenergy
-        write(tmp%ifn, '(E13.5)',advance="no")     dble(ii)*de*uenergy_from_au
-        write(tmp%ifn, '(3E16.6e3)',advance="no")  tmp%fr_lr(ii,:)/(-e_impulse)*(ulength_from_au**3.0d0)
-        write(tmp%ifn, '(3E16.6e3)',advance="no")  tmp%fi_lr(ii,:)/(-e_impulse)*(ulength_from_au**3.0d0)
-        write(tmp%ifn, '(3E16.6e3)',advance="yes") 2.0d0*dble(ii)*de/pi*tmp%fi_lr(ii,:)/(-e_impulse)/uenergy_from_au
-      end do
-      close(tmp%ifn)
+      if(comm_is_root(nproc_id_global)) then
+        save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_lr.data'
+        open(tmp%ifn,file=save_name)
+        select case(unit_system)
+        case('au','a.u.')
+          write(tmp%ifn,'(A)') "# energy[a.u.], Re[alpha](x,y,z)[a.u.], Im[alpha](x,y,z)[a.u.], df/dE(x,y,z)[a.u.]"
+        case('A_eV_fs')
+          write(tmp%ifn,'(A)') "# energy[eV], Re[alpha](x,y,z)[Ang.**3], Im[alpha](x,y,z)[Ang.**3], df/dE(x,y,z)[1/eV]"
+        end select
+        do ii=0,nenergy
+          write(tmp%ifn, '(E13.5)',advance="no")     dble(ii)*de*uenergy_from_au
+          write(tmp%ifn, '(3E16.6e3)',advance="no")  tmp%fr_lr(ii,:)/(-e_impulse)*(ulength_from_au**3.0d0)
+          write(tmp%ifn, '(3E16.6e3)',advance="no")  tmp%fi_lr(ii,:)/(-e_impulse)*(ulength_from_au**3.0d0)
+          write(tmp%ifn, '(3E16.6e3)',advance="yes") 2.0d0*dble(ii)*de/pi*tmp%fi_lr(ii,:)/(-e_impulse)/uenergy_from_au
+        end do
+        close(tmp%ifn)
+      end if
     elseif(iperiodic==3) then
       !output time-dependent dipole data
-      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_current.data'
-      open(tmp%ifn,file=save_name)
-      select case(unit_system)
-      case('au','a.u.')
-        write(tmp%ifn,'(A)') "# time[a.u.],  current(x,y,z)[a.u.]" 
-      case('A_eV_fs')
-        write(tmp%ifn,'(A)') "# time[fs],    current(x,y,z)[A/Ang.^2]" 
-      end select
-      do ii=1,nt_em
-        write(tmp%ifn, '(E13.5)',advance="no")     tmp%time_lr(ii)*utime_from_au
-        write(tmp%ifn, '(3E16.6e3)',advance="yes") -tmp%curr_lr(ii,:)*tmp%uAperm_from_au/ulength_from_au
-      end do
-      close(tmp%ifn)
+      if(comm_is_root(nproc_id_global)) then
+        save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_current.data'
+        open(tmp%ifn,file=save_name)
+        select case(unit_system)
+        case('au','a.u.')
+          write(tmp%ifn,'(A)') "# time[a.u.],  current(x,y,z)[a.u.]" 
+        case('A_eV_fs')
+          write(tmp%ifn,'(A)') "# time[fs],    current(x,y,z)[A/Ang.^2]" 
+        end select
+        do ii=1,nt_em
+          write(tmp%ifn, '(E13.5)',advance="no")     tmp%time_lr(ii)*utime_from_au
+          write(tmp%ifn, '(3E16.6e3)',advance="yes") -tmp%curr_lr(ii,:)*tmp%uAperm_from_au/ulength_from_au
+        end do
+        close(tmp%ifn)
+      end if
       
       !output lr data
-      save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_lr.data'
-      open(tmp%ifn,file=save_name)
-      select case(unit_system)
-      case('au','a.u.')
-        write(tmp%ifn,'(A)') "# energy[a.u.], Re[epsilon](x,y,z), Im[epsilon](x,y,z)"
-      case('A_eV_fs')
-        write(tmp%ifn,'(A)') "# energy[eV], Re[epsilon](x,y,z), Im[epsilon](x,y,z)"
-      end select
       call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%curr_lr(:,1),tmp%fr_lr(:,1),tmp%fi_lr(:,1))
       call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%curr_lr(:,2),tmp%fr_lr(:,2),tmp%fi_lr(:,2))
       call eh_fourier(nt_em,nenergy,grid%dt,de,tmp%time_lr,tmp%curr_lr(:,3),tmp%fr_lr(:,3),tmp%fi_lr(:,3))
-      do ii=1,nenergy
-        write(tmp%ifn, '(E13.5)',advance="no")     dble(ii)*de*uenergy_from_au
-        write(tmp%ifn, '(3E16.6e3)',advance="no")  1.0d0-4.0d0*pi*tmp%fi_lr(ii,:)/(-e_impulse)/(dble(ii)*de)
-        write(tmp%ifn, '(3E16.6e3)',advance="yes") 4.0d0*pi*tmp%fr_lr(ii,:)/(-e_impulse)/(dble(ii)*de)
-      end do
+      if(comm_is_root(nproc_id_global)) then
+        save_name=trim(adjustl(directory))//'/'//trim(adjustl(sysname))//'_lr.data'
+        open(tmp%ifn,file=save_name)
+        select case(unit_system)
+        case('au','a.u.')
+          write(tmp%ifn,'(A)') "# energy[a.u.], Re[epsilon](x,y,z), Im[epsilon](x,y,z)"
+        case('A_eV_fs')
+          write(tmp%ifn,'(A)') "# energy[eV], Re[epsilon](x,y,z), Im[epsilon](x,y,z)"
+        end select
+        do ii=1,nenergy
+          write(tmp%ifn, '(E13.5)',advance="no")     dble(ii)*de*uenergy_from_au
+          write(tmp%ifn, '(3E16.6e3)',advance="no")  1.0d0-4.0d0*pi*tmp%fi_lr(ii,:)/(-e_impulse)/(dble(ii)*de)
+          write(tmp%ifn, '(3E16.6e3)',advance="yes") 4.0d0*pi*tmp%fr_lr(ii,:)/(-e_impulse)/(dble(ii)*de)
+        end do
+      end if
     end if
   end if
   

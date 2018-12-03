@@ -96,10 +96,12 @@ subroutine eh_init(grid,tmp)
     stop
   else
     grid%dt=dt_em
-    write(*,*) "**************************"
-    write(*,*) "dt_em =", grid%dt*utime_from_au
-    write(*,*) "in the unit system, ",trim(unit_system),"."
-    write(*,*) "**************************"
+    if(comm_is_root(nproc_id_global)) then
+      write(*,*) "**************************"
+      write(*,*) "dt_em =", grid%dt*utime_from_au
+      write(*,*) "in the unit system, ",trim(unit_system),"."
+      write(*,*) "**************************"
+    end if
   end if
   call comm_bcast(grid%dt,nproc_group_global)
   
