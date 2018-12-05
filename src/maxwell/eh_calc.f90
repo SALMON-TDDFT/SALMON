@@ -66,9 +66,7 @@ subroutine eh_calc(grid,tmp)
                                                   epdir_re2,epdir_im2,ae_shape2,tmp%inc_dist2)
     end if
     if(tmp%inum_d>0) then
-      do ii=1,tmp%inum_d
-        call eh_add_curr(tmp%rjx_d(:,:,:,ii),tmp%rjy_d(:,:,:,ii),tmp%rjz_d(:,:,:,ii))
-      end do
+      call eh_add_curr(tmp%rjx_sum_d(:,:,:),tmp%rjy_sum_d(:,:,:),tmp%rjz_sum_d(:,:,:))
     end if
     call eh_sendrecv(grid,tmp,'e')
     
@@ -176,6 +174,20 @@ contains
   subroutine eh_update_drude
     implicit none
     
+    !initialize
+!$omp parallel
+!$omp do private(ix,iy,iz)
+    do iz=grid%ng_sta(3),grid%ng_end(3)
+    do iy=grid%ng_sta(2),grid%ng_end(2)
+    do ix=grid%ng_sta(1),grid%ng_end(1)
+      tmp%rjx_sum_d(ix,iy,iz)=0.0d0; tmp%rjy_sum_d(ix,iy,iz)=0.0d0; tmp%rjz_sum_d(ix,iy,iz)=0.0d0;
+    end do
+    end do
+    end do
+!$omp end do
+!$omp end parallel
+    
+    !update drude current
     do ii=1,tmp%inum_d
 !$omp parallel
 !$omp do private(ix,iy,iz)
@@ -191,6 +203,9 @@ contains
         tmp%rjz_d(ix,iy,iz,ii)= tmp%c1_j_d(ii)*tmp%rjz_d(ix,iy,iz,ii) &
                                +tmp%c2_j_d(ii)*( tmp%ez_x(ix,iy,iz)+tmp%ez_y(ix,iy,iz) )&
                                *dble(tmp%idz_d(ix,iy,iz,ii))
+        tmp%rjx_sum_d(ix,iy,iz)=tmp%rjx_sum_d(ix,iy,iz)+tmp%wex_d(ix,iy,iz,ii)*tmp%rjx_d(ix,iy,iz,ii)
+        tmp%rjy_sum_d(ix,iy,iz)=tmp%rjy_sum_d(ix,iy,iz)+tmp%wey_d(ix,iy,iz,ii)*tmp%rjy_d(ix,iy,iz,ii)
+        tmp%rjz_sum_d(ix,iy,iz)=tmp%rjz_sum_d(ix,iy,iz)+tmp%wez_d(ix,iy,iz,ii)*tmp%rjz_d(ix,iy,iz,ii)
       end do
       end do
       end do
@@ -210,7 +225,7 @@ contains
     real(8) :: sum_lr_x,sum_lr_y,sum_lr_z
     real(8) :: sum_lr(3),sum_lr2(3)
     
-    !update time and prepare window function
+    !update time
     tmp%time_lr(tmp%iter_lr)=dble(tmp%iter_lr)*grid%dt
     
     !initialize current density
@@ -228,21 +243,19 @@ contains
     
     !add all current density
     if(tmp%inum_d>0) then
-      do ii=1,tmp%inum_d
 !$omp parallel
 !$omp do private(ix,iy,iz)
-        do iz=grid%ng_sta(3),grid%ng_end(3)
-        do iy=grid%ng_sta(2),grid%ng_end(2)
-        do ix=grid%ng_sta(1),grid%ng_end(1)
-          tmp%rjx_lr(ix,iy,iz)=tmp%rjx_lr(ix,iy,iz)+tmp%rjx_d(ix,iy,iz,ii)
-          tmp%rjy_lr(ix,iy,iz)=tmp%rjy_lr(ix,iy,iz)+tmp%rjy_d(ix,iy,iz,ii)
-          tmp%rjz_lr(ix,iy,iz)=tmp%rjz_lr(ix,iy,iz)+tmp%rjz_d(ix,iy,iz,ii)
-        end do
-        end do
-        end do
+      do iz=grid%ng_sta(3),grid%ng_end(3)
+      do iy=grid%ng_sta(2),grid%ng_end(2)
+      do ix=grid%ng_sta(1),grid%ng_end(1)
+        tmp%rjx_lr(ix,iy,iz)=tmp%rjx_lr(ix,iy,iz)+tmp%rjx_sum_d(ix,iy,iz)
+        tmp%rjy_lr(ix,iy,iz)=tmp%rjy_lr(ix,iy,iz)+tmp%rjy_sum_d(ix,iy,iz)
+        tmp%rjz_lr(ix,iy,iz)=tmp%rjz_lr(ix,iy,iz)+tmp%rjz_sum_d(ix,iy,iz)
+      end do
+      end do
+      end do
 !$omp end do
 !$omp end parallel
-      end do
     end if
     
     !calculate dip or curr
