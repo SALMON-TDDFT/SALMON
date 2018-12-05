@@ -18,7 +18,8 @@ subroutine eh_init(grid,tmp)
   use inputoutput,          only: nt_em,al_em,dl_em,dt_em,iboundary,&
                                   utime_from_au,ulength_from_au,uenergy_from_au,unit_system,&
                                   uenergy_to_au,ulength_to_au,ucharge_to_au,iperiodic,directory,&
-                                  imedia_num,shape_file,epsilon,rmu,sigma,type_media,omega_p_d,gamma_d,&
+                                  imedia_num,shape_file,epsilon,rmu,sigma,type_media,&
+                                  omega_p_d,gamma_d,smooth_d,weight_d,&
                                   iobs_num_em,obs_loc_em,wave_input,trans_longi,e_impulse,nenergy,&
                                   source_loc1,ek_dir1,epdir_re1,epdir_im1,ae_shape1,&
                                   phi_cep1,rlaser_int_wcm2_1,amplitude1,&
@@ -30,7 +31,7 @@ subroutine eh_init(grid,tmp)
   implicit none
   type(fdtd_grid)     :: grid
   type(fdtd_tmp)      :: tmp
-  integer             :: ii,ix,iy,iz,icount,icount_d,iflag
+  integer             :: ii,ij,ix,iy,iz,icount,icount_d,iflag
   real(8),parameter   :: pi=3.141592653589793d0
   real(8)             :: dt_cfl,diff_cep
   character(1)        :: dir
@@ -163,8 +164,20 @@ subroutine eh_init(grid,tmp)
     end select
   end do
   if(tmp%inum_d>0) then
-    !set counter
-    icount_d=1;
+    !set counter and make imedia_d
+    icount_d=1
+    allocate(tmp%imedia_d(tmp%inum_d))
+    tmp%imedia_d(:)=0;
+    do ii=0,imedia_num
+      select case(type_media(ii))
+      case('DRUDE','Drude','drude','D','d')
+        tmp%imedia_d(icount_d)=ii
+        icount_d=icount_d+1;
+      end select
+    end do
+    
+    !reset counter
+    icount_d=1
     
     !allocate drude variable
     allocate(tmp%idx_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
@@ -178,15 +191,35 @@ subroutine eh_init(grid,tmp)
                        grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d) )
     tmp%idx_d(:,:,:,:)=0; tmp%idy_d(:,:,:,:)=0; tmp%idz_d(:,:,:,:)=0;
     allocate( tmp%rjx_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
-                       grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
-                       grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d),&
+                        grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                        grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d),&
               tmp%rjy_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
-                       grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
-                       grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d),&
+                        grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                        grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d),&
               tmp%rjz_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
-                       grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
-                       grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d) )
+                        grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                        grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d) )
     tmp%rjx_d(:,:,:,:)=0.0d0; tmp%rjy_d(:,:,:,:)=0.0d0; tmp%rjz_d(:,:,:,:)=0.0d0;
+    allocate( tmp%rjx_sum_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                            grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                            grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd),&
+              tmp%rjy_sum_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                            grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                            grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd),&
+              tmp%rjz_sum_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                            grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                            grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd) )
+    tmp%rjx_sum_d(:,:,:)=0.0d0; tmp%rjy_sum_d(:,:,:)=0.0d0; tmp%rjz_sum_d(:,:,:)=0.0d0;
+    allocate( tmp%wex_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                        grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                        grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d),&
+              tmp%wey_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                        grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                        grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d),&
+              tmp%wez_d(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                        grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                        grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd,tmp%inum_d) )
+    tmp%wex_d(:,:,:,:)=0.0d0; tmp%wey_d(:,:,:,:)=0.0d0; tmp%wez_d(:,:,:,:)=0.0d0;
     allocate(tmp%c1_j_d(tmp%inum_d),tmp%c2_j_d(tmp%inum_d))
     tmp%c1_j_d(:)=0.0d0; tmp%c2_j_d(:)=0.0d0;
   end if
@@ -197,7 +230,7 @@ subroutine eh_init(grid,tmp)
   do ii=0,imedia_num
     call eh_coeff
   end do
-  deallocate(grid%imedia)
+  deallocate(grid%imedia); deallocate(tmp%rmedia);
   if(comm_is_root(nproc_id_global)) then
     write(*,*)
     write(*,*) "**************************"
@@ -225,6 +258,9 @@ subroutine eh_init(grid,tmp)
     end do
     write(*,*) "**************************"
   end if
+  
+  !apply smoothing
+  call eh_smoothing
   
   !set calculation area
   tmp%iex_y_sta(:)=grid%ng_sta(:); tmp%iex_y_end(:)=grid%ng_end(:);
@@ -813,7 +849,8 @@ contains
   != set fdtd coefficient ==================================================================
   subroutine eh_coeff
     implicit none
-    real(8)  :: c1_e,c2_e_x,c2_e_y,c2_e_z,c1_h,c2_h_x,c2_h_y,c2_h_z,c2_j
+    real(8)  :: c1_e,c2_e_x,c2_e_y,c2_e_z,c1_h,c2_h_x,c2_h_y,c2_h_z,c2_j,&
+                c1_e_mid,c2_e_x_mid,c2_e_y_mid,c2_e_z_mid,c2_j_mid
     
     !set constant parameter
     tmp%rep(ii)=epsilon(ii); tmp%rmu(ii)=rmu(ii); tmp%sig(ii)=sigma(ii);
@@ -852,9 +889,39 @@ contains
       do iy=grid%ng_sta(2),grid%ng_end(2)
       do ix=grid%ng_sta(1),grid%ng_end(1)
         if(grid%imedia(ix,iy,iz)==ii) then
-          if(grid%imedia(ix+1,iy,iz)==ii) tmp%idx_d(ix,iy,iz,icount_d)=1;
-          if(grid%imedia(ix,iy+1,iz)==ii) tmp%idy_d(ix,iy,iz,icount_d)=1;
-          if(grid%imedia(ix,iy,iz+1)==ii) tmp%idz_d(ix,iy,iz,icount_d)=1;
+          if(grid%imedia(ix+1,iy,iz)==ii) then !x
+            tmp%idx_d(ix,iy,iz,icount_d)=1;
+          elseif(grid%imedia(ix+1,iy,iz)/=0.and.grid%imedia(ix+1,iy,iz)<ii) then
+            tmp%idx_d(ix,iy,iz,icount_d)=1;
+          elseif(grid%imedia(ix+1,iy,iz)/=0.and.grid%imedia(ix+1,iy,iz)>ii) then
+            do ij=1,tmp%inum_d
+              if(tmp%imedia_d(ij)==grid%imedia(ix+1,iy,iz)) then
+                tmp%idx_d(ix,iy,iz,ij)=1;
+              end if
+            end do
+          end if
+          if(grid%imedia(ix,iy+1,iz)==ii) then !y
+            tmp%idy_d(ix,iy,iz,icount_d)=1;
+          elseif(grid%imedia(ix,iy+1,iz)/=0.and.grid%imedia(ix,iy+1,iz)<ii) then
+            tmp%idy_d(ix,iy,iz,icount_d)=1;
+          elseif(grid%imedia(ix,iy+1,iz)/=0.and.grid%imedia(ix,iy+1,iz)>ii) then
+            do ij=1,tmp%inum_d
+              if(tmp%imedia_d(ij)==grid%imedia(ix,iy+1,iz)) then
+                tmp%idy_d(ix,iy,iz,ij)=1;
+              end if
+            end do
+          end if
+          if(grid%imedia(ix,iy,iz+1)==ii) then !z
+            tmp%idz_d(ix,iy,iz,icount_d)=1;
+          elseif(grid%imedia(ix,iy,iz+1)/=0.and.grid%imedia(ix,iy,iz+1)<ii) then
+            tmp%idz_d(ix,iy,iz,icount_d)=1;
+          elseif(grid%imedia(ix,iy,iz+1)/=0.and.grid%imedia(ix,iy,iz+1)>ii) then
+            do ij=1,tmp%inum_d
+              if(tmp%imedia_d(ij)==grid%imedia(ix,iy,iz+1)) then
+                tmp%idz_d(ix,iy,iz,ij)=1;
+              end if
+            end do
+          end if
         end if
       end do
       end do
@@ -958,22 +1025,79 @@ contains
       do iy=grid%ng_sta(2),grid%ng_end(2)
       do ix=grid%ng_sta(1),grid%ng_end(1)
         if(grid%imedia(ix,iy,iz)==ii) then
-          !ex
+          !ex and jx
           if(grid%imedia(ix+1,iy,iz)==ii) then
             tmp%c1_ex_y(ix,iy,iz)=c1_e; tmp%c2_ex_y(ix,iy,iz)= c2_e_y;
             tmp%c1_ex_z(ix,iy,iz)=c1_e; tmp%c2_ex_z(ix,iy,iz)=-c2_e_z;
+            tmp%c2_jx(ix,iy,iz)=-c2_j;
+          elseif(grid%imedia(ix+1,iy,iz)/=0.and.grid%imedia(ix+1,iy,iz)<ii) then
+            tmp%c1_ex_y(ix,iy,iz)=c1_e; tmp%c2_ex_y(ix,iy,iz)= c2_e_y;
+            tmp%c1_ex_z(ix,iy,iz)=c1_e; tmp%c2_ex_z(ix,iy,iz)=-c2_e_z;
+            tmp%c2_jx(ix,iy,iz)=-c2_j;
+          elseif(grid%imedia(ix+1,iy,iz)/=0.and.grid%imedia(ix+1,iy,iz)>ii) then
+            c1_e_mid  =(1.0d0-2.0d0*pi*sigma(grid%imedia(ix+1,iy,iz))/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix+1,iy,iz))/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt)
+            c2_e_y_mid=(tmp%c_0/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix+1,iy,iz))/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /grid%hgs(2)
+            c2_e_z_mid=(tmp%c_0/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix+1,iy,iz))/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /grid%hgs(3)
+            c2_j_mid  =(4.0d0*pi/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix+1,iy,iz))/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt)
+            tmp%c1_ex_y(ix,iy,iz)=c1_e_mid; tmp%c2_ex_y(ix,iy,iz)= c2_e_y_mid;
+            tmp%c1_ex_z(ix,iy,iz)=c1_e_mid; tmp%c2_ex_z(ix,iy,iz)=-c2_e_z_mid;
+            tmp%c2_jx(ix,iy,iz)=-c2_j_mid;
           end if
           
-          !ey
+          !ey and jy
           if(grid%imedia(ix,iy+1,iz)==ii) then
             tmp%c1_ey_z(ix,iy,iz)=c1_e; tmp%c2_ey_z(ix,iy,iz)= c2_e_z;
             tmp%c1_ey_x(ix,iy,iz)=c1_e; tmp%c2_ey_x(ix,iy,iz)=-c2_e_x;
+            tmp%c2_jy(ix,iy,iz)=-c2_j;
+          elseif(grid%imedia(ix,iy+1,iz)/=0.and.grid%imedia(ix,iy+1,iz)<ii) then
+            tmp%c1_ey_z(ix,iy,iz)=c1_e; tmp%c2_ey_z(ix,iy,iz)= c2_e_z;
+            tmp%c1_ey_x(ix,iy,iz)=c1_e; tmp%c2_ey_x(ix,iy,iz)=-c2_e_x;
+            tmp%c2_jy(ix,iy,iz)=-c2_j;
+          elseif(grid%imedia(ix,iy+1,iz)/=0.and.grid%imedia(ix,iy+1,iz)>ii) then
+            c1_e_mid  =(1.0d0-2.0d0*pi*sigma(grid%imedia(ix,iy+1,iz))/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix,iy+1,iz))/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt)
+            c2_e_z_mid=(tmp%c_0/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix,iy+1,iz))/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt) &
+                       /grid%hgs(3)
+            c2_e_x_mid=(tmp%c_0/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix,iy+1,iz))/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt) &
+                       /grid%hgs(1)
+            c2_j_mid  =(4.0d0*pi/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix,iy+1,iz))/epsilon(grid%imedia(ix,iy+1,iz))*grid%dt)
+            tmp%c1_ey_z(ix,iy,iz)=c1_e_mid; tmp%c2_ey_z(ix,iy,iz)= c2_e_z_mid;
+            tmp%c1_ey_x(ix,iy,iz)=c1_e_mid; tmp%c2_ey_x(ix,iy,iz)=-c2_e_x_mid;
+            tmp%c2_jy(ix,iy,iz)=-c2_j_mid;
           end if
           
-          !ez
+          !ez and jz
           if(grid%imedia(ix,iy,iz+1)==ii) then
             tmp%c1_ez_x(ix,iy,iz)=c1_e; tmp%c2_ez_x(ix,iy,iz)= c2_e_x;
             tmp%c1_ez_y(ix,iy,iz)=c1_e; tmp%c2_ez_y(ix,iy,iz)=-c2_e_y;
+            tmp%c2_jz(ix,iy,iz)=-c2_j;
+          elseif(grid%imedia(ix,iy,iz+1)/=0.and.grid%imedia(ix,iy,iz+1)<ii) then
+            tmp%c1_ez_x(ix,iy,iz)=c1_e; tmp%c2_ez_x(ix,iy,iz)= c2_e_x;
+            tmp%c1_ez_y(ix,iy,iz)=c1_e; tmp%c2_ez_y(ix,iy,iz)=-c2_e_y;
+            tmp%c2_jz(ix,iy,iz)=-c2_j;
+          elseif(grid%imedia(ix,iy,iz+1)/=0.and.grid%imedia(ix,iy,iz+1)>ii) then
+            c1_e_mid  =(1.0d0-2.0d0*pi*sigma(grid%imedia(ix,iy,iz+1))/epsilon(grid%imedia(ix,iy,iz+1))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix,iy,iz+1))/epsilon(grid%imedia(ix,iy,iz+1))*grid%dt)
+            c2_e_x_mid=(tmp%c_0/epsilon(grid%imedia(ix,iy,iz+1))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix,iy,iz+1))/epsilon(grid%imedia(ix,iy,iz+1))*grid%dt) &
+                       /grid%hgs(1)
+            c2_e_y_mid=(tmp%c_0/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix+1,iy,iz))/epsilon(grid%imedia(ix+1,iy,iz))*grid%dt) &
+                       /grid%hgs(2)
+            c2_j_mid  =(4.0d0*pi/epsilon(grid%imedia(ix,iy,iz+1))*grid%dt) &
+                       /(1.0d0+2.0d0*pi*sigma(grid%imedia(ix,iy,iz+1))/epsilon(grid%imedia(ix,iy,iz+1))*grid%dt)
+            tmp%c1_ez_x(ix,iy,iz)=c1_e_mid; tmp%c2_ez_x(ix,iy,iz)= c2_e_x_mid;
+            tmp%c1_ez_y(ix,iy,iz)=c1_e_mid; tmp%c2_ez_y(ix,iy,iz)=-c2_e_y_mid;
+            tmp%c2_jz(ix,iy,iz)=-c2_j_mid;
           end if
           
           !hx
@@ -987,9 +1111,6 @@ contains
           !hz
           tmp%c1_hz_x(ix-1:ix,iy-1:iy,iz)=c1_h; tmp%c2_hz_x(ix-1:ix,iy-1:iy,iz)=-c2_h_x;
           tmp%c1_hz_y(ix-1:ix,iy-1:iy,iz)=c1_h; tmp%c2_hz_y(ix-1:ix,iy-1:iy,iz)= c2_h_y;
-          
-          !j
-          tmp%c2_jx(ix-1:ix,iy,iz)=-c2_j; tmp%c2_jy(ix,iy-1:iy,iz)=-c2_j; tmp%c2_jz(ix,iy,iz-1:iz)=-c2_j;
         end if
       end do
       end do
@@ -997,6 +1118,63 @@ contains
     end if
     
   end subroutine eh_coeff
+  
+  !=========================================================================================
+  != apply smoothing =======================================================================
+  subroutine eh_smoothing
+    implicit none
+    integer :: icomp
+    
+    if(tmp%inum_d>0) then
+      tmp%wex_d(:,:,:,:)=dble(tmp%idx_d(:,:,:,:))
+      tmp%wey_d(:,:,:,:)=dble(tmp%idy_d(:,:,:,:))
+      tmp%wez_d(:,:,:,:)=dble(tmp%idz_d(:,:,:,:))
+      if(smooth_d=='y') then
+        allocate(grid%imedia(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                             grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                             grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd))
+        grid%imedia(:,:,:)=0
+        allocate(tmp%rmedia(grid%ng_sta(1)-tmp%Nd:grid%ng_end(1)+tmp%Nd,&
+                            grid%ng_sta(2)-tmp%Nd:grid%ng_end(2)+tmp%Nd,&
+                            grid%ng_sta(3)-tmp%Nd:grid%ng_end(3)+tmp%Nd))
+        tmp%rmedia(:,:,:)=0.0d0
+        do ii=1,tmp%inum_d
+          do icomp=1,3
+            if(icomp==1)     then
+              tmp%rmedia(:,:,:)=dble(tmp%idx_d(:,:,:,ii))
+            elseif(icomp==2) then
+              tmp%rmedia(:,:,:)=dble(tmp%idy_d(:,:,:,ii))
+            elseif(icomp==3) then
+              tmp%rmedia(:,:,:)=dble(tmp%idz_d(:,:,:,ii))
+            end if
+            call eh_sendrecv(grid,tmp,'r')
+            grid%imedia(:,:,:)=int(tmp%rmedia(:,:,:)+1d-3)
+            do iz=grid%ng_sta(3),grid%ng_end(3)
+            do iy=grid%ng_sta(2),grid%ng_end(2)
+            do ix=grid%ng_sta(1),grid%ng_end(1)
+              if(grid%imedia(ix,iy,iz)==1) then
+                if(grid%imedia(ix+1,iy,iz)==0 .or. grid%imedia(ix-1,iy,iz)==0 .or. &
+                   grid%imedia(ix,iy+1,iz)==0 .or. grid%imedia(ix,iy-1,iz)==0 .or. &
+                   grid%imedia(ix,iy,iz+1)==0 .or. grid%imedia(ix,iy,iz-1)==0)then
+                  if(icomp==1)     then
+                    tmp%wex_d(ix,iy,iz,ii)=weight_d
+                  elseif(icomp==2) then
+                    tmp%wey_d(ix,iy,iz,ii)=weight_d
+                  elseif(icomp==3) then
+                    tmp%wez_d(ix,iy,iz,ii)=weight_d
+                  end if
+                end if
+              end if
+            end do
+            end do
+            end do
+          end do
+        end do
+        deallocate(grid%imedia); deallocate(tmp%rmedia);
+      end if
+    end if
+    
+  end subroutine eh_smoothing
   
   !=========================================================================================
   != set pml ===============================================================================

@@ -399,6 +399,8 @@ contains
       & sigma, &
       & omega_p_d, &
       & gamma_d, &
+      & smooth_d, &
+      & weight_d, &
       & wf_em
 
     namelist/analysis/ &
@@ -736,6 +738,8 @@ contains
     sigma(:)        = 0d0
     omega_p_d(:)    = 0d0
     gamma_d(:)      = 0d0
+    smooth_d        = 'n'
+    weight_d        = 0.5d0
     wf_em           = 'y'
 
 !! == default for &analysis
@@ -1156,6 +1160,8 @@ contains
     omega_p_d = omega_p_d * uenergy_to_au
     call comm_bcast(gamma_d      ,nproc_group_global)
     gamma_d = gamma_d * uenergy_to_au
+    call comm_bcast(smooth_d     ,nproc_group_global)
+    call comm_bcast(weight_d     ,nproc_group_global)
     call comm_bcast(wf_em        ,nproc_group_global)
     
 !! == bcast for &analysis
@@ -1792,6 +1798,8 @@ contains
         write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'omega_p_d(',i,')', omega_p_d(i)
         write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'gamma_d(',i,')', gamma_d(i)
       end do
+      write(fh_variables_log, '("#",4X,A,"=",A)')      'smooth_d', smooth_d
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'weight_d', weight_d
       write(fh_variables_log, '("#",4X,A,"=",A)')      'wf_em', wf_em
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1

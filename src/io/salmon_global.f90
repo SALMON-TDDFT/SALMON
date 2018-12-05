@@ -231,6 +231,8 @@ module salmon_global
   real(8)        :: sigma(0:200)
   real(8)        :: omega_p_d(0:200)
   real(8)        :: gamma_d(0:200)
+  character(1)   :: smooth_d
+  real(8)        :: weight_d
   character(1)   :: wf_em
   
 !! &analysis
