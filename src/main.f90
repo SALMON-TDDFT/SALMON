@@ -33,6 +33,8 @@ program main
     end select
   case('Maxwell')
     call classic_em
+  !case('Raman')   !AY just trial (not open function)
+  !  call arted
   case default
     stop 'invalid theory'
   end select

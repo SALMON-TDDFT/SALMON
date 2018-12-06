@@ -324,6 +324,16 @@ Module Global_Variables
   ! Exchange Correlation
   type(xc_functional) :: xc_func
 
+  !AY trial for Raman: Maxwell + Force-Field type MD (theory=Raman)
+  logical :: flag_ms_ff_LessPrint
+  integer :: Nm_FDTD, iter_save, imode_FDTD_raman
+  integer :: interval_step_trj_raman
+  real(8) :: Omg_dt,v_mxmt
+  real(8) :: eps_diag, dchidq(3,3)
+  real(8),allocatable :: c_pmode(:), Rion_eq0(:,:) 
+  real(8),allocatable :: Rion_m_next(:,:,:),velocity_m_next(:,:,:)
+  character(1024) :: dir_ion_trj
+
   interface 
     subroutine total_Energy_omp(Rion_update,GS_RT,ixy_m)
       integer,intent(in) :: GS_RT

@@ -1,6 +1,7 @@
 set(SOURCES
     control_sc.f90
     control_ms.f90
+    control_ms_raman.f90
     inputfile.f90
     initialization.f90
     ground_state.f90
