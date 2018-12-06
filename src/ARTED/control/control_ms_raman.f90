@@ -126,14 +126,17 @@ subroutine raman_maxwell_ms
 
   ! Export to file_trj (initial step)
   if (out_rvf_rt=='y')then
-       write(comment_line,110) -1, 0.0d0
-      !if(ensemble=="NVT" .and. thermostat=="nose-hoover") &
-      !&  write(comment_line,112) trim(comment_line), xi_nh
+      write(comment_line,110) -1, 0.0d0
+     !if(ensemble=="NVT" .and. thermostat=="nose-hoover") &
+     !&  write(comment_line,112) trim(comment_line), xi_nh
 
-       do imacro = nmacro_s, nmacro_e
+      do imacro = nmacro_s, nmacro_e
         !call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
          call Ion_Force_ForceField_MS(imacro)
          call Ion_Force_RamanTensor_MS(imacro)
+      enddo
+
+      do imacro = nmacro_s, nmacro_e
          if(flag_ms_ff_LessPrint)then
             if (imacro==1)then
             call write_xyz_ms(comment_line,"new","rvf",imacro)
@@ -143,7 +146,8 @@ subroutine raman_maxwell_ms
             call write_xyz_ms(comment_line,"new","rvf",imacro)
             call write_xyz_ms(comment_line,"add","rvf",imacro)
          endif
-       enddo
+      enddo
+      call comm_sync_all
   endif
 
   !(get ion current for initial step)
@@ -562,27 +566,27 @@ subroutine raman_maxwell_ms
   call write_data_vac_ac()
 
   ! Export last atomic coordinate and velocity & Close file_trj
-  if(flag_ms_ff_LessPrint) then !AY
-     do imacro = nmacro_s, nmacro_e
-        if(imacro==1) then
-           call write_xyz_ms(comment_line,"end","rvf",imacro)
-           call write_ini_coor_vel_ms_for_restart(imacro)
-        endif
-     enddo
-     call comm_sync_all
-  else  !AY
   if (use_ehrenfest_md=='y')then
-     do igroup=1,ndivide_macro
-        do i=1,nmacro_write_group
-           imacro = (igroup-1)*nmacro_write_group + i
-           if(imacro.ge.nmacro_s .and. imacro.le.nmacro_e) then
+     if(flag_ms_ff_LessPrint) then !AY
+        do imacro = nmacro_s, nmacro_e
+           if(imacro==1) then
               call write_xyz_ms(comment_line,"end","rvf",imacro)
               call write_ini_coor_vel_ms_for_restart(imacro)
            endif
         enddo
         call comm_sync_all
-     enddo
-  endif
+     else  !AY
+        do igroup=1,ndivide_macro
+           do i=1,nmacro_write_group
+              imacro = (igroup-1)*nmacro_write_group + i
+              if(imacro.ge.nmacro_s .and. imacro.le.nmacro_e) then
+                 call write_xyz_ms(comment_line,"end","rvf",imacro)
+                 call write_ini_coor_vel_ms_for_restart(imacro)
+              endif
+           enddo
+           call comm_sync_all
+        enddo
+     endif
   endif
 
 
@@ -1192,7 +1196,7 @@ contains
 
     endif
 
-    call comm_sync_all
+!    call comm_sync_all
   end subroutine
 
   subroutine write_ini_coor_vel_ms_for_restart(imacro)
@@ -1233,7 +1237,7 @@ contains
 
     endif
 
-    call comm_sync_all
+!    call comm_sync_all
   end subroutine
 
   subroutine dt_evolve_MD_1_MS(iter,imacro)
@@ -1382,7 +1386,7 @@ contains
     do ia=1,NI
        mass_au = umass*Mass(Kion(ia))
        k_au    = mass_au * omg_au**2d0
-       Fion_FF(:,ia)= - k_au *(Rion_m(:,ia,imacro) - Rion_eq(:,ia))
+       Fion_FF(:,ia)= - k_au *(Rion_m(:,ia,imacro) - Rion_eq0(:,ia))
        force_m(:,ia,imacro) = force_m(:,ia,imacro) + Fion_FF(:,ia)
     enddo
 

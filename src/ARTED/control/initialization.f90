@@ -125,10 +125,7 @@ contains
     use inputoutput, only: au_length_aa
     implicit none
     integer :: ia,i,j,imacro
-    integer :: ntmp, i1,i2,ii
-    real(8) :: rtmp
-    character(1024) :: ifile_ff_ms
-  
+
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Nprocs=',nproc_size_global
        write(*,*) 'nproc_id_global=0:  ',nproc_id_global
@@ -308,40 +305,6 @@ contains
   
    !! Assign the number of macropoints into "nmacro"
    if (use_ms_maxwell == 'y') then     
-
-      !!AY force field + FDTD:
-      !!   read special input file for coherent phonon system
-      if(theory == 'Raman') then
-         allocate( c_pmode(NI) )
-         if (comm_is_root(nproc_id_global)) then
-            write(*,*) "read ff_ms_cp.inp file for coherent phonon calculation"
-            ifile_ff_ms = "./ff_ms_cp.inp"
-            open(800,file=trim(ifile_ff_ms),status="old")
-            read(800,*) flag_ms_ff_LessPrint  ! flag of Less-Printing
-            read(800,*) Nm_FDTD  ! measurement point
-            read(800,*) Omg_dt   != Omg*dt = (2pi/T)*dt
-            read(800,*) v_mxmt   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
-            read(800,*) eps_diag
-            dchidq(:,:) = 0d0
-            read(800,*) ntmp
-            do ii=1,ntmp
-               read(800,*) i1,i2,rtmp
-               dchidq(i1,i2) = rtmp     !d(chi)/dq [1/A]
-            enddo
-            dchidq(:,:) = dchidq(:,:) * au_length_aa !--> [1/Bohr]
-            dchidq(:,:) = dchidq(:,:)/(4d0*pi)       !--> CGS unit
-            ! coefficient of linear combination for phonon mode
-            read(800,*) (c_pmode(ia),ia=1,NI) 
-            close(800)
-         endif
-         call comm_bcast(flag_ms_ff_LessPrint, nproc_group_global)
-         call comm_bcast(Nm_FDTD, nproc_group_global)
-         call comm_bcast(Omg_dt,  nproc_group_global)
-         call comm_bcast(v_mxmt,  nproc_group_global)
-         call comm_bcast(eps_diag,nproc_group_global)
-         call comm_bcast(dchidq,  nproc_group_global)
-         call comm_bcast(c_pmode, nproc_group_global)
-      endif
 
      !! Initialize Transpose Matrix
       !call set_trans_mat(0d0, 0d0, 0d0)
@@ -525,6 +488,7 @@ contains
           stop
        endif
        ndivide_macro=int(dble(nmacro)/dble(nmacro_write_group))
+
     end if
     
     ! sato ---------------------------------------------------------------------------------------
@@ -574,10 +538,14 @@ contains
        end do
     endif
 
+    !!AY force field + FDTD:
+    if(theory == 'Raman') call  init_ms_raman
+
     call comm_sync_all
     
     return
   End Subroutine Read_data
+
   Subroutine init_md
     use Global_Variables
     use salmon_communication
@@ -611,7 +579,6 @@ contains
     endif
 
   End Subroutine init_md
-
 
   Subroutine set_initial_velocity
     use salmon_global
@@ -683,8 +650,7 @@ contains
     call comm_bcast(velocity ,nproc_group_global)
 
   End Subroutine set_initial_velocity
- 
-  
+   
   Subroutine read_initial_velocity
   ! initial velocity for md option can be given by external file 
   ! specified by file_ini_velocity option
@@ -866,11 +832,6 @@ contains
     !! Detecting Positioning of Vac_Ac file
     ! TODO: Generalize the detector positioning for multidimensional case
     ix_detect_r = min(NX_m+1, nx2_m)
-    if(theory=="Raman") then
-       if(Nm_FDTD.ge.0) then; ix_detect_r = Nm_FDTD
-       else ;                 ix_detect_r = min(NX_m+1, nx2_m)
-       endif
-    endif
     ix_detect_l = 0
     iy_detect = ny1_m
     iz_detect = nz1_m
@@ -1125,5 +1086,132 @@ contains
   ! 
   !   return
   ! end subroutine set_trans_mat
+
+    subroutine init_ms_raman
+      use salmon_global
+      use Global_Variables
+      use opt_variables
+      use salmon_parallel
+      use salmon_communication
+      use salmon_file
+      use misc_routines
+      use timer
+      use inputoutput, only: au_length_aa
+      implicit none
+      integer :: ia,j,imacro, ik, istep
+      integer :: ntmp, i1,i2,ii, unit_trj_raman
+      real(8) :: rtmp, tmpr(3), uconv
+      character(1024) :: ifile_ff_ms, ifile_trj_raman, line
+      character(100)  :: char_atom, ctmp1,ctmp2
+      character(6)    :: cnum
+
+      allocate( c_pmode(NI), Rion_eq0(3,NI) )
+      if (comm_is_root(nproc_id_global)) then
+         write(*,*) "read ff_ms_cp.inp file for coherent phonon calculation"
+         ifile_ff_ms = "./ff_ms_cp.inp"
+         open(800,file=trim(ifile_ff_ms),status="old")
+         read(800,*) imode_FDTD_raman     !(1=standard, 2=read-ion-trajectory)
+         if(imode_FDTD_raman==2) then
+            read(800,'(a)') dir_ion_trj
+         endif
+         read(800,*) flag_ms_ff_LessPrint
+         read(800,*) Nm_FDTD  ! measurement point
+         read(800,*) Omg_dt   != Omg*dt = (2pi/T)*dt
+         read(800,*) v_mxmt   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
+         read(800,*) eps_diag
+         dchidq(:,:) = 0d0
+         read(800,*) ntmp
+         do ii=1,ntmp
+            read(800,*) i1,i2,rtmp
+            dchidq(i1,i2) = rtmp     !d(chi)/dq [1/A]
+         enddo
+         dchidq(:,:) = dchidq(:,:) * au_length_aa !--> [1/Bohr]
+         dchidq(:,:) = dchidq(:,:)/(4d0*pi)       !--> CGS unit
+         ! coefficient of linear combination for phonon mode
+         read(800,*) (c_pmode(ia),ia=1,NI) 
+         close(800)
+         
+         select case(iflag_atom_coor)
+         case(ntype_atom_coor_cartesian)
+            open(801,file='.atomic_coor.tmp',status='old')
+            if(unit_length=='AA')then
+               uconv = au_length_aa
+            else  !au
+               uconv = 1d0
+            endif
+            do ia = 1,NI
+               read(801,*) char_atom, (tmpr(j),j=1,3),ik
+               Rion_eq0(:,ia) = tmpr(:)/uconv
+            enddo
+            
+         case(ntype_atom_coor_reduced)
+            open(801,file='.atomic_red_coor.tmp',status='old')
+            do ia = 1,NI
+               read(801,*) char_atom, (tmpr(j),j=1,3),ik
+               Rion_eq0(1,ia) = tmpr(1) * aLx
+               Rion_eq0(2,ia) = tmpr(2) * aLy
+               Rion_eq0(3,ia) = tmpr(3) * aLz
+            enddo
+            
+         end select
+
+         close(801)
+      endif
+    
+      call comm_bcast(imode_FDTD_raman,     nproc_group_global)
+      call comm_bcast(dir_ion_trj,          nproc_group_global)
+      call comm_bcast(flag_ms_ff_LessPrint, nproc_group_global)
+      call comm_bcast(Nm_FDTD, nproc_group_global)
+      call comm_bcast(Omg_dt,  nproc_group_global)
+      call comm_bcast(v_mxmt,  nproc_group_global)
+      call comm_bcast(eps_diag,nproc_group_global)
+      call comm_bcast(dchidq,  nproc_group_global)
+      call comm_bcast(c_pmode, nproc_group_global)
+      call comm_bcast(Rion_eq0,nproc_group_global)
+      
+      !open trajectory file 
+      if(imode_FDTD_raman==2) then
+         allocate( Rion_m_next(    3,NI,nmacro_s:nmacro_e) )
+         allocate( velocity_m_next(3,NI,nmacro_s:nmacro_e) )
+
+         do imacro = nmacro_s, nmacro_e
+            unit_trj_raman = 5000 + imacro
+            write(cnum,'(i6.6)') imacro
+            ifile_trj_raman = trim(dir_ion_trj)//'M'//cnum//'/'//trim(SYSname)//'_trj.xyz'
+            open(unit_trj_raman,file=trim(ifile_trj_raman),status='old')
+            do 
+               read(unit_trj_raman,9000,end=100) line
+               if(index(line,'step=').ne.0) then
+                  read(line,*) ctmp1,ctmp2,istep
+                  if(istep==0) then
+                     do ia=1,NI
+                        read(unit_trj_raman,*) ctmp1,(Rion_m(j,ia,imacro),j=1,3), ctmp2, (velocity_m(j,ia,imacro),j=1,3)
+                     enddo
+                     Rion_m(:,:,imacro) = Rion_m(:,:,imacro) / au_length_aa
+                     read(unit_trj_raman,*)
+                     read(unit_trj_raman,9000) line
+                     read(line,*) ctmp1,ctmp2, interval_step_trj_raman
+                     do ia=1,NI
+                        read(unit_trj_raman,*) ctmp1,(Rion_m_next(j,ia,imacro),j=1,3), ctmp2, (velocity_m_next(j,ia,imacro),j=1,3)
+                     enddo
+                     Rion_m_next(:,:,imacro) = Rion_m_next(:,:,imacro) / au_length_aa
+                     exit
+                  endif
+               endif
+            enddo
+
+         enddo
+      endif
+
+      if(Nm_FDTD.ge.0) ix_detect_r = Nm_FDTD+1
+
+9000  format(a)
+      return
+
+100   continue
+      write(*,*) "Reading error of trajectory file for Raman mode"
+      stop
+
+    end subroutine init_ms_raman   
 
 end module initialization

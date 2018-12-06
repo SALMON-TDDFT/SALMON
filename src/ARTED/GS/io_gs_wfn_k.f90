@@ -138,7 +138,6 @@ contains
        zu_GS0(:,:,:) = zu_GS(:,:,:)
        zu_t(:,:,:) = zu_GS(:,1:NBoccmax,:)
 
-
        if(set_ini_coor_vel=='y') then
  
            select case(unit_length)

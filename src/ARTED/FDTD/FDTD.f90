@@ -853,166 +853,6 @@ end subroutine calc_total_energy
 
   
 !===========================================================
-subroutine dt_evolve_Ac_1d_raman_bk   !with dispersion
-  use Global_variables
-  implicit none
-  logical :: flag_cp_model,flag_cross_term
-  integer :: ix_m
-  integer :: iy_m
-  integer :: iz_m
-  real(8) :: rr(3),rr_bk(3)   ! rot rot Ac
-  real(8) :: chi_offdiag, pai !chi_mat(nx1_m:nx2_m), eps_diag
-  real(8) :: imat(3,3), imat_all(3,3,1:Nm_FDTD)
-  real(8) :: detA, a11,a22,a33,a12,a13,a23,a21,a31,a32
-  real(8) :: a23_tmp,decay,dchidt_x_dAdt(3),dchidt_x_dAdt_bk(3) !Omg_dt,v_mxmt,
-  real(8) :: w0,gm,chi0,imatJm(1:3), d2Adt2(3),dAdt(3), tmp1, tmp2, tmp3, tmp4, tmpB(3)
-
-  flag_cross_term=.true.
-
-  iz_m = nz_origin_m
-  iy_m = ny_origin_m
-
-  pai = acos(-1d0)
-
-  !flag_cp_model=.true.   !coherent phonon model
-  flag_cp_model=.false.   !coherent phonon model
-  Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt
-
-  eps_diag = 6d0
-  v_mxmt = 0.0163d0     !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
-  !decay  = 0.1d0/60000d0      !decay of sin or cos  (decay*iter+1.0)*sin(...)
-  decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-
-  !chi_offdiag = 11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  !chi_offdiag = -11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  chi_offdiag = 0d0   ! term that does not depend on frequency
-  chi_offdiag = chi_offdiag /(4d0*pai) !--> CGS unit
-
-  w0   =  5.5d0 / 27.2114    ![au]
-!  w0   =  100d0 / 27.2114    ![au] TEST
-  gm   =  0.005d0 / 27.2114  ![au]
-  chi0 =  10.2d0 * 1d-4      ! q=1d-4[A] <--- in MKSA unit
-!  chi0 =  11.11d0 * 1d-4      ! q=1d-4[A] <--- in MKSA unit TEST
-  chi0 =  chi0 /(4d0*pai)    !--> CGS unit
-
-  !(dielectric tensor (epsilon))
-  a11 = eps_diag
-  a22 = a11
-  a12 = 0d0
-  a21 = a12
-  a13 = 0d0
-  a31 = a13
-  a23 = 4d0 * pai * chi_offdiag
-  a32 = a23
-  a33 = a11
-
-  a23_tmp = a23
-
-  do ix_m = 1, Nm_FDTD
-
-     if(flag_cp_model) then
-        a23 = a23_tmp * cos(Omg_dt*(iter_save-ix_m/v_mxmt))  !*(decay*iter_save+1d0)
-        a32 = a23
-     endif
-
-     !check moving atoms (use for pump)
-     if(mod(iter_save,100)==0)then
-     if(ix_m==1)   write(*,1234) "check-M000001_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==200) write(*,1234) "check-M000200_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==267) write(*,1234) "check-M000267_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==320) write(*,1234) "check-M000320_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     endif
-1234 format(a,3e20.8)
-
-     !(calculate inverse matrix)
-     detA = a11*a22*a33 + a21*a32*a13 + a31*a12*a23 - a11*a32*a23 - a31*a22*a13 - a21*a12*a33
-     imat(1,1) = a22*a33 - a23*a32 
-     imat(2,2) = a11*a33 - a13*a31 
-     imat(3,3) = a11*a22 - a12*a21 
-     imat(1,2) = a13*a32 - a12*a33 
-     imat(2,1) = a31*a23 - a21*a33 
-     imat(1,3) = a12*a23 - a13*a22 
-     imat(3,1) = a21*a32 - a31*a22 
-     imat(2,3) = a13*a21 - a11*a23 
-     imat(3,2) = a31*a12 - a11*a32 
-     imat(:,:) = imat(:,:) / detA
-
-     if(.not.flag_cp_model) exit
-     imat_all(:,:,ix_m) = imat(:,:)
-  enddo
-  
-  if(.not.flag_cp_model) then
-     do ix_m = 1,Nm_FDTD
-        imat_all(:,:,ix_m) = imat(:,:)
-     enddo
-  endif
-
-!xx!$omp parallel do default(shared) private(ix_m)
-  do ix_m = nx1_m, nx2_m
-    rr(1) = 0d0
-    rr(2:3) = -( &
-            &      + Ac_ms(2:3,ix_m+1, iy_m, iz_m) &
-            & -2d0 * Ac_ms(2:3,ix_m,   iy_m, iz_m) &
-            &      + Ac_ms(2:3,ix_m-1, iy_m, iz_m) &
-            & ) * (1d0 / HX_m ** 2)
-    !rr(:) = rr(:) / ( 1d0 + 4d0*pai*chi_mat(ix_m) )
-    if(ix_m.ge.1 .and. ix_m.le.Nm_FDTD)then
-       dchidt_x_dAdt(:) = 0d0
-       if(flag_cross_term)then
-          dchidt_x_dAdt(2) = Ac_ms(3,ix_m,iy_m,iz_m)-Ac_old_ms(3,ix_m,iy_m,iz_m)
-          dchidt_x_dAdt(3) = Ac_ms(2,ix_m,iy_m,iz_m)-Ac_old_ms(2,ix_m,iy_m,iz_m)
-          dchidt_x_dAdt(:) = dchidt_x_dAdt(:) * 4.0*pai*chi_offdiag *Omg_dt*sin(Omg_dt*(iter_save-ix_m/v_mxmt))*dt*dt !<--? check
-          !dchidt_x_dAdt(:) = dchidt_x_dAdt(:) * (decay*iter_save+1d0)
-          dchidt_x_dAdt_bk(1:3) = dchidt_x_dAdt(1:3)
-          dchidt_x_dAdt(1:3) = matmul(imat_all(1:3,1:3,ix_m),dchidt_x_dAdt_bk(1:3))
-       endif
-       rr_bk(:) = rr(:)
-       rr(1:3)     = matmul(imat_all(1:3,1:3,ix_m),rr_bk(1:3))
-       imatJm(1:3) = matmul(imat_all(1:3,1:3,ix_m),Jm_ms(1:3,ix_m,iy_m,iz_m))
-    else
-       dchidt_x_dAdt(:) = 0d0
-       imatJm(:)        = 0d0
-    endif
-    Ac_new_ms(:,ix_m, iy_m, iz_m) = 2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
-      &  - rr(:)*(c_light*dt)**2  +  dchidt_x_dAdt(:)  &
-      &  + imatJm(:) * 4.0*pi*(dt**2)
-!xx    Ac_new_ms(:,ix_m, iy_m, iz_m) = (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
-!xx      & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
-  end do
-!xx!$omp end parallel do
-
-  tmp1 = gm*dt + 2d0
-  tmp2 = 2d0 - dt*dt*w0*w0
-  tmp3 = gm*dt - 2d0
-  tmp4 = 2d0 * dt*dt * w0*w0 * chi0
-  do ix_m = nx1_m, nx2_m
-     dAdt(2)   = (Ac_new_ms(2,ix_m,iy_m,iz_m) - Ac_old_ms(2,ix_m,iy_m,iz_m))/(2*dt)
-     dAdt(3)   = (Ac_new_ms(3,ix_m,iy_m,iz_m) - Ac_old_ms(3,ix_m,iy_m,iz_m))/(2*dt)
-     d2Adt2(2) = (Ac_new_ms(2,ix_m,iy_m,iz_m) - 2 * Ac_ms(2,ix_m,iy_m,iz_m) + Ac_old_ms(2,ix_m,iy_m,iz_m))/(dt*dt)
-     d2Adt2(3) = (Ac_new_ms(3,ix_m,iy_m,iz_m) - 2 * Ac_ms(3,ix_m,iy_m,iz_m) + Ac_old_ms(3,ix_m,iy_m,iz_m))/(dt*dt)
-
-     tmpB(:) = cos(Omg_dt*(iter_save-ix_m/v_mxmt)) * d2Adt2(:) - Omg_dt/dt*sin(Omg_dt*(iter_save-ix_m/v_mxmt)) * dAdt(:)
-
-     Jm_new_ms(2,ix_m,iy_m,iz_m) = ( 2d0*tmp2*Jm_ms(2,ix_m,iy_m,iz_m) + tmp3*Jm_old_ms(2,ix_m,iy_m,iz_m) - tmp4* tmpB(3) )/tmp1
-     Jm_new_ms(3,ix_m,iy_m,iz_m) = ( 2d0*tmp2*Jm_ms(3,ix_m,iy_m,iz_m) + tmp3*Jm_old_ms(3,ix_m,iy_m,iz_m) - tmp4* tmpB(2) )/tmp1
-  end do
-
-
-
-!!(add ion current)
-!xx  if(use_ehrenfest_md=='y')then
-!xx!$omp parallel do default(shared) private(ix_m)
-!xx    do ix_m = nx1_m, nx2_m
-!xx       Ac_new_ms(:,ix_m,iy_m,iz_m) = Ac_new_ms(:,ix_m,iy_m,iz_m) &
-!xx                                   & - Jm_ion_ms(:,ix_m,iy_m,iz_m)* 4d0*pi*(dt**2)
-!xx    end do
-!xx!$omp end parallel do
-!xx  endif
-
-  return
-end subroutine dt_evolve_Ac_1d_raman_bk
-
-!===========================================================
 subroutine dt_evolve_Ac_1d_raman
   use Global_variables
   use inputoutput, only: au_length_aa
@@ -1020,15 +860,15 @@ subroutine dt_evolve_Ac_1d_raman
   use salmon_communication, only: comm_is_root, comm_summation, comm_sync_all
   implicit none
   logical :: flag_q_cos
-  integer :: ix_m,iy_m,iz_m, imacro
+  integer :: ix_m,iy_m,iz_m, imacro, unit_trj_raman, ia,j
   real(8) :: rr(3),rr_bk(3),q0,q_crd(1:Nm_FDTD),q_vel(1:Nm_FDTD)
   real(8) :: imat(3,3), imat_all(3,3,1:Nm_FDTD)
   real(8) :: detA, a11,a22,a33,a12,a13,a23,a21,a31,a32
-  real(8) :: decay, pi4
-  real(8) :: dAdt(3), dchidt_x_dAdt(3), dchidt_x_dAdt_bk(3)
-  character(20) :: material
+  real(8) :: pi4, dAdt(3), dchidt_x_dAdt(3), dchidt_x_dAdt_bk(3)
+  character(20) :: material, ctmp1,ctmp2
   real(8) :: q_crd_m_tmp(nmacro), q_crd_m(nmacro)
   real(8) :: q_vel_m_tmp(nmacro), q_vel_m(nmacro)
+  character(1024) :: line
 
   pi4 = 4d0*pi
 
@@ -1039,11 +879,7 @@ subroutine dt_evolve_Ac_1d_raman
 
   material = "from_input"
   !material = "diamond"
-  !material = "diamond_w_diag"
-  !material = "diamond-dt0.02"
   !material = "Si"
-
-  decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
 
   if(trim(material)=="from_input") then
      q0 = 1d-4 / au_length_aa !diamond by 2d12[W/cm^2]
@@ -1053,16 +889,6 @@ subroutine dt_evolve_Ac_1d_raman
      eps_diag = 6d0
      v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm)
 
-     dchidq(2,3) = -11.11d0 !* 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-
-     q0 = 1d-4 / au_length_aa !diamond by 2d12[W/cm^2]
-
-  else if(trim(material)=="diamond-dt0.02") then
-     !Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt (dt=0.002)
-     Omg_dt = 2d0*pi/dble(1250) != Omg*dt = (2pi/T)*dt (dt=0.02)
-     eps_diag = 6d0
-     !v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.002)
-     v_mxmt = 0.163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.02)
      dchidq(2,3) = -11.11d0 !* 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
      q0 = 1d-4 / au_length_aa !diamond by 2d12[W/cm^2]
   else  if(trim(material)=="Si") then
@@ -1074,19 +900,34 @@ subroutine dt_evolve_Ac_1d_raman
      q0 = 7d-6 / au_length_aa ! Si by ?? [W/cm^2]
   endif
 
-  !dchidq(:,:) =  0d0   !no coherent phonon
-
 
   if(.not.flag_q_cos) then
      if(nmacro.ne.Nm_FDTD)then
         call end_parallel
         stop
      endif
+     if(imode_FDTD_raman==2) then  !read-ion-trajectory
+        if(iter_save.ne.0 .and. mod(iter_save,interval_step_trj_raman)==0) then
+           do imacro = nmacro_s, nmacro_e
+              Rion_m(:,:,imacro)     = Rion_m_next(:,:,imacro)
+              velocity_m(:,:,imacro) = velocity_m_next(:,:,imacro)
+              if( iter_save==nt ) cycle
+              unit_trj_raman = 5000 + imacro
+              read(unit_trj_raman,*)
+              read(unit_trj_raman,'(a)') line
+              do ia=1,NI
+                 read(unit_trj_raman,*) ctmp1,(Rion_m_next(j,ia,imacro),j=1,3), ctmp2, (velocity_m_next(j,ia,imacro),j=1,3)
+              enddo
+              Rion_m_next(:,:,imacro) = Rion_m_next(:,:,imacro) / au_length_aa
+           enddo
+        endif
+     endif
+
      q_crd_m_tmp(:) = 0d0
      q_vel_m_tmp(:) = 0d0
      do imacro = nmacro_s, nmacro_e
-        q_crd_m_tmp(imacro) = Rion_m(1,1,imacro) - Rion_eq(1,1)        
-        q_vel_m_tmp(imacro) = velocity_m(1,1,ix_m)
+        q_crd_m_tmp(imacro) = Rion_m(1,1,imacro) - Rion_eq0(1,1)        
+        q_vel_m_tmp(imacro) = velocity_m(1,1,imacro)
      enddo
      call comm_sync_all
      call comm_summation(q_crd_m_tmp, q_crd_m, nmacro,nproc_group_global)
@@ -1153,7 +994,7 @@ subroutine dt_evolve_Ac_1d_raman
     !rr(:) = rr(:) / ( 1d0 + 4d0*pi*chi_mat(ix_m) )
     if(ix_m.ge.1 .and. ix_m.le.Nm_FDTD)then
        dAdt(:) = ( Ac_ms(:,ix_m,iy_m,iz_m)-Ac_old_ms(:,ix_m,iy_m,iz_m) )/dt
-       dchidt_x_dAdt_bk(1:3) = matmul(dchidq(1:3,1:3),dAdt(1:3)) * pi4 *dt*dt * q_vel(ix_m)
+       dchidt_x_dAdt_bk(1:3) = -matmul(dchidq(1:3,1:3),dAdt(1:3)) * pi4 *dt*dt * q_vel(ix_m)
        dchidt_x_dAdt(1:3) = matmul(imat_all(1:3,1:3,ix_m),dchidt_x_dAdt_bk(1:3))
        rr_bk(:) = rr(:)
        rr(1:3)  = matmul(imat_all(1:3,1:3,ix_m),rr_bk(1:3))
@@ -1171,211 +1012,5 @@ subroutine dt_evolve_Ac_1d_raman
   return
 end subroutine dt_evolve_Ac_1d_raman
 
-!--------------------------------------------------------------------------------------
-subroutine dt_evolve_Ac_1d_raman_bk2 ! w/o dispersion
-  use Global_variables
-  implicit none
-  logical :: flag_cp_model,flag_cross_term
-  integer :: ix_m
-  integer :: iy_m
-  integer :: iz_m
-  real(8) :: rr(3),rr_bk(3) ! rot rot Ac
-  real(8) :: chi_offdiag, pai  !eps_diag, chi_mat(nx1_m:nx2_m)
-  real(8) :: imat(3,3), imat_all(3,3,1:Nm_FDTD)
-  real(8) :: detA, a11,a22,a33,a12,a13,a23,a21,a31,a32
-  real(8) :: a23_tmp,decay,dchidt_x_dAdt(3),dchidt_x_dAdt_bk(3) !Omg_dt,v_mxmt
-  character(20) :: material
-
-  flag_cross_term=.true.
-
-  iz_m = nz_origin_m
-  iy_m = ny_origin_m
-
-  pai = acos(-1d0)
-
-  flag_cp_model=.true.   !coherent phonon model
-
-  !material = "model1"
-  !material = "model2"
-  !material = "model3"
-  material = "model4"
-  !material = "diamond"
-  !material = "diamond-dt0.02"
-  !material = "Si"
-
-  if(trim(material)=="diamond") then
-     Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt
-
-     eps_diag = 6d0
-     v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm)
-
-     !decay  = 0.1d0/60000d0      !decay of sin or cos  (decay*iter+1.0)*sin(...)
-     decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-
-     !  chi_offdiag = 11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-     chi_offdiag = -11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  else if(trim(material)=="diamond-dt0.02") then
-     !Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt (dt=0.002)
-     Omg_dt = 2d0*pi/dble(1250) != Omg*dt = (2pi/T)*dt (dt=0.02)
-     eps_diag = 6d0
-     !v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.002)
-     v_mxmt = 0.163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.02)
-     decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-     chi_offdiag = -11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  else  if(trim(material)=="Si") then
-     Omg_dt = 2d0*pi/dble(33000) != Omg*dt = (2pi/T)*dt  (T=66fs)
-
-     eps_diag = 12d0       !silicon 
-     v_mxmt = 0.0173d0     !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
-     decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-
-     chi_offdiag = -17.82d0 * 7d-6 ! dchi/dq=17.82[1/A], q=7d-6[A] <--- in MKSA unit
-  else  if(trim(material)=="model1") then
-     !!! assuming XXX dt=0.02fs XXX
-     !Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt
-     Omg_dt = 2d0*pi/dble(75000) != Omg*dt = (2pi/T)*dt (1.5ps,dt=0.02)
-
-     eps_diag = 6d0
-    !v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm)
-     v_mxmt = 0.163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.02)
-     decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-     chi_offdiag = -11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  else  if(trim(material)=="model2") then
-     !!! assuming XXX dt=0.02fs XXX
-     !Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt
-     Omg_dt = 2d0*pi/dble(75000) != Omg*dt = (2pi/T)*dt (1.5ps,dt=0.02)
-
-     eps_diag = 6d0
-    !v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm)
-     v_mxmt = 0.163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.02)
-     decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-    !chi_offdiag = -11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-     chi_offdiag = -11.11d0 * 1d-2 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  else  if(trim(material)=="model3") then
-     !!! assuming XXX dt=0.02fs XXX
-     !Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt
-     Omg_dt = 2d0*pi/dble(75000) != Omg*dt = (2pi/T)*dt (1.5ps,dt=0.02)
-
-     eps_diag = 6d0
-    !v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm)
-     v_mxmt = 0.163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.02)
-     decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-    !chi_offdiag = -11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-     chi_offdiag = -11.11d0 * 1d-6 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  else  if(trim(material)=="model4") then
-     !!! assuming XXX dt=0.02fs XXX
-     !Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt
-     Omg_dt = 2d0*pi/dble(75000) != Omg*dt = (2pi/T)*dt (1.5ps,dt=0.02)
-
-     eps_diag = 4d0
-     v_mxmt = 0.2d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm,dt=0.02)
-     decay  = 0d0                !decay of sin or cos  (decay*iter+1.0)*sin(...)
-     chi_offdiag = -11.11d0 * 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
-  endif
-
-
-  chi_offdiag = chi_offdiag /(4d0*pai) !--> CGS unit
-
-  chi_offdiag =  0d0   !no coherent phonon
-
-  !(dielectric tensor (epsilon))
-  a11 = eps_diag
-  a22 = a11
-  a12 = 0d0
-  a21 = a12
-  a13 = 0d0
-  a31 = a13
-  a23 = 4d0 * pai * chi_offdiag
-  a32 = a23
-  a33 = a11
-
-  a23_tmp = a23
-
-  do ix_m = 1, Nm_FDTD
-
-     if(flag_cp_model) then
-        a23 = a23_tmp * cos(Omg_dt*(iter_save-ix_m/v_mxmt))*(decay*iter_save+1d0)
-        a32 = a23
-     endif
-
-     !check moving atoms (use for pump)
-     if(mod(iter_save,100)==0)then
-     if(ix_m==1)   write(*,1234) "check-M000001_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==200) write(*,1234) "check-M000200_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==267) write(*,1234) "check-M000267_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==320) write(*,1234) "check-M000320_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==500) write(*,1234) "check-M000500_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==1000) write(*,1234) "check-M001000_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     if(ix_m==1500) write(*,1234) "check-M001500_a23_Acy", real(a23),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
-     endif
-1234 format(a,3e20.8)
-
-     !(calculate inverse matrix)
-     detA = a11*a22*a33 + a21*a32*a13 + a31*a12*a23 - a11*a32*a23 - a31*a22*a13 - a21*a12*a33
-     imat(1,1) = a22*a33 - a23*a32 
-     imat(2,2) = a11*a33 - a13*a31 
-     imat(3,3) = a11*a22 - a12*a21 
-     imat(1,2) = a13*a32 - a12*a33 
-     imat(2,1) = a31*a23 - a21*a33 
-     imat(1,3) = a12*a23 - a13*a22 
-     imat(3,1) = a21*a32 - a31*a22 
-     imat(2,3) = a13*a21 - a11*a23 
-     imat(3,2) = a31*a12 - a11*a32 
-     imat(:,:) = imat(:,:) / detA
-
-     if(.not.flag_cp_model) exit
-     imat_all(:,:,ix_m) = imat(:,:)
-  enddo
-  
-  if(.not.flag_cp_model) then
-     do ix_m = 1,Nm_FDTD
-        imat_all(:,:,ix_m) = imat(:,:)
-     enddo
-  endif
-
-!xx!$omp parallel do default(shared) private(ix_m)
-  do ix_m = nx1_m, nx2_m
-    rr(1) = 0d0
-    rr(2:3) = -( &
-            &      + Ac_ms(2:3,ix_m+1, iy_m, iz_m) &
-            & -2d0 * Ac_ms(2:3,ix_m,   iy_m, iz_m) &
-            &      + Ac_ms(2:3,ix_m-1, iy_m, iz_m) &
-            & ) * (1d0 / HX_m ** 2)
-    !rr(:) = rr(:) / ( 1d0 + 4d0*pai*chi_mat(ix_m) )
-    if(ix_m.ge.1 .and. ix_m.le.Nm_FDTD)then
-       dchidt_x_dAdt(:) = 0d0
-       if(flag_cross_term)then
-          dchidt_x_dAdt(2) = (Ac_ms(3,ix_m,iy_m,iz_m)-Ac_old_ms(3,ix_m,iy_m,iz_m))/dt
-          dchidt_x_dAdt(3) = (Ac_ms(2,ix_m,iy_m,iz_m)-Ac_old_ms(2,ix_m,iy_m,iz_m))/dt
-          dchidt_x_dAdt(:) = dchidt_x_dAdt(:) * 4.0*pai*chi_offdiag *Omg_dt/dt*sin(Omg_dt*(iter_save-ix_m/v_mxmt))*dt*dt
-          dchidt_x_dAdt(:) = dchidt_x_dAdt(:) * (decay*iter_save+1d0)
-          dchidt_x_dAdt_bk(1:3) = dchidt_x_dAdt(1:3)
-          dchidt_x_dAdt(1:3) = matmul(imat_all(1:3,1:3,ix_m),dchidt_x_dAdt_bk(1:3))
-       endif
-       rr_bk(:) = rr(:)
-       rr(1:3)  = matmul(imat_all(1:3,1:3,ix_m),rr_bk(1:3))
-    else
-       dchidt_x_dAdt(:) = 0d0
-    endif
-    Ac_new_ms(:,ix_m, iy_m, iz_m) = 2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
-      &  - rr(:)*(c_light*dt)**2  +  dchidt_x_dAdt(:)
-!xx    Ac_new_ms(:,ix_m, iy_m, iz_m) = (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
-!xx      & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
-  end do
-!xx!$omp end parallel do
-
-
-!!(add ion current)
-!xx  if(use_ehrenfest_md=='y')then
-!xx!$omp parallel do default(shared) private(ix_m)
-!xx    do ix_m = nx1_m, nx2_m
-!xx       Ac_new_ms(:,ix_m,iy_m,iz_m) = Ac_new_ms(:,ix_m,iy_m,iz_m) &
-!xx                                   & - Jm_ion_ms(:,ix_m,iy_m,iz_m)* 4d0*pi*(dt**2)
-!xx    end do
-!xx!$omp end parallel do
-!xx  endif
-
-  return
-end subroutine dt_evolve_Ac_1d_raman_bk2
 
 !===========================================================

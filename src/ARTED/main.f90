@@ -68,9 +68,10 @@ subroutine arted
       return
     case(iflag_calc_mode_rt)
 !      if(use_force_field /= 'n') then
-      if(theory == 'Raman') then
-         ! no GS calculation
-      else if(use_ms_maxwell=='y' .and. read_gs_wfn_k_ms=='y' ) then
+      !if(theory == 'Raman') then
+      !   ! no GS calculation
+      !else 
+      if(use_ms_maxwell=='y' .and. read_gs_wfn_k_ms=='y' ) then
          call read_gs_wfn_k_ms_each_macro_grid
       else if(use_ms_maxwell=='y' .and. read_rt_wfn_k_ms=='y') then
          call read_write_rt_wfn_k_ms_each_macro_grid(iflag_read_rt)
