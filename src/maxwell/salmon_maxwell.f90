@@ -89,11 +89,23 @@ module salmon_maxwell
     real(8),allocatable :: hx_s(:,:,:),hy_s(:,:,:),hz_s(:,:,:)                                        !h for save
     real(8),allocatable :: c2_jx(:,:,:),c2_jy(:,:,:),c2_jz(:,:,:)       !coeff. for general curr. dens.
     integer             :: inum_d                                       !Drude: number of media
+    integer,allocatable :: imedia_d(:)                                  !Drude: imedia number for drude model
     integer,allocatable :: idx_d(:,:,:,:),idy_d(:,:,:,:),idz_d(:,:,:,:) !Drude: id for each component
     real(8),allocatable :: rjx_d(:,:,:,:),rjy_d(:,:,:,:),rjz_d(:,:,:,:) !Drude: poparization current density
+    real(8),allocatable :: rjx_sum_d(:,:,:),rjy_sum_d(:,:,:),&          !Drude: sum of poparization current density
+                           rjz_sum_d(:,:,:)                             
+    real(8),allocatable :: wex_d(:,:,:,:),wey_d(:,:,:,:),wez_d(:,:,:,:) !Drude: weight function for smoothing
     real(8),allocatable :: c1_j_d(:),c2_j_d(:)                          !Drude: coefficient for j
     integer             :: iwk_size_eh                                  !tmporary variable for sendrecvh
     real(8),allocatable :: rmedia(:,:,:)                                !Material information for tmp.
+    real(8),allocatable :: time_lr(:)                                   !LR: time
+    integer             :: iter_lr                                      !LR: time iteration for save
+    real(8),allocatable :: fr_lr(:,:)                                   !LR: Re[f]
+    real(8),allocatable :: fi_lr(:,:)                                   !LR: Im[f]
+    real(8),allocatable :: rjx_lr(:,:,:),rjy_lr(:,:,:),rjz_lr(:,:,:)    !LR: poparization current density
+    real(8),allocatable :: px_lr(:,:,:), py_lr(:,:,:), pz_lr(:,:,:)     !LR: poparization vector
+    real(8),allocatable :: curr_lr(:,:)                                 !LR: current
+    real(8),allocatable :: dip_lr(:,:)                                  !LR: dipolemoment
   end type fdtd_tmp
   
   contains
