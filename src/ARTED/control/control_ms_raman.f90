@@ -18,7 +18,143 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 module control_ms_raman
   implicit none
+  !AY trial for Raman: Maxwell + Force-Field type MD (theory=Raman)
+  logical :: flag_ms_ff_LessPrint
+  integer :: Nm_FDTD, iter_save, imode_FDTD_raman
+  integer :: interval_step_trj_raman
+  real(8) :: Omg_dt,v_mxmt
+  real(8) :: eps_diag, dchidq(3,3)
+  real(8),allocatable :: c_pmode(:), Rion_eq0(:,:) 
+  real(8),allocatable :: Rion_m_next(:,:,:),velocity_m_next(:,:,:)
+  character(1024) :: dir_ion_trj
 contains
+subroutine init_ms_raman
+  use salmon_global
+  use Global_Variables
+  use opt_variables
+  use salmon_parallel
+  use salmon_communication
+  use salmon_file
+  use misc_routines
+  use timer
+  use inputoutput, only: au_length_aa
+  implicit none
+  integer :: ia,j,imacro, ik, istep
+  integer :: ntmp, i1,i2,ii, unit_trj_raman
+  real(8) :: rtmp, tmpr(3), uconv
+  character(1024) :: ifile_ff_ms, ifile_trj_raman, line
+  character(100)  :: char_atom, ctmp1,ctmp2
+  character(6)    :: cnum
+  
+  allocate( c_pmode(NI), Rion_eq0(3,NI) )
+  if (comm_is_root(nproc_id_global)) then
+     write(*,*) "read ff_ms_cp.inp file for coherent phonon calculation"
+     ifile_ff_ms = "./ff_ms_cp.inp"
+     open(800,file=trim(ifile_ff_ms),status="old")
+     read(800,*) imode_FDTD_raman     !(1=standard, 2=read-ion-trajectory)
+     if(imode_FDTD_raman==2) then
+        read(800,'(a)') dir_ion_trj
+     endif
+     read(800,*) flag_ms_ff_LessPrint
+     read(800,*) Nm_FDTD  ! measurement point
+     read(800,*) Omg_dt   != Omg*dt = (2pi/T)*dt
+     read(800,*) v_mxmt   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
+     read(800,*) eps_diag
+     dchidq(:,:) = 0d0
+     read(800,*) ntmp
+     do ii=1,ntmp
+        read(800,*) i1,i2,rtmp
+        dchidq(i1,i2) = rtmp     !d(chi)/dq [1/A]
+     enddo
+     dchidq(:,:) = dchidq(:,:) * au_length_aa !--> [1/Bohr]
+     dchidq(:,:) = dchidq(:,:)/(4d0*pi)       !--> CGS unit
+     ! coefficient of linear combination for phonon mode
+     read(800,*) (c_pmode(ia),ia=1,NI) 
+     close(800)
+     
+     select case(iflag_atom_coor)
+     case(ntype_atom_coor_cartesian)
+        open(801,file='.atomic_coor.tmp',status='old')
+        if(unit_length=='AA')then
+           uconv = au_length_aa
+        else  !au
+           uconv = 1d0
+        endif
+        do ia = 1,NI
+           read(801,*) char_atom, (tmpr(j),j=1,3),ik
+           Rion_eq0(:,ia) = tmpr(:)/uconv
+        enddo
+        
+     case(ntype_atom_coor_reduced)
+        open(801,file='.atomic_red_coor.tmp',status='old')
+        do ia = 1,NI
+           read(801,*) char_atom, (tmpr(j),j=1,3),ik
+           Rion_eq0(1,ia) = tmpr(1) * aLx
+           Rion_eq0(2,ia) = tmpr(2) * aLy
+           Rion_eq0(3,ia) = tmpr(3) * aLz
+        enddo
+        
+     end select
+         
+     close(801)
+  endif
+    
+  call comm_bcast(imode_FDTD_raman,     nproc_group_global)
+  call comm_bcast(dir_ion_trj,          nproc_group_global)
+  call comm_bcast(flag_ms_ff_LessPrint, nproc_group_global)
+  call comm_bcast(Nm_FDTD, nproc_group_global)
+  call comm_bcast(Omg_dt,  nproc_group_global)
+  call comm_bcast(v_mxmt,  nproc_group_global)
+  call comm_bcast(eps_diag,nproc_group_global)
+  call comm_bcast(dchidq,  nproc_group_global)
+  call comm_bcast(c_pmode, nproc_group_global)
+  call comm_bcast(Rion_eq0,nproc_group_global)
+  
+  !open trajectory file 
+  if(imode_FDTD_raman==2) then
+     allocate( Rion_m_next(    3,NI,nmacro_s:nmacro_e) )
+     allocate( velocity_m_next(3,NI,nmacro_s:nmacro_e) )
+     
+     do imacro = nmacro_s, nmacro_e
+        unit_trj_raman = 5000 + imacro
+        write(cnum,'(i6.6)') imacro
+        ifile_trj_raman = trim(dir_ion_trj)//'M'//cnum//'/'//trim(SYSname)//'_trj.xyz'
+        open(unit_trj_raman,file=trim(ifile_trj_raman),status='old')
+        do 
+           read(unit_trj_raman,9000,end=100) line
+           if(index(line,'step=').ne.0) then
+              read(line,*) ctmp1,ctmp2,istep
+              if(istep==0) then
+                 do ia=1,NI
+                    read(unit_trj_raman,*) ctmp1,(Rion_m(j,ia,imacro),j=1,3), ctmp2, (velocity_m(j,ia,imacro),j=1,3)
+                 enddo
+                 Rion_m(:,:,imacro) = Rion_m(:,:,imacro) / au_length_aa
+                 read(unit_trj_raman,*)
+                 read(unit_trj_raman,9000) line
+                 read(line,*) ctmp1,ctmp2, interval_step_trj_raman
+                 do ia=1,NI
+                    read(unit_trj_raman,*) ctmp1,(Rion_m_next(j,ia,imacro),j=1,3), ctmp2, (velocity_m_next(j,ia,imacro),j=1,3)
+                 enddo
+                 Rion_m_next(:,:,imacro) = Rion_m_next(:,:,imacro) / au_length_aa
+                 exit
+              endif
+           endif
+        enddo
+        
+     enddo
+  endif
+  
+  if(Nm_FDTD.ge.0) ix_detect_r = Nm_FDTD+1
+  
+9000 format(a)
+  return
+  
+100 continue
+  write(*,*) "Reading error of trajectory file for Raman mode"
+  stop
+  
+end subroutine init_ms_raman   
+
 subroutine raman_maxwell_ms
   use Global_Variables
   use timer
@@ -1395,21 +1531,221 @@ contains
   subroutine Ion_Force_RamanTensor_MS(imacro)
     implicit none
     integer :: ia,imacro
-    real(8) :: E_tot(3),Fion_E2(3,NI)
+    real(8) :: E_tot(3),Fion_E2(3,NI), tmp_x_mat(3),tmp_y_mat(3),tmp_z_mat(3), tmp_f(3)
+    real(8) :: mat_x(3,3),mat_y(3,3),mat_z(3,3)
 
     E_tot(:)= -(Ac_new_m(:,imacro)-Ac_old_m(:,imacro))/(2*dt)
 
-    !(in the case of diamond,Si)
+    mat_x(:,:)=0d0
+    mat_y(:,:)=0d0
+    mat_z(:,:)=0d0
+
+    !(general form but still based on diamond model)
+    !  for chi_yz= chi'_yz * Qx(phonon for x)  : diamond model
+    !  for chi_yz= chi'_zx * Qx(phonon for y)  : diamond model
+    !  for chi_yz= chi'_xy * Qx(phonon for z)  : diamond model
+    !      chi_x = chi'_x * Qx  : artificial model
+    !      chi_y = chi'_y * Qy  : artificial model
+    !      chi_z = chi'_z * Qz  : artificial model
+    mat_x(1,1)=dchidq(1,1)
+    mat_x(2,3)=dchidq(2,3)
+    mat_x(3,2)=dchidq(3,2)
+    mat_y(2,2)=dchidq(2,2)
+    mat_y(1,3)=dchidq(1,3)
+    mat_y(3,1)=dchidq(3,1)
+    mat_z(3,3)=dchidq(3,3)
+    mat_z(1,2)=dchidq(1,2)
+    mat_z(2,1)=dchidq(2,1)
+
+    tmp_x_mat(1:3)= matmul(mat_x(1:3,1:3),E_tot(1:3))
+    tmp_f(1)      = E_tot(1)*tmp_x_mat(1) + E_tot(2)*tmp_x_mat(2) + E_tot(3)*tmp_x_mat(3)
+    tmp_y_mat(1:3)= matmul(mat_y(1:3,1:3),E_tot(1:3))
+    tmp_f(2)      = E_tot(1)*tmp_y_mat(1) + E_tot(2)*tmp_y_mat(2) + E_tot(3)*tmp_y_mat(3)
+    tmp_z_mat(1:3)= matmul(mat_z(1:3,1:3),E_tot(1:3))
+    tmp_f(3)      = E_tot(1)*tmp_z_mat(1) + E_tot(2)*tmp_z_mat(2) + E_tot(3)*tmp_z_mat(3)
+
     do ia=1,NI
-      Fion_E2(1,ia) = 0.5d0 * aLxyz * c_pmode(ia) / dble(NI) &
-                       * ( dchidq(2,3) * E_tot(2)*E_tot(3) &
-                         + dchidq(3,2) * E_tot(3)*E_tot(2) )
-      force_m(1,ia,imacro) = force_m(1,ia,imacro) + Fion_E2(1,ia)
+      Fion_E2(:,ia) = 0.5d0 * aLxyz * c_pmode(ia) / dble(NI) * tmp_f(:)
+      force_m(:,ia,imacro) = force_m(:,ia,imacro) + Fion_E2(:,ia)
+
+!      tmp1_mat(1:3) = matmul(dchidq(1:3,1:3),E_tot(1:3))
+!      tmp_f         = E_tot(1)*tmp1_mat(1) + E_tot(2)*tmp1_mat(2) + E_tot(3)*tmp1_mat(3)
+!      Fion_E2(1,ia) = 0.5d0 * aLxyz * c_pmode(ia) / dble(NI) * tmp_f
+!      force_m(1,ia,imacro) = force_m(1,ia,imacro) + Fion_E2(1,ia)
     enddo
 
   end subroutine
 
 end subroutine raman_maxwell_ms
+
+!===========================================================
+subroutine dt_evolve_Ac_1d_raman
+  use Global_variables
+  use inputoutput, only: au_length_aa
+  use salmon_parallel, only: nproc_id_global, nproc_group_global, end_parallel
+  use salmon_communication, only: comm_is_root, comm_summation, comm_sync_all
+  implicit none
+  logical :: flag_q_cos
+  integer :: ix_m,iy_m,iz_m, imacro, unit_trj_raman, ia,j
+  real(8) :: rr(3),rr_bk(3),q0,q_crd(3,1:Nm_FDTD),q_vel(3,1:Nm_FDTD)
+  real(8) :: imat(3,3), imat_all(3,3,1:Nm_FDTD)
+  real(8) :: detA, a11,a22,a33,a12,a13,a23,a21,a31,a32
+  real(8) :: pi4, dAdt(3), dchidt_qvel_dAdt(3), dchidt_qvel_dAdt_bk(3), dchidt_qvel(3,3)
+  character(20) :: material, ctmp1,ctmp2
+  real(8) :: q_crd_m_tmp(3,nmacro), q_crd_m(3,nmacro)
+  real(8) :: q_vel_m_tmp(3,nmacro), q_vel_m(3,nmacro)
+  character(1024) :: line
+
+  pi4 = 4d0*pi
+
+  flag_q_cos = .false.   !force to cos curve of q(t)
+
+  iz_m = nz_origin_m
+  iy_m = ny_origin_m
+
+  material = "from_input"
+  !material = "diamond"
+  !material = "Si"
+
+  if(trim(material)=="from_input") then
+     q0 = 1d-4 / au_length_aa !diamond by 2d12[W/cm^2]
+
+  else if(trim(material)=="diamond") then
+     Omg_dt = 2d0*pi/dble(12500) != Omg*dt = (2pi/T)*dt
+     eps_diag = 6d0
+     v_mxmt = 0.0163d0   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt) (dX=15nm)
+
+     dchidq(2,3) = -11.11d0 !* 1d-4 ! dchi/dq=11.11[1/A], q=1d-4[A] <--- in MKSA unit
+     q0 = 1d-4 / au_length_aa !diamond by 2d12[W/cm^2]
+  else  if(trim(material)=="Si") then
+     Omg_dt = 2d0*pi/dble(33000) != Omg*dt = (2pi/T)*dt  (T=66fs)
+     eps_diag = 12d0       !silicon 
+     v_mxmt = 0.0173d0     !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
+
+     dchidq(2,3) = -17.82d0 !* 7d-6 ! dchi/dq=17.82[1/A], q=7d-6[A] <--- in MKSA unit
+     q0 = 7d-6 / au_length_aa ! Si by ?? [W/cm^2]
+  endif
+
+
+  if(.not.flag_q_cos) then
+     if(nmacro.ne.Nm_FDTD)then
+        call end_parallel
+        stop
+     endif
+     if(imode_FDTD_raman==2) then  !read-ion-trajectory
+        if(iter_save.ne.0 .and. mod(iter_save,interval_step_trj_raman)==0) then
+           do imacro = nmacro_s, nmacro_e
+              Rion_m(:,:,imacro)     = Rion_m_next(:,:,imacro)
+              velocity_m(:,:,imacro) = velocity_m_next(:,:,imacro)
+              if( iter_save==nt ) cycle
+              unit_trj_raman = 5000 + imacro
+              read(unit_trj_raman,*)
+              read(unit_trj_raman,'(a)') line
+              do ia=1,NI
+                 read(unit_trj_raman,*) ctmp1,(Rion_m_next(j,ia,imacro),j=1,3), ctmp2, (velocity_m_next(j,ia,imacro),j=1,3)
+              enddo
+              Rion_m_next(:,:,imacro) = Rion_m_next(:,:,imacro) / au_length_aa
+           enddo
+        endif
+     endif
+
+     q_crd_m_tmp(:,:) = 0d0
+     q_vel_m_tmp(:,:) = 0d0
+     do imacro = nmacro_s, nmacro_e
+        q_crd_m_tmp(:,imacro) = Rion_m(:,1,imacro) - Rion_eq0(:,1)        
+        q_vel_m_tmp(:,imacro) = velocity_m(:,1,imacro)
+     enddo
+     call comm_sync_all
+     call comm_summation(q_crd_m_tmp, q_crd_m, 3*nmacro, nproc_group_global)
+     call comm_summation(q_vel_m_tmp, q_vel_m, 3*nmacro, nproc_group_global)
+  endif
+
+
+  do ix_m = 1, Nm_FDTD
+
+     if(flag_q_cos) then
+        q_crd(:,ix_m) =   q0 * cos(Omg_dt*(iter_save-ix_m/v_mxmt))
+        q_vel(:,ix_m) = - q0 * sin(Omg_dt*(iter_save-ix_m/v_mxmt)) * Omg_dt/dt
+     else
+        q_crd(:,ix_m) = q_crd_m(:,ix_m)
+        q_vel(:,ix_m) = q_vel_m(:,ix_m)
+     endif
+
+     a11 = eps_diag + pi4*dchidq(1,1) * q_crd(1,ix_m)
+     a22 = eps_diag + pi4*dchidq(2,2) * q_crd(2,ix_m)
+     a33 = eps_diag + pi4*dchidq(3,3) * q_crd(3,ix_m)
+
+     a12 = pi4*dchidq(1,2) * q_crd(3,ix_m)
+     a13 = pi4*dchidq(1,3) * q_crd(2,ix_m)
+     a23 = pi4*dchidq(2,3) * q_crd(1,ix_m)
+
+     a21 = pi4*dchidq(2,1) * q_crd(3,ix_m)
+     a31 = pi4*dchidq(3,1) * q_crd(2,ix_m)
+     a32 = pi4*dchidq(3,2) * q_crd(1,ix_m)
+
+     !check: printing
+     if(comm_is_root(nproc_id_global)) then
+     if(mod(iter_save,100)==0)then
+     if(ix_m==1.or.mod(ix_m,100)==0) then
+        write(*,1234) "check:",ix_m,real(q_crd(1,ix_m)),real(Ac_ms(2,ix_m,iy_m,iz_m)),real(Ac_ms(3,ix_m,iy_m,iz_m))
+     endif
+     endif
+     endif
+1234 format(a,i6,3e20.8)
+
+     !(calculate inverse matrix)
+     detA = a11*a22*a33 + a21*a32*a13 + a31*a12*a23 - a11*a32*a23 - a31*a22*a13 - a21*a12*a33
+     imat(1,1) = a22*a33 - a23*a32 
+     imat(2,2) = a11*a33 - a13*a31 
+     imat(3,3) = a11*a22 - a12*a21 
+     imat(1,2) = a13*a32 - a12*a33 
+     imat(2,1) = a31*a23 - a21*a33 
+     imat(1,3) = a12*a23 - a13*a22 
+     imat(3,1) = a21*a32 - a31*a22 
+     imat(2,3) = a13*a21 - a11*a23 
+     imat(3,2) = a31*a12 - a11*a32 
+     imat(:,:) = imat(:,:) / detA
+
+     imat_all(:,:,ix_m) = imat(:,:)
+  enddo
+  
+!$omp parallel do default(shared) private(ix_m,rr,rr_bk,dAdt,dchidt_qvel_dAdt_bk,dchidt_qvel_dAdt,dchidt_qvel)
+  do ix_m = nx1_m, nx2_m
+    rr(1) = 0d0
+    rr(2:3) = -( &
+            &      + Ac_ms(2:3,ix_m+1, iy_m, iz_m) &
+            & -2d0 * Ac_ms(2:3,ix_m,   iy_m, iz_m) &
+            &      + Ac_ms(2:3,ix_m-1, iy_m, iz_m) &
+            & ) * (1d0 / HX_m ** 2)
+    if(ix_m.ge.1 .and. ix_m.le.Nm_FDTD)then
+       dAdt(:) = ( Ac_ms(:,ix_m,iy_m,iz_m)-Ac_old_ms(:,ix_m,iy_m,iz_m) )/dt
+       dchidt_qvel(1,1) = dchidq(1,1)*q_vel(1,ix_m)
+       dchidt_qvel(2,2) = dchidq(2,2)*q_vel(2,ix_m)
+       dchidt_qvel(3,3) = dchidq(3,3)*q_vel(3,ix_m)
+       dchidt_qvel(1,2) = dchidq(1,2)*q_vel(3,ix_m)
+       dchidt_qvel(2,1) = dchidq(2,1)*q_vel(3,ix_m)
+       dchidt_qvel(1,3) = dchidq(1,3)*q_vel(2,ix_m)
+       dchidt_qvel(3,1) = dchidq(3,1)*q_vel(2,ix_m)
+       dchidt_qvel(2,3) = dchidq(2,3)*q_vel(1,ix_m)
+       dchidt_qvel(3,2) = dchidq(3,2)*q_vel(1,ix_m)
+       dchidt_qvel_dAdt_bk(1:3) = -matmul(dchidt_qvel(1:3,1:3),dAdt(1:3)) * pi4 *dt*dt
+       dchidt_qvel_dAdt(1:3) = matmul(imat_all(1:3,1:3,ix_m),dchidt_qvel_dAdt_bk(1:3))
+       rr_bk(:) = rr(:)
+       rr(1:3)  = matmul(imat_all(1:3,1:3,ix_m),rr_bk(1:3))
+    else
+       dchidt_qvel_dAdt(:) = 0d0
+    endif
+    Ac_new_ms(:,ix_m, iy_m, iz_m) = 2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
+      &  - rr(:)*(c_light*dt)**2  +  dchidt_qvel_dAdt(:)
+!xx    Ac_new_ms(:,ix_m, iy_m, iz_m) = (2 * Ac_ms(:,ix_m, iy_m, iz_m) - Ac_old_ms(:,ix_m, iy_m, iz_m) &
+!xx      & -Jm_ms(:,ix_m, iy_m, iz_m) * 4.0*pi*(dt**2) - rr(:)*(c_light*dt)**2 )
+  end do
+!$omp end parallel do
+
+
+  return
+end subroutine dt_evolve_Ac_1d_raman
+
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
