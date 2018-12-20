@@ -37,6 +37,7 @@ module salmon_global
 
 !Input variables
 !! &calculation
+  character(16)  :: theory
   character(16)  :: calc_mode
   character(1)   :: use_ehrenfest_md
   character(1)   :: use_adiabatic_md
@@ -88,6 +89,7 @@ module salmon_global
   integer        :: nelec
   integer        :: nelec_spin(2)
   real(8)        :: temperature
+  real(8)        :: temperature_k
   integer        :: nelem
   integer        :: natom
   character(256) :: file_atom_coor
@@ -148,6 +150,8 @@ module salmon_global
   real(8)        :: threshold_norm_pot
   character(1)   :: omp_loop
   character(1)   :: skip_gsortho
+  integer        :: iditer_notemperature
+  character(1)   :: gscg
 
 !! &emfield
   character(2)   :: trans_longi
@@ -204,6 +208,32 @@ module salmon_global
   character(1)   :: set_ini_coor_vel
   integer        :: nmacro_write_group
   !! TODO: remove num_macropoint later
+
+!! &maxwell
+  real(8)        :: al_em(3)
+  real(8)        :: dl_em(3)
+  real(8)        :: dt_em
+  integer        :: nt_em
+  integer        :: iboundary(3,2)
+  character(16)  :: wave_input
+  real(8)        :: ek_dir1(3)
+  real(8)        :: source_loc1(3)
+  real(8)        :: ek_dir2(3)
+  real(8)        :: source_loc2(3)
+  integer        :: iobs_num_em
+  integer        :: iobs_samp_em
+  real(8)        :: obs_loc_em(200,3)
+  character(256) :: shape_file
+  integer        :: imedia_num
+  character(16)  :: type_media(0:200)
+  real(8)        :: epsilon(0:200)
+  real(8)        :: rmu(0:200)
+  real(8)        :: sigma(0:200)
+  real(8)        :: omega_p_d(0:200)
+  real(8)        :: gamma_d(0:200)
+  character(1)   :: smooth_d
+  real(8)        :: weight_d
+  character(1)   :: wf_em
   
 !! &analysis
   character(2)   :: projection_option

@@ -168,6 +168,22 @@ if(iSCFRT==2)then
 
 end if
 
+if(iSCFRT==1.and.iperiodic==0)then
+  allocate (rxk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (rhxk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (rgk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (rpk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+end if
+
+if(iSCFRT==1.and.iperiodic==3)then
+  allocate (zxk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (zhxk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (zgk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (zpk_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (zpko_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+  allocate (zhtpsi_ob(mg_sta(1):mg_end(1),mg_sta(2):mg_end(2),mg_sta(3):mg_end(3),1:iobnum))
+end if
+
 allocate (rho_tmp(ng_num(1), ng_num(2), ng_num(3)))
 allocate (rho_s_tmp(ng_num(1), ng_num(2), ng_num(3), 2))
 allocate (vxc_tmp(ng_num(1), ng_num(2), ng_num(3)))

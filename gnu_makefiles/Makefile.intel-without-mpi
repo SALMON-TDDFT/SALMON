@@ -9,7 +9,7 @@ FILE_MATHLIB = lapack
 LIBLAPACK = -mkl=sequential
 LIBSCALAPACK = -mkl=sequential
 MODULE_SWITCH = -module
-COMM_SET = dummy
+MPI_FLAG =
 
 LIBXC_LIB =
 LIBXC_INC =

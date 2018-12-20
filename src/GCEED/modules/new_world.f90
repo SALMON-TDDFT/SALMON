@@ -93,10 +93,6 @@ end if
 nproc_group_kgrid = comm_create_group(nproc_group_global, icolor, ikey)
 call comm_get_groupinfo(nproc_group_kgrid, nproc_id_kgrid, nproc_size_kgrid)
 
-if(iobnum==0) icolor=icolor+nproc_Mxin_mul*nproc_k
-nproc_group_kgrid_except0 = comm_create_group(nproc_group_global, icolor, ikey)
-call comm_get_groupinfo(nproc_group_kgrid_except0, nproc_id_kgrid_except0, nproc_size_kgrid_except0)
-
 !only for identifying spin
 !new_world for comm_spin
 if(isequential==1)then

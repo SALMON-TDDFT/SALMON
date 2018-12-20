@@ -37,6 +37,7 @@ subroutine arted
   use salmon_global,   only: use_ms_maxwell,use_geometry_opt,restart_option
   use control_sc,      only: tddft_sc
   use control_ms,      only: tddft_maxwell_ms
+  use control_ms_raman,only: raman_maxwell_ms
   use optimization,    only: calc_opt_ground_state
   use md_ground_state, only: calc_md_ground_state
 
@@ -66,7 +67,11 @@ subroutine arted
       if(use_adiabatic_md=='y') call calc_md_ground_state
       return
     case(iflag_calc_mode_rt)
-      if(     use_ms_maxwell=='y' .and. read_gs_wfn_k_ms=='y' ) then
+!      if(use_force_field /= 'n') then
+      !if(theory == 'Raman') then
+      !   ! no GS calculation
+      !else 
+      if(use_ms_maxwell=='y' .and. read_gs_wfn_k_ms=='y' ) then
          call read_gs_wfn_k_ms_each_macro_grid
       else if(use_ms_maxwell=='y' .and. read_rt_wfn_k_ms=='y') then
          call read_write_rt_wfn_k_ms_each_macro_grid(iflag_read_rt)
@@ -82,7 +87,12 @@ subroutine arted
 
   select case(use_ms_maxwell)
   case ('y')
-    call tddft_maxwell_ms
+!    if(use_force_field /= 'n') then
+    if(theory == 'Raman') then
+       call raman_maxwell_ms
+    else
+       call tddft_maxwell_ms
+    endif
     if(write_rt_wfn_k_ms=='y') call read_write_rt_wfn_k_ms_each_macro_grid(iflag_write_rt)
   case ('n')
     call tddft_sc

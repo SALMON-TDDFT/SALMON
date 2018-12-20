@@ -611,7 +611,6 @@ contains
       real(8) :: j_s_1d(nl, 3)
       real(8) :: eexc_1d(nl)
       real(8) :: vexc_1d(nl)
-      integer :: ii
 
       rho_1d = reshape(rho, (/nl/))
       rho_s_1d = rho_1d * 0.5

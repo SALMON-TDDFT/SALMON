@@ -6,7 +6,7 @@
 #define GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"
 
 #define SALMON_VER_MAJOR  1
-#define SALMON_VER_MINOR  1
+#define SALMON_VER_MINOR  2
 #define SALMON_VER_MICRO  0
 
 #endif

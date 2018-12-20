@@ -122,9 +122,11 @@ contains
     use salmon_file
     use misc_routines
     use timer
+    use inputoutput, only: au_length_aa
+    use control_ms_raman, only: init_ms_raman
     implicit none
     integer :: ia,i,j,imacro
-    
+
     if (comm_is_root(nproc_id_global)) then
        write(*,*) 'Nprocs=',nproc_size_global
        write(*,*) 'nproc_id_global=0:  ',nproc_id_global
@@ -304,6 +306,7 @@ contains
   
    !! Assign the number of macropoints into "nmacro"
    if (use_ms_maxwell == 'y') then     
+
      !! Initialize Transpose Matrix
       !call set_trans_mat(0d0, 0d0, 0d0)
      !! Number of the macropoint and bg_media in Multiscale grid     
@@ -486,6 +489,7 @@ contains
           stop
        endif
        ndivide_macro=int(dble(nmacro)/dble(nmacro_write_group))
+
     end if
     
     ! sato ---------------------------------------------------------------------------------------
@@ -535,10 +539,14 @@ contains
        end do
     endif
 
+    !!AY force field + FDTD:
+    if(theory == 'Raman') call init_ms_raman
+
     call comm_sync_all
     
     return
   End Subroutine Read_data
+
   Subroutine init_md
     use Global_Variables
     use salmon_communication
@@ -560,7 +568,7 @@ contains
        call set_initial_velocity
        if(set_ini_velocity=='r') call read_initial_velocity
 
-       if (use_ms_maxwell == 'y') then
+       if (use_ms_maxwell == 'y' .and. theory == 'TDDFT') then
           if(nmacro_s .ne. nmacro_e .or. nproc_size_global.ne.nmacro)then
              write(*,*) "Error: "
              write(*,*) "  number of parallelization nodes must be equal to number of macro grids"
@@ -572,7 +580,6 @@ contains
     endif
 
   End Subroutine init_md
-
 
   Subroutine set_initial_velocity
     use salmon_global
@@ -644,8 +651,7 @@ contains
     call comm_bcast(velocity ,nproc_group_global)
 
   End Subroutine set_initial_velocity
- 
-  
+   
   Subroutine read_initial_velocity
   ! initial velocity for md option can be given by external file 
   ! specified by file_ini_velocity option

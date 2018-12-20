@@ -380,7 +380,7 @@ subroutine dt_evolve_Ac_1d
 
   iz_m = nz_origin_m
   iy_m = ny_origin_m
-!$omp parallel do default(shared) private(ix_m)
+!$omp parallel do default(shared) private(ix_m,rr)
   do ix_m = nx1_m, nx2_m
     rr(1) = 0d0
     rr(2:3) = -( &
@@ -851,4 +851,4 @@ subroutine calc_total_energy()
   return
 end subroutine calc_total_energy
 
-  
+!===========================================================

@@ -59,10 +59,6 @@ module salmon_parallel
   integer, public :: nproc_id_h
   integer, public :: nproc_size_h
 
-  integer, public :: nproc_group_kgrid_except0
-  integer, public :: nproc_id_kgrid_except0
-  integer, public :: nproc_size_kgrid_except0
-
   integer, public :: nproc_group_korbital_vhxc
   integer, public :: nproc_id_korbital_vhxc
   integer, public :: nproc_size_korbital_vhxc
@@ -94,6 +90,7 @@ module salmon_parallel
 
   ! util
   public :: get_thread_id
+  public :: is_distributed_parallel
 
 contains
   subroutine setup_parallel
@@ -120,5 +117,11 @@ contains
 #else
     nid = 0
 #endif
+  end function
+
+  function is_distributed_parallel() result(ret)
+    implicit none
+    logical :: ret
+    ret = (nproc_size_global > 1)
   end function
 end module

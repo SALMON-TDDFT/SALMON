@@ -45,6 +45,7 @@ module inputoutput
   integer :: inml_scf
   integer :: inml_emfield
   integer :: inml_multiscale
+  integer :: inml_maxwell
   integer :: inml_analysis
   integer :: inml_hartree
   integer :: inml_ewald
@@ -208,6 +209,7 @@ contains
     real(8) :: norm
 
     namelist/calculation/ &
+      & theory, &
       & calc_mode, &
       & use_ehrenfest_md, &
       & use_adiabatic_md, &
@@ -256,6 +258,7 @@ contains
       & nelec, &
       & nelec_spin, &
       & temperature, &
+      & temperature_k, &
       & nelem, &
       & natom, &
       & file_atom_coor, &
@@ -318,7 +321,9 @@ contains
       & threshold_norm_rho, &
       & threshold_norm_pot, &
       & omp_loop, &
-      & skip_gsortho
+      & skip_gsortho, &
+      & iditer_notemperature, &
+      & gscg
 
     namelist/emfield/ &
       & trans_longi, &
@@ -371,6 +376,32 @@ contains
       & num_macropoint,  &
       & set_ini_coor_vel,&
       & nmacro_write_group
+
+    namelist/maxwell/ &
+      & al_em, &
+      & dl_em, &
+      & dt_em, &
+      & nt_em, &
+      & iboundary, &
+      & wave_input, &
+      & ek_dir1, &
+      & source_loc1, &
+      & ek_dir2, &
+      & source_loc2, &
+      & iobs_num_em, &
+      & iobs_samp_em, &
+      & obs_loc_em, &
+      & shape_file, &
+      & imedia_num, &
+      & type_media, &
+      & epsilon, &
+      & rmu, &
+      & sigma, &
+      & omega_p_d, &
+      & gamma_d, &
+      & smooth_d, &
+      & weight_d, &
+      & wf_em
 
     namelist/analysis/ &
       & projection_option, &
@@ -529,6 +560,7 @@ contains
     call initialize_inputoutput_units
 
 !! == default for &calculation 
+    theory           = 'TDDFT'
     calc_mode        = 'none'
     use_ehrenfest_md = 'n'
     use_adiabatic_md = 'n'
@@ -571,6 +603,7 @@ contains
     nelec              = 0
     nelec_spin (:)     = 0
     temperature        = -1d0
+    temperature_k      = -1d0
     nelem              = 0
     natom              = 0
     file_atom_coor          = 'none'
@@ -625,6 +658,8 @@ contains
     threshold_norm_pot = -1d0/ulength_from_au**6*uenergy_from_au**2  ! a.u., -1 a.u. = -33.72d4 AA**(-6)*eV**2
     omp_loop      = 'k'
     skip_gsortho  = 'n'
+    iditer_notemperature = 10
+    gscg          = 'y'
 
 !! == default for &emfield
     trans_longi    = 'tr'
@@ -660,6 +695,7 @@ contains
     vecp       = 0d0
     coop       = 0d0
     radp_diele = 2d0 ! a.u.
+    
 !! == default for &multiscale
     fdtddim    = '1d'
     twod_shape = 'periodic'
@@ -679,6 +715,33 @@ contains
     file_macropoint = ''
     set_ini_coor_vel= 'n'
     nmacro_write_group=-1
+
+!! == default for &maxwell
+    al_em(:)        = 0d0
+    dl_em(:)        = 0d0
+    dt_em           = 0d0
+    nt_em           = 0
+    iboundary(:,:)  = 0
+    wave_input      = 'none'
+    ek_dir1(:)      = 0d0
+    source_loc1(:)  = 0d0
+    ek_dir2(:)      = 0d0
+    source_loc2(:)  = 0d0
+    iobs_num_em     = 0
+    iobs_samp_em    = 1
+    obs_loc_em(:,:) = 0d0
+    shape_file      = 'none'
+    imedia_num      = 0
+    type_media(:)   = 'vacuum'
+    epsilon(:)      = 1d0
+    rmu(:)          = 1d0
+    sigma(:)        = 0d0
+    omega_p_d(:)    = 0d0
+    gamma_d(:)      = 0d0
+    smooth_d        = 'n'
+    weight_d        = 0.5d0
+    wf_em           = 'y'
+
 !! == default for &analysis
     projection_option   = 'no'
     projection_decomp   = 'n'
@@ -836,6 +899,9 @@ contains
       read(fh_namelist, nml=multiscale, iostat=inml_multiscale)
       rewind(fh_namelist)
 
+      read(fh_namelist, nml=maxwell, iostat=inml_maxwell)
+      rewind(fh_namelist)
+
       read(fh_namelist, nml=analysis, iostat=inml_analysis)
       rewind(fh_namelist)
 
@@ -874,6 +940,7 @@ contains
 
 ! Broad cast
 !! == bcast for &calculation
+    call comm_bcast(theory          ,nproc_group_global)
     call comm_bcast(calc_mode       ,nproc_group_global)
     call comm_bcast(use_ehrenfest_md,nproc_group_global)
     call comm_bcast(use_adiabatic_md,nproc_group_global)
@@ -920,6 +987,7 @@ contains
     call comm_bcast(nelec              ,nproc_group_global)
     call comm_bcast(nelec_spin         ,nproc_group_global)
     call comm_bcast(temperature        ,nproc_group_global)
+    call comm_bcast(temperature_k      ,nproc_group_global)
     call comm_bcast(nelem              ,nproc_group_global)
     call comm_bcast(natom              ,nproc_group_global)
     call comm_bcast(file_atom_coor     ,nproc_group_global)
@@ -957,7 +1025,7 @@ contains
 !! == bcast for &kgrid
     call comm_bcast(num_kgrid,nproc_group_global)
     call comm_bcast(file_kw  ,nproc_group_global)
-!! == bcast for &kgrid
+!! == bcast for &tgrid
     call comm_bcast(nt,nproc_group_global)
     call comm_bcast(dt,nproc_group_global)
     dt = dt * utime_to_au
@@ -985,6 +1053,8 @@ contains
     threshold_norm_pot = threshold_norm_pot * (uenergy_to_au)**2 / (ulength_to_au)**6
     call comm_bcast(omp_loop                ,nproc_group_global)
     call comm_bcast(skip_gsortho            ,nproc_group_global)
+    call comm_bcast(iditer_notemperature    ,nproc_group_global)
+    call comm_bcast(gscg                    ,nproc_group_global)
 !! == bcast for &emfield
     call comm_bcast(trans_longi,nproc_group_global)
     call comm_bcast(ae_shape1  ,nproc_group_global)
@@ -1035,6 +1105,7 @@ contains
     coop = coop * ulength_to_au
     call comm_bcast(radp_diele,nproc_group_global)
     radp_diele = radp_diele * ulength_to_au
+    
 !! == bcast for &multiscale
     call comm_bcast(fdtddim   ,nproc_group_global)
     call comm_bcast(twod_shape,nproc_group_global)
@@ -1058,7 +1129,40 @@ contains
     call comm_bcast(num_macropoint,  nproc_group_global)
     call comm_bcast(set_ini_coor_vel,nproc_group_global)
     call comm_bcast(nmacro_write_group,nproc_group_global)
-    
+
+!! == bcast for &maxwell
+    call comm_bcast(al_em        ,nproc_group_global)
+    al_em = al_em * ulength_to_au
+    call comm_bcast(dl_em        ,nproc_group_global)
+    dl_em = dl_em * ulength_to_au
+    call comm_bcast(dt_em        ,nproc_group_global)
+    dt_em = dt_em * utime_to_au
+    call comm_bcast(nt_em        ,nproc_group_global)
+    call comm_bcast(iboundary    ,nproc_group_global)
+    call comm_bcast(wave_input,nproc_group_global)
+    call comm_bcast(ek_dir1      ,nproc_group_global)
+    call comm_bcast(source_loc1  ,nproc_group_global)
+    source_loc1 = source_loc1 * ulength_to_au
+    call comm_bcast(ek_dir2      ,nproc_group_global)
+    call comm_bcast(source_loc2  ,nproc_group_global)
+    source_loc2 = source_loc2 * ulength_to_au
+    call comm_bcast(iobs_num_em  ,nproc_group_global)
+    call comm_bcast(iobs_samp_em ,nproc_group_global)
+    call comm_bcast(obs_loc_em   ,nproc_group_global)
+    obs_loc_em = obs_loc_em * ulength_to_au
+    call comm_bcast(shape_file   ,nproc_group_global)
+    call comm_bcast(imedia_num   ,nproc_group_global)
+    call comm_bcast(type_media   ,nproc_group_global)
+    call comm_bcast(epsilon      ,nproc_group_global)
+    call comm_bcast(rmu          ,nproc_group_global)
+    call comm_bcast(sigma        ,nproc_group_global)
+    call comm_bcast(omega_p_d    ,nproc_group_global)
+    omega_p_d = omega_p_d * uenergy_to_au
+    call comm_bcast(gamma_d      ,nproc_group_global)
+    gamma_d = gamma_d * uenergy_to_au
+    call comm_bcast(smooth_d     ,nproc_group_global)
+    call comm_bcast(weight_d     ,nproc_group_global)
+    call comm_bcast(wf_em        ,nproc_group_global)
     
 !! == bcast for &analysis
     call comm_bcast(projection_option,nproc_group_global)
@@ -1436,6 +1540,7 @@ contains
 
       if(inml_calculation >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'calculation', inml_calculation
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'theory', theory
       write(fh_variables_log, '("#",4X,A,"=",A)') 'calc_mode', calc_mode
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_ehrenfest_md', use_ehrenfest_md
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_adiabatic_md', use_adiabatic_md
@@ -1493,6 +1598,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'nelec', nelec
       write(fh_variables_log, '("#",4X,A,"=",I4,2x,I4)') 'nelec_spin(1:2)', nelec_spin
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature', temperature
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature_k', temperature_k
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'nelem', nelem
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'natom', natom
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_atom_coor', trim(file_atom_coor)
@@ -1535,7 +1641,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_rgrid(3)', num_rgrid(3)
 
       if(inml_kgrid >0)ierr_nml = ierr_nml +1
-      write(fh_variables_log, '("#namelist: ",A,", status=",I1)') 'kgrid', inml_kgrid
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'kgrid', inml_kgrid
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_kgrid(1)', num_kgrid(1)
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_kgrid(2)', num_kgrid(2)
       write(fh_variables_log, '("#",4X,A,"=",I4)') 'num_kgrid(3)', num_kgrid(3)
@@ -1566,6 +1672,8 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'threshold_norm_pot', threshold_norm_pot
       write(fh_variables_log, '("#",4X,A,"=",A)') 'omp_loop', omp_loop
       write(fh_variables_log, '("#",4X,A,"=",A)') 'skip_gsortho', skip_gsortho
+      write(fh_variables_log, '("#",4X,A,"=",I3)') 'iditer_notemperature', iditer_notemperature
+      write(fh_variables_log, '("#",4X,A,"=",A)') 'gscg', gscg
 
       if(inml_emfield >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'emfield', inml_emfield
@@ -1641,6 +1749,58 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'num_macropoint', num_macropoint
       write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_coor_vel', set_ini_coor_vel
       write(fh_variables_log, '("#",4X,A,"=",I5)') 'nmacro_write_group', nmacro_write_group
+
+      if(inml_maxwell >0)ierr_nml = ierr_nml +1
+      write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'maxwell', inml_maxwell
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'al_em(1)', al_em(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'al_em(2)', al_em(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'al_em(3)', al_em(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl_em(1)', dl_em(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl_em(2)', dl_em(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dl_em(3)', dl_em(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'dt_em', dt_em
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'nt_em', nt_em
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(1,1)', iboundary(1,1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(1,2)', iboundary(1,2)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(2,1)', iboundary(2,1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(2,2)', iboundary(2,2)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(3,1)', iboundary(3,1)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iboundary(3,2)', iboundary(3,2)
+      write(fh_variables_log, '("#",4X,A,"=",A)')      'wave_input', wave_input
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir1(1)', ek_dir1(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir1(2)', ek_dir1(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir1(3)', ek_dir1(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'source_loc1(1)', source_loc1(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'source_loc1(2)', source_loc1(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'source_loc1(3)', source_loc1(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir2(1)', ek_dir2(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir2(2)', ek_dir2(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'ek_dir2(3)', ek_dir2(3)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'source_loc2(1)', source_loc2(1)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'source_loc2(2)', source_loc2(2)
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'source_loc2(3)', source_loc2(3)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iobs_num_em', iobs_num_em
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'iobs_samp_em', iobs_samp_em
+      if(iobs_num_em==0) then
+        write(fh_variables_log, '("#",4X,A,"=",3ES14.5)') 'obs_loc_em', obs_loc_em(1,:)
+      else
+        do i = 1,iobs_num_em
+          write(fh_variables_log, '("#",4X,A,I3,A,"=",3ES14.5)') 'obs_loc_em(',i,',:)', obs_loc_em(i,:)
+        end do
+      end if
+      write(fh_variables_log, '("#",4X,A,"=",A)')      'shape_file', trim(shape_file)
+      write(fh_variables_log, '("#",4X,A,"=",I6)')     'imedia_num', imedia_num
+      do i = 0,imedia_num
+        write(fh_variables_log, '("#",4X,A,I3,A,"=",A)')      'type_media(',i,')', type_media(i)
+        write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'epsilon(',i,')', epsilon(i)
+        write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'rmu(',i,')', rmu(i)
+        write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'sigma(',i,')', sigma(i)
+        write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'omega_p_d(',i,')', omega_p_d(i)
+        write(fh_variables_log, '("#",4X,A,I3,A,"=",ES12.5)') 'gamma_d(',i,')', gamma_d(i)
+      end do
+      write(fh_variables_log, '("#",4X,A,"=",A)')      'smooth_d', smooth_d
+      write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'weight_d', weight_d
+      write(fh_variables_log, '("#",4X,A,"=",A)')      'wf_em', wf_em
 
       if(inml_analysis >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'analysis', inml_analysis
