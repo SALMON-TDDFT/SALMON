@@ -1,3 +1,5 @@
+! please copy the ground state data, C2H2_gs.bin, obtained by the calculation in "examples/exercise_01_C2H2_gs/"
+! to the current directory for a read-in file of this calculation
 &units
   unit_system='A_eV_fs'
 /
