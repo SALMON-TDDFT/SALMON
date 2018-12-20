@@ -58,6 +58,8 @@ module salmon_pp
     integer,allocatable :: jxx(:,:)
     integer,allocatable :: jyy(:,:)
     integer,allocatable :: jzz(:,:)
+    real(8),allocatable :: uv(:,:)
+    real(8),allocatable :: duv(:,:,:)
   end type
 
   contains

@@ -19,68 +19,47 @@ use salmon_communication, only: comm_is_root, comm_summation
 use scf_data
 use allocate_psl_sub
 implicit none
-integer :: iatom,jj,j2,ix,iy,iz
-integer :: ikoa
-integer :: jshift
-integer :: numj1(MI,0:nproc_size_global-1),numj2(MI,0:nproc_size_global-1)
-real(8) :: rr
+integer :: iatom,ix,iy,iz
+  integer :: i,j
+  integer :: lx(lg_num(1)*lg_num(2)*lg_num(3))
+  integer :: ly(lg_num(1)*lg_num(2)*lg_num(3))
+  integer :: lz(lg_num(1)*lg_num(2)*lg_num(3))
+  real(8) :: alx,aly,alz
+  real(8) :: hx,hy,hz
 
-if(iSCFRT==1)then
-  if(comm_is_root(nproc_id_global))then
-    write(*,*) "max( Mps(iatom) ) = ",maxMps
-  end if
-end if
+  hx=Hgs(1) 
+  hy=Hgs(2) 
+  hz=Hgs(3)
+  alx=Hgs(1)*dble(lg_num(1))
+  aly=Hgs(2)*dble(lg_num(2))
+  alz=Hgs(3)*dble(lg_num(3))
 
-numj1=0
-do iatom=1,MI
-  ikoa=Kion(iatom) ; jj=0
-  do iz=ng_sta(3),ng_end(3)
-  do iy=ng_sta(2),ng_end(2)
-  do ix=ng_sta(1),ng_end(1)
-    rr=sqrt((gridcoo(ix,1)-Rion(1,iatom))**2      &
-          +(gridcoo(iy,2)-Rion(2,iatom))**2      &
-          +(gridcoo(iz,3)-Rion(3,iatom))**2)
-    if ( rr < Rps(ikoa) ) then
-      jj=jj+1 ; Jxyz_tmp1(1,jj,iatom)=ix ; Jxyz_tmp1(2,jj,iatom)=iy ; Jxyz_tmp1(3,jj,iatom)=iz 
-    end if
+  do iz=lg_sta(3),lg_end(3)
+  do iy=lg_sta(2),lg_end(2)
+  do ix=lg_sta(1),lg_end(1)
+    i=(iz-lg_sta(3))*lg_num(1)*lg_num(2)+(iy-lg_sta(2))*lg_num(1)+ix-lg_sta(1)+1
+    lx(i)=ix
+    ly(i)=iy
+    lz(i)=iz
   end do
   end do
   end do
-  numj1(iatom,nproc_id_global)=jj
-end do
+ 
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),hx,hy,hz)
+  Mps_all(1:MI)=ppg%mps(1:MI) 
 
-call comm_summation(numj1,numj2,MI*nproc_size_global,nproc_group_global)
-
-Jxyz_tmp2=0
-do iatom=1,MI
-  Mps_all(iatom)=sum(numj2(iatom,:))
-  if(comm_is_root(nproc_id_global))then
-    jshift=0
-  else
-    jshift=sum(numj2(iatom,0:nproc_id_global-1))
-  end if
-  do j2=1,numj2(iatom,nproc_id_global)
-    Jxyz_tmp2(:,j2+jshift,iatom)=Jxyz_tmp1(:,j2,iatom)
-  end do
-end do
-
-call comm_summation(Jxyz_tmp2,Jxyz_all,3*maxMps*MI,nproc_group_global)
-
-Jxxyyzz_all=0
-
-if(iSCFRT==1)then
+  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,  &
+                 lg_num(1)*lg_num(2)*lg_num(3),hx,hy,hz)
+  
+  Jxyz_all=0
+  Jxxyyzz_all=0
   do iatom=1,MI
-    if(comm_is_root(nproc_id_global))then
-      write(*,*) "Mps =", Mps_all(iatom)
-    end if
+    do j=1,Mps_all(iatom)
+      Jxyz_all(1,j,iatom)=ppg%jxyz(1,j,iatom)
+      Jxyz_all(2,j,iatom)=ppg%jxyz(2,j,iatom)
+      Jxyz_all(3,j,iatom)=ppg%jxyz(3,j,iatom)
+    end do
   end do
-end if
-
-if(iSCFRT==1)then
-  if(comm_is_root(nproc_id_global))then
-    write(*,*) "Mlmps =",Mlmps
-  end if
-end if
 
 return
 

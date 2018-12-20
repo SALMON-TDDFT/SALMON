@@ -200,9 +200,12 @@ Subroutine prep_ps_periodic(property)
 
   end if
 
-  call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d,uv,duv, &
+  call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
                    nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
                    lma_tbl,flag_use_grad_wf_on_force,property)
+
+  uv(:,:)=ppg%uv(:,:)
+  duv(:,:,:)=ppg%duv(:,:,:)
 
   do a=1,natom
 
