@@ -1,3 +1,5 @@
+! Domain parallel version for periodic system calculations is still trial.
+! Some functions for periodic system calculations are not equipped in the domain parallel version.
 &calculation
   calc_mode = 'RT'
 /
@@ -53,13 +55,11 @@
 /
 
 &emfield
-  ae_shape1 = 'impulse'
+  ae_shape1 = 'Acos2'
+  rlaser_int_wcm2_1 = 1d14
+  omega1 = 0.05696145187d0
+  pulse_tw1 = 441.195136248d0
   epdir_re1 = 0., 0., 1.
-/
-
-&analysis
-  nenergy = 1000
-  de = 0.001
 /
 
 &atomic_coor

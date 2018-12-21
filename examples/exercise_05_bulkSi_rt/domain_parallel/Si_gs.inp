@@ -1,0 +1,77 @@
+! Domain parallel version for periodic system calculations is still trial.
+! Some functions for periodic system calculations are not equipped in the domain parallel version.
+&calculation
+  calc_mode = 'GS'
+/
+
+&control
+  sysname = 'Si'
+/
+
+&units
+  unit_system = 'a.u.'
+/
+
+&parallel
+  domain_parallel='y'
+/
+
+&system
+  iperiodic = 3
+  al = 10.26d0, 10.26d0, 10.26d0
+  nstate = 32
+  nelec = 32
+  nelem = 1
+  natom = 8
+/
+
+&pseudo
+  izatom(1) = 14
+  pseudo_file(1) = './Si_rps.dat'
+  lmax_ps(1) = 2
+  lloc_ps(1) = 2
+/
+
+&functional
+  xc = 'PZ'
+/
+
+&rgrid
+  dl = 0.855d0, 0.855d0, 0.855d0
+/
+
+&kgrid
+  num_kgrid = 4, 4, 4
+/
+
+&tgrid
+  nt = 3000
+  dt = 0.16
+/
+
+&scf
+  ncg = 5
+  nscf = 120
+/
+
+&emfield
+  trans_longi = 'lo'
+  ae_shape1 = 'impulse'
+  epdir_re1 = 0., 0., 1.
+/
+
+&analysis
+  nenergy = 1000
+  de = 0.001
+/
+
+&atomic_coor
+  'Si'	.0	.0	.0	1
+  'Si'	2.565	2.565	2.565	1
+  'Si'	5.13	.0	5.13	1
+  'Si'	.0	5.13	5.13	1
+  'Si'	5.13	5.13	.0	1
+  'Si'	7.695	2.565	7.695	1
+  'Si'	2.565	7.695	7.695	1
+  'Si'	7.695	7.695	2.565	1
+/
