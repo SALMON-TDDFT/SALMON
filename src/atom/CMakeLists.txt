@@ -1,8 +1,8 @@
 set(SOURCES
-    input_pp.f90
-    salmon_pp.f90
-    prep_pp.f90
-    Ylm_dYlm.f90
+    pp/input_pp.f90
+    pp/salmon_pp.f90
+    pp/prep_pp.f90
+    pp/Ylm_dYlm.f90
    )
 
 add_library(${SALMON_ATOM_LIB} STATIC ${SOURCES})
