@@ -73,9 +73,9 @@ if(iperiodic==3)then
   do iatom=1,MI
     ikoa=Kion(iatom)
     do jj=1,Mps(iatom)
-      x=(dble(Jxyz(1,jj,iatom)-1)+dble(Jxxyyzz(1,jj,iatom)*lg_num(1)))*Hgs(1)
-      y=(dble(Jxyz(2,jj,iatom)-1)+dble(Jxxyyzz(2,jj,iatom)*lg_num(2)))*Hgs(2)
-      z=(dble(Jxyz(3,jj,iatom)-1)+dble(Jxxyyzz(3,jj,iatom)*lg_num(3)))*Hgs(3)
+      x=(dble(Jxyz(1,jj,iatom)-1)-dble(Jxxyyzz(1,jj,iatom)*lg_num(1)))*Hgs(1)
+      y=(dble(Jxyz(2,jj,iatom)-1)-dble(Jxxyyzz(2,jj,iatom)*lg_num(2)))*Hgs(2)
+      z=(dble(Jxyz(3,jj,iatom)-1)-dble(Jxxyyzz(3,jj,iatom)*lg_num(3)))*Hgs(3)
       do iik=k_sta,k_end
         ekr(jj,iatom,iik)=exp(zi*(k_rd(1,iik)*x+k_rd(2,iik)*y+k_rd(3,iik)*z))
       end do

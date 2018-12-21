@@ -723,7 +723,9 @@ call comm_get_groupinfo(nproc_group_korbital_vhxc, nproc_id_korbital_vhxc, nproc
 
 !end if
 
-
+  nproc_group_tdks = nproc_group_global
+  nproc_id_tdks    = nproc_id_global
+  nproc_size_tdks  = nproc_size_global
 
 end subroutine make_new_world
 

@@ -19,7 +19,7 @@
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 Subroutine prep_ps_periodic(property)
   use Global_Variables
-  use salmon_parallel, only: nproc_id_global, nproc_group_tdks
+  use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_summation, comm_is_root
   use salmon_math
   use opt_variables, only: zJxyz,zKxyz,init_for_padding, nprojector,idx_proj,idx_lma,pseudo_start_idx, init_projector
@@ -76,7 +76,10 @@ Subroutine prep_ps_periodic(property)
     write(*,*) '============nonlocal grid data=============='
   endif
 
-  call calc_mps(pp,mps,nps,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+
+  nps=ppg%nps
+  Mps(1:NI)=ppg%mps(1:NI)
 
   if (comm_is_root(nproc_id_global) .and. property == 'initial') then
      do a=1,NI
@@ -108,7 +111,12 @@ Subroutine prep_ps_periodic(property)
 #endif
   endif
 
-  call calc_jxyz(pp,Jxyz,Jxx,Jyy,Jzz,Nps,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
+  call calc_jxyz(pp,ppg,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
+
+  Jxyz(1:Nps,1:NI)=ppg%jxyz(3,1:Nps,1:NI)+1+NLz*ppg%jxyz(2,1:Nps,1:NI)+NLy*NLz*ppg%jxyz(1,1:Nps,1:NI)
+  Jxx(:,:) =ppg%jxx(:,:)
+  Jyy(:,:) =ppg%jyy(:,:)
+  Jzz(:,:) =ppg%jzz(:,:)
 
   if(property == 'update_all') then
      zJxyz(1:Nps,1:NI) = Jxyz(1:Nps,1:NI) - 1
@@ -192,9 +200,12 @@ Subroutine prep_ps_periodic(property)
 
   end if
 
-  call calc_uv(pp,save_udVtbl_a,save_udVtbl_b,save_udVtbl_c,save_udVtbl_d,uV,duV, &
-               Jxyz,Jxx,Jyy,Jzz,Mps,Nps,nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
-               lma_tbl,flag_use_grad_wf_on_force,property)
+  call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
+                   nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
+                   lma_tbl,flag_use_grad_wf_on_force,property)
+
+  uv(:,:)=ppg%uv(:,:)
+  duv(:,:,:)=ppg%duv(:,:,:)
 
   do a=1,natom
 

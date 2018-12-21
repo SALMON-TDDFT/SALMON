@@ -71,9 +71,6 @@ subroutine input_pp(pp,hx,hy,hz)
       pp%rloc(ik)=pp%rps(ik)
       pp%radnl(:,ik)=pp%rad(:,ik)
 
-      pp%upp_f(:,:,ik)=pp%upp(:,:)
-      pp%vpp_f(:,:,ik)=pp%vpp(:,:)
-
       do l=0,pp%mlps(ik)
         pp%anorm(l,ik) = 0.d0
         do i=1,pp%mr(ik)-1
@@ -117,6 +114,9 @@ subroutine input_pp(pp,hx,hy,hz)
       else
         stop 'Wrong PSmask_option at input_pseudopotential_YS'
       end if
+
+      pp%upp_f(:,:,ik)=pp%upp(:,:)
+      pp%vpp_f(:,:,ik)=pp%vpp(:,:)
 
       open(4,file=trim(directory)//"PS_"//trim(pp%atom_symbol(ik))//"_"//trim(ps_format(ik))//"_"//trim(PSmask_option)//".dat")
       write(4,*) "# Mr=",pp%mr(ik)

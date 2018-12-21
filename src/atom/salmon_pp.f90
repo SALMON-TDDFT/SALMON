@@ -51,10 +51,21 @@ module salmon_pp
     real(8),allocatable :: dvpp(:,:)
   end type
 
+  type pp_grid
+    integer :: nps
+    integer,allocatable :: mps(:)
+    integer,allocatable :: jxyz(:,:,:)
+    integer,allocatable :: jxx(:,:)
+    integer,allocatable :: jyy(:,:)
+    integer,allocatable :: jzz(:,:)
+    real(8),allocatable :: uv(:,:)
+    real(8),allocatable :: duv(:,:,:)
+  end type
+
   contains
 
-  subroutine init_pp(pp,nrmax,lmax,flag_nlcc)
-    use salmon_global, only: nelem,lloc_ps
+  subroutine init_pp(pp,ppg,nrmax,lmax,flag_nlcc)
+    use salmon_global,only : natom,nelem,lloc_ps
     use salmon_global,only : pseudo_file
     use salmon_global,only : n_Yabana_Bertsch_psformat,n_ABINIT_psformat, &
                              n_ABINITFHI_psformat,n_FHI_psformat, &
@@ -63,6 +74,7 @@ module salmon_pp
     use salmon_communication, only: comm_bcast, comm_is_root
     implicit none
     type(pp_info) :: pp
+    type(pp_grid) :: ppg
     integer, parameter :: nrmax0=50000, lmax0=4
     integer,intent(in) :: nrmax,lmax
     logical,intent(in) :: flag_nlcc
@@ -70,10 +82,11 @@ module salmon_pp
     character(256) :: ps_file
     integer :: ips_type,nlen_psf
 
-    allocate(pp%atom_symbol(1:nelem))
-    allocate(pp%rmass(1:nelem))
-    
-    allocate(pp%mr(1:nelem))
+    allocate(pp%atom_symbol(nelem))
+    allocate(pp%rmass(nelem))
+    allocate(pp%mr(nelem))
+
+    allocate(ppg%mps(natom))
 
     if (comm_is_root(nproc_id_global)) then
   

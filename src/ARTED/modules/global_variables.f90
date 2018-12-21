@@ -16,7 +16,7 @@
 Module Global_Variables
   use salmon_global
   use salmon_xc, only: xc_functional
-  use salmon_pp, only: pp_info
+  use salmon_pp, only: pp_info,pp_grid
 !ARTED version
   character(50),parameter :: ARTED_ver='ARTED.1.6.0 (based on 2014.08.10.2)'
 
@@ -52,6 +52,7 @@ Module Global_Variables
 
 ! pseudopotential
   type(pp_info) :: pp
+  type(pp_grid) :: ppg
   integer,parameter :: Nrmax=3000,Lmax=4
   character(2) :: ps_type
   integer :: Nps,Nlma
