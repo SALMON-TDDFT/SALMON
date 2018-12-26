@@ -84,7 +84,7 @@ subroutine arted
   select case(use_ms_maxwell)
   case ('y')
     if( use_potential_model == 'n'    ) call tddft_maxwell_ms
-    if( use_potential_model == 'Raman') call raman_maxwell_ms  !not open yet
+   !if( use_potential_model == 'Raman') call raman_maxwell_ms  !not open yet
     if(write_rt_wfn_k_ms=='y') call read_write_rt_wfn_k_ms_each_macro_grid(iflag_write_rt)
   case ('n')
     call tddft_sc
