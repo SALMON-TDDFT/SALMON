@@ -46,6 +46,13 @@ subroutine init_ms_raman
   character(100)  :: char_atom, ctmp1,ctmp2
   character(6)    :: cnum
   
+  !keyword check
+  if(use_ms_maxwell=='n') then
+     call end_parallel
+     stop
+  endif
+
+
   allocate( c_pmode(NI), Rion_eq0(3,NI) )
   if (comm_is_root(nproc_id_global)) then
      write(*,*) "read ff_ms_cp.inp file for coherent phonon calculation"
