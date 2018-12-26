@@ -46,6 +46,7 @@
 &scf
   ncg = 5
   nscf = 100
+  threshold = 1.d-9
 /
 
 &emfield
