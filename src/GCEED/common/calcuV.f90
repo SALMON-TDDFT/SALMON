@@ -40,7 +40,7 @@ integer :: iatom,jj,lm
 
   logical :: flag_use_grad_wf_on_force
   
-  real(8) :: rinv_sqrt_hxyz 
+  real(8) :: rinv_hvol 
   
 
   property='initial'
@@ -96,7 +96,7 @@ integer :: iatom,jj,lm
                lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
                flag_use_grad_wf_on_force,property)
 
-  rinv_sqrt_hxyz=1.d0/sqrt(Hvol)
+  rinv_hvol=1.d0/Hvol
 
   lma = 0
   do iatom=1,MI
@@ -113,9 +113,9 @@ integer :: iatom,jj,lm
         do lm=l**2+1,(l+1)**2
           lma = lma + 1
           do jj=1,ppg%mps(iatom)
-            uV_all(jj,lm,iatom) = ppg%uv(jj,lma)*rinv_sqrt_hxyz
+            uV_all(jj,lm,iatom) = ppg%uv(jj,lma)
           end do
-          uVu(lm,iatom)=pp%rinv_uvu(lma)
+          uVu(lm,iatom)=pp%rinv_uvu(lma)*rinv_hvol
         end do 
       end if
     end do

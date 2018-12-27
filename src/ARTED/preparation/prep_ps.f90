@@ -33,7 +33,7 @@ Subroutine prep_ps_periodic(property)
   integer :: PNLx,PNLy,PNLz,narray
   real(8) :: x,y,z,r
   real(8) :: ratio1,ratio2,rc
-  real(8) :: rinv_sqrt_hxyz 
+  real(8) :: rinv_hxyz 
 
 
   !(Local pseudopotential in G-space (radial part))
@@ -186,13 +186,13 @@ Subroutine prep_ps_periodic(property)
                    Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
                    flag_use_grad_wf_on_force,property)
 
-  rinv_sqrt_hxyz=1.d0/sqrt(Hx*Hy*Hz)
+  rinv_hxyz=1.d0/(Hx*Hy*Hz)
 
-  uv(:,:)=ppg%uv(:,:)*rinv_sqrt_hxyz
-  duv(:,:,:)=ppg%duv(:,:,:)*rinv_sqrt_hxyz
+  uv(:,:)=ppg%uv(:,:)
+  duv(:,:,:)=ppg%duv(:,:,:)
 
   if(property /= 'update_wo_realloc') then
-    iuv(:)=pp%rinv_uvu(:)
+    iuv(:)=pp%rinv_uvu(:)*rinv_hxyz
   end if
 
 ! nonlinear core-correction

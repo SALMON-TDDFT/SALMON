@@ -423,9 +423,9 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
   real(8) :: xx
   real(8) :: ylm,dylm
   real(8) :: rshift(3)
-  real(8) :: sqrt_hxyz
+  real(8) :: hvol
 
-  sqrt_hxyz=sqrt(hx*hy*hz)
+  hvol=hx*hy*hz
 
   if(iperiodic==0)then
     if(mod(lx(nl)-lx(1)+1,2)==1)then
@@ -512,16 +512,16 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
          do m=-l,l
            lm=lm+1
            ilma=pp%lma_tbl(lm,a)
-           ppg%uv(j,ilma)=uvr(l)*ylm(x,y,z,l,m)*sqrt_hxyz
+           ppg%uv(j,ilma)=uvr(l)*ylm(x,y,z,l,m)
            if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
              if(r>1d-6)then
-               ppg%duv(j,ilma,1) = duvr(l)*(x/r)*ylm(x,y,z,l,m)+uvr(l)*dylm(x,y,z,l,m,1)*sqrt_hxyz
-               ppg%duv(j,ilma,2) = duvr(l)*(y/r)*ylm(x,y,z,l,m)+uvr(l)*dylm(x,y,z,l,m,2)*sqrt_hxyz
-               ppg%duv(j,ilma,3) = duvr(l)*(z/r)*ylm(x,y,z,l,m)+uvr(l)*dylm(x,y,z,l,m,3)*sqrt_hxyz
+               ppg%duv(j,ilma,1) = duvr(l)*(x/r)*ylm(x,y,z,l,m)+uvr(l)*dylm(x,y,z,l,m,1)
+               ppg%duv(j,ilma,2) = duvr(l)*(y/r)*ylm(x,y,z,l,m)+uvr(l)*dylm(x,y,z,l,m,2)
+               ppg%duv(j,ilma,3) = duvr(l)*(z/r)*ylm(x,y,z,l,m)+uvr(l)*dylm(x,y,z,l,m,3)
              else
-               ppg%duv(j,ilma,1) = uvr(l)*dylm(x,y,z,l,m,1)*sqrt_hxyz
-               ppg%duv(j,ilma,2) = uvr(l)*dylm(x,y,z,l,m,2)*sqrt_hxyz
-               ppg%duv(j,ilma,3) = uvr(l)*dylm(x,y,z,l,m,3)*sqrt_hxyz
+               ppg%duv(j,ilma,1) = uvr(l)*dylm(x,y,z,l,m,1)
+               ppg%duv(j,ilma,2) = uvr(l)*dylm(x,y,z,l,m,2)
+               ppg%duv(j,ilma,3) = uvr(l)*dylm(x,y,z,l,m,3)
              end if
            end if
          enddo
@@ -541,7 +541,7 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
       if(pp%inorm(l,ik)==0) cycle
       do m=-l,l
         lma=lma+1
-        pp%rinv_uvu(lma)=dble(pp%inorm(l,ik))
+        pp%rinv_uvu(lma)=dble(pp%inorm(l,ik))*hvol
       enddo
     enddo
     endif
