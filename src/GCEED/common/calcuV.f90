@@ -21,7 +21,7 @@ use allocate_psl_sub
 implicit none
 integer :: iatom,jj,lm
 
-  integer :: a,i,ik,ix,iy,iz,l,m
+  integer :: i,ik,ix,iy,iz,l
   integer :: nl
 
   real(8) :: alx,aly,alz
@@ -30,7 +30,6 @@ integer :: iatom,jj,lm
   integer :: ly(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: lz(lg_num(1)*lg_num(2)*lg_num(3))
 
-  integer :: nlma
   integer :: lma
   character(17) :: property
   
@@ -39,9 +38,9 @@ integer :: iatom,jj,lm
   real(8),allocatable :: save_udVtbl_c(:,:,:)
   real(8),allocatable :: save_udVtbl_d(:,:,:)
 
-  integer,allocatable :: lma_tbl(:,:)
-
   logical :: flag_use_grad_wf_on_force
+  
+  real(8) :: rinv_hvol 
   
 
   property='initial'
@@ -79,44 +78,25 @@ integer :: iatom,jj,lm
     end do
     end do
   end if
+  
+  call set_nlma(pp)
 
-  lma=0
-  do a=1,MI
-    ik=Kion(a)
-    do l=0,Mlps(ik)
-      if(pp%inorm(l,ik)==0) cycle
-      do m=-l,l
-        lma=lma+1
-      enddo
-    enddo
-  enddo
-  nlma=lma
-
-  allocate(lma_tbl((pp%lmax+1)**2,MI))
-
-  lma=0
-  do a=1,MI
-    ik=Kion(a)
-    lm=0
-    do l=0,Mlps(ik)
-      if(pp%inorm(l,ik)==0) cycle
-      do m=-l,l
-        lm=lm+1
-        lma=lma+1
-        lma_tbl(lm,a)=lma
-      enddo
-    enddo
-  enddo
-
+  call init_lma_tbl(pp)
+  call init_uv(pp,ppg)
+  
+  call set_lma_tbl(pp)
 
   allocate( save_udVtbl_a(pp%nrmax,0:pp%lmax,natom) )
   allocate( save_udVtbl_b(pp%nrmax,0:pp%lmax,natom) )
   allocate( save_udVtbl_c(pp%nrmax,0:pp%lmax,natom) )
   allocate( save_udVtbl_d(pp%nrmax,0:pp%lmax,natom) )
      
+
   call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
-               nlma,lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
-               lma_tbl,flag_use_grad_wf_on_force,property)
+               lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
+               flag_use_grad_wf_on_force,property)
+
+  rinv_hvol=1.d0/Hvol
 
   lma = 0
   do iatom=1,MI
@@ -135,7 +115,7 @@ integer :: iatom,jj,lm
           do jj=1,ppg%mps(iatom)
             uV_all(jj,lm,iatom) = ppg%uv(jj,lma)
           end do
-          uVu(lm,iatom)=pp%inorm(l,ik)
+          uVu(lm,iatom)=pp%rinv_uvu(lma)*rinv_hvol
         end do 
       end if
     end do

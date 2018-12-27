@@ -49,6 +49,10 @@ module salmon_pp
     real(8),allocatable :: dupp(:,:)
     real(8),allocatable :: vpp(:,:)
     real(8),allocatable :: dvpp(:,:)
+    integer :: nlma
+    integer,allocatable :: lma_tbl(:,:)
+    integer,allocatable :: ia_tbl(:)
+    real(8),allocatable :: rinv_uvu(:)
   end type
 
   type pp_grid

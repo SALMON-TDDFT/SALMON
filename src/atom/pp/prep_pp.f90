@@ -304,21 +304,109 @@ subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
 
 end subroutine calc_jxyz
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine init_lma_tbl(pp)
+  use salmon_global,only : natom
+  use salmon_pp,only : pp_info
+  implicit none 
+  type(pp_info) :: pp
+
+  allocate(pp%lma_tbl((pp%lmax+1)**2,natom))
+
+end subroutine init_lma_tbl
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine finalize_lma_tbl(pp)
+  use salmon_pp,only : pp_info
+  implicit none 
+  type(pp_info) :: pp
+
+  deallocate(pp%lma_tbl)
+
+end subroutine finalize_lma_tbl
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine init_uv(pp,ppg)
+  use salmon_global,only : natom
+  use salmon_pp,only : pp_info,pp_grid
+  implicit none 
+  type(pp_info) :: pp
+  type(pp_grid) :: ppg
+
+  allocate(pp%ia_tbl((pp%lmax+1)**2*natom))
+  allocate(pp%rinv_uvu((pp%lmax+1)**2*natom))
+  allocate(ppg%uv(ppg%nps,pp%nlma),ppg%duv(ppg%nps,pp%nlma,3))
+
+end subroutine init_uv
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine finalize_uv(pp,ppg)
+  use salmon_pp,only : pp_info,pp_grid
+  implicit none 
+  type(pp_info) :: pp
+  type(pp_grid) :: ppg
+
+  deallocate(pp%ia_tbl,pp%rinv_uvu)
+  deallocate(ppg%uv,ppg%duv)
+
+end subroutine finalize_uv
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine set_nlma(pp)
+  use salmon_global,only : natom,kion
+  use salmon_pp,only : pp_info,pp_grid
+  implicit none 
+  type(pp_info) :: pp
+  integer :: lma
+  integer :: a,ik,m,l
+
+  lma=0
+  do a=1,natom
+    ik=kion(a)
+    do l=0,pp%mlps(ik)
+      if(pp%inorm(l,ik)==0) cycle
+      do m=-l,l
+        lma=lma+1
+      enddo
+    enddo
+  enddo
+  pp%nlma=lma
+
+end subroutine set_nlma
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine set_lma_tbl(pp)
+  use salmon_global,only : natom,kion
+  use salmon_pp,only : pp_info
+  implicit none 
+  type(pp_info) :: pp
+  integer :: lm,lma
+  integer :: a,ik,m,l
+
+  lma=0
+  do a=1,natom
+    ik=kion(a)
+    lm=0
+    do l=0,pp%mlps(ik)
+      if(pp%inorm(l,ik)==0) cycle
+      do m=-l,l
+        lm=lm+1
+        lma=lma+1
+        pp%lma_tbl(lm,a)=lma
+        pp%ia_tbl(lma)=a
+      enddo
+    enddo
+  enddo
+
+end subroutine set_lma_tbl
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
-                   nlma,lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
-                   lma_tbl,flag_use_grad_wf_on_force,property)
+                   lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
+                   flag_use_grad_wf_on_force,property)
   use salmon_global,only : natom,nelem,kion,rion,iperiodic,domain_parallel
   use salmon_pp,only : pp_info,pp_grid
   implicit none
   real(8),parameter :: pi=3.141592653589793d0 ! copied from salmon_math
   type(pp_info) :: pp
   type(pp_grid) :: ppg
-  integer,intent(in) :: nlma
   integer,intent(in) :: nl
   integer,intent(in) :: lx(nl),ly(nl),lz(nl)
   real(8),intent(in) :: hx,hy,hz
   real(8),intent(in) :: alx,aly,alz
-  integer,intent(in) :: lma_tbl((pp%lmax+1)**2,natom)
   logical,intent(in) :: flag_use_grad_wf_on_force
   character(17),intent(in) :: property
   real(8),intent(out) :: save_udvtbl_a(pp%nrmax,0:pp%lmax,natom)
@@ -326,7 +414,7 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
   real(8),intent(out) :: save_udvtbl_c(pp%nrmax,0:pp%lmax,natom)
   real(8),intent(out) :: save_udvtbl_d(pp%nrmax,0:pp%lmax,natom)
   integer :: a,ik,j,l,lm,m
-  integer :: ilma,intr,ir
+  integer :: ilma,intr,ir,lma
   real(8),allocatable :: xn(:),yn(:),an(:),bn(:),cn(:),dn(:)  
   real(8) :: dudvtbl_a(pp%nrmax,0:pp%lmax), dudvtbl_b(pp%nrmax,0:pp%lmax)
   real(8) :: dudvtbl_c(pp%nrmax,0:pp%lmax), dudvtbl_d(pp%nrmax,0:pp%lmax)
@@ -335,6 +423,9 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
   real(8) :: xx
   real(8) :: ylm,dylm
   real(8) :: rshift(3)
+  real(8) :: hvol
+
+  hvol=hx*hy*hz
 
   if(iperiodic==0)then
     if(mod(lx(nl)-lx(1)+1,2)==1)then
@@ -356,8 +447,6 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
     rshift(:)=0.d0
   end if
   if(property /= 'update_wo_realloc') then
-
-    allocate(ppg%uv(ppg%nps,nlma),ppg%duv(ppg%nps,nlma,3))
 
     do a=1,natom
       ik=kion(a)
@@ -422,7 +511,7 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
          if(pp%inorm(l,ik)==0) cycle
          do m=-l,l
            lm=lm+1
-           ilma=lma_tbl(lm,a)
+           ilma=pp%lma_tbl(lm,a)
            ppg%uv(j,ilma)=uvr(l)*ylm(x,y,z,l,m)
            if(.not.flag_use_grad_wf_on_force)then !legacy for ion-force
              if(r>1d-6)then
@@ -443,7 +532,21 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
  !!$omp end parallel
  
   enddo
-  
+
+  lma=0
+  do a=1,natom
+    ik=kion(a)
+    if(property /= 'update_wo_realloc') then
+    do l=0,pp%mlps(ik)
+      if(pp%inorm(l,ik)==0) cycle
+      do m=-l,l
+        lma=lma+1
+        pp%rinv_uvu(lma)=dble(pp%inorm(l,ik))*hvol
+      enddo
+    enddo
+    endif
+  enddo
+ 
 end subroutine calc_uv
 
 subroutine spline(Np,xn,yn,an,bn,cn,dn)

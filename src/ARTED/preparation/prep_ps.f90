@@ -29,16 +29,18 @@ Subroutine prep_ps_periodic(property)
   implicit none
   character(17) :: property
   logical :: flag_alloc1, flag_alloc2
-  integer :: ik,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
+  integer :: ik,i,a,j,ix,iy,iz,ir,intr
   integer :: PNLx,PNLy,PNLz,narray
   real(8) :: x,y,z,r
   real(8) :: ratio1,ratio2,rc
+  real(8) :: rinv_hxyz 
 
 
   !(Local pseudopotential in G-space (radial part))
   if(property == 'initial') then
 
     allocate(lma_tbl((Lmax+1)**2,NI))
+    call init_lma_tbl(pp)
 
     call calc_vloc(pp,dVloc_G,Gx,Gy,Gz,NG,NG_s,NG_e,ngzero)
 
@@ -141,18 +143,8 @@ Subroutine prep_ps_periodic(property)
 
   endif
 
-  lma=0
-  do a=1,NI
-    ik=Kion(a)
-    do l=0,Mlps(ik)
-      if(inorm(l,ik)==0) cycle
-      do m=-l,l
-        lma=lma+1
-      enddo
-    enddo
-  enddo
-  Nlma=lma
-
+  call set_nlma(pp)
+  Nlma=pp%nlma
 
   !(allocate/deallocate with Nlma)
   if(property == 'initial') then
@@ -161,6 +153,7 @@ Subroutine prep_ps_periodic(property)
      narray=ubound(a_tbl,1)
      if(Nlma.ne.narray .or. flag_alloc1)then
         deallocate(a_tbl,uV,duV,iuV,zproj)
+        call finalize_uv(pp,ppg)
         flag_alloc2=.true.
      else
         flag_alloc2=.false.
@@ -169,25 +162,14 @@ Subroutine prep_ps_periodic(property)
   if(flag_alloc2)then
      allocate(a_tbl(Nlma),uV(Nps,Nlma),iuV(Nlma),duV(Nps,Nlma,3))
      allocate(zproj(Nps,Nlma,NK_s:NK_e))
+     call init_uv(pp,ppg)
   endif
 
-  lma=0
-  do a=1,NI
-    ik=Kion(a)
-    lm=0
-    do l=0,Mlps(ik)
-      if(inorm(l,ik)==0) cycle
-      do m=-l,l
-        lm=lm+1
-        lma=lma+1
-        a_tbl(lma)=a
-        lma_tbl(lm,a)=lma
-      enddo
-    enddo
-  enddo
+  call set_lma_tbl(pp)
+  lma_tbl(:,:)=pp%lma_tbl(:,:)
+  a_tbl(:)=pp%ia_tbl(:)
 
   endif  !for /= 'update_wo_realloc'
-
 
   if(property /= 'update_wo_realloc') then
 
@@ -201,26 +183,17 @@ Subroutine prep_ps_periodic(property)
   end if
 
   call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
-                   nlma,Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
-                   lma_tbl,flag_use_grad_wf_on_force,property)
+                   Lx,Ly,Lz,NL,Hx,Hy,Hz,aLx,aLy,aLz,  &
+                   flag_use_grad_wf_on_force,property)
+
+  rinv_hxyz=1.d0/(Hx*Hy*Hz)
 
   uv(:,:)=ppg%uv(:,:)
   duv(:,:,:)=ppg%duv(:,:,:)
 
-  do a=1,natom
-
-    if(property /= 'update_wo_realloc') then
-    lm=0
-    do l=0,Mlps(ik)
-      if(inorm(l,ik)==0) cycle
-      do m=-l,l
-        lm=lm+1
-        iuV(lma_tbl(lm,a))=inorm(l,ik)
-      enddo
-    enddo
-    endif
-
-  enddo
+  if(property /= 'update_wo_realloc') then
+    iuv(:)=pp%rinv_uvu(:)*rinv_hxyz
+  end if
 
 ! nonlinear core-correction
   rho_nlcc = 0d0
