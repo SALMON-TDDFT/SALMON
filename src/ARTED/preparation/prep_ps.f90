@@ -96,6 +96,7 @@ Subroutine prep_ps_periodic(property)
      narray=ubound(Jxyz,1)
      if(Nps.ne.narray)then
         deallocate(Jxyz,Jxx,Jyy,Jzz,zJxyz)
+        call finalize_jxyz(ppg)
         deallocate(ekr,ekr_omp)
 #ifdef ARTED_STENCIL_PADDING
         deallocate(zKxyz)
@@ -107,6 +108,7 @@ Subroutine prep_ps_periodic(property)
   endif
   if(flag_alloc1)then
      allocate(Jxyz(Nps,NI),Jxx(Nps,NI),Jyy(Nps,NI),Jzz(Nps,NI),zJxyz(Nps,NI))
+     call init_jxyz(ppg)
      allocate(ekr_omp(Nps,NI,NK_s:NK_e),ekr(Nps,NI))
 #ifdef ARTED_STENCIL_PADDING
      allocate(zKxyz(Nps,NI))
