@@ -33,7 +33,7 @@ Subroutine prep_ps_periodic(property)
   integer :: PNLx,PNLy,PNLz,narray
   real(8) :: x,y,z,r
   real(8) :: ratio1,ratio2,rc
-  real(8) :: rinv_hxyz 
+  real(8) :: rinv_hxyz
 
 
   !(Local pseudopotential in G-space (radial part))
@@ -46,7 +46,7 @@ Subroutine prep_ps_periodic(property)
 
     !(this save is used only for opt and md options)
     save_dVloc_G(:,:)=dVloc_G(:,:)
-     
+
   else
 
     dVloc_G(:,:)=save_dVloc_G(:,:)
@@ -69,7 +69,7 @@ Subroutine prep_ps_periodic(property)
 
   call calc_vpsl(pp,rhoion_G,Vpsl_ia,Vpsl,  &
                  dVloc_G,nGzero,Gx,Gy,Gz,NG,NG_s,NG_e,NL,aLxyz,Lx,Ly,Lz,Hx,Hy,Hz)
- 
+
   !(Non-Local pseudopotential)
   if(property /= 'update_wo_realloc') then
 
@@ -168,21 +168,8 @@ Subroutine prep_ps_periodic(property)
   endif
 
   call set_lma_tbl(pp)
-
-  lma=0
-  do a=1,NI
-    ik=Kion(a)
-    lm=0
-    do l=0,Mlps(ik)
-      if(inorm(l,ik)==0) cycle
-      do m=-l,l
-        lm=lm+1
-        lma=lma+1
-        a_tbl(lma)=pp%ia_tbl(lma)
-        lma_tbl(lm,a)=pp%lma_tbl(lm,a)
-      enddo
-    enddo
-  enddo
+  lma_tbl(:,:)=pp%lma_tbl(:,:)
+  a_tbl(:)=pp%ia_tbl(:)
 
   endif  !for /= 'update_wo_realloc'
 
@@ -235,7 +222,7 @@ Subroutine prep_ps_periodic(property)
         end if
         if(i == Nrmax) stop "no-cut-off"
       end do
-      
+
       do ix=-2,2; do iy=-2,2; do iz=-2,2
         do i=1,NL
           x=Lx(i)*Hx-(Rion(1,a)+ix*aLx)
@@ -243,7 +230,7 @@ Subroutine prep_ps_periodic(property)
           z=Lz(i)*Hz-(Rion(3,a)+iz*aLz)
           r=sqrt(x**2+y**2+z**2)
           if(r > rc)cycle
-          
+
           do ir=1,NRmax
             if(rad(ir,ik).gt.r) exit
           enddo
@@ -255,9 +242,9 @@ Subroutine prep_ps_periodic(property)
             +ratio1*rho_nlcc_tbl(intr+1,ik)+ratio2*rho_nlcc_tbl(intr,ik)
           tau_nlcc(i) = tau_nlcc(i) &
             +ratio1*tau_nlcc_tbl(intr+1,ik)+ratio2*tau_nlcc_tbl(intr,ik)
-          
+
         enddo
-        
+
       end do; end do; end do
     end do
   end if
