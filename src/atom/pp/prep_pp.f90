@@ -145,6 +145,30 @@ subroutine calc_vpsl(pp,rhoion_g,vpsl_ia,vpsl,dvloc_g,  &
 end subroutine calc_vpsl
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine init_jxyz(ppg)
+  use salmon_global,only : natom
+  use salmon_pp,only : pp_grid
+  implicit none 
+  type(pp_grid) :: ppg
+
+  allocate(ppg%jxyz(3,ppg%nps,natom))
+  allocate(ppg%jxx( ppg%nps,natom))
+  allocate(ppg%jyy( ppg%nps,natom))
+  allocate(ppg%jzz( ppg%nps,natom))
+
+end subroutine init_jxyz
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine finalize_jxyz(ppg)
+  use salmon_global,only : natom
+  use salmon_pp,only : pp_grid
+  implicit none 
+  type(pp_grid) :: ppg
+
+  deallocate(ppg%jxyz)
+  deallocate(ppg%jxx,ppg%jyy,ppg%jzz)
+
+end subroutine finalize_jxyz
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 
 subroutine calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
   use salmon_global,only : natom,kion,rion,iperiodic
@@ -261,11 +285,6 @@ subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
   else if(iperiodic==3)then 
     rshift(:)=0.d0
   end if
-
-  allocate(ppg%jxyz(3,ppg%nps,natom))
-  allocate(ppg%jxx( ppg%nps,natom))
-  allocate(ppg%jyy( ppg%nps,natom))
-  allocate(ppg%jzz( ppg%nps,natom))
 
 !$omp parallel
 !$omp do private(a,ik,j,ix,iy,iz,tmpx,tmpy,tmpz,i,x,y,z,r)
