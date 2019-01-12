@@ -29,7 +29,7 @@ Subroutine prep_ps_periodic(property)
   implicit none
   character(17) :: property
   logical :: flag_alloc1, flag_alloc2
-  integer :: ik,i,a,j,ix,iy,iz,ir,intr
+  integer :: ik,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
   integer :: PNLx,PNLy,PNLz,narray
   real(8) :: x,y,z,r
   real(8) :: ratio1,ratio2,rc
@@ -168,8 +168,21 @@ Subroutine prep_ps_periodic(property)
   endif
 
   call set_lma_tbl(pp)
-  lma_tbl(:,:)=pp%lma_tbl(:,:)
-  a_tbl(:)=pp%ia_tbl(:)
+
+  lma=0
+  do a=1,NI
+    ik=Kion(a)
+    lm=0
+    do l=0,Mlps(ik)
+      if(inorm(l,ik)==0) cycle
+      do m=-l,l
+        lm=lm+1
+        lma=lma+1
+        a_tbl(lma)=pp%ia_tbl(lma)
+        lma_tbl(lm,a)=pp%lma_tbl(lm,a)
+      enddo
+    enddo
+  enddo
 
   endif  !for /= 'update_wo_realloc'
 
@@ -193,9 +206,19 @@ Subroutine prep_ps_periodic(property)
   uv(:,:)=ppg%uv(:,:)
   duv(:,:,:)=ppg%duv(:,:,:)
 
-  if(property /= 'update_wo_realloc') then
-    iuv(:)=pp%rinv_uvu(:)*rinv_hxyz
-  end if
+  do a=1,natom
+    ik=Kion(a)
+    if(property /= 'update_wo_realloc') then
+      lm=0
+      do l=0,Mlps(ik)
+        if(inorm(l,ik)==0) cycle
+        do m=-l,l
+          lm=lm+1
+          iuV(lma_tbl(lm,a))=inorm(l,ik)
+        enddo
+      enddo
+    endif
+  enddo
 
 ! nonlinear core-correction
   rho_nlcc = 0d0
