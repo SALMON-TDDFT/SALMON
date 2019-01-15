@@ -79,7 +79,7 @@ integer :: iatom,jj,lm
     end do
   end if
   
-  call set_nlma(pp)
+  call set_nlma(pp,ppg)
 
   call init_lma_tbl(pp)
   call init_uv(pp,ppg)

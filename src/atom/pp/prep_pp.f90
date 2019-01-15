@@ -351,7 +351,7 @@ subroutine init_uv(pp,ppg)
 
   allocate(pp%ia_tbl((pp%lmax+1)**2*natom))
   allocate(pp%rinv_uvu((pp%lmax+1)**2*natom))
-  allocate(ppg%uv(ppg%nps,pp%nlma),ppg%duv(ppg%nps,pp%nlma,3))
+  allocate(ppg%uv(ppg%nps,ppg%nlma),ppg%duv(ppg%nps,ppg%nlma,3))
 
 end subroutine init_uv
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
@@ -366,11 +366,12 @@ subroutine finalize_uv(pp,ppg)
 
 end subroutine finalize_uv
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine set_nlma(pp)
+subroutine set_nlma(pp,ppg)
   use salmon_global,only : natom,kion
   use salmon_pp,only : pp_info,pp_grid
   implicit none 
   type(pp_info) :: pp
+  type(pp_grid) :: ppg
   integer :: lma
   integer :: a,ik,m,l
 
@@ -384,7 +385,7 @@ subroutine set_nlma(pp)
       enddo
     enddo
   enddo
-  pp%nlma=lma
+  ppg%nlma=lma
 
 end subroutine set_nlma
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130

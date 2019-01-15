@@ -145,8 +145,8 @@ Subroutine prep_ps_periodic(property)
 
   endif
 
-  call set_nlma(pp)
-  Nlma=pp%nlma
+  call set_nlma(pp,ppg)
+  Nlma=ppg%nlma
 
   !(allocate/deallocate with Nlma)
   if(property == 'initial') then
