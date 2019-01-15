@@ -81,10 +81,10 @@ integer :: iatom,jj,lm
   
   call set_nlma(pp,ppg)
 
-  call init_lma_tbl(pp)
+  call init_lma_tbl(pp,ppg)
   call init_uv(pp,ppg)
   
-  call set_lma_tbl(pp)
+  call set_lma_tbl(pp,ppg)
 
   allocate( save_udVtbl_a(pp%nrmax,0:pp%lmax,natom) )
   allocate( save_udVtbl_b(pp%nrmax,0:pp%lmax,natom) )
