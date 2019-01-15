@@ -169,7 +169,7 @@ Subroutine prep_ps_periodic(property)
 
   call set_lma_tbl(pp,ppg)
   lma_tbl(:,:)=ppg%lma_tbl(:,:)
-  a_tbl(:)=pp%ia_tbl(:)
+  a_tbl(:)=ppg%ia_tbl(:)
 
   endif  !for /= 'update_wo_realloc'
 

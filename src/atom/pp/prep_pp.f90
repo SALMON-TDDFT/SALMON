@@ -350,7 +350,7 @@ subroutine init_uv(pp,ppg)
   type(pp_info) :: pp
   type(pp_grid) :: ppg
 
-  allocate(pp%ia_tbl((pp%lmax+1)**2*natom))
+  allocate(ppg%ia_tbl((pp%lmax+1)**2*natom))
   allocate(pp%rinv_uvu((pp%lmax+1)**2*natom))
   allocate(ppg%uv(ppg%nps,ppg%nlma),ppg%duv(ppg%nps,ppg%nlma,3))
 
@@ -362,7 +362,7 @@ subroutine finalize_uv(pp,ppg)
   type(pp_info) :: pp
   type(pp_grid) :: ppg
 
-  deallocate(pp%ia_tbl,pp%rinv_uvu)
+  deallocate(ppg%ia_tbl,pp%rinv_uvu)
   deallocate(ppg%uv,ppg%duv)
 
 end subroutine finalize_uv
@@ -409,7 +409,7 @@ subroutine set_lma_tbl(pp,ppg)
         lm=lm+1
         lma=lma+1
         ppg%lma_tbl(lm,a)=lma
-        pp%ia_tbl(lma)=a
+        ppg%ia_tbl(lma)=a
       enddo
     enddo
   enddo
