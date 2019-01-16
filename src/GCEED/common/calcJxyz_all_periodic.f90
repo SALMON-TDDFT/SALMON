@@ -61,8 +61,9 @@ subroutine calcJxyz_all_periodic
   Mps_all(1:MI)=ppg%mps(1:MI) 
 
   call init_jxyz(ppg) 
-  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,  &
-                 lg_num(1)*lg_num(2)*lg_num(3),hx,hy,hz)
+  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                    lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                    hx,hy,hz)
   
   Jxyz_all=0
   Jxxyyzz_all=0
