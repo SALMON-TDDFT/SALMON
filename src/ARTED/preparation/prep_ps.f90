@@ -40,7 +40,7 @@ Subroutine prep_ps_periodic(property)
   if(property == 'initial') then
 
     allocate(lma_tbl((Lmax+1)**2,NI))
-    call init_lma_tbl(pp)
+    call init_lma_tbl(pp,ppg)
 
     call calc_vloc(pp,dVloc_G,Gx,Gy,Gz,NG,NG_s,NG_e,ngzero)
 
@@ -145,8 +145,8 @@ Subroutine prep_ps_periodic(property)
 
   endif
 
-  call set_nlma(pp)
-  Nlma=pp%nlma
+  call set_nlma(pp,ppg)
+  Nlma=ppg%nlma
 
   !(allocate/deallocate with Nlma)
   if(property == 'initial') then
@@ -155,7 +155,7 @@ Subroutine prep_ps_periodic(property)
      narray=ubound(a_tbl,1)
      if(Nlma.ne.narray .or. flag_alloc1)then
         deallocate(a_tbl,uV,duV,iuV,zproj)
-        call finalize_uv(pp,ppg)
+        call finalize_uv(ppg)
         flag_alloc2=.true.
      else
         flag_alloc2=.false.
@@ -167,9 +167,9 @@ Subroutine prep_ps_periodic(property)
      call init_uv(pp,ppg)
   endif
 
-  call set_lma_tbl(pp)
-  lma_tbl(:,:)=pp%lma_tbl(:,:)
-  a_tbl(:)=pp%ia_tbl(:)
+  call set_lma_tbl(pp,ppg)
+  lma_tbl(:,:)=ppg%lma_tbl(:,:)
+  a_tbl(:)=ppg%ia_tbl(:)
 
   endif  !for /= 'update_wo_realloc'
 

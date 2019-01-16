@@ -79,12 +79,12 @@ integer :: iatom,jj,lm
     end do
   end if
   
-  call set_nlma(pp)
+  call set_nlma(pp,ppg)
 
-  call init_lma_tbl(pp)
+  call init_lma_tbl(pp,ppg)
   call init_uv(pp,ppg)
   
-  call set_lma_tbl(pp)
+  call set_lma_tbl(pp,ppg)
 
   allocate( save_udVtbl_a(pp%nrmax,0:pp%lmax,natom) )
   allocate( save_udVtbl_b(pp%nrmax,0:pp%lmax,natom) )
@@ -115,7 +115,7 @@ integer :: iatom,jj,lm
           do jj=1,ppg%mps(iatom)
             uV_all(jj,lm,iatom) = ppg%uv(jj,lma)
           end do
-          uVu(lm,iatom)=pp%rinv_uvu(lma)*rinv_hvol
+          uVu(lm,iatom)=ppg%rinv_uvu(lma)*rinv_hvol
         end do 
       end if
     end do
