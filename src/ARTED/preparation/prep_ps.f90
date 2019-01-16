@@ -115,7 +115,7 @@ Subroutine prep_ps_periodic(property)
 #endif
   endif
 
-  call calc_jxyz(pp,ppg,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
+  call calc_jxyz(pp,ppg,aLx,aLy,aLz,Lx,Ly,Lz,NL,Lx,Ly,Lz,NL,Hx,Hy,Hz)
 
   Jxyz(1:Nps,1:NI)=ppg%jxyz(3,1:Nps,1:NI)+1+NLz*ppg%jxyz(2,1:Nps,1:NI)+NLy*NLz*ppg%jxyz(1,1:Nps,1:NI)
   Jxx(:,:) =ppg%jxx(:,:)

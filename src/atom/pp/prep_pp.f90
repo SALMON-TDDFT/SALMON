@@ -244,15 +244,16 @@ subroutine calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
 end subroutine calc_mps
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,mx,my,mz,ml,hx,hy,hz)
   use salmon_global,only : natom,kion,rion,iperiodic
   use salmon_pp,only : pp_info,pp_grid
   implicit none
   type(pp_info) :: pp
   type(pp_grid) :: ppg
   real(8),intent(in) :: alx,aly,alz
-  integer,intent(in) :: nl
+  integer,intent(in) :: nl,ml
   integer,intent(in) :: lx(nl),ly(nl),lz(nl)
+  integer,intent(in) :: mx(ml),my(ml),mz(ml)
   real(8),intent(in) :: hx,hy,hz
   integer :: a,i,ik,ix,iy,iz,j
   integer :: nc
@@ -297,17 +298,17 @@ subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
       tmpx = rion(1,a)+ix*aLx
       tmpy = rion(2,a)+iy*aLy
       tmpz = rion(3,a)+iz*aLz
-      do i=1,NL
-        x=lx(i)*Hx+rshift(1)-tmpx
-        y=ly(i)*Hy+rshift(2)-tmpy
-        z=lz(i)*Hz+rshift(3)-tmpz
+      do i=1,ml
+        x=mx(i)*Hx+rshift(1)-tmpx
+        y=my(i)*Hy+rshift(2)-tmpy
+        z=mz(i)*Hz+rshift(3)-tmpz
         r=sqrt(x*x+y*y+z*z)
         if (r<pp%rps(ik)) then
           j=j+1
           if (j<=ppg%nps) then
-            ppg%jxyz(1,j,a)=lx(i)
-            ppg%jxyz(2,j,a)=ly(i)
-            ppg%jxyz(3,j,a)=lz(i)
+            ppg%jxyz(1,j,a)=mx(i)
+            ppg%jxyz(2,j,a)=my(i)
+            ppg%jxyz(3,j,a)=mz(i)
             ppg%jxx( j,a)=ix
             ppg%jyy( j,a)=iy
             ppg%jzz( j,a)=iz
