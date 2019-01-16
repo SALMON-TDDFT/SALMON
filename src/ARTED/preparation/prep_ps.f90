@@ -155,7 +155,7 @@ Subroutine prep_ps_periodic(property)
      narray=ubound(a_tbl,1)
      if(Nlma.ne.narray .or. flag_alloc1)then
         deallocate(a_tbl,uV,duV,iuV,zproj)
-        call finalize_uv(pp,ppg)
+        call finalize_uv(ppg)
         flag_alloc2=.true.
      else
         flag_alloc2=.false.

@@ -351,18 +351,17 @@ subroutine init_uv(pp,ppg)
   type(pp_grid) :: ppg
 
   allocate(ppg%ia_tbl((pp%lmax+1)**2*natom))
-  allocate(pp%rinv_uvu((pp%lmax+1)**2*natom))
+  allocate(ppg%rinv_uvu((pp%lmax+1)**2*natom))
   allocate(ppg%uv(ppg%nps,ppg%nlma),ppg%duv(ppg%nps,ppg%nlma,3))
 
 end subroutine init_uv
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
-subroutine finalize_uv(pp,ppg)
-  use salmon_pp,only : pp_info,pp_grid
+subroutine finalize_uv(ppg)
+  use salmon_pp,only : pp_grid
   implicit none 
-  type(pp_info) :: pp
   type(pp_grid) :: ppg
 
-  deallocate(ppg%ia_tbl,pp%rinv_uvu)
+  deallocate(ppg%ia_tbl,ppg%rinv_uvu)
   deallocate(ppg%uv,ppg%duv)
 
 end subroutine finalize_uv
@@ -563,7 +562,7 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
       if(pp%inorm(l,ik)==0) cycle
       do m=-l,l
         lma=lma+1
-        pp%rinv_uvu(lma)=dble(pp%inorm(l,ik))*hvol
+        ppg%rinv_uvu(lma)=dble(pp%inorm(l,ik))*hvol
       enddo
     enddo
     endif

@@ -115,7 +115,7 @@ integer :: iatom,jj,lm
           do jj=1,ppg%mps(iatom)
             uV_all(jj,lm,iatom) = ppg%uv(jj,lma)
           end do
-          uVu(lm,iatom)=pp%rinv_uvu(lma)*rinv_hvol
+          uVu(lm,iatom)=ppg%rinv_uvu(lma)*rinv_hvol
         end do 
       end if
     end do
