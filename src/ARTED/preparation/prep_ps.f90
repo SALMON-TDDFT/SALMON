@@ -78,7 +78,7 @@ Subroutine prep_ps_periodic(property)
     write(*,*) '============nonlocal grid data=============='
   endif
 
-  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,lx,ly,lz,nl,hx,hy,hz)
 
   nps=ppg%nps
   Mps(1:NI)=ppg%mps(1:NI)
