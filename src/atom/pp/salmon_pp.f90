@@ -68,7 +68,7 @@ module salmon_pp
 
   contains
 
-  subroutine init_pp(pp,ppg,nrmax,lmax,flag_nlcc)
+  subroutine init_pp(pp,nrmax,lmax,flag_nlcc)
     use salmon_global,only : natom,nelem,lloc_ps
     use salmon_global,only : pseudo_file
     use salmon_global,only : n_Yabana_Bertsch_psformat,n_ABINIT_psformat, &
@@ -78,7 +78,6 @@ module salmon_pp
     use salmon_communication, only: comm_bcast, comm_is_root
     implicit none
     type(pp_info) :: pp
-    type(pp_grid) :: ppg
     integer, parameter :: nrmax0=50000, lmax0=4
     integer,intent(in) :: nrmax,lmax
     logical,intent(in) :: flag_nlcc
@@ -89,8 +88,6 @@ module salmon_pp
     allocate(pp%atom_symbol(nelem))
     allocate(pp%rmass(nelem))
     allocate(pp%mr(nelem))
-
-    allocate(ppg%mps(natom))
 
     if (comm_is_root(nproc_id_global)) then
   

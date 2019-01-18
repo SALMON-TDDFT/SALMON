@@ -145,6 +145,16 @@ subroutine calc_vpsl(pp,rhoion_g,vpsl_ia,vpsl,dvloc_g,  &
 end subroutine calc_vpsl
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
+subroutine init_mps(ppg)
+  use salmon_global,only : natom
+  use salmon_pp,only : pp_grid
+  implicit none 
+  type(pp_grid) :: ppg
+
+  allocate(ppg%mps(natom))
+
+end subroutine init_mps
+!--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine init_jxyz(ppg)
   use salmon_global,only : natom
   use salmon_pp,only : pp_grid
