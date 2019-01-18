@@ -45,13 +45,13 @@ integer :: iatom,ix,iy,iz
   end do
   end do
  
-  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                    lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                    hx,hy,hz)
-  Mps_all(1:MI)=ppg%mps(1:MI) 
+  Mps_all(1:MI)=ppg_all%mps(1:MI) 
 
-  call init_jxyz(ppg)
-  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+  call init_jxyz(ppg_all)
+  call calc_jxyz(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     hx,hy,hz)
   
@@ -59,9 +59,9 @@ integer :: iatom,ix,iy,iz
   Jxxyyzz_all=0
   do iatom=1,MI
     do j=1,Mps_all(iatom)
-      Jxyz_all(1,j,iatom)=ppg%jxyz(1,j,iatom)
-      Jxyz_all(2,j,iatom)=ppg%jxyz(2,j,iatom)
-      Jxyz_all(3,j,iatom)=ppg%jxyz(3,j,iatom)
+      Jxyz_all(1,j,iatom)=ppg_all%jxyz(1,j,iatom)
+      Jxyz_all(2,j,iatom)=ppg_all%jxyz(2,j,iatom)
+      Jxyz_all(3,j,iatom)=ppg_all%jxyz(3,j,iatom)
     end do
   end do
 

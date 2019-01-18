@@ -82,7 +82,7 @@ integer :: iatom,jj,lm
   call set_nlma(pp)
 
   call init_lma_tbl(pp)
-  call init_uv(pp,ppg)
+  call init_uv(pp,ppg_all)
   
   call set_lma_tbl(pp)
 
@@ -92,7 +92,7 @@ integer :: iatom,jj,lm
   allocate( save_udVtbl_d(pp%nrmax,0:pp%lmax,natom) )
      
 
-  call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
+  call calc_uv(pp,ppg_all,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
                lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
                flag_use_grad_wf_on_force,property)
 
@@ -104,7 +104,7 @@ integer :: iatom,jj,lm
     do l=0,Mlps(ik)
       if ( pp%inorm(l,ik)==0) then
         do lm=l**2+1,(l+1)**2
-          do jj=1,ppg%mps(iatom)
+          do jj=1,ppg_all%mps(iatom)
             uV_all(jj,lm,iatom) = 0.d0
           end do
           uVu(lm,iatom)=1.d-10
@@ -112,8 +112,8 @@ integer :: iatom,jj,lm
       else
         do lm=l**2+1,(l+1)**2
           lma = lma + 1
-          do jj=1,ppg%mps(iatom)
-            uV_all(jj,lm,iatom) = ppg%uv(jj,lma)
+          do jj=1,ppg_all%mps(iatom)
+            uV_all(jj,lm,iatom) = ppg_all%uv(jj,lma)
           end do
           uVu(lm,iatom)=pp%rinv_uvu(lma)*rinv_hvol
         end do 
