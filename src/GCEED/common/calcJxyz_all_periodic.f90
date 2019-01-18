@@ -27,6 +27,9 @@ subroutine calcJxyz_all_periodic
   complex(8),parameter :: zI=(0.d0,1.d0)
   
   integer :: i,j
+  integer :: mmx(mg_num(1)*mg_num(2)*mg_num(3))
+  integer :: mmy(mg_num(1)*mg_num(2)*mg_num(3))
+  integer :: mmz(mg_num(1)*mg_num(2)*mg_num(3))
   integer :: lx(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: ly(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: lz(lg_num(1)*lg_num(2)*lg_num(3))
@@ -46,6 +49,17 @@ subroutine calcJxyz_all_periodic
   aly=Hgs(2)*dble(lg_num(2))
   alz=Hgs(3)*dble(lg_num(3))
 
+  do iz=1,mg_num(3)
+  do iy=1,mg_num(2)
+  do ix=1,mg_num(1)
+    i=(iz-1)*mg_num(1)*mg_num(2)+(iy-1)*mg_num(1)+ix
+    mmx(i)=ix-1
+    mmy(i)=iy-1
+    mmz(i)=iz-1
+  end do
+  end do
+  end do
+ 
   do iz=1,lg_num(3)
   do iy=1,lg_num(2)
   do ix=1,lg_num(1)
@@ -57,9 +71,12 @@ subroutine calcJxyz_all_periodic
   end do
   end do
  
-  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
-                                   lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                   mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
                                    hx,hy,hz)
+  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       hx,hy,hz)
   Mps_all(1:MI)=ppg_all%mps(1:MI) 
 
   call init_jxyz(ppg_all) 

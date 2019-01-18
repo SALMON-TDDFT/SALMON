@@ -21,6 +21,9 @@ use allocate_psl_sub
 implicit none
 integer :: iatom,ix,iy,iz
   integer :: i,j
+  integer :: mmx(mg_num(1)*mg_num(2)*mg_num(3))
+  integer :: mmy(mg_num(1)*mg_num(2)*mg_num(3))
+  integer :: mmz(mg_num(1)*mg_num(2)*mg_num(3))
   integer :: lx(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: ly(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: lz(lg_num(1)*lg_num(2)*lg_num(3))
@@ -34,6 +37,17 @@ integer :: iatom,ix,iy,iz
   aly=Hgs(2)*dble(lg_num(2))
   alz=Hgs(3)*dble(lg_num(3))
 
+  do iz=mg_sta(3),mg_end(3)
+  do iy=mg_sta(2),mg_end(2)
+  do ix=mg_sta(1),mg_end(1)
+    i=(iz-mg_sta(3))*mg_num(1)*mg_num(2)+(iy-mg_sta(2))*mg_num(1)+ix-mg_sta(1)+1
+    mmx(i)=ix
+    mmy(i)=iy
+    mmz(i)=iz
+  end do
+  end do
+  end do
+ 
   do iz=lg_sta(3),lg_end(3)
   do iy=lg_sta(2),lg_end(2)
   do ix=lg_sta(1),lg_end(1)
@@ -45,9 +59,12 @@ integer :: iatom,ix,iy,iz
   end do
   end do
  
-  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
-                                   lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                   mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
                                    hx,hy,hz)
+  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       hx,hy,hz)
   Mps_all(1:MI)=ppg_all%mps(1:MI) 
 
   call init_jxyz(ppg_all)

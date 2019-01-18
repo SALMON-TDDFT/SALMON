@@ -54,6 +54,7 @@ module read_pslfile_sub
     allocate( Mass(MKI) )
     
     call init_pp(pp,Nrmax,Lmax,flag_nlcc)
+    call init_mps(ppg)
     call init_mps(ppg_all)
     
     allocate(upp_f(0:Nrmax,0:Nlps,MKI))
