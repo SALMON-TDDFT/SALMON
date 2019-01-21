@@ -14,6 +14,7 @@
 !  limitations under the License.
 !
 SUBROUTINE calcJxyz
+use salmon_parallel, only: nproc_id_global
 use scf_data
 use allocate_psl_sub
 implicit none
@@ -36,7 +37,6 @@ do iatom=1,MI
       end do
     end if
   end do
-  Mps(iatom)=ibox
 end do
 
 return

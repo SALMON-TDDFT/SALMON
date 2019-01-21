@@ -39,7 +39,6 @@ module read_pslfile_sub
   contains
   !==================================================================================================
   subroutine read_pslfile
-    use salmon_parallel, only: nproc_id_global
     use salmon_communication, only: comm_is_root
     use salmon_pp, only: init_pp
     implicit none
