@@ -14,7 +14,6 @@
 !  limitations under the License.
 !
 subroutine calcJxyz_all
-use salmon_parallel, only: nproc_size_global, nproc_id_global, nproc_group_global
 use salmon_communication, only: comm_is_root, comm_summation
 use scf_data
 use allocate_psl_sub
@@ -70,6 +69,10 @@ integer :: iatom,ix,iy,iz
 
   call init_jxyz(ppg)
   call init_jxyz(ppg_all)
+
+  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                    mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
+                                    hx,hy,hz)
   call calc_jxyz(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     hx,hy,hz)

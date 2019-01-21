@@ -14,7 +14,7 @@
 !  limitations under the License.
 !
 subroutine calcJxyz_all_periodic
-  use salmon_parallel, only: nproc_group_global, nproc_id_global, nproc_size_global
+  use salmon_parallel, only: nproc_id_global
   use salmon_communication, only: comm_is_root, comm_summation
   use scf_data
   use read_pslfile_sub
@@ -81,7 +81,11 @@ subroutine calcJxyz_all_periodic
   Mps_all(1:MI)=ppg_all%mps(1:MI) 
 
   call init_jxyz(ppg) 
-  call init_jxyz(ppg_all) 
+  call init_jxyz(ppg_all)
+ 
+  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                    mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
+                                    hx,hy,hz)
   call calc_jxyz(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     hx,hy,hz)
