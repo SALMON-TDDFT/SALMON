@@ -69,7 +69,7 @@ module salmon_pp
   contains
 
   subroutine init_pp(pp,nrmax,lmax,flag_nlcc)
-    use salmon_global,only : natom,nelem,lloc_ps
+    use salmon_global,only : nelem,lloc_ps
     use salmon_global,only : pseudo_file
     use salmon_global,only : n_Yabana_Bertsch_psformat,n_ABINIT_psformat, &
                              n_ABINITFHI_psformat,n_FHI_psformat, &
