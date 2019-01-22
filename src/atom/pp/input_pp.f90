@@ -18,7 +18,7 @@ subroutine input_pp(pp,hx,hy,hz)
   use salmon_pp,only : pp_info
   use salmon_global,only : pseudo_file
   use salmon_global,only : n_Yabana_Bertsch_psformat,n_ABINIT_psformat&
-    &,n_ABINITFHI_psformat,n_FHI_psformat,ps_format,izatom,nelem,directory, &
+    &,n_ABINITFHI_psformat,n_FHI_psformat,ps_format,nelem,directory, &
     & psmask_option
   use salmon_parallel, only: nproc_group_global, nproc_id_global
   use salmon_communication, only: comm_bcast, comm_is_root
@@ -157,7 +157,7 @@ end subroutine input_pp
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine read_ps_ky(pp,rrc,ik,ps_file)
   use salmon_pp,only : pp_info
-  use salmon_global,only : Lmax_ps, nelem
+  use salmon_global,only : Lmax_ps
   use inputoutput,only : au_length_aa, au_energy_ev
   implicit none
   type(pp_info),intent(inout) :: pp
@@ -202,7 +202,7 @@ end subroutine read_ps_KY
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine read_ps_abinit(pp,rrc,ik,ps_file)
   use salmon_pp,only : pp_info
-  use salmon_global,only : nelem, Lmax_ps
+  use salmon_global,only : Lmax_ps
 !See http://www.abinit.org/downloads/psp-links/psp-links/lda_tm
   implicit none
   type(pp_info),intent(inout) :: pp
@@ -357,7 +357,7 @@ subroutine read_ps_fhi(pp,rrc,ik,ps_file)
 !This is for original FHI98PP and not for FHI pseudopotential listed in abinit web page
 !See http://th.fhi-berlin.mpg.de/th/fhi98md/fhi98PP/
   use salmon_pp,only : pp_info
-  use salmon_global,only : nelem,Lmax_ps
+  use salmon_global,only : Lmax_ps
   implicit none
   type(pp_info),intent(inout) :: pp
 !argument
@@ -608,7 +608,7 @@ end subroutine making_ps_without_masking
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine ps_masking(pp,uvpp,duvpp,ik,hx,hy,hz)
   use salmon_pp,only : pp_info
-  use salmon_global,only :ps_format,nelem,alpha_mask,gamma_mask,eta_mask
+  use salmon_global,only :ps_format,alpha_mask,gamma_mask
   use salmon_math, only: xjl, dxjl
   implicit none
   type(pp_info),intent(inout) :: pp
@@ -724,7 +724,7 @@ subroutine ps_masking(pp,uvpp,duvpp,ik,hx,hy,hz)
 !Subroutine Make_mask_function
 !Name of variables are taken from ***
     use salmon_pp,only : pp_info
-    use salmon_global, only :nelem,eta_mask
+    use salmon_global, only : eta_mask
     implicit none
     real(8),parameter :: pi=3.141592653589793d0 ! copied from salmon_math
     type(pp_info),intent(inout) :: pp

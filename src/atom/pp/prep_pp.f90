@@ -169,7 +169,6 @@ subroutine init_jxyz(ppg)
 end subroutine init_jxyz
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine finalize_jxyz(ppg)
-  use salmon_global,only : natom
   use salmon_pp,only : pp_grid
   implicit none 
   type(pp_grid) :: ppg
@@ -430,7 +429,7 @@ end subroutine set_lma_tbl
 subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
                    lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
                    flag_use_grad_wf_on_force,property)
-  use salmon_global,only : natom,nelem,kion,rion,iperiodic,domain_parallel
+  use salmon_global,only : natom,kion,rion,iperiodic
   use salmon_pp,only : pp_info,pp_grid
   implicit none
   real(8),parameter :: pi=3.141592653589793d0 ! copied from salmon_math

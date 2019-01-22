@@ -14,7 +14,6 @@
 !  limitations under the License.
 !
 SUBROUTINE calcuV
-use salmon_parallel, only: nproc_id_global
 use salmon_communication, only: comm_is_root
 use scf_data
 use allocate_psl_sub
@@ -79,11 +78,16 @@ integer :: iatom,jj,lm
     end do
   end if
   
+  call set_nlma(pp,ppg)
   call set_nlma(pp,ppg_all)
 
+  call init_lma_tbl(pp,ppg)
   call init_lma_tbl(pp,ppg_all)
+
+  call init_uv(pp,ppg)
   call init_uv(pp,ppg_all)
-  
+
+  call set_lma_tbl(pp,ppg)
   call set_lma_tbl(pp,ppg_all)
 
   allocate( save_udVtbl_a(pp%nrmax,0:pp%lmax,natom) )
@@ -91,6 +95,10 @@ integer :: iatom,jj,lm
   allocate( save_udVtbl_c(pp%nrmax,0:pp%lmax,natom) )
   allocate( save_udVtbl_d(pp%nrmax,0:pp%lmax,natom) )
      
+
+  call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
+               lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
+               flag_use_grad_wf_on_force,property)
 
   call calc_uv(pp,ppg_all,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
                lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
