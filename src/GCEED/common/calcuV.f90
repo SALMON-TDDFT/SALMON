@@ -112,6 +112,9 @@ integer :: iatom,jj,lm
     do l=0,Mlps(ik)
       if ( pp%inorm(l,ik)==0) then
         do lm=l**2+1,(l+1)**2
+          do jj=1,ppg%mps(iatom)
+            uV(jj,lm,iatom) = 0.d0
+          end do
           do jj=1,ppg_all%mps(iatom)
             uV_all(jj,lm,iatom) = 0.d0
           end do
@@ -120,10 +123,13 @@ integer :: iatom,jj,lm
       else
         do lm=l**2+1,(l+1)**2
           lma = lma + 1
+          do jj=1,ppg%mps(iatom)
+            uV(jj,lm,iatom) = ppg%uv(jj,lma)
+          end do
           do jj=1,ppg_all%mps(iatom)
             uV_all(jj,lm,iatom) = ppg_all%uv(jj,lma)
           end do
-          uVu(lm,iatom)=ppg_all%rinv_uvu(lma)*rinv_hvol
+          uVu(lm,iatom)=ppg%rinv_uvu(lma)*rinv_hvol
         end do 
       end if
     end do
