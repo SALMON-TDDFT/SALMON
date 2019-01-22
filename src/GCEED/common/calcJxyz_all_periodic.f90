@@ -90,9 +90,20 @@ subroutine calcJxyz_all_periodic
                                     lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     hx,hy,hz)
   
+  Jxyz=0
   Jxyz_all=0
+  Jxxyyzz=0
   Jxxyyzz_all=0
+
   do iatom=1,MI
+    do j=1,Mps(iatom)
+      Jxyz(1,j,iatom)=ppg%jxyz(1,j,iatom)+1
+      Jxyz(2,j,iatom)=ppg%jxyz(2,j,iatom)+1
+      Jxyz(3,j,iatom)=ppg%jxyz(3,j,iatom)+1
+      Jxxyyzz(1,j,iatom)=ppg%jxx(j,iatom)
+      Jxxyyzz(2,j,iatom)=ppg%jyy(j,iatom)
+      Jxxyyzz(3,j,iatom)=ppg%jzz(j,iatom)
+    end do
     do j=1,Mps_all(iatom)
       Jxyz_all(1,j,iatom)=ppg_all%jxyz(1,j,iatom)+1
       Jxyz_all(2,j,iatom)=ppg_all%jxyz(2,j,iatom)+1
