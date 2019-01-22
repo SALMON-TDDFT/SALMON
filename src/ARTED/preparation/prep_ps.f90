@@ -29,7 +29,7 @@ Subroutine prep_ps_periodic(property)
   implicit none
   character(17) :: property
   logical :: flag_alloc1, flag_alloc2
-  integer :: ik,i,a,j,ix,iy,iz,lma,l,m,lm,ir,intr
+  integer :: ik,i,a,j,ix,iy,iz,l,m,lm,ir,intr
   integer :: PNLx,PNLy,PNLz,narray
   real(8) :: x,y,z,r
   real(8) :: ratio1,ratio2,rc
@@ -78,7 +78,7 @@ Subroutine prep_ps_periodic(property)
     write(*,*) '============nonlocal grid data=============='
   endif
 
-  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,hx,hy,hz)
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,lx,ly,lz,nl,hx,hy,hz)
 
   nps=ppg%nps
   Mps(1:NI)=ppg%mps(1:NI)
@@ -115,7 +115,7 @@ Subroutine prep_ps_periodic(property)
 #endif
   endif
 
-  call calc_jxyz(pp,ppg,aLx,aLy,aLz,Lx,Ly,Lz,NL,Hx,Hy,Hz)
+  call calc_jxyz(pp,ppg,aLx,aLy,aLz,Lx,Ly,Lz,NL,Lx,Ly,Lz,NL,Hx,Hy,Hz)
 
   Jxyz(1:Nps,1:NI)=ppg%jxyz(3,1:Nps,1:NI)+1+NLz*ppg%jxyz(2,1:Nps,1:NI)+NLy*NLz*ppg%jxyz(1,1:Nps,1:NI)
   Jxx(:,:) =ppg%jxx(:,:)

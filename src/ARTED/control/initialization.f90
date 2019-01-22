@@ -90,7 +90,8 @@ contains
 ! Nonlinear core correction
     allocate(rho_nlcc_tbl(Nrmax,NE),tau_nlcc_tbl(Nrmax,NE))
     allocate(rho_nlcc(NL),tau_nlcc(NL))
-    call init_pp(pp,ppg,Nrmax,Lmax,flag_nlcc)
+    call init_pp(pp,Nrmax,Lmax,flag_nlcc)
+    call init_mps(ppg)
     call input_pp(pp,Hx,Hy,Hz)
     call pp_postprocess
 

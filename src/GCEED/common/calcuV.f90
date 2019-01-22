@@ -14,7 +14,6 @@
 !  limitations under the License.
 !
 SUBROUTINE calcuV
-use salmon_parallel, only: nproc_id_global
 use salmon_communication, only: comm_is_root
 use scf_data
 use allocate_psl_sub
@@ -80,11 +79,16 @@ integer :: iatom,jj,lm
   end if
   
   call set_nlma(pp,ppg)
+  call set_nlma(pp,ppg_all)
 
   call init_lma_tbl(pp,ppg)
+  call init_lma_tbl(pp,ppg_all)
+
   call init_uv(pp,ppg)
-  
+  call init_uv(pp,ppg_all)
+
   call set_lma_tbl(pp,ppg)
+  call set_lma_tbl(pp,ppg_all)
 
   allocate( save_udVtbl_a(pp%nrmax,0:pp%lmax,natom) )
   allocate( save_udVtbl_b(pp%nrmax,0:pp%lmax,natom) )
@@ -93,6 +97,10 @@ integer :: iatom,jj,lm
      
 
   call calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
+               lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
+               flag_use_grad_wf_on_force,property)
+
+  call calc_uv(pp,ppg_all,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
                lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
                flag_use_grad_wf_on_force,property)
 
@@ -105,6 +113,9 @@ integer :: iatom,jj,lm
       if ( pp%inorm(l,ik)==0) then
         do lm=l**2+1,(l+1)**2
           do jj=1,ppg%mps(iatom)
+            uV(jj,lm,iatom) = 0.d0
+          end do
+          do jj=1,ppg_all%mps(iatom)
             uV_all(jj,lm,iatom) = 0.d0
           end do
           uVu(lm,iatom)=1.d-10
@@ -113,7 +124,10 @@ integer :: iatom,jj,lm
         do lm=l**2+1,(l+1)**2
           lma = lma + 1
           do jj=1,ppg%mps(iatom)
-            uV_all(jj,lm,iatom) = ppg%uv(jj,lma)
+            uV(jj,lm,iatom) = ppg%uv(jj,lma)
+          end do
+          do jj=1,ppg_all%mps(iatom)
+            uV_all(jj,lm,iatom) = ppg_all%uv(jj,lma)
           end do
           uVu(lm,iatom)=ppg%rinv_uvu(lma)*rinv_hvol
         end do 

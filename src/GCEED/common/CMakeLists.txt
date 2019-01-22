@@ -9,7 +9,6 @@ set(SOURCES
     calc_gradient_fast.f90
     calc_iquotient.f90
     calc_iroot.f90
-    calcJxyz.f90
     calcJxyz_all.f90
     calcJxyz_all_periodic.f90
     calc_myob.f90
