@@ -46,19 +46,27 @@ subroutine init_ms_raman
   character(100)  :: char_atom, ctmp1,ctmp2
   character(6)    :: cnum
   
+  !keyword check
+  if(use_ms_maxwell=='n') then
+     call end_parallel
+     stop
+  endif
+
+
   allocate( c_pmode(NI), Rion_eq0(3,NI) )
   if (comm_is_root(nproc_id_global)) then
-     write(*,*) "read ff_ms_cp.inp file for coherent phonon calculation"
-     ifile_ff_ms = "./ff_ms_cp.inp"
+     write(*,*) "read raman.inp file for coherent phonon calculation"
+     ifile_ff_ms = "./raman.inp"
      open(800,file=trim(ifile_ff_ms),status="old")
      read(800,*) imode_FDTD_raman     !(1=standard, 2=read-ion-trajectory)
      if(imode_FDTD_raman==2) then
         read(800,'(a)') dir_ion_trj
      endif
      read(800,*) flag_ms_ff_LessPrint
-     read(800,*) Nm_FDTD  ! measurement point
+     Nm_FDTD = nmacro
+    !read(800,*) Nm_FDTD  ! measurement point
      read(800,*) Omg_dt   != Omg*dt = (2pi/T)*dt
-     read(800,*) v_mxmt   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
+    !read(800,*) v_mxmt   !=speed of light in material: v=mx/mt(x=mx*dx,t=mt*dt)
      read(800,*) eps_diag
      dchidq(:,:) = 0d0
      read(800,*) ntmp

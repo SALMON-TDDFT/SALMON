@@ -44,7 +44,6 @@ case(3)
   call calcJxyz_all_periodic
   call calcuV
 end select
-call calcJxyz
 
 return
 

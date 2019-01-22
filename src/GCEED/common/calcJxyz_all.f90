@@ -14,13 +14,15 @@
 !  limitations under the License.
 !
 subroutine calcJxyz_all
-use salmon_parallel, only: nproc_size_global, nproc_id_global, nproc_group_global
 use salmon_communication, only: comm_is_root, comm_summation
 use scf_data
 use allocate_psl_sub
 implicit none
 integer :: iatom,ix,iy,iz
   integer :: i,j
+  integer :: mmx(mg_num(1)*mg_num(2)*mg_num(3))
+  integer :: mmy(mg_num(1)*mg_num(2)*mg_num(3))
+  integer :: mmz(mg_num(1)*mg_num(2)*mg_num(3))
   integer :: lx(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: ly(lg_num(1)*lg_num(2)*lg_num(3))
   integer :: lz(lg_num(1)*lg_num(2)*lg_num(3))
@@ -34,6 +36,17 @@ integer :: iatom,ix,iy,iz
   aly=Hgs(2)*dble(lg_num(2))
   alz=Hgs(3)*dble(lg_num(3))
 
+  do iz=mg_sta(3),mg_end(3)
+  do iy=mg_sta(2),mg_end(2)
+  do ix=mg_sta(1),mg_end(1)
+    i=(iz-mg_sta(3))*mg_num(1)*mg_num(2)+(iy-mg_sta(2))*mg_num(1)+ix-mg_sta(1)+1
+    mmx(i)=ix
+    mmy(i)=iy
+    mmz(i)=iz
+  end do
+  end do
+  end do
+ 
   do iz=lg_sta(3),lg_end(3)
   do iy=lg_sta(2),lg_end(2)
   do ix=lg_sta(1),lg_end(1)
@@ -45,19 +58,40 @@ integer :: iatom,ix,iy,iz
   end do
   end do
  
-  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),hx,hy,hz)
-  Mps_all(1:MI)=ppg%mps(1:MI) 
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                   mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
+                                   hx,hy,hz)
+  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       hx,hy,hz)
+  Mps(1:MI)=ppg%mps(1:MI) 
+  Mps_all(1:MI)=ppg_all%mps(1:MI) 
 
-  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,  &
-                 lg_num(1)*lg_num(2)*lg_num(3),hx,hy,hz)
+  call init_jxyz(ppg)
+  call init_jxyz(ppg_all)
+
+  call calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                    mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
+                                    hx,hy,hz)
+  call calc_jxyz(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                    lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                    hx,hy,hz)
   
+  Jxyz=0
   Jxyz_all=0
+  Jxxyyzz=0
   Jxxyyzz_all=0
+
   do iatom=1,MI
+    do j=1,Mps(iatom)
+      Jxyz(1,j,iatom)=ppg%jxyz(1,j,iatom)
+      Jxyz(2,j,iatom)=ppg%jxyz(2,j,iatom)
+      Jxyz(3,j,iatom)=ppg%jxyz(3,j,iatom)
+    end do
     do j=1,Mps_all(iatom)
-      Jxyz_all(1,j,iatom)=ppg%jxyz(1,j,iatom)
-      Jxyz_all(2,j,iatom)=ppg%jxyz(2,j,iatom)
-      Jxyz_all(3,j,iatom)=ppg%jxyz(3,j,iatom)
+      Jxyz_all(1,j,iatom)=ppg_all%jxyz(1,j,iatom)
+      Jxyz_all(2,j,iatom)=ppg_all%jxyz(2,j,iatom)
+      Jxyz_all(3,j,iatom)=ppg_all%jxyz(3,j,iatom)
     end do
   end do
 

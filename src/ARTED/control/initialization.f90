@@ -90,7 +90,8 @@ contains
 ! Nonlinear core correction
     allocate(rho_nlcc_tbl(Nrmax,NE),tau_nlcc_tbl(Nrmax,NE))
     allocate(rho_nlcc(NL),tau_nlcc(NL))
-    call init_pp(pp,ppg,Nrmax,Lmax,flag_nlcc)
+    call init_pp(pp,Nrmax,Lmax,flag_nlcc)
+    call init_mps(ppg)
     call input_pp(pp,Hx,Hy,Hz)
     call pp_postprocess
 
@@ -540,7 +541,7 @@ contains
     endif
 
     !!AY force field + FDTD:
-    if(theory == 'Raman') call init_ms_raman
+    if(use_potential_model == 'Raman') call init_ms_raman
 
     call comm_sync_all
     
@@ -568,11 +569,11 @@ contains
        call set_initial_velocity
        if(set_ini_velocity=='r') call read_initial_velocity
 
-       if (use_ms_maxwell == 'y' .and. theory == 'TDDFT') then
-          if(nmacro_s .ne. nmacro_e .or. nproc_size_global.ne.nmacro)then
+       if (use_ms_maxwell == 'y' .and. use_potential_model=='n') then
+          if(nproc_size_global.lt.nmacro)then
              write(*,*) "Error: "
-             write(*,*) "  number of parallelization nodes must be equal to number of macro grids"
-             write(*,*) "  in ehrenfest md option with multi-scale"
+             write(*,*) "  number of parallelization nodes must be equal to or larger than  number of macro grids"
+             write(*,*) "  in md option with multi-scale"
              call end_parallel
              stop
           endif

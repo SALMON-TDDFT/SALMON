@@ -169,7 +169,7 @@ integer :: maxMps
 
 ! Pseudopotential
 type(pp_info) :: pp
-type(pp_grid) :: ppg
+type(pp_grid) :: ppg,ppg_all
 integer,parameter :: Nrmax=3000,Lmax=4
 integer,allocatable :: NRloc(:)
 real(8),allocatable :: Rloc(:)

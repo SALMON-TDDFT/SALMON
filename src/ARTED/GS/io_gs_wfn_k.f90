@@ -114,7 +114,7 @@ contains
 
     do imacro = nmacro_s, nmacro_e
 
-       nfile_occ_ms    = 7000 + imacro
+       nfile_occ_ms    = 7000 + nproc_id_global
        nfile_gs_wfn_ms = nfile_occ_ms
        write (gs_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/gs_wfn_k/'
        
@@ -123,15 +123,17 @@ contains
           open(nfile_occ_ms,file=trim(occ_file),form='unformatted')
           read(nfile_occ_ms) occ
           close(nfile_occ_ms)
-
-          !! maybe must be out of "if(comm_is_root(nproc_id_tdks)) then"
-          do ik=NK_s,NK_e
-             write(gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
-             open(nfile_gs_wfn_ms,file=trim(gs_wfn_file),form='unformatted')
-             read(nfile_gs_wfn_ms) zu_GS(:,:,ik)
-             close(nfile_gs_wfn_ms)
-          end do
        end if
+
+       call comm_sync_all
+
+       do ik=NK_s,NK_e
+          write(gs_wfn_file,'(A,A,I7.7,A)') trim(gs_wfn_directory),'/wfn_gs_k',ik,'.wfn'
+          open(nfile_gs_wfn_ms,file=trim(gs_wfn_file),form='unformatted')
+          read(nfile_gs_wfn_ms) zu_GS(:,:,ik)
+          close(nfile_gs_wfn_ms)
+       end do
+
 
        call comm_bcast(occ,nproc_group_tdks)
 
@@ -474,15 +476,15 @@ contains
 
     do imacro = nmacro_s, nmacro_e
 
+       write (rt_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/rt_wfn_k/'
+
+       nfile_occ_ms    = 7000 + nproc_id_global
+       nfile_rt_wfn_ms = nfile_occ_ms
+       nfile_md_ms     = nfile_occ_ms
+       nfile_other_ms  = nfile_occ_ms
+
        if(comm_is_root(nproc_id_tdks)) then
-
-          write (rt_wfn_directory,'(A,A)') trim(dir_ms_M(imacro)),'/rt_wfn_k/'
           if(iflag_read_write_ms==iflag_write_rt) call create_directory(rt_wfn_directory)
-
-          nfile_occ_ms    = 7000 + imacro
-          nfile_rt_wfn_ms = nfile_occ_ms
-          nfile_md_ms     = nfile_occ_ms
-          nfile_other_ms  = nfile_occ_ms
 
           occ_file = trim(rt_wfn_directory)//'occupation'
           open(nfile_occ_ms,file=trim(occ_file),form='unformatted')
@@ -511,18 +513,21 @@ contains
           end select
           close(nfile_other_ms)
 
-          !! maybe must be out of "if(comm_is_root(nproc_id_tdks)) then"
-          do ik=NK_s,NK_e
-             write(rt_wfn_file,'(A,A,I7.7,A)') trim(rt_wfn_directory),'/wfn_rt_k',ik,'.wfn'
-             open(nfile_rt_wfn_ms,file=trim(rt_wfn_file),form='unformatted')
-             select case(iflag_read_write_ms)
-             case(iflag_write_rt); write(nfile_rt_wfn_ms) zu_m(:,:,ik,imacro)
-             case(iflag_read_rt ); read( nfile_rt_wfn_ms) zu_t(:,:,ik)
-             end select
-             close(nfile_rt_wfn_ms)
-          end do
-
        end if
+
+       call comm_sync_all
+
+       do ik=NK_s,NK_e
+          write(rt_wfn_file,'(A,A,I7.7,A)') trim(rt_wfn_directory),'/wfn_rt_k',ik,'.wfn'
+          open(nfile_rt_wfn_ms,file=trim(rt_wfn_file),form='unformatted')
+          select case(iflag_read_write_ms)
+          case(iflag_write_rt); write(nfile_rt_wfn_ms) zu_m(:,:,ik,imacro)
+          case(iflag_read_rt ); read( nfile_rt_wfn_ms) zu_t(:,:,ik)
+          end select
+          close(nfile_rt_wfn_ms)
+       end do
+
+
 
        if(iflag_read_write_ms == iflag_read_rt) then
 

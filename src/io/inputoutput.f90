@@ -215,7 +215,8 @@ contains
       & use_adiabatic_md, &
       & use_ms_maxwell, &
       & use_force, &
-      & use_geometry_opt
+      & use_geometry_opt, &
+      & use_potential_model   !AY trial
 
     namelist/control/ &
       & restart_option, &
@@ -560,13 +561,14 @@ contains
     call initialize_inputoutput_units
 
 !! == default for &calculation 
-    theory           = 'TDDFT'
-    calc_mode        = 'none'
-    use_ehrenfest_md = 'n'
-    use_adiabatic_md = 'n'
-    use_ms_maxwell   = 'n'
-    use_force        = 'n'
-    use_geometry_opt = 'n'
+    theory              = 'TDDFT'
+    calc_mode           = 'none'
+    use_ehrenfest_md    = 'n'
+    use_adiabatic_md    = 'n'
+    use_ms_maxwell      = 'n'
+    use_force           = 'n'
+    use_geometry_opt    = 'n'
+    use_potential_model = 'n'
 !! == default for &control
     restart_option   = 'new'
     backup_frequency = 0
@@ -940,13 +942,14 @@ contains
 
 ! Broad cast
 !! == bcast for &calculation
-    call comm_bcast(theory          ,nproc_group_global)
-    call comm_bcast(calc_mode       ,nproc_group_global)
-    call comm_bcast(use_ehrenfest_md,nproc_group_global)
-    call comm_bcast(use_adiabatic_md,nproc_group_global)
-    call comm_bcast(use_ms_maxwell  ,nproc_group_global)
-    call comm_bcast(use_force       ,nproc_group_global)
-    call comm_bcast(use_geometry_opt,nproc_group_global)
+    call comm_bcast(theory             ,nproc_group_global)
+    call comm_bcast(calc_mode          ,nproc_group_global)
+    call comm_bcast(use_ehrenfest_md   ,nproc_group_global)
+    call comm_bcast(use_adiabatic_md   ,nproc_group_global)
+    call comm_bcast(use_ms_maxwell     ,nproc_group_global)
+    call comm_bcast(use_force          ,nproc_group_global)
+    call comm_bcast(use_geometry_opt   ,nproc_group_global)
+    call comm_bcast(use_potential_model,nproc_group_global)
 !! == bcast for &control
     call comm_bcast(restart_option  ,nproc_group_global)
     call comm_bcast(backup_frequency,nproc_group_global)
@@ -1547,6 +1550,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_ms_maxwell', use_ms_maxwell
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_force', use_force
       write(fh_variables_log, '("#",4X,A,"=",A)') 'use_geometry_opt', use_geometry_opt
+!     write(fh_variables_log, '("#",4X,A,"=",A)') 'use_potential_model', use_potential_model !AY not open now
 
       if(inml_control >0)ierr_nml = ierr_nml +1
       write(fh_variables_log, '("#namelist: ",A,", status=",I3)') 'control', inml_control

@@ -7,6 +7,10 @@
   sysname = 'Si'
 /
 
+&units
+  unit_system = 'a.u.'
+/
+
 &system
   iperiodic = 3
   al = 10.26d0, 10.26d0, 10.26d0
@@ -31,21 +35,22 @@
 /
 
 &kgrid
-  num_kgrid = 2, 2, 2
+  num_kgrid = 4, 4, 4
 /
 
 &tgrid
-  nt = 4000
-  dt = 0.08
+  nt = 3000
+  dt = 0.16
 /
 
 &propagation
-  propagator = 'middlepoint'
+  propagator = 'etrs'
 /
 
 &scf
   ncg = 5
-  nscf = 100
+  nscf = 120
+  threshold = 1.d-9
 /
 
 &emfield
@@ -59,11 +64,11 @@
 &multiscale
   fdtddim = '1d'
   twod_shape = 'periodic'
-  nx_m = 4
+  nx_m = 8
   ny_m = 1
-  hx_m = 250d0
-  nxvacl_m = -2000
-  nxvacr_m = 256
+  hx_m = 188.97
+  nxvacl_m = -500
+  nxvacr_m = +500
 /
 
 &atomic_red_coor
