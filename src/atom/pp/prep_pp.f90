@@ -261,7 +261,7 @@ end subroutine calc_mps
 
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,mx,my,mz,ml,hx,hy,hz)
-  use salmon_global,only : natom,kion,rion,iperiodic
+  use salmon_global,only : natom,kion,rion,iperiodic,domain_parallel
   use salmon_pp,only : pp_info,pp_grid
   implicit none
   type(pp_info) :: pp
@@ -300,7 +300,13 @@ subroutine calc_jxyz(pp,ppg,alx,aly,alz,lx,ly,lz,nl,mx,my,mz,ml,hx,hy,hz)
       rshift(3)=-0.5d0*Hz
     end if
   else if(iperiodic==3)then 
-    rshift(:)=0.d0
+    if(domain_parallel=='y')then
+      rshift(1)=-Hx
+      rshift(2)=-Hy
+      rshift(3)=-Hz
+    else
+      rshift(:)=0.d0
+    end if
   end if
 
 !$omp parallel
@@ -435,7 +441,7 @@ end subroutine set_lma_tbl
 subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_d, &
                    lx,ly,lz,nl,hx,hy,hz,alx,aly,alz,  &
                    flag_use_grad_wf_on_force,property)
-  use salmon_global,only : natom,kion,rion,iperiodic
+  use salmon_global,only : natom,kion,rion,iperiodic,domain_parallel
   use salmon_pp,only : pp_info,pp_grid
   implicit none
   real(8),parameter :: pi=3.141592653589793d0 ! copied from salmon_math
@@ -482,8 +488,15 @@ subroutine calc_uv(pp,ppg,save_udvtbl_a,save_udvtbl_b,save_udvtbl_c,save_udvtbl_
       rshift(3)=-0.5d0*Hz
     end if
   else if(iperiodic==3)then 
-    rshift(:)=0.d0
+    if(domain_parallel=='y')then
+      rshift(1)=-Hx
+      rshift(2)=-Hy
+      rshift(3)=-Hz
+    else
+      rshift(:)=0.d0
+    end if
   end if
+
   if(property /= 'update_wo_realloc') then
 
     do a=1,natom
