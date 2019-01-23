@@ -53,9 +53,9 @@ subroutine calcJxyz_all_periodic
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
     i=(iz-1)*mg_num(1)*mg_num(2)+(iy-1)*mg_num(1)+ix
-    mmx(i)=ix-1+mg_sta(1)-1
-    mmy(i)=iy-1+mg_sta(2)-1
-    mmz(i)=iz-1+mg_sta(3)-1
+    mmx(i)=ix+mg_sta(1)-1
+    mmy(i)=iy+mg_sta(2)-1
+    mmz(i)=iz+mg_sta(3)-1
   end do
   end do
   end do
@@ -64,9 +64,9 @@ subroutine calcJxyz_all_periodic
   do iy=1,lg_num(2)
   do ix=1,lg_num(1)
     i=(iz-1)*lg_num(1)*lg_num(2)+(iy-1)*lg_num(1)+ix
-    lx(i)=ix-1
-    ly(i)=iy-1
-    lz(i)=iz-1
+    lx(i)=ix
+    ly(i)=iy
+    lz(i)=iz
   end do
   end do
   end do
@@ -89,7 +89,6 @@ subroutine calcJxyz_all_periodic
   call calc_jxyz(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
                                     hx,hy,hz)
-  
   Jxyz=0
   Jxyz_all=0
   Jxxyyzz=0
@@ -97,17 +96,17 @@ subroutine calcJxyz_all_periodic
 
   do iatom=1,MI
     do j=1,Mps(iatom)
-      Jxyz(1,j,iatom)=ppg%jxyz(1,j,iatom)+1
-      Jxyz(2,j,iatom)=ppg%jxyz(2,j,iatom)+1
-      Jxyz(3,j,iatom)=ppg%jxyz(3,j,iatom)+1
+      Jxyz(1,j,iatom)=ppg%jxyz(1,j,iatom)
+      Jxyz(2,j,iatom)=ppg%jxyz(2,j,iatom)
+      Jxyz(3,j,iatom)=ppg%jxyz(3,j,iatom)
       Jxxyyzz(1,j,iatom)=ppg%jxx(j,iatom)
       Jxxyyzz(2,j,iatom)=ppg%jyy(j,iatom)
       Jxxyyzz(3,j,iatom)=ppg%jzz(j,iatom)
     end do
     do j=1,Mps_all(iatom)
-      Jxyz_all(1,j,iatom)=ppg_all%jxyz(1,j,iatom)+1
-      Jxyz_all(2,j,iatom)=ppg_all%jxyz(2,j,iatom)+1
-      Jxyz_all(3,j,iatom)=ppg_all%jxyz(3,j,iatom)+1
+      Jxyz_all(1,j,iatom)=ppg_all%jxyz(1,j,iatom)
+      Jxyz_all(2,j,iatom)=ppg_all%jxyz(2,j,iatom)
+      Jxyz_all(3,j,iatom)=ppg_all%jxyz(3,j,iatom)
       Jxxyyzz_all(1,j,iatom)=ppg_all%jxx(j,iatom)
       Jxxyyzz_all(2,j,iatom)=ppg_all%jyy(j,iatom)
       Jxxyyzz_all(3,j,iatom)=ppg_all%jzz(j,iatom)
