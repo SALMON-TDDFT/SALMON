@@ -53,6 +53,37 @@ subroutine calcJxyz_all_periodic
   do iy=1,mg_num(2)
   do ix=1,mg_num(1)
     i=(iz-1)*mg_num(1)*mg_num(2)+(iy-1)*mg_num(1)+ix
+    mmx(i)=ix+mg_sta(1)-1
+    mmy(i)=iy+mg_sta(2)-1
+    mmz(i)=iz+mg_sta(3)-1
+  end do
+  end do
+  end do
+ 
+  do iz=1,lg_num(3)
+  do iy=1,lg_num(2)
+  do ix=1,lg_num(1)
+    i=(iz-1)*lg_num(1)*lg_num(2)+(iy-1)*lg_num(1)+ix
+    lx(i)=ix
+    ly(i)=iy
+    lz(i)=iz
+  end do
+  end do
+  end do
+ 
+  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                   mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
+                                   hx,hy,hz)
+  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
+                                       hx,hy,hz)
+  Mps(1:MI)=ppg%mps(1:MI) 
+  Mps_all(1:MI)=ppg_all%mps(1:MI) 
+
+  do iz=1,mg_num(3)
+  do iy=1,mg_num(2)
+  do ix=1,mg_num(1)
+    i=(iz-1)*mg_num(1)*mg_num(2)+(iy-1)*mg_num(1)+ix
     mmx(i)=ix-1+mg_sta(1)-1
     mmy(i)=iy-1+mg_sta(2)-1
     mmz(i)=iz-1+mg_sta(3)-1
@@ -71,15 +102,6 @@ subroutine calcJxyz_all_periodic
   end do
   end do
  
-  call calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
-                                   mmx,mmy,mmz,mg_num(1)*mg_num(2)*mg_num(3),   &
-                                   hx,hy,hz)
-  call calc_mps(pp,ppg_all,alx,aly,alz,lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
-                                       lx,ly,lz,lg_num(1)*lg_num(2)*lg_num(3),   &
-                                       hx,hy,hz)
-  Mps(1:MI)=ppg%mps(1:MI) 
-  Mps_all(1:MI)=ppg_all%mps(1:MI) 
-
   call init_jxyz(ppg) 
   call init_jxyz(ppg_all)
  

@@ -180,7 +180,7 @@ end subroutine finalize_jxyz
 !--------10--------20--------30--------40--------50--------60--------70--------80--------90--------100-------110-------120-------130
 
 subroutine calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,mx,my,mz,ml,hx,hy,hz)
-  use salmon_global,only : natom,kion,rion,iperiodic
+  use salmon_global,only : natom,kion,rion,iperiodic,domain_parallel
   use salmon_pp,only : pp_info,pp_grid
   implicit none
   type(pp_info) :: pp
@@ -218,8 +218,14 @@ subroutine calc_mps(pp,ppg,alx,aly,alz,lx,ly,lz,nl,mx,my,mz,ml,hx,hy,hz)
     else
       rshift(3)=-0.5d0*Hz
     end if
-  else if(iperiodic==3)then 
-    rshift(:)=0.d0
+  else if(iperiodic==3)then
+    if(domain_parallel=='y')then
+      rshift(1)=-Hx
+      rshift(2)=-Hy
+      rshift(3)=-Hz
+    else
+      rshift(:)=0.d0
+    end if
   end if
 
 
