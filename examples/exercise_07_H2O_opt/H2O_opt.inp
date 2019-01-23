@@ -1,0 +1,68 @@
+! geomerty optimization function (with periodic boundary condition) is still trial
+! (MPI parallelization is not supported in optimization)
+&calculation
+  calc_mode = 'GS'
+  use_geometry_opt='y'
+/
+
+&control
+  sysname = 'H2O'
+/
+
+&units
+  unit_system='A_eV_fs'
+/
+
+&system
+  iperiodic = 3
+  al = 5.0d0, 5.0d0, 5.0d0
+  isym = 1
+  nstate = 8
+  nelec  = 8
+  nelem  = 2
+  natom  = 3
+/
+
+
+&pseudo
+  iZatom(1)=1
+  pseudo_file(1) = './H_rps.dat'
+  Lloc_ps(1)=1
+  iZatom(2)=8
+  pseudo_file(2) = './O_rps.dat'
+  Lloc_ps(2)=1
+/
+
+&functional
+  xc ='PZ'
+/
+
+&rgrid
+  num_rgrid = 24,24,24
+/
+
+&kgrid
+  num_kgrid=0,0,0
+  file_kw="k1x1x1.dat"
+/
+
+&propagation
+  propagator='etrs'
+/
+
+&scf
+  ncg = 5
+  nscf = 200
+  threshold=1d-8
+  omp_loop='b'
+/
+
+&opt
+  convrg_opt_fmax  = 1d-3
+/
+
+&atomic_coor
+'H'     3.5     2.5     2.5     1  y
+'H'     2.5     3.5     2.5     1  y
+'O'     2.5     2.5     2.5     2  y
+/

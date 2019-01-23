@@ -1,0 +1,78 @@
+! md function (with periodic boundary condition) is still trial
+&calculation
+  calc_mode = 'GS_RT'
+  use_ehrenfest_md = 'y'
+/
+
+&control
+  sysname = 'H2O'
+!  write_rt_wfn_k="y"
+/
+
+&units
+  unit_system='A_eV_fs'
+/
+
+&system
+  iperiodic = 3
+  al = 5.0d0, 5.0d0, 5.0d0
+  isym = 1
+  nstate = 8
+  nelec  = 8
+  nelem  = 2
+  natom  = 3
+/
+
+
+&pseudo
+  iZatom(1)=1
+  pseudo_file(1) = './H_rps.dat'
+  Lloc_ps(1)=1
+  iZatom(2)=8
+  pseudo_file(2) = './O_rps.dat'
+  Lloc_ps(2)=1
+/
+
+&functional
+  xc ='PZ'
+/
+
+&rgrid
+  num_rgrid = 24,24,24
+/
+
+&kgrid
+  num_kgrid=0,0,0
+  file_kw="k1x1x1.dat"
+/
+
+&tgrid
+ nt=10000
+ dt=0.002
+/
+
+&propagation
+  propagator='etrs'
+/
+
+&scf
+  ncg = 5
+  nscf = 200
+  threshold=1d-8
+  omp_loop='b'
+/
+
+&md
+  ensemble = "NVE"
+  set_ini_velocity='y'
+  temperature0_ion=300.0d0
+  step_update_ps=       50
+  step_update_ps2=     200
+/
+
+&atomic_coor
+'H'     3.5064573035      2.4282688424      2.4999999797  1
+'H'     2.4282688441      3.5064573740      2.4999999888  1
+'O'     2.5628021055      2.5628020309      2.4999998931  2
+/
+
