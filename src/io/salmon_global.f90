@@ -295,7 +295,7 @@ module salmon_global
   real(8)        :: temperature0_ion
   character(1)   :: set_ini_velocity
   character(256) :: file_ini_velocity
-  character(256) :: file_set_shake
+  integer        :: seed_ini_velocity
   real(8)        :: thermostat_tau
   real(8)        :: friction
   character(1)   :: stop_system_momt
