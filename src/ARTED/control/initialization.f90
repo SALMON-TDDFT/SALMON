@@ -602,7 +602,8 @@ contains
 
     kB_au = kB/hartree2J   ![au/K]
 
-    iseed= 123
+   !iseed= 123
+    iseed = seed_ini_velocity
     do ia=1,NI
        mass_au = umass*Mass(Kion(ia))
        sqrt_kT_im = sqrt( kB_au * temperature0_ion / mass_au )

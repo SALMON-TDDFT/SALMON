@@ -464,7 +464,7 @@ contains
       & temperature0_ion, &
       & set_ini_velocity, &
       & file_ini_velocity, &
-      & file_set_shake, &
+      & seed_ini_velocity, &
       & thermostat_tau, &
       & friction, &
       & stop_system_momt
@@ -802,7 +802,7 @@ contains
     temperature0_ion      = 298.15d0
     set_ini_velocity      = 'n'
     file_ini_velocity     = 'none'
-    file_set_shake        = 'none'
+    seed_ini_velocity     = 123
     thermostat_tau        =  41.34d0  !=1fs: just test value
     friction              =  0d0
     stop_system_momt      = 'n'
@@ -1229,7 +1229,7 @@ contains
     call comm_bcast(temperature0_ion       ,nproc_group_global)
     call comm_bcast(set_ini_velocity       ,nproc_group_global)
     call comm_bcast(file_ini_velocity      ,nproc_group_global)
-    call comm_bcast(file_set_shake         ,nproc_group_global)
+    call comm_bcast(seed_ini_velocity      ,nproc_group_global)
     call comm_bcast(thermostat_tau         ,nproc_group_global)
     thermostat_tau = thermostat_tau * utime_to_au
     call comm_bcast(friction               ,nproc_group_global)
@@ -1872,7 +1872,7 @@ contains
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'temperature0_ion', temperature0_ion
       write(fh_variables_log, '("#",4X,A,"=",A)') 'set_ini_velocity', set_ini_velocity
       write(fh_variables_log, '("#",4X,A,"=",A)') 'file_ini_velocity', trim(file_ini_velocity)
-!      write(fh_variables_log, '("#",4X,A,"=",A)') 'file_set_shake', trim(file_set_shake)
+      write(fh_variables_log, '("#",4X,A,"=",I8)') 'seed_ini_velocity', seed_ini_velocity
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'thermostat_tau', thermostat_tau
       write(fh_variables_log, '("#",4X,A,"=",ES12.5)') 'friction', friction
       write(fh_variables_log, '("#",4X,A,"=",A)') 'stop_system_momt', stop_system_momt
