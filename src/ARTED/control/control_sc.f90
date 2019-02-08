@@ -302,8 +302,10 @@ subroutine tddft_sc
 
     ! Export to file_trj
     if (out_rvf_rt=='y' .and. mod(iter,out_rvf_rt_step)==0)then
-       if(use_ehrenfest_md=='n') &
-       &  call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
+       if(use_ehrenfest_md=='n') then
+          call Ion_Force_omp(Rion_update_rt,calc_mode_rt)
+          force=force+FionAc
+       endif
        write(comment_line,110) iter, iter*dt
 110    format("#rt   step=",i8,"   time",e16.6)
        if(ensemble=="NVT" .and. thermostat=="nose-hoover") &

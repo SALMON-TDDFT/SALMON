@@ -84,6 +84,7 @@ subroutine tddft_maxwell_ms
           Vloc(1:NL)=Vh(1:NL)+Vpsl(1:NL)+Vexc(1:NL)
           call Total_Energy_omp(rion_update_on,calc_mode_rt,imacro)
           call Ion_Force_omp(rion_update_on,calc_mode_rt,imacro)
+          call Ion_Force_Ac_MS(imacro)
        enddo
        do imacro = 1, nmacro
           ix_m = macropoint(1,imacro)
@@ -132,6 +133,7 @@ subroutine tddft_maxwell_ms
 
        do imacro = nmacro_s, nmacro_e
          call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
+         call Ion_Force_Ac_MS(imacro)
          call write_xyz_ms(comment_line,"new","rvf",imacro)
          call write_xyz_ms(comment_line,"add","rvf",imacro)
        enddo
@@ -364,6 +366,7 @@ subroutine tddft_maxwell_ms
           call Total_Energy_omp(Rion_update_rt,calc_mode_rt,imacro)
 !$acc update self(zu_m(:,:,:,imacro))
           call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
+          call Ion_Force_Ac_MS(imacro)
         end if
       end if
     
@@ -385,8 +388,10 @@ subroutine tddft_maxwell_ms
       endif
       !(for exporting to file_trj later)
       if (out_rvf_rt=='y' .and. mod(iter,out_rvf_rt_step)==0)then
-         if(use_ehrenfest_md=='n') &
-         &  call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
+         if(use_ehrenfest_md=='n') then
+            call Ion_Force_omp(Rion_update_rt,calc_mode_rt,imacro)
+            call Ion_Force_Ac_MS(imacro)
+         endif
       endif
       !===========================================================================
 
