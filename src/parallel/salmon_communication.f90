@@ -1661,7 +1661,7 @@ contains
     integer, intent(in)  :: displs(:)
     integer, intent(in)  :: ngroup
     ABORT_MESSAGE(ngroup,"comm_allgatherv_array1d_double")
-    outvalue(displs(1)+1:displs(1)+ncounts(1)) = invalue(1:ncounts(1)-1)
+    outvalue(displs(1)+1:displs(1)+ncounts(1)-1) = invalue(1:ncounts(1)-1)
 #endif
   end subroutine
 
