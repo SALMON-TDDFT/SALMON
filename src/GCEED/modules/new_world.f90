@@ -1124,7 +1124,7 @@ do is=is_sta,is_end
       ibox2=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
 
       call copyVlocal(matbox12(idisp(ibox2):  &
-                      (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),  &
+                      (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox)-1)),  &
                       ibox,is)
 
     end do
@@ -1140,7 +1140,7 @@ do is=is_sta,is_end
       ibox2=i1+i2*nproc_Mxin_s_dm(1)+i3*nproc_Mxin_s_dm(1)*nproc_Mxin_s_dm(2)
 
       call copyVlocal(matbox12(idisp(ibox2):  &
-                      (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox))),  &
+                      (idisp(ibox2)+inum_Mxin_s(1,ibox)*inum_Mxin_s(2,ibox)*inum_Mxin_s(3,ibox)-1)),  &
                       ibox,is)
 
     end do
