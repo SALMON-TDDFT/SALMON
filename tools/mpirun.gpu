@@ -155,7 +155,7 @@ if [[ "${mpiname}" = "mvapich2" ]]; then
 elif [[ "${mpiname}" = "openmpi" ]]; then
   mpirun_command=`which mpirun`
   if [[ $? -eq 0 ]]; then
-    mpirun_command="${mpirun_command} -np ${SLURM_NTASKS} --map-by ppr:${nprocs_per_socket}:numa:PE=${OMP_NUM_THREADS}"
+    mpirun_command="${mpirun_command} -np ${SLURM_NTASKS} --map-by numa:PE=${OMP_NUM_THREADS} --rank-by numa"
     if [[ $MPIRUN_ENABLE_MPS -eq 1 ]]; then
       mpi_wrapper="${BASEDIR}/get_mpi_configuration ${BASEDIR}/cuda_mps_run ${BASEDIR}/select_cuda_device"
     else
