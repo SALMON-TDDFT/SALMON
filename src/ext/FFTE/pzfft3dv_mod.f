@@ -1,5 +1,5 @@
 C
-C  Copyright 2018 SALMON developers
+C  Copyright 2017-2019 SALMON developers
 C
 C  Licensed under the Apache License, Version 2.0 (the "License");
 C  you may not use this file except in compliance with the License.

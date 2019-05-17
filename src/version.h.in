@@ -7,6 +7,6 @@
 
 #define SALMON_VER_MAJOR  1
 #define SALMON_VER_MINOR  2
-#define SALMON_VER_MICRO  0
+#define SALMON_VER_MICRO  1
 
 #endif
