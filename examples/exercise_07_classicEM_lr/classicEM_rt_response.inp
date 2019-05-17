@@ -37,5 +37,5 @@
   imedia_num    = 1
   type_media(1) = 'drude'
   omega_p_d(1)  = 9.03d0
-  gamma_d(1)    = 0.53d0-1
+  gamma_d(1)    = 0.53d-1
 /
