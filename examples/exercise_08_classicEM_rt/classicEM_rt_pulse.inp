@@ -48,4 +48,5 @@
   iobs_num_em     = 1
   iobs_samp_em    = 100
   obs_loc_em(1,:) = 0.0d0, 0.0d0, 0.0d0
+  obs_plane_em(1) = 'y'
 /
